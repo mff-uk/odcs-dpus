@@ -301,7 +301,8 @@ public class Parser extends ScrapingTemplate{
                 String title = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(1) td:eq(1)").getValue().replace("\"", "\\\"");
                 String castka = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(2) td:eq(1)").getValue();
                 String castka_cislo = castka.replaceAll("([0-9]*) \\((.*)\\)","$1");
-                String castka_datum_old = castka.replaceAll("([0-9]*) \\((.*)\\)","$2");
+                //WARNING: space in replace is not a regular space but &nbsp;
+                String castka_datum_old = castka.replace(". ", ".").replaceAll("([0-9]*) \\((.*)\\)","$2");
                 String castka_datum_new;
                 try
                 {
@@ -318,7 +319,8 @@ public class Parser extends ScrapingTemplate{
                 String cislo = identifier.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
                 
                 String validFromNew;
-                String validFromOld = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(3) td:eq(1)").getValue().replaceAll("[od][od] (.*)", "$1");
+                //WARNING: space in replace is not a regular space but &nbsp;
+                String validFromOld = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(3) td:eq(1)").getValue().replace(". ", ".").replaceAll("[od][od] ([^,]*),?.*", "$1");
                 Date validFromDate;
                 try {
                     validFromDate = new SimpleDateFormat("dd.MM.yyyy").parse(validFromOld);

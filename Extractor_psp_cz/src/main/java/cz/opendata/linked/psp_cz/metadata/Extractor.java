@@ -11,10 +11,15 @@ import java.net.URL;
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.configuration.Configurable;
+import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
+import cz.cuni.xrg.intlib.commons.data.DataUnitType;
 import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
+import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
+import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 
 public class Extractor implements Extract, // TODO 1: Implements Extract,Transform or Load interfac
 
@@ -41,13 +46,14 @@ public class Extractor implements Extract, // TODO 1: Implements Extract,Transfo
 		return config;
 	}
 	
-	public void extract(ExtractContext ctx)
+	public void extract(ExtractContext ctx) throws ExtractException
 	{
         // vytvorime si parser
         Cache.setInterval(350);
+        String filename = ctx.getWorkingDir() + /*config.outputFileName*/ "sbirka.ttl";
         Parser s = new Parser();
         try {
-			s.ps = new PrintStream(config.outputFileName, "UTF-8");
+			s.ps = new PrintStream(filename, "UTF-8");
 			s.logger = logger;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -70,8 +76,8 @@ public class Extractor implements Extract, // TODO 1: Implements Extract,Transfo
 
         // a spustim na vychozi stranku
         
-        logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + config.outputFileName);
-        for (int i = config.Start_year; i < config.End_year; i++)
+        logger.info("Starting extraction. From year: " + /*config.Start_year*/ "1918" + " To: " + /*config.End_year*/ /*"2013"*/"1918" + " Output: " + filename);
+        for (int i = /*config.Start_year*/ 1918; i <= /*config.End_year*/ 1918; i++)
         {   
             java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
@@ -90,6 +96,22 @@ public class Extractor implements Extract, // TODO 1: Implements Extract,Transfo
         }
         
         s.ps.close();
+        
+        //give ttl to odcs
+        RDFDataRepository outputRepository;
+        try {
+            outputRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "output");
+        } catch (DataUnitCreateException e) {
+            throw new ExtractException("Can't create DataUnit", e);
+        }
+        
+        try {
+        	outputRepository.extractFromLocalTurtleFile(filename);
+        }
+        catch (RDFException e)
+        {
+        	logger.error("Cannot put TTL to repository.");
+        }
         		
 	}
 	
