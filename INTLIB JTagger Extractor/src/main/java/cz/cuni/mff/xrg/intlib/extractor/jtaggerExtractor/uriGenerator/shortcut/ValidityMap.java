@@ -32,15 +32,15 @@ public class ValidityMap {
     public static void load(ExtractContext context) throws FileNotFoundException, IOException {
         
          
-        //set the tempDir        
-        if (context != null) {  
-            SparqlLoader.tempDir = context.getWorkingDir();
-          
-        } else {
-            SparqlLoader.tempDir = new File(System.getProperty("java.io.tmpdir"));
-        }
-        logger.info("Tmp set as: " + context.getWorkingDir());
-        
+//        //set the tempDir        
+//        if (context != null) {  
+//            SparqlLoader.tempDir = context.getWorkingDir();
+//          
+//        } else {
+//            SparqlLoader.tempDir = new File(System.getProperty("java.io.tmpdir"));
+//        }
+//        logger.info("Tmp set as: " + context.getWorkingDir());
+//        
         logger.debug("Taking file with expressions from: " + SparqlLoader.EXPRESSION_LIST);
         
         //FileReader fr = new FileReader(EXPRESSION_LIST); 

@@ -5,6 +5,7 @@ import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.JTaggerExtractor;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Configuration;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.LawDocument;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.SparqlLoader;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.ValidityMap;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import java.io.*;
@@ -101,11 +102,21 @@ public class IntLibLink {
         String outputFile = "";
         String configFile = VSTUPNI_SOUBOR;
         
-        /*try {
+        //set the tempDir        
+        if (context != null) {  
+            SparqlLoader.tempDir = context.getWorkingDir();
+          
+        } else {
+            SparqlLoader.tempDir = new File(System.getProperty("java.io.tmpdir"));
+        }
+        logger.info("Tmp set as: " + context.getWorkingDir());
+      
+        
+        try {
             SparqlLoader.renewCache(3600);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(IntLibLink.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+            logger.error(ex.getLocalizedMessage());
+        }
         
         /*Logger.getLogger("intlib").log(System.getenv("APPDATA"));
         Logger.getLogger("intlib").log(SparqlLoader.loadCourts());
