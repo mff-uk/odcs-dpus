@@ -13,17 +13,19 @@ public class ExtractorDialog extends AbstractConfigDialog<ExtractorConfig> {
 	 * 
 	 */
 	private static final long serialVersionUID = -8158163219102623590L;
+	
+	private ExtractorConfig config;
 
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		// TODO Auto-generated method stub
-		
+		config = conf;
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		// TODO Auto-generated method stub
-		return null;
+		return config;
 	}
 	
 }

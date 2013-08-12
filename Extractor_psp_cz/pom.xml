@@ -21,5 +21,17 @@
         <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
- 	
+ 	<dependencies>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.7.2</version>
+		</dependency> 		
+		<dependency>
+		  <groupId>cz.cuni.mff.starka</groupId>
+		  <artifactId>ScraperLibrary</artifactId>
+		  <version>1.0.0</version>
+		  <type>jar</type>
+		</dependency> 		 
+ 	</dependencies>
 </project>
