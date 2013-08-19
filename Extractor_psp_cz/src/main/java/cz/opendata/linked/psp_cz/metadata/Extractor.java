@@ -2,6 +2,8 @@ package cz.opendata.linked.psp_cz.metadata;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -17,6 +19,10 @@ import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
+<<<<<<< HEAD
+=======
+import cz.cuni.xrg.intlib.commons.module.file.FileManager;
+>>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
@@ -44,11 +50,15 @@ public class Extractor
 	public void extract(ExtractContext ctx) throws ExtractException
 	{
         // vytvorime si parser
+        FileManager fm = new FileManager(ctx);
+		
         Cache.setInterval(350);
-        String filename = ctx.getWorkingDir() + /*config.outputFileName*/ "sbirka.ttl";
+        Cache.setBaseDir(ctx.getUserDirectory().getPath());
+        
+        String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
         Parser s = new Parser();
         try {
-			s.ps = new PrintStream(filename, "UTF-8");
+			s.ps = new PrintStream(tempfilename, "UTF-8");
 			s.logger = logger;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -71,7 +81,11 @@ public class Extractor
 
         // a spustim na vychozi stranku
         
+<<<<<<< HEAD
         logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + filename);
+=======
+        logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
+>>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
         for (int i = config.Start_year; i <= config.End_year; i++)
         {   
             java.util.Date date = new java.util.Date();
@@ -99,7 +113,7 @@ public class Extractor
         }
         
         try {
-        	outputRepository.extractFromLocalTurtleFile(filename);
+        	outputRepository.extractFromLocalTurtleFile(tempfilename);
         }
         catch (RDFException e)
         {
