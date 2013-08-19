@@ -1,13 +1,13 @@
 package cz.opendata.linked.psp_cz.metadata;
 
-import cz.cuni.xrg.intlib.commons.configuration.Config;
+import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class ExtractorConfig implements Config {
+public class ExtractorConfig implements DPUConfigObject {
 	
 	/**
 	 * 
@@ -16,8 +16,13 @@ public class ExtractorConfig implements Config {
 
 	public int Start_year = 1918;
 
-	public int End_year = 2013;
-	
+	public int End_year = 1918;
+        
 	public String outputFileName = "sbirka.ttl";
+
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
 }

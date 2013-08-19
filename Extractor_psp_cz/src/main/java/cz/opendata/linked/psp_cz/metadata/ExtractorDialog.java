@@ -1,14 +1,19 @@
 package cz.opendata.linked.psp_cz.metadata;
 
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
+import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends AbstractConfigDialog<ExtractorConfig> {
+public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
+        public ExtractorDialog() {
+            super(new ExtractorConfig());
+        }  
+     
 	/**
 	 * 
 	 */
@@ -18,13 +23,11 @@ public class ExtractorDialog extends AbstractConfigDialog<ExtractorConfig> {
 
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		// TODO Auto-generated method stub
 		config = conf;
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
-		// TODO Auto-generated method stub
 		return config;
 	}
 	

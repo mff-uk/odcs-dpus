@@ -16,34 +16,29 @@ import cz.cuni.xrg.intlib.commons.data.DataUnitType;
 import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 
-public class Extractor implements Extract, // TODO 1: Implements Extract,Transform or Load interfac
-
-	Configurable<ExtractorConfig>, ConfigDialogProvider<ExtractorConfig> {
+public class Extractor 
+        extends ConfigurableBase<ExtractorConfig> 
+        implements Extract, ConfigDialogProvider<ExtractorConfig> {
 
 	/**
 	 * DPU's configuration.
 	 */
 	private ExtractorConfig config = new ExtractorConfig();
 	private Logger logger = LoggerFactory.getLogger(Extract.class);
-	
-	@Override
+
+        public Extractor(){
+            super(new ExtractorConfig());
+        }
+	 
+     	@Override
 	public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {		
 		return new ExtractorDialog();
-	}
-
-	@Override
-	public void configure(ExtractorConfig c) throws ConfigException {
-		config = c;		
-	}
-
-	@Override
-	public ExtractorConfig getConfiguration() {
-		return config;
 	}
 	
 	public void extract(ExtractContext ctx) throws ExtractException
@@ -76,19 +71,17 @@ public class Extractor implements Extract, // TODO 1: Implements Extract,Transfo
 
         // a spustim na vychozi stranku
         
-        logger.info("Starting extraction. From year: " + /*config.Start_year*/ "1918" + " To: " + /*config.End_year*/ /*"2013"*/"1918" + " Output: " + filename);
-        for (int i = /*config.Start_year*/ 1918; i <= /*config.End_year*/ 1918; i++)
+        logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + filename);
+        for (int i = config.Start_year; i <= config.End_year; i++)
         {   
             java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
             try {
 				s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getLocalizedMessage());
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getLocalizedMessage());
 			}
             java.util.Date date2 = new java.util.Date();
 	    long end = date2.getTime();
@@ -116,4 +109,7 @@ public class Extractor implements Extract, // TODO 1: Implements Extract,Transfo
 	}
 	
 	// TODO 2: Provide implementation of unimplemented methods 
-}
+
+
+   
+    }
