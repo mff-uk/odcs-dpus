@@ -88,7 +88,7 @@ public class Extractor
 	public void extract(ExtractContext ctx) throws ExtractException
 	{
     	Cache.setInterval(0);
-    	Cache.basePath = ctx.getUserDirectory() + "/cache/";
+    	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
     	Cache.logger = logger;
         Scraper_parser s = new Scraper_parser();
 

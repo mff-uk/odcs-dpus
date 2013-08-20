@@ -24,12 +24,52 @@ import javax.net.ssl.X509TrustManager;
  */
 public class Cache {
 	
+    public static Logger logger;
+	
+	public static void setTrustAllCerts() throws Exception
+	{
+		TrustManager[] trustAllCerts = new TrustManager[]{
+			new X509TrustManager() {
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+				public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) {	}
+				public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) {	}
+			}
+		};
+
+		// Install the all-trusting trust manager
+		try {
+			SSLContext sc = SSLContext.getInstance( "SSL" );
+			sc.init( null, trustAllCerts, new java.security.SecureRandom() );
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			HttpsURLConnection.setDefaultHostnameVerifier( 
+				new HostnameVerifier() {
+					public boolean verify(String urlHostName, SSLSession session) {
+						return true;
+					}
+				});
+		}
+		catch ( Exception e ) {
+			//We can not recover from this exception.
+			e.printStackTrace();
+		}
+	}	
+
     private static int downloaded = 0;
 
-    public static String basePath;
+    //private static String basePath = "D:\\scraper\\";
+    private static String basePath = "./cache/";
     
-    public static Logger logger;
-    
+    private static HashSet<String> s = new HashSet<String>();
+
+    public static void init() {
+	File f = new File(Cache.basePath, "www.isvzus.cz/cs/Form/Display");
+	File fs = new File(Cache.basePath, "www.isvzus.cz/cs/Searching");
+	s.addAll(Arrays.asList(f.list()));
+	s.addAll(Arrays.asList(fs.list()));
+    }
+
     public static int getInterval() {
         return interval;
     }
@@ -37,7 +77,7 @@ public class Cache {
     public static void setInterval(int interval) {
         Cache.interval = interval;
     }
-
+    
     public static void setBaseDir(String basedir)
     {
     	basePath = basedir;
@@ -45,41 +85,6 @@ public class Cache {
 
     private static int interval = 2000;
     private static long lastDownload = 0;
-        
-    public static boolean isCached(URL url) throws IOException, InterruptedException {   
-	String host = url.getHost();
-        if (url.getPath().lastIndexOf("/") == -1) {
-            return false;
-        }
-	
-    String path;
-    String file;
-    if (url.getPath().lastIndexOf("/") == 0)
-	{
-	    path = url.getPath().substring(1).replace("?", "_");
-		file = url.getFile().substring(1).replace("/", "@").replace("?", "@");
-		if (file.isEmpty()) return false;
-	}
-	else
-	{
-		//System.out.println();
-		//System.out.println(url);
-		//System.out.println(url.getPath());
-		path = url.getPath().substring(1, url.getPath().lastIndexOf("/")).replace("?", "_");
-	    //System.out.println(path);
-	    file = url.getFile().substring(path.length() + 2).replace("/", "@").replace("?", "@");
-	    //System.out.println(url.getFile());
-	    //System.out.println(file);
-		//System.out.println();
-	    if (file.isEmpty()) return false;
-	}
-
-	//File hHost = new File(Cache.basePath, host);
-	File hPath = new File(Cache.basePath, host + File.separatorChar + path);
-	File hFile = new File(hPath, file);
-
-	return (hFile.exists() && (hFile.length() > 0));
-    }
     
     public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException {   
 	String host = url.getHost();
@@ -97,15 +102,15 @@ public class Cache {
 	}
 	else
 	{
-		//System.out.println();
-		//System.out.println(url);
-		//System.out.println(url.getPath());
+		//logger.info();
+		//logger.info(url);
+		//logger.info(url.getPath());
 		path = url.getPath().substring(1, url.getPath().lastIndexOf("/")).replace("?", "_");
-	    //System.out.println(path);
+	    //logger.info(path);
 	    file = url.getFile().substring(path.length() + 2).replace("/", "@").replace("?", "@");
-	    //System.out.println(url.getFile());
-	    //System.out.println(file);
-		//System.out.println();
+	    //logger.info(url.getFile());
+	    //logger.info(file);
+		//logger.info();
 	    if (file.isEmpty()) return null;
 	}
 
@@ -122,12 +127,12 @@ public class Cache {
 	    while (attempt < maxAttempts) {
                 java.util.Date date= new java.util.Date();
                 long curTS = date.getTime();
-	        logger.info("Downloading URL (attempt " + attempt + "): " + url.getHost() + url.getFile());
+                logger.info("Downloading URL (attempt " + attempt + "): " + url.getHost() + url.getFile());
                 if (lastDownload + interval > curTS ) {
-/*                    System.out.println("LastDownload: " + lastDownload);
-                    System.out.println("CurTS: " + curTS);
-                    System.out.println("Interval: " + interval);*/
-                    logger.info("Sleeping: " + (lastDownload + interval - curTS));
+/*                    logger.info("LastDownload: " + lastDownload);
+                    logger.info("CurTS: " + curTS);
+                    logger.info("Interval: " + interval);*/
+                	logger.info("Sleeping: " + (lastDownload + interval - curTS));
                     Thread.sleep(lastDownload + interval - curTS);
                 }
 		try {
@@ -140,7 +145,7 @@ public class Cache {
 			
 			java.util.Date date2= new java.util.Date();
 		    lastDownload = date2.getTime();
-		    logger.info("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
+                    logger.info("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
                     break;
 		} catch (SocketTimeoutException ex) {
                     java.util.Date date3= new java.util.Date();
@@ -148,18 +153,18 @@ public class Cache {
                     logger.info("Timeout (attempt " + attempt + ") in " + (failed - curTS)+ " : " + url.getHost() + url.getFile());
                     
                     //Comment to retry when timeout
-                    //if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
-                    //{
-	                //    BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-	        		//   fw.close();
-	        		//    return null;
-                    //}
+                    if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+                    {
+	                    BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+	        		    fw.close();
+	        		    return null;
+                    }
         		    
         		    //END comment
         		    
                     //Thread.sleep(2000);
 		} catch (java.io.IOException ex) {
-                    System.out.println("Warning (retrying): " + ex.getMessage());
+                    logger.info("Warning (retrying): " + ex.getMessage());
                     if (
                     	ex.getMessage() == null 
                     	|| ex.getMessage().equals("HTTP error fetching URL")
@@ -171,16 +176,16 @@ public class Cache {
                     	)
                     {
             	    	//This makes sure that next run will see the errorneous page as cached. Does not have to be always desirable
-                    	//BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-            		    //fw.close();
-                    	//return null;
+                    	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+            		    fw.close();
+                    	return null;
                     }
                     Thread.sleep(2000);
                 }
 			attempt ++;
 	    }
 	    if (attempt == maxAttempts) {
-	    	logger.error("ERROR: " + url.getHost() + url.getPath());
+			logger.info("ERROR: " + url.getHost() + url.getPath());
 			/*throw new SocketTimeoutException();*/
 			return null;
 	    }
@@ -193,10 +198,10 @@ public class Cache {
 	    }
 	    catch (Exception e)
 	    {
-	    	logger.error("ERROR caching");
+	    	logger.info("ERROR caching");
 	    }
 	} else {
-	    //System.out.println("Using cache for URL: " + url.getHost() + url.getFile());
+	    //logger.info("Using cache for URL: " + url.getHost() + url.getFile());
 
 		if (datatype.equals("xml"))
 		{

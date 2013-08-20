@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.xrg.intlib</groupId>
+        <artifactId>module_master</artifactId>
+        <version>0.0.1</version>
+    </parent>    
+    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
+    <artifactId>Extractor_buyer_profiles_cz</artifactId>
+    <packaging>bundle</packaging>
+    
+    <properties>    
+    	<!-- TODO 2: specify module version, can be left unchanged -->
+        <dpu.version>0.0.1</dpu.version>
+        <!-- TODO 3: fill module description, the description will be visible to the user -->
+        <dpu.description>This extractor scrapes buyer profiles and public contracts published on them and creates Turtle files</dpu.description>
+        <!-- TODO 4: fill the name of root package -->
+        <dpu.package>cz.opendata.linked.buyer_profiles</dpu.package>
+        <!-- TODO 5: fill DPU main class name here -->
+        <dpu.mainClass>Extractor</dpu.mainClass>    
+    </properties>
+ 	<dependencies>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.7.2</version>
+		</dependency> 		 		 
+ 	</dependencies>
+</project>

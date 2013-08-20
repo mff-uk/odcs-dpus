@@ -5,10 +5,10 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
 
 /**
  *  Document cache. It stores downloaded files to hard drive.
@@ -22,6 +22,8 @@ public class Cache {
     private static int downloaded = 0;
 
     private static String basePath = "./";
+    
+    public static Logger logger;
     
     //private static HashSet<String> s = new HashSet<String>();
 
@@ -67,7 +69,7 @@ public class Cache {
                 }
                 hFile = new File(hPath, sb.toString());
             } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(Cache.class.getName()).log(Level.SEVERE, null, ex);
+                logger.info(ex.getLocalizedMessage());
             }
         } else {
             hFile = new File(hPath, file);

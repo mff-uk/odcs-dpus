@@ -5,10 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Calendar;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
@@ -32,7 +37,7 @@ public class Extractor
 	/**
 	 * DPU's configuration.
 	 */
-	private ExtractorConfig config = new ExtractorConfig();
+	
 	private Logger logger = LoggerFactory.getLogger(Extract.class);
 
         public Extractor(){
@@ -48,8 +53,8 @@ public class Extractor
 	{
         // vytvorime si parser
         Cache.setInterval(0);
-        Cache.setBaseDir(ctx.getUserDirectory().getPath());
-        
+        Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
+        Cache.logger = logger;
         String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
         Parser s = new Parser();
         try {
@@ -82,10 +87,15 @@ public class Extractor
             java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
             try {
+                Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/www.psp.cz/sqw/sbirka.sqw@r=" + i);
+                logger.info("Deleting " + path);
+        		Files.deleteIfExists(path);
 				s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
 			} catch (MalformedURLException e) {
 				logger.error(e.getLocalizedMessage());
 			} catch (InterruptedException e) {
+				logger.error(e.getLocalizedMessage());
+			} catch (IOException e) {
 				logger.error(e.getLocalizedMessage());
 			}
             java.util.Date date2 = new java.util.Date();
