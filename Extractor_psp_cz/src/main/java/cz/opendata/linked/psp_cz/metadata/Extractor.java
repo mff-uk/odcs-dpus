@@ -19,10 +19,7 @@ import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-<<<<<<< HEAD
-=======
 import cz.cuni.xrg.intlib.commons.module.file.FileManager;
->>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
@@ -50,9 +47,7 @@ public class Extractor
 	public void extract(ExtractContext ctx) throws ExtractException
 	{
         // vytvorime si parser
-        FileManager fm = new FileManager(ctx);
-		
-        Cache.setInterval(350);
+        Cache.setInterval(0);
         Cache.setBaseDir(ctx.getUserDirectory().getPath());
         
         String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
@@ -81,11 +76,7 @@ public class Extractor
 
         // a spustim na vychozi stranku
         
-<<<<<<< HEAD
-        logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + filename);
-=======
         logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
->>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
         for (int i = config.Start_year; i <= config.End_year; i++)
         {   
             java.util.Date date = new java.util.Date();
@@ -122,8 +113,4 @@ public class Extractor
         		
 	}
 	
-	// TODO 2: Provide implementation of unimplemented methods 
-
-
-   
     }

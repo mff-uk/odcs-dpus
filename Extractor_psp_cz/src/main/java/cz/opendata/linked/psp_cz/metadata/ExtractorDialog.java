@@ -3,8 +3,12 @@ package cz.opendata.linked.psp_cz.metadata;
 import java.util.Calendar;
 
 import com.vaadin.data.Validator;
+import com.vaadin.event.FieldEvents.TextChangeEvent;
+import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Slider;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
 
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
@@ -15,16 +19,10 @@ import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
  *
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
-<<<<<<< HEAD
-
-        public ExtractorDialog() {
-            super(new ExtractorConfig());
-        }  
-=======
 
     private GridLayout mainLayout;
-    private Slider minYear;
-    private Slider maxYear;
+    private TextField minYear;
+    private TextField maxYear;
     
 	public ExtractorDialog() {
 		super(new ExtractorConfig());
@@ -45,46 +43,53 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
-        minYear = new Slider();
-        minYear.setMin((double)1918);
-        /*minYear.setMax(Calendar.getInstance().get(Calendar.YEAR));
+        minYear = new TextField();
+        //minYear.setValue("1918");
         minYear.setCaption("Start year:");
         minYear.setWidth("100%");
-        minYear.setValue((double)1918);
-        minYear.setResolution(1);*/
         /*minYear.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws Validator.InvalidValueException {
-                if (((int) value >= 1918 ) && ((int) value <= Calendar.getInstance().get(Calendar.YEAR))) {
+            	try	{	Integer.parseInt((String)value);}
+            	catch ( NumberFormatException e ) { throw new Validator.InvalidValueException("Year must be an integer, i.e. 1918" ); }
+                
+            	if ((Integer.parseInt((String)value) >= 1918 ) && (Integer.parseInt((String)value) <= Calendar.getInstance().get(Calendar.YEAR))) {
                     return;
                 }
                 throw new Validator.InvalidValueException("Start year must be between 1918 and "  + Calendar.getInstance().get(Calendar.YEAR));
             }
         });*/
-        
+        /*minYear.addTextChangeListener(new TextChangeListener() {
+
+			@Override
+			public void textChange(TextChangeEvent event) {
+				minYear.validate();
+			}
+        	
+        });*/
         mainLayout.addComponent(minYear);
         
-        /*maxYear = new Slider();
-        maxYear.setMin(1918);
-        maxYear.setMax(Calendar.getInstance().get(Calendar.YEAR));
+        maxYear = new TextField();
+        //maxYear.setValue(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)));
         maxYear.setCaption("End year:");
         maxYear.setWidth("100%");
-        maxYear.setValue((double)Calendar.getInstance().get(Calendar.YEAR));
-        maxYear.setResolution(1);*/
         /*maxYear.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws Validator.InvalidValueException {
-                    if (((int) value >= 1918 ) && ((int) value <= Calendar.getInstance().get(Calendar.YEAR))) {
-                        return;
-                    }
+            	try	{	Integer.parseInt((String)value);}
+            	catch ( NumberFormatException e ) { throw new Validator.InvalidValueException("Year must be an integer, i.e. " + Calendar.getInstance().get(Calendar.YEAR)); }
+            	
+            	if ((Integer.parseInt((String)value) >= 1918 ) && (Integer.parseInt((String)value) <= Calendar.getInstance().get(Calendar.YEAR))) {
+                    return;
+                }
                 throw new Validator.InvalidValueException("End year must be between 1918 and "  + Calendar.getInstance().get(Calendar.YEAR));
             }
         });*/
-        //mainLayout.addComponent(maxYear);
+        
+        mainLayout.addComponent(maxYear);
 
         return mainLayout;
     }	
->>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
      
 	/**
 	 * 
@@ -93,24 +98,16 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-<<<<<<< HEAD
-		config = conf;
-=======
-		minYear.setValue((double)conf.Start_year);
-		maxYear.setValue((double)conf.End_year);
->>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
+		minYear.setValue(Integer.toString(conf.Start_year));
+		maxYear.setValue(Integer.toString(conf.End_year));
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
-<<<<<<< HEAD
-		return config;
-=======
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.Start_year = (int) Math.floor(minYear.getValue());
-		conf.End_year = (int) Math.floor(maxYear.getValue());
+		conf.Start_year = Integer.parseInt(minYear.getValue());
+		conf.End_year = Integer.parseInt(maxYear.getValue());
 		return conf;
->>>>>>> PSP-CZ: config resolved, trying to get a working dialog - no success yet.
 	}
 	
 }
