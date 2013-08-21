@@ -123,6 +123,7 @@ public class Extractor
         catch (RDFException e)
         {
         	logger.error("Cannot put TTL to repository.");
+        	throw new ExtractException("Cannot put TTL to repository.");
         }
         		
 	}
