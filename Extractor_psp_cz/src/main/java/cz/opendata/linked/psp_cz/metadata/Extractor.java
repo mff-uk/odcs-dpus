@@ -54,6 +54,7 @@ public class Extractor
         // vytvorime si parser
         Cache.setInterval(0);
         Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
+        Cache.rewriteCache = config.rewriteCache;
         Cache.logger = logger;
         String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
         Parser s = new Parser();
@@ -87,9 +88,12 @@ public class Extractor
             java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
             try {
-                Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/www.psp.cz/sqw/sbirka.sqw@r=" + i);
-                logger.info("Deleting " + path);
-        		Files.deleteIfExists(path);
+                if (!config.cachedLists)
+            	{
+                	Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
+	                logger.info("Deleting " + path);
+	        		Files.deleteIfExists(path);
+            	}
 				s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
 			} catch (MalformedURLException e) {
 				logger.error(e.getLocalizedMessage());

@@ -5,6 +5,7 @@ import java.util.Calendar;
 import com.vaadin.data.Validator;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Slider;
 import com.vaadin.ui.TextArea;
@@ -23,6 +24,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private GridLayout mainLayout;
     private TextField minYear;
     private TextField maxYear;
+    private CheckBox chkCachedLists;
+    private CheckBox chkRewriteCache;
     
 	public ExtractorDialog() {
 		super(new ExtractorConfig());
@@ -46,7 +49,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         minYear = new TextField();
         //minYear.setValue("1918");
         minYear.setCaption("Start year:");
-        minYear.setWidth("100%");
+        //minYear.setWidth("100%");
         /*minYear.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws Validator.InvalidValueException {
@@ -72,7 +75,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         maxYear = new TextField();
         //maxYear.setValue(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)));
         maxYear.setCaption("End year:");
-        maxYear.setWidth("100%");
+        //maxYear.setWidth("100%");
         /*maxYear.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws Validator.InvalidValueException {
@@ -87,6 +90,18 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         });*/
         
         mainLayout.addComponent(maxYear);
+        
+        chkRewriteCache = new CheckBox("Ignore (Rewrite) document cache");
+        chkRewriteCache.setDescription("When selected, documents cache will be ignored and rewritten. This will refresh in particular passive derogations of documents.");
+        chkRewriteCache.setWidth("100%");
+        
+        mainLayout.addComponent(chkRewriteCache);
+
+        chkCachedLists = new CheckBox("Use cached lists");
+        chkCachedLists.setDescription("When selected, lists of documents in each year will be used from cache. This impacts in particular the actual year where the list will not be refreshed. On the other hand, if RewriteCache is not enabled and cache is complete, this extractor will not access the source.");
+        chkCachedLists.setWidth("100%");
+        
+        mainLayout.addComponent(chkCachedLists);
 
         return mainLayout;
     }	
@@ -100,6 +115,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		minYear.setValue(Integer.toString(conf.Start_year));
 		maxYear.setValue(Integer.toString(conf.End_year));
+		chkRewriteCache.setValue(conf.rewriteCache);
+		chkCachedLists.setValue(conf.cachedLists);
 	}
 
 	@Override
@@ -107,6 +124,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.Start_year = Integer.parseInt(minYear.getValue());
 		conf.End_year = Integer.parseInt(maxYear.getValue());
+		conf.rewriteCache = chkRewriteCache.getValue();
+		conf.cachedLists = chkCachedLists.getValue();
 		return conf;
 	}
 	

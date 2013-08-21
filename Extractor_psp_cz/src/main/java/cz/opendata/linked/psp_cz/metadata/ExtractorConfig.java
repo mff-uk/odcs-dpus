@@ -21,6 +21,10 @@ public class ExtractorConfig implements DPUConfigObject {
 	public int End_year = Calendar.getInstance().get(Calendar.YEAR);
         
 	public String outputFileName = "sbirka.ttl";
+	
+	public boolean rewriteCache = false;
+	
+	public boolean cachedLists = false;
 
     @Override
     public boolean isValid() {
