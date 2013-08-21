@@ -1,19 +1,11 @@
 package cz.opendata.linked.ares;
 
-import java.util.Calendar;
-
-import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Slider;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
@@ -21,9 +13,15 @@ import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-    private GridLayout mainLayout;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7003725620084616056L;
+	private GridLayout mainLayout;
     private TextField numDownloads;
     private TextField hoursToCheck;
+    private TextField interval;
+    private TextField timeout;
     
 	public ExtractorDialog() {
 		super(new ExtractorConfig());
@@ -45,27 +43,31 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setHeight("100%");
 
         numDownloads = new TextField();
-        numDownloads.setValue("4900");
-        numDownloads.setCaption("Number of downloads from 18:00:");
-        numDownloads.setWidth("100%");
+        numDownloads.setCaption("Number of downloads in the last X hours:");
         mainLayout.addComponent(numDownloads);
         
         hoursToCheck = new TextField();
-        hoursToCheck.setValue("12");
         hoursToCheck.setCaption("Count files in cache downloaded in the last X hours:");
-        hoursToCheck.setWidth("100%");
         mainLayout.addComponent(hoursToCheck);
 
+        interval = new TextField();
+        interval.setCaption("Interval between downloads:");
+        mainLayout.addComponent(interval);
+        
+        timeout = new TextField();
+        timeout.setCaption("Timeout for download:");
+        
+        mainLayout.addComponent(timeout);
+        
         return mainLayout;
     }	
      
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8158163219102623590L;
-	
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+		interval.setValue(Integer.toString(conf.interval));
+		timeout.setValue(Integer.toString(conf.timeout));
+		numDownloads.setValue(Integer.toString(conf.PerDay));
+		hoursToCheck.setValue(Integer.toString(conf.hoursToCheck));
 	
 	}
 
@@ -76,6 +78,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.PerDay = Integer.parseInt(numDownloads.getValue());
 		try { Integer.parseInt(hoursToCheck.getValue()); } catch (InvalidValueException e) { return conf;}
 		conf.hoursToCheck = Integer.parseInt(hoursToCheck.getValue());
+		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
+		conf.interval = Integer.parseInt(interval.getValue());
+		try { Integer.parseInt(timeout.getValue()); } catch (InvalidValueException e) { return conf;}
+		conf.timeout = Integer.parseInt(timeout.getValue());
 		return conf;
 	}
 	

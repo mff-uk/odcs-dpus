@@ -17,6 +17,10 @@ public class ExtractorConfig implements DPUConfigObject {
     public int PerDay = 4900;
     
     public int hoursToCheck = 12;
+    
+    public int timeout = 10000;
+    
+    public int interval = 0;
 	
 	@Override
     public boolean isValid() {

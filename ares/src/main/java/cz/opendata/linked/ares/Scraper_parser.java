@@ -1,21 +1,11 @@
 package cz.opendata.linked.ares;
-import cz.mff.cuni.scraper.lib.selector.CssSelector;
+import java.net.URL;
+import java.util.LinkedList;
+
+import org.slf4j.Logger;
+
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
-import java.io.PrintStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -26,6 +16,7 @@ import org.jsoup.select.Elements;
 public class Scraper_parser extends ScrapingTemplate{
     
 	private static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
+	public Logger logger ;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
