@@ -61,6 +61,8 @@ public class Cache {
     //private static String basePath = "D:\\scraper\\";
     private static String basePath = "./cache/";
     
+    public static boolean rewriteCache = false;
+
     private static HashSet<String> s = new HashSet<String>();
 
     public static void init() {
@@ -78,13 +80,17 @@ public class Cache {
         Cache.interval = interval;
     }
     
+    public static void setTimeout(int timeout) {
+        Cache.timeout = timeout;
+    }
     public static void setBaseDir(String basedir)
     {
     	basePath = basedir;
     }
 
-    private static int interval = 2000;
+    private static int interval;
     private static long lastDownload = 0;
+    private static int timeout;
     
     public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException {   
 	String host = url.getHost();
@@ -102,15 +108,13 @@ public class Cache {
 	}
 	else
 	{
-		//logger.info();
-		//logger.info(url);
-		//logger.info(url.getPath());
+		//logger.debug(url);
+		//logger.debug(url.getPath());
 		path = url.getPath().substring(1, url.getPath().lastIndexOf("/")).replace("?", "_");
-	    //logger.info(path);
+	    //logger.debug(path);
 	    file = url.getFile().substring(path.length() + 2).replace("/", "@").replace("?", "@");
-	    //logger.info(url.getFile());
-	    //logger.info(file);
-		//logger.info();
+	    //logger.debug(url.getFile());
+	    //logger.debug(file);
 	    if (file.isEmpty()) return null;
 	}
 
@@ -120,32 +124,32 @@ public class Cache {
 
 	Document out = null;
 
-	if (!hFile.exists()) {
+	if (!hFile.exists() || rewriteCache) {
 	//if (!s.contains(file)) {
 	    hPath.mkdirs();
 	    int attempt = 0;
 	    while (attempt < maxAttempts) {
                 java.util.Date date= new java.util.Date();
                 long curTS = date.getTime();
-                logger.info("Downloading URL (attempt " + attempt + "): " + url.getHost() + url.getFile());
+                logger.debug("Downloading URL (attempt " + attempt + "): " + url.getHost() + url.getFile());
                 if (lastDownload + interval > curTS ) {
-/*                    logger.info("LastDownload: " + lastDownload);
-                    logger.info("CurTS: " + curTS);
-                    logger.info("Interval: " + interval);*/
-                	logger.info("Sleeping: " + (lastDownload + interval - curTS));
+/*                    logger.debug("LastDownload: " + lastDownload);
+                    logger.debug("CurTS: " + curTS);
+                    logger.debug("Interval: " + interval);*/
+                	logger.debug("Sleeping: " + (lastDownload + interval - curTS));
                     Thread.sleep(lastDownload + interval - curTS);
                 }
 		try {
 			
 			if (datatype.equals("xml"))
 			{
-				out = Jsoup.connect(url.toString()).parser(Parser.xmlParser()).timeout(10000).get();
+				out = Jsoup.connect(url.toString()).parser(Parser.xmlParser()).timeout(timeout).get();
 			}
-			else out = Jsoup.parse(url, 10000);
+			else out = Jsoup.parse(url, timeout);
 			
 			java.util.Date date2= new java.util.Date();
 		    lastDownload = date2.getTime();
-                    logger.info("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
+                    logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
                     break;
 		} catch (SocketTimeoutException ex) {
                     java.util.Date date3= new java.util.Date();
@@ -162,7 +166,7 @@ public class Cache {
         		    
         		    //END comment
         		    
-                    //Thread.sleep(2000);
+                    //Thread.sleep(interval);
 		} catch (java.io.IOException ex) {
                     logger.info("Warning (retrying): " + ex.getMessage());
                     if (
@@ -180,12 +184,12 @@ public class Cache {
             		    fw.close();
                     	return null;
                     }
-                    Thread.sleep(2000);
+                    Thread.sleep(interval);
                 }
 			attempt ++;
 	    }
 	    if (attempt == maxAttempts) {
-			logger.info("ERROR: " + url.getHost() + url.getPath());
+			logger.error("ERROR: " + url.getHost() + url.getPath());
 			/*throw new SocketTimeoutException();*/
 			return null;
 	    }
@@ -194,11 +198,11 @@ public class Cache {
 	    	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 		    fw.append(out.outerHtml());
 		    fw.close();
-		    logger.info(Integer.toString(++downloaded));
+		    logger.debug(Integer.toString(++downloaded));
 	    }
 	    catch (Exception e)
 	    {
-	    	logger.info("ERROR caching");
+	    	logger.error("ERROR caching");
 	    }
 	} else {
 	    //logger.info("Using cache for URL: " + url.getHost() + url.getFile());

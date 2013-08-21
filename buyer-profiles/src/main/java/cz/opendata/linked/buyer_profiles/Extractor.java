@@ -46,7 +46,10 @@ public class Extractor
         
     	Cache.setInterval(0);
     	Cache.logger = logger;
+    	Cache.rewriteCache = config.rewriteCache;
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
+    	Cache.setTimeout(config.timeout);
+    	Cache.setInterval(config.interval);
         try {
 			Cache.setTrustAllCerts();
 		} catch (Exception e) {
@@ -54,6 +57,8 @@ public class Extractor
 			e.printStackTrace();
 		}
         Scraper_parser s = new Scraper_parser();
+        s.AccessProfiles = config.accessProfiles;
+        s.logger = logger;
         
         String profilyname = ctx.getWorkingDir() + "/profily.ttl";
         String zakazkyname = ctx.getWorkingDir() + "/zakazky.ttl";
@@ -129,7 +134,8 @@ public class Extractor
         	contractsRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "contracts");
         	profilesRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "profiles");
         } catch (DataUnitCreateException e) {
-            throw new ExtractException("Can't create DataUnit", e);
+            logger.error("Can't create DataUnit");
+        	throw new ExtractException("Can't create DataUnit", e);
         }
         try {
         	contractsRepository.extractFromLocalTurtleFile(zakazkyname);
@@ -138,6 +144,7 @@ public class Extractor
         catch (RDFException e)
         {
         	logger.error("Cannot put TTL to repository.");
+        	throw new ExtractException("Cannot put TTL to repository.", e);
         }
         
     }
