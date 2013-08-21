@@ -44,7 +44,6 @@ public class Extractor
 	{
         // vytvorime si parser
         
-    	Cache.setInterval(0);
     	Cache.logger = logger;
     	Cache.rewriteCache = config.rewriteCache;
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
