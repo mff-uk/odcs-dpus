@@ -82,6 +82,7 @@ public class Extractor
         	    "@prefix pccz:       <http://purl.org/procurement/public-contracts-czech#> .\n" +
                 "@prefix activities: <http://purl.org/procurement/public-contracts-activities#> .\n" +
                 "@prefix kinds:      <http://purl.org/procurement/public-contracts-kinds#> .\n" +
+                "@prefix s:			 <http://schema.org/> .\n" +
                 "@prefix authkinds:  <http://purl.org/procurement/public-contracts-authority-kinds#> .\n" +
                 "@prefix proctypes:  <http://purl.org/procurement/public-contracts-procedure-types#> .\n" +
                 "@prefix countries:  <http://linked.opendata.cz/resource/domain/buyer-profiles/country#> .\n" +
