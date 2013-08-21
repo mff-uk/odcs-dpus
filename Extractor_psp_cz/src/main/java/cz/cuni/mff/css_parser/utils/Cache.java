@@ -41,12 +41,17 @@ public class Cache {
 		Cache.interval = interval;
 	}
 
+	public static void setTimeout(int timeout) {
+        Cache.timeout = timeout;
+    }
+
 	public static void setBaseDir(String basedir)
 	{
 		basePath = basedir;
 	}
 
-	private static int interval = 2000;
+	private static int interval;
+	private static int timeout;
 	private static long lastDownload = 0;
 
 	public static Document getDocument(URL url, int maxAttempts) throws IOException, InterruptedException {   
@@ -95,7 +100,7 @@ public class Cache {
 					Thread.sleep(lastDownload + interval - curTS);
 				}
 				try {
-					out = Jsoup.parse(url, 10000);
+					out = Jsoup.parse(url, timeout);
 					java.util.Date date2= new java.util.Date();
 					lastDownload = date2.getTime();
 					logger.info("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
@@ -107,7 +112,7 @@ public class Cache {
 					//Thread.sleep(2000);
 				} catch (java.io.IOException ex) {
 					logger.info("Warning (retrying): " + ex.getMessage());
-					Thread.sleep(2000);
+					Thread.sleep(interval);
 				}
 				attempt ++;
 			}

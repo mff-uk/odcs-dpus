@@ -25,8 +25,12 @@ public class ExtractorConfig implements DPUConfigObject {
 	public boolean rewriteCache = false;
 	
 	public boolean cachedLists = false;
+	
+	public int timeout = 10000;
 
-    @Override
+	public int interval = 0;
+
+	@Override
     public boolean isValid() {
         return Start_year < End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
     }
