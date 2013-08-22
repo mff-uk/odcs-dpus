@@ -231,7 +231,7 @@ public class IntLibLink {
             for (File inputXML: dirList) {
                 count++;
                 File outputXML = new File(outputDir, inputXML.getName());
-                LawDocument doc = new LawDocument();
+                LawDocument doc = new LawDocument(logger);
                 
                 int lastrec = Work.recognized;
                 int lastunrec = Work.unrecognized;
@@ -276,7 +276,7 @@ public class IntLibLink {
         
         // zpracujeme jeden soubor
         if (!inputFile.isEmpty()) {
-            LawDocument doc = new LawDocument();
+            LawDocument doc = new LawDocument(logger);
             doc.transform(inputFile, outputFile);
         }
         

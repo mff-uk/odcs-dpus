@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://xrg.cz/link/sourceOfLaw/1" xpath-default-namespace="http://xrg.cz/link/sourceOfLaw/1">
-	<xsl:output method="text" version="1.0" encoding="UTF-8" indent="yes"/>
+	<xsl:output method="text" encoding="UTF-8" indent="yes"/>
 
 
     <!-- Spisova znacka (taken from file name) -->
@@ -27,7 +27,7 @@
 	
 	<!-- Decision metadata -->
 		<!-- Date when issued -->
-		<xsl:variable name="bodyText"><xsl:value-of select='/document/body/text()'/></xsl:variable>
+		<xsl:variable name="bodyText"><xsl:copy-of select='/document/body'/></xsl:variable>
 		<xsl:variable name="decDate1"><xsl:value-of select='substring-after($bodyText,"Datum rozhodnutí:")'/></xsl:variable>
 		<xsl:variable name="decDate2"><xsl:value-of select='replace(normalize-space(substring($decDate1,0,12)),"/","-")'/></xsl:variable>	
 		<xsl:variable name="decDate"><xsl:value-of select='$decDate2'/></xsl:variable>
@@ -38,16 +38,16 @@
 		<xsl:variable name="normDecDate"><xsl:value-of select='$yearDate'/>-<xsl:value-of select='$month'/>-<xsl:value-of select='$day'/></xsl:variable>
 		<!-- TODO date better-->
 	
-		<!-- lex:decisionKind = USNESENI-->
-	    <xsl:variable name="usneseniTemp"><xsl:value-of select='normalize-space(substring-after($bodyText,"Typ rozhodnutí :"))'/></xsl:variable>
-	<xsl:variable name="usneseniTemp2"><xsl:value-of select='substring-before($usneseniTemp," ")'/></xsl:variable>
-	    <xsl:variable name="usneseni"><xsl:value-of select='$usneseniTemp2'/></xsl:variable>
+		<!-- lex:decisionKind = USNESENI. Takes everything after Typ rozhodnuti :, but before space (elem </paragraph> does not occur in the bodyText, only text is extracted.-->
+	    <xsl:variable name="decisionKindTemp"><xsl:value-of select='normalize-space(substring-after($bodyText,"Typ rozhodnutí :"))'/></xsl:variable>
+	<xsl:variable name="decisionKind"><xsl:value-of select='substring-before($decisionKindTemp," ")'/></xsl:variable>
+	 
 	
-		<!-- lex:decisionCategory = D-->
+		<!-- lex:decisionCategory = D, see decisionKind-->
 	
-	<xsl:variable name="categoryTemp"><xsl:value-of select='normalize-space(substring-after($bodyText,"Kategorie rozhodnutí :"))'/></xsl:variable>
-	<xsl:variable name="categoryTemp2"><xsl:value-of select='substring-before($categoryTemp," ")'/></xsl:variable>
-	<xsl:variable name="category"><xsl:value-of select='$categoryTemp2'/></xsl:variable>
+	<xsl:variable name="decisionCategoryTemp"><xsl:value-of select='normalize-space(substring-after($bodyText,"Kategorie rozhodnutí :"))'/></xsl:variable>
+	<xsl:variable name="categoryCategory"><xsl:value-of select='substring-before($decisionCategoryTemp," ")'/></xsl:variable>
+
 	
 
 	<!-- Variables Decision (Work, Expre, Mani) & File-->
@@ -58,14 +58,18 @@
 	<xsl:variable name="decision">&lt;<xsl:value-of select="$decPrefix"/>&gt;</xsl:variable>
 	<xsl:variable name="decExpr">&lt;<xsl:value-of select="$decPrefix"/>/expression&gt;</xsl:variable>
 	
+	<xsl:variable name="decExprSection">&lt;<xsl:value-of select="$decPrefix"/>/expression/section&gt;</xsl:variable>
+	<xsl:variable name="decExprParaCore">&lt;<xsl:value-of select="$decPrefix"/>/expression/section/paragraph/</xsl:variable> <!-- para number should be add -->
+	
 	<xsl:variable name="filename"><xsl:value-of select='substring($path,string-length(substring-before($path, "rozhodnuti"))+1)'/></xsl:variable>
 	<xsl:variable name="decMani">&lt;<xsl:value-of select="$decPrefix"/>/manifestation&gt;</xsl:variable>
 	
 
 
 	
-<xsl:template match="/">
-
+	<xsl:template match="/" >
+		
+		
 @prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;.
 @prefix owl2xml: &lt;http://www.w3.org/2006/12/owl2-xml#&gt;.
 @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;.
@@ -101,20 +105,20 @@
 		    <xsl:value-of select="$decision"/> dcterms:issued "<xsl:value-of select="$normDecDate"/>"^^xsd:date .
 		</xsl:if>
 	    <xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$spisovaZnackaECLI"/>" . 
-	<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$spisovaZnackaIdentifier"/>" . 
-	<xsl:value-of select="$decision"/> dcterms:title "<xsl:value-of select="$spisovaZnackaIdentifier"/>" . 
-	<xsl:value-of select="$decision"/> lex:decisionKind &lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; .
-	&lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$usneseni"/>" . 
-	<xsl:value-of select="$decision"/> lex:decisionCategory &lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="replace(lower-case($category),' ','-')"/>&gt; .  
-	&lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="replace(lower-case($category),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$category"/>" . 
-	
-	<xsl:variable name="subjectTemp"><xsl:value-of select='substring-after($bodyText,"Heslo :")'/></xsl:variable>
-	<xsl:variable name="subjectTemp2"><xsl:value-of select='substring-before($subjectTemp,"Dotčené předpisy :")'/></xsl:variable>
-	
-	<xsl:call-template name="parseSubjects">
-		<xsl:with-param name="pText"><xsl:value-of select="$subjectTemp2"/></xsl:with-param>
-		<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
-	</xsl:call-template>
+		<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$spisovaZnackaIdentifier"/>" . 
+		<xsl:value-of select="$decision"/> dcterms:title "<xsl:value-of select="$spisovaZnackaIdentifier"/>" . 
+		<xsl:value-of select="$decision"/> lex:decisionKind &lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($decisionKind),' ','-')"/>&gt; .
+		&lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($decisionKind),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$decisionKind"/>" . 
+		<xsl:value-of select="$decision"/> lex:decisionCategory &lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="replace(lower-case($categoryCategory),' ','-')"/>&gt; .  
+		&lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="replace(lower-case($categoryCategory),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$categoryCategory"/>" . 
+		
+		<xsl:variable name="subjectTemp"><xsl:value-of select='substring-after($bodyText,"Heslo :")'/></xsl:variable>
+		<xsl:variable name="subjectTemp2"><xsl:value-of select='substring-before($subjectTemp,"Dotčené předpisy :")'/></xsl:variable>
+		
+		<xsl:call-template name="parseSubjects">
+			<xsl:with-param name="pText"><xsl:value-of select="$subjectTemp2"/></xsl:with-param>
+			<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
+		</xsl:call-template>
 	
 		<!-- Create new decision expression and manifestation -->
 		<xsl:value-of select="$decExpr"/> a  frbr:Expression .
@@ -122,7 +126,8 @@
 		
 		<xsl:value-of select="$decMani"/> a  frbr:Manifestation .
 		<xsl:value-of select="$decMani"/> frbr:embodimentOf <xsl:value-of select="$decExpr"/> .
-	    <xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" .
+		<!-- TODO THis should be RDFa representation -->
+		<xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" .
 	
 	   <!-- create file for the processed decision -->
 	<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>&gt;</xsl:variable>
@@ -140,19 +145,49 @@
 	    <!-- Create new court  -->
 	
 		<!-- Court -selects the first institution, which is always the institution responsible for the processed decision-->
-		<xsl:variable name="court">&lt;<xsl:value-of select="/document/body/institution[position()=1]/@rdf:about"/>&gt;</xsl:variable>
+		<xsl:variable name="court">&lt;<xsl:value-of select='(/document/body/paragraph/institution/@rdf:about)[1]'/>&gt;</xsl:variable>
 	
 		<xsl:value-of select="$court"/> a lex:Court .
 	    <xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$court"/> .
 	
 		<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$court"/> .
 		
-			
-		<xsl:call-template name="extractActsCitations">	
-		</xsl:call-template>
+	
+	    <!-- Create new decision expression and manifestation -->
+	    <xsl:value-of select="$decExpr"/> a  sdo:Publication .
+	    <xsl:value-of select="$decExpr"/>	sdo:hasSection <xsl:value-of select="$decExprSection"/> .
+	<xsl:value-of select="$decExprSection"/> a  sdo:Section .
+	
+	   
+	
 		
-		<xsl:call-template name="extractJudgmentsCitations">	
-		</xsl:call-template>
+	    <!-- Following should be called for individual paragraphs -->
+       <xsl:for-each select="//paragraph">	
+       
+	    	
+					<xsl:variable name="decExprPara"><xsl:value-of select="$decExprParaCore"/><xsl:number></xsl:number>&gt;</xsl:variable>
+		   
+       	
+			    	
+			    	
+						<xsl:value-of select="$decExprSection"/> sdo:hasParagraph <xsl:value-of select="$decExprPara"/>. 
+						<xsl:value-of select="$decExprPara"/> a sdo:Paragraph .
+						<xsl:value-of select="$decExprPara"/> dcterms:description  """<xsl:value-of select="."/>""" .
+       					
+			    
+			    	
+					<xsl:call-template name="extractActsCitations">
+						<xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>
+						<xsl:with-param name="paragraph"><xsl:copy-of select="."/></xsl:with-param>
+					</xsl:call-template>
+					
+					<xsl:call-template name="extractJudgmentsCitations">
+						<xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>
+						<xsl:with-param name="paragraph"><xsl:copy-of  select="."/></xsl:with-param>
+					</xsl:call-template>
+			
+	    	
+	   </xsl:for-each>
 				
 
 	
@@ -223,21 +258,22 @@
 	  
 	  
 	<xsl:template name="textChunkCreation">
+		<xsl:param name="paragraphURI"/>
 		<xsl:param name="uri"/>
 		<xsl:param name="id"/>
 		<xsl:param name="generatedID"/>
 		
 		<xsl:if test="string-length($uri)>2"> <!-- uri might be only <>, in that case we should skip-->
 			
-			<xsl:variable name="textChunk">&lt;http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>/TextChunk/<xsl:value-of select="$id"/>&gt;</xsl:variable>	
-			<xsl:variable name="anot">&lt;http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>/Annotation/<xsl:value-of select="$generatedID"/>&gt;</xsl:variable>	
+			<xsl:variable name="textChunk">&lt;http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>/textchunk/<xsl:value-of select="$id"/>&gt;</xsl:variable>	
+			<xsl:variable name="anot">&lt;http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>/annotation/<xsl:value-of select="$generatedID"/>&gt;</xsl:variable>	
 			
 			
-			<xsl:value-of select="$decExpr"/> sdo:hasTextChunk <xsl:value-of select="$textChunk"/> .
+			<xsl:value-of select="$paragraphURI"/> sdo:hasTextChunk <xsl:value-of select="$textChunk"/> .
 			<xsl:value-of select="$textChunk"/> a sdo:TextChunk .
 			<xsl:value-of select="$textChunk"/> dcterms:identifier "<xsl:value-of select="$id"/>" .
 			<xsl:value-of select="$textChunk"/> sdo:hasAnnotation <xsl:value-of select="$anot"/> .
-			<xsl:if test="starts-with($uri, 'http://')">
+			<xsl:if test="starts-with($uri, '&lt;http://')">
 				<xsl:value-of select="$anot"/> sao:hasTopic <xsl:value-of select="$uri"/> .
 			</xsl:if>
 		</xsl:if>
@@ -246,8 +282,10 @@
 	  
 	  
 	<xsl:template name="extractActsCitations">
+		<xsl:param name="paragraphURI"></xsl:param>
+		<xsl:param name="paragraph"></xsl:param>
 		
-		<xsl:for-each select="/document/body/act">	
+		<xsl:for-each select="act">	
 			
 			<xsl:variable name="actId"><xsl:value-of select='@id'/></xsl:variable>
 			<xsl:variable name="generatedID"><xsl:value-of select="generate-id()"/></xsl:variable>
@@ -261,6 +299,7 @@
 					<xsl:with-param name="uri">&lt;<xsl:value-of select="."/>&gt;</xsl:with-param>
 					<xsl:with-param name="id"><xsl:value-of select="$actId"/></xsl:with-param>
 					<xsl:with-param name="generatedID"><xsl:value-of select="$generatedID"/></xsl:with-param>
+					<xsl:with-param name="paragraphURI"><xsl:value-of select="$paragraphURI"/></xsl:with-param>
 				</xsl:call-template>
 				
 			
@@ -276,8 +315,10 @@
 	
 	
 	<xsl:template name="extractJudgmentsCitations">
+		<xsl:param name="paragraphURI"></xsl:param>
+		<xsl:param name="paragraph"></xsl:param>
 		
-		<xsl:for-each select="/document/body/judgment">
+		<xsl:for-each select="judgment">
 			
 			<xsl:variable name="judgmentId"><xsl:value-of select='@id'/></xsl:variable>
 			<xsl:variable name="generatedID"><xsl:value-of select="generate-id()"/></xsl:variable>
@@ -293,6 +334,7 @@
 					<xsl:with-param name="uri">&lt;<xsl:value-of select="."/>&gt;</xsl:with-param>
 					<xsl:with-param name="id"><xsl:value-of select="$judgmentId"/></xsl:with-param>
 					<xsl:with-param name="generatedID"><xsl:value-of select="$generatedID"/></xsl:with-param>
+					<xsl:with-param name="paragraphURI"><xsl:value-of select="$paragraphURI"/></xsl:with-param>
 				</xsl:call-template>
 			
 			    
@@ -330,6 +372,7 @@
 		
 		<!-- Create new decision expression and manifestation -->
 		<xsl:value-of select="$decExpr"/> a  frbr:Expression .
+		<!-- Publication and sections/paragraphs created only for the main processed decision <xsl:value-of select="$decExpr"/> a  sdo:Publication .-->
 		<xsl:value-of select="$decExpr"/> frbr:realizationOf <xsl:value-of select="$decision"/> .
 		
 		<xsl:value-of select="$decMani"/> a  frbr:Manifestation .

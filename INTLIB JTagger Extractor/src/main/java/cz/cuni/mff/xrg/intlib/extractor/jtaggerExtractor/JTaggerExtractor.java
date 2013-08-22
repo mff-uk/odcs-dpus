@@ -3,12 +3,11 @@ package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTagger;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTaggerResult;
 //import cz.cuni.mff.ksi.intlib.jtagger.LineJoiner;
+import ch.qos.logback.core.util.FileUtil;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTagger;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTaggerResult;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.LineJoiner;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
-import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
-import cz.cuni.xrg.intlib.commons.configuration.Configurable;
 
 import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
 import cz.cuni.xrg.intlib.commons.data.DataUnitType;
@@ -16,28 +15,29 @@ import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.transformer.TransformException;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.enums.FileExtractType;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import javax.xml.transform.stream.StreamSource;
 import net.lingala.zip4j.core.ZipFile;
@@ -58,10 +58,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author tomasknap
  */
-public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> implements Extract, ConfigDialogProvider<JTaggerExtractorConfig> {
+public class JTaggerExtractor 
+        extends ConfigurableBase<JTaggerExtractorConfig> 
+        implements Extract, ConfigDialogProvider<JTaggerExtractorConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(JTaggerExtractor.class);
 
+    public JTaggerExtractor(){
+            super(new JTaggerExtractorConfig());
+        }
+    
     @Override
     public AbstractConfigDialog<JTaggerExtractorConfig> getConfigurationDialog() {
         return new JTaggerExtractorDialog();
@@ -74,17 +80,12 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
 
-        //String pathToWorkingDir = "/tmp/intlib";
+                    
         String pathToWorkingDir = null;
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(JTaggerExtractor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if (new File(pathToWorkingDir).mkdirs()) {
-            logger.debug("Dir {} created", pathToWorkingDir);
-        } else {
-            logger.warn("Dir {} NOT created, could have already exist", pathToWorkingDir);
+            logger.error(ex.getLocalizedMessage());
         }
 
         //get path JAR file, so that resources (such as perl script can be read)
@@ -95,26 +96,29 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(JTaggerExtractor.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        //to get unzipped version of JAR
         String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
-        String unzipedJarPathStringResources = unzipedJarPathString + "/src/main/resources";
-        //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
-        logger.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
+        String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
+           //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
+        logger.info("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
         try {
             unzip(jarPathString, unzipedJarPathString);
         } catch (ZipException ex) {
             logger.error("Unzip error, {}", ex.getLocalizedMessage());
         } catch (IOException ex) {
-            logger.error(ex.getLocalizedMessage());
+            logger.error("Error:: " + ex.getLocalizedMessage());
         }
 
         //needed to execute binaries
         try {
             //chmod +x hunpos-tag, hunpos-train
             ///Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1/src/main/resources/tagger/hunpos-tag
-            Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + "/src/main/resources/tagger/hunpos-tag");
-            Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + "/src/main/resources/tagger/hunpos-train");
+            Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-tag");
+            logger.info("Executing: chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-tag");
+            Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-train");
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(JTaggerExtractor.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         }
 
 
@@ -128,16 +132,11 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         }
 
 
-
-
-
-
-
         //*****************************
         //get data (zipped file) from target URL 
 
-        String tmpCourtFilesZipFile = pathToWorkingDir + "/data.zip";
-        String tmpCourtFiles = pathToWorkingDir + "/unzipped";
+        String tmpCourtFilesZipFile = pathToWorkingDir + File.separator + "data.zip";
+        String tmpCourtFiles = pathToWorkingDir + File.separator + "unzipped";
 
         String urlWithZip = buildURL(config);
 
@@ -158,13 +157,6 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
             //TODO clean up
         }
 
-        //my
-//        http://www.nsoud.cz/Judikatura/judikatura_ns.nsf/zip?openAgent&query=
-//        %5Bdatum_predani_na_web%5D%3E%3D&start=1&count=15&pohled= 
-//        //correct
-//        http://www.nsoud.cz/Judikatura/judikatura_ns.nsf/zip?openAgent&query=
-//        %5Bdatum_predani_na_web%5D%3E%3D02%2F07%2F2013%20AND%20%5Bdatum_predani_na_web
-//                %5D%3C%3D09%2F07%2F2013&start=1&count=15&pohled=
         //*****************************
         //UNZIP files
         logger.info("About to unzip {} ", tmpCourtFilesZipFile);
@@ -182,32 +174,61 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         File filesToProcess = new File(tmpCourtFiles);
 
         //check existence of directories
-        checkExistanceOf(pathToWorkingDir + "/outJTagger/");
-        checkExistanceOf(pathToWorkingDir + "/outURIGen/");
-        checkExistanceOf(pathToWorkingDir + "/outXSLT/");
+        checkExistanceOf(pathToWorkingDir + File.separator + "outJTagger" + File.separator);
+        checkExistanceOf(pathToWorkingDir + File.separator + "outURIGen" + File.separator);
+         checkExistanceOf(pathToWorkingDir + File.separator + "outXSLT" + File.separator);
+        checkExistanceOf(pathToWorkingDir + File.separator + "outURIGenPara" + File.separator);
 
+        
+        //where the resources within unzipped jar files are located.
+        String unzipedJarPathStringResources = unzipedJarPathString + File.separator + pathToResources;
+     
         //config for URI generator
-        String configURiGen = unzipedJarPathStringResources + "/uriGenConfig.xml";
+        String configURiGen = unzipedJarPathStringResources + File.separator + "uriGenConfig.xml";
 
         //XSLT template for data creation
-        String xsltTemplate = unzipedJarPathStringResources + "/xmlToRDFSimple.xslt";
-
+        String xsltTemplate = unzipedJarPathStringResources + File.separator + "xmlToRDFSimple.xslt";
+   
         for (String file : filesToProcess.list()) {
             logger.info("Processing file: {}", file);
 
             //run jTagger
-            String outputJTaggerFilename = pathToWorkingDir + "/outJTagger/" + file;
-            runJTagger(tmpCourtFiles + File.separator + file, outputJTaggerFilename);
+            String outputJTaggerFilename = pathToWorkingDir + File.separator + "outJTagger" + File.separator + file;
+            runJTagger(tmpCourtFiles + File.separator + file, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir);
 
+              //check output
+                if (!outputGenerated(outputJTaggerFilename)) {
+                    continue;
+                }
+            
             //run URI Generator
-            String outputURIGeneratorFilename = pathToWorkingDir + "/outURIGen/" + file;
-            runURIGenerator(outputJTaggerFilename, outputURIGeneratorFilename, configURiGen, context);
-
+            String outputURIGeneratorFilename = pathToWorkingDir + File.separator + "outURIGen" + File.separator + file;
+            runURIGenerator(outputJTaggerFilename, outputURIGeneratorFilename, configURiGen, context);       
+            
+                //check output
+                if (!outputGenerated(outputURIGeneratorFilename)) {
+                    continue;
+                }
+                        
+            
+            
+            //////////////////////
+            //add paragraph elements?
+            //////////////////////
+            logger.info("About add paragraphs elements");
+            String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + file;
+            runParagraphAdjustment(outputURIGeneratorFilename,outputURIGeneratorFilenameWithParagraphs,context);
+             
+            //check output
+                if (!outputGenerated(outputURIGeneratorFilenameWithParagraphs)) {
+                    continue;
+                }
+            
+            
             //run XSLT
-            String outputXSLT = pathToWorkingDir + "/outXSLT/" + file;
-            // String template =  //String xsltFile = "/Users/tomasknap/Documents/PROJECTS/TACR/2012_tacr_playground/RDFConvertorJudikaty/xmlToRDFSimple.xslt";
-
-            if (runXSLT(outputURIGeneratorFilename, outputXSLT, xsltTemplate)) {
+            logger.info("About to run xslt");
+            String outputXSLT = pathToWorkingDir + File.separator + "outXSLT" + File.separator + file;
+            if (runXSLT(outputURIGeneratorFilenameWithParagraphs, outputXSLT, xsltTemplate)) {
                 logger.info("About to write result {} to output", outputXSLT);
                 try {
                     outputRepository.extractFromLocalTurtleFile(outputXSLT);
@@ -218,14 +239,12 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
             } else {
                 logger.error("Problems with resulting RDF data, skipping this file");
             }
-            //TODO hack just one file
-            //break;
         }
 
     }
 
-    private void runJTagger(String inputFile, String outputJTaggerFilename) {
-        logger.debug("Jtagger is about to be run for file {}", inputFile);
+    private void runJTagger(String inputFile, String outputJTaggerFilename, String jarPathString, String pathToWorkingDir) {
+        logger.info("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
         try {
             //process one file in the filesystem
             ///Users/tomasknap/Documents/PROJECTS/TACR/judikaty/data from web/nejvyssiSoud/rozhodnuti-3_Tdo_348_2013.txt
@@ -250,7 +269,11 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
             // Volam JTagger
             //JTagger.setPath(jarPath.getCanonicalPath());
             //TODO temp hack - problem reading JAR content:
-            JTagger.setPath("/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1");
+            //JTagger.setPath("/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1");
+          //JTagger.setPath(jarPathString, pathToWorkingDir);
+            JTagger.setPath(jarPathString);
+            logger.info("Path to extracted jar file: {}", jarPathString);
+             logger.info("Path to working dir: {}", pathToWorkingDir);
             JTaggerResult res = JTagger.processFile(input_text, "nscr");
             //logger.info("File {} processed", inputFile);
             //logger.debug(res.getXml());
@@ -260,7 +283,7 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
             out.print(res.getXml());
             out.flush();
             out.close();
-            logger.info("File {} was generated as result of JTagger", outputJTaggerFilename);
+            //logger.info("File {} was generated as result of JTagger", outputJTaggerFilename);
 
         } catch (Exception e) {
             logger.error("JTagger error {}", e.getLocalizedMessage());
@@ -272,7 +295,7 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         logger.info("About to run URI generator for {}", file);
         IntLibLink.processFiles(file, output, configURiGen,context);
         
-        logger.info("File {} was generated as result of URI generator", output);
+        
     }
 
     private boolean runXSLT(String file, String outputXSLT, String template) {
@@ -343,7 +366,7 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         if (new File(file).mkdirs()) {
             logger.debug("Dir {} created", file);
         } else {
-            logger.warn("Dir {} NOT created, could have already exist", file);
+            logger.debug("Dir {} NOT created, could have already exist", file);
         }
     }
 
@@ -373,4 +396,126 @@ public class JTaggerExtractor extends ConfigurableBase<JTaggerExtractorConfig> i
         // return urlWithZip;
 
     }
+
+    //add paragraph elements wrapping paragraphs within <body> section
+    private String addParagraphElemenets(String input_string) {
+        
+        if (input_string == null) {
+            logger.warn("Input string is null, returning empty string from add Paragraph Elements");
+            return "";
+        }
+        
+        //add paragraphs only to the content of the body elem:
+        int indexBody = input_string.indexOf("<body>")+6;
+        String before = input_string.substring(0,indexBody);
+        String toBeProcessedTemp = input_string.substring(indexBody);
+        //String toBeProcessed = input_string.substring(indexBody, input_string.indexOf("</body>") - indexBody);
+        String toBeProcessed = toBeProcessedTemp.substring(0,toBeProcessedTemp.indexOf("</body>"));
+        String after = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("</body>"));
+        
+       
+        
+        //to ensure that empty lines are really empty (no hidden spaces, tabs, ..)
+        String output = toBeProcessed.replaceAll("([^\n]+)\n", "\n<paragraph>$1</paragraph>\n");
+        
+        //logger.info("Para orig {}", input_string);
+        logger.info("****Para before {}", before);
+        logger.info("****Para output {}", toBeProcessed);
+        logger.info("****Para after {}", after);
+         logger.info("*****With Para {}", output);
+        //logger.info("Para all {}", before + output + after);
+        
+        
+        //to remove \n from lines which do not end with "." (line in the paragraph) and new line char (empty line between paragraphs)
+        //If they end with dots, \n is not removed if the new line character is followed by space, tab or next new line character, 
+        //because this denotes new paragraph and in this case new line char is ok.  
+        //output = output.replaceAll("([^.\n])\n([^\\s])", "$1$2");
+        
+        return before + output + after;
+        
+    
+        
+    }
+
+    private void runParagraphAdjustment(String outputURIGeneratorFilename, String outputURIGeneratorFilenameWithParagraphs, ExtractContext context) {
+
+      
+        
+      String input_text = null;
+        try {
+            input_text = readFile(outputURIGeneratorFilename, StandardCharsets.UTF_8 );
+            //      FileInputStream fis = null;
+            //
+            //
+            //            try {
+            //                fis = new FileInputStream(outputURIGeneratorFilename);
+            //            } catch (FileNotFoundException ex) {
+            //                logger.error(ex.getLocalizedMessage());
+            //            }
+            //            InputStreamReader inp = null;
+            //            try {
+            //                inp = new InputStreamReader(fis,"UTF-8");
+            //            } catch (UnsupportedEncodingException ex) {
+            //                logger.error("Encoding {}", ex.getLocalizedMessage());
+            //            }
+            //
+            //            //InputStreamReader inp = new InputStreamReader(fis, "UTF-8");
+            //            BufferedReader reader = new BufferedReader(inp);
+            //            String input_text = "";
+            //            String line = null;
+            //            try {
+            //                while ((line = reader.readLine()) != null) {
+            //                    input_text += line + "\n";
+            //                }
+            //
+            //                ///////
+            //            }
+            //                logger.error(ex.getLocalizedMessage());
+            //            }
+        } catch (IOException ex) {
+            logger.error(ex.getLocalizedMessage());
+        }
+            
+            
+            String output = addParagraphElemenets(input_text);
+                              
+            PrintWriter out = null;
+            try {
+                out = new PrintWriter(outputURIGeneratorFilenameWithParagraphs, "UTF-8");
+            } catch (FileNotFoundException ex) {
+                logger.error(ex.getLocalizedMessage());
+            } catch (UnsupportedEncodingException ex) {
+            logger.error(ex.getLocalizedMessage());
+        }
+            out.write(output);
+            out.flush();
+            out.close();
+            
+             
+//        writer = new PrintWriter("/tmp/jtagger/txt_source/judikatura.zakon.txt", "UTF-8");
+//        writer.println(text);
+//        writer.close();
+            
+            //////////////////
+    }
+    
+    static String readFile(String path, Charset encoding) 
+  throws IOException 
+{
+  byte[] encoded = Files.readAllBytes(Paths.get(path));
+  return encoding.decode(ByteBuffer.wrap(encoded)).toString();
+}
+
+    private boolean outputGenerated(String output) {
+     File f = new File(output);
+            if(!f.exists()) {
+                logger.warn("File {} was not created", output);
+                logger.warn("Skipping rest of the steps for the given file");
+                return false;
+            }
+            else {
+                logger.info("File {} was generated as result of URI generator", output);
+                return true;
+            }
+                }
 }

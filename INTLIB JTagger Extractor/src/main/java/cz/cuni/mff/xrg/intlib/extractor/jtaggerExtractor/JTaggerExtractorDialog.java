@@ -8,6 +8,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
+import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 
 /**
@@ -15,17 +16,19 @@ import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
  * configuration.
  *
  */
-public class JTaggerExtractorDialog extends AbstractConfigDialog<JTaggerExtractorConfig> {
+public class JTaggerExtractorDialog extends BaseConfigDialog<JTaggerExtractorConfig> {
 
     private GridLayout mainLayout;
     private TextField dateTo; //Path
     private TextField dateFrom; //Path
 
     public JTaggerExtractorDialog() {
+        super(new JTaggerExtractorConfig());
         buildMainLayout();
         setCompositionRoot(mainLayout);
     }
-
+    
+   
     private GridLayout buildMainLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
@@ -101,4 +104,14 @@ public class JTaggerExtractorDialog extends AbstractConfigDialog<JTaggerExtracto
             return conf;
         }
     }
+
+//    @Override
+//    public void setConfig(byte[] conf) throws ConfigException {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
+//
+//    @Override
+//    public byte[] getConfig() throws ConfigException {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
 }

@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link;
 
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,7 +15,7 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,6 +25,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -36,6 +38,12 @@ import org.xml.sax.SAXException;
  */
 public class LawDocument extends Work {
     
+    private static org.slf4j.Logger logger;
+
+    public LawDocument(Logger l) {
+            logger = l;
+    }
+       
     // -------------------------------------------------------------------------
     // Fields
     
@@ -51,7 +59,8 @@ public class LawDocument extends Work {
     
     protected static ShortcutMap genericShortcuts = new ShortcutMap();
     protected ShortcutMap customShortcuts = new ShortcutMap();
-    
+
+        
     // -------------------------------------------------------------------------
     // Document transformation
     
@@ -74,9 +83,9 @@ public class LawDocument extends Work {
         try {
             checkData(doc);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         } catch (IOException ex) {
-            Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+           logger.error(ex.getLocalizedMessage());
         }
 
         
@@ -105,7 +114,7 @@ public class LawDocument extends Work {
                     try {
                         tempYear = Integer.parseInt(((Element)metadataYearList.item(0)).getTextContent());
                     } catch (NumberFormatException ex) {
-                        Logger.getLogger("intlib").log(Level.WARNING, "Year not a number: {0}", ((Element)metadataYearList.item(0)).getTextContent());
+                        logger.error(ex.getLocalizedMessage());
                     }
                 } else {
                     LinkedList<Work> thisWork = Work.parse(metadataNumber.getTextContent(), tempType, this);
@@ -159,7 +168,7 @@ public class LawDocument extends Work {
                     try {
                         url = new URL(candidates.get(0).toString());
                     } catch (Exception ex) {
-                        //Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, "{0}", ex);
+                        logger.error(ex.getLocalizedMessage());
                     }
                     if (url != null) {
                         ((Element)links.item(i)).setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", url.toString());
@@ -176,7 +185,7 @@ public class LawDocument extends Work {
                         try {
                             uri = new URL(candidates.get(j).toString());
                         } catch (MalformedURLException ex) {
-                            //Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                            logger.error(ex.getLocalizedMessage());
                         }
                         if (uri != null) {
                             if (concat.length() > 0) concat.append(" ");
@@ -187,7 +196,7 @@ public class LawDocument extends Work {
                    ((Element)links.item(i)).setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", concat.toString());
                 } else {
                     Work.unrecognized ++;
-                    Logger.getLogger("intlib").log(Level.WARNING, "Link not recognized: {0}", link);
+                   logger.error("Link {} not recognized", link );
                 }
             }
         }
@@ -219,7 +228,7 @@ public class LawDocument extends Work {
             try {
                 url = new URL(Configuration.getPrefixMap().get("institution") + clean(inst));
             } catch (Exception ex) {
-                //Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getLocalizedMessage());
             }
             if (url != null && 
                     (//url.toString().contains("odvolaci") 
@@ -249,7 +258,7 @@ public class LawDocument extends Work {
         try {
             addExpressions(doc, version);
         } catch (ParseException ex) {
-            //Logger.getLogger(Work.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         }
         
         return doc;
@@ -285,13 +294,13 @@ public class LawDocument extends Work {
                 writer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
                 writer.transform(new DOMSource(doc), new StreamResult(new File(output)));
         } catch (TransformerException ex) {
-            //Logger.getLogger(Work.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         } catch (SAXException ex) {
-            //Logger.getLogger(Work.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         } catch (IOException ex) {
-            //Logger.getLogger(Work.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         } catch (ParserConfigurationException ex) {
-            //Logger.getLogger(Work.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getLocalizedMessage());
         }
 
         return doc;
@@ -306,7 +315,7 @@ public class LawDocument extends Work {
         
         if (tempYear == 0 || tempNumber.equals("")) {
             Work.missing ++;
-            Logger.getLogger(Work.class.getName()).log(Level.WARNING, "Document metadata with year and/or number are missing.");
+            logger.warn("Document metadata with year and/or number are missing for input {}.", doc.getBaseURI());
             return;
         }
         
@@ -373,7 +382,7 @@ public class LawDocument extends Work {
             try {
                 url = new URL(w.toRelativeString());
             } catch (MalformedURLException ex) {
-                Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getLocalizedMessage());
             }
             section.setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", url.toString());
         }
@@ -404,7 +413,7 @@ public class LawDocument extends Work {
             try {
                 url = new URL(w.toRelativeString());
             } catch (MalformedURLException ex) {
-                Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getLocalizedMessage());
             }
             subsection.setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", url.toString());
         }
@@ -423,7 +432,7 @@ public class LawDocument extends Work {
                 try {
                     url = new URL(w.toRelativeString());
                 } catch (MalformedURLException ex) {
-                    Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                   logger.error(ex.getLocalizedMessage());
                 }
                 ((Element)subpara.item(m)).setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", url.toString());
                 Work.recognized++;
@@ -436,7 +445,7 @@ public class LawDocument extends Work {
             try {
                 url = new URL(w.toRelativeString());
             } catch (MalformedURLException ex) {
-                Logger.getLogger(LawDocument.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getLocalizedMessage());
             }
             para.setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", url.toString());
             Work.recognized++;
