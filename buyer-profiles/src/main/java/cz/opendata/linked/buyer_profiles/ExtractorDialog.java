@@ -1,5 +1,7 @@
 package cz.opendata.linked.buyer_profiles;
 
+import java.util.Calendar;
+
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
@@ -21,6 +23,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	private GridLayout mainLayout;
     private CheckBox chkAccessProfiles;
     private CheckBox chkRewriteCache;
+    private CheckBox chkCurrentYearOnly;
     private TextField interval;
     private TextField timeout;
     
@@ -55,6 +58,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkAccessProfiles);
         
+        chkCurrentYearOnly = new CheckBox("Buyer profile data from current year only:");
+        chkCurrentYearOnly.setDescription("When selected, data from buyer profiles will be requested only from " + Calendar.getInstance().get(Calendar.YEAR) + ":");
+        chkCurrentYearOnly.setWidth("100%");
+        
+        mainLayout.addComponent(chkCurrentYearOnly);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
@@ -71,6 +80,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		chkRewriteCache.setValue(conf.rewriteCache);
 		chkAccessProfiles.setValue(conf.accessProfiles);
+		chkCurrentYearOnly.setValue(conf.currentYearOnly);
 		interval.setValue(Integer.toString(conf.interval));
 		timeout.setValue(Integer.toString(conf.timeout));
 	}
@@ -80,6 +90,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.rewriteCache = chkRewriteCache.getValue();
 		conf.accessProfiles = chkAccessProfiles.getValue();
+		conf.currentYearOnly = chkCurrentYearOnly.getValue();
 		conf.interval = Integer.parseInt(interval.getValue());
 		conf.timeout = Integer.parseInt(timeout.getValue());
 		return conf;

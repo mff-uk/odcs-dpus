@@ -22,6 +22,8 @@ public class ExtractorConfig implements DPUConfigObject {
 	
 	public int interval = 2000;
 	
+	public boolean currentYearOnly = false;
+	
 	@Override
     public boolean isValid() {
         return true;

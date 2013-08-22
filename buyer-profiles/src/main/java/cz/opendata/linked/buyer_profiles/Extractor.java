@@ -57,6 +57,7 @@ public class Extractor
 		}
         Scraper_parser s = new Scraper_parser();
         s.AccessProfiles = config.accessProfiles;
+        s.CurrentYearOnly = config.currentYearOnly;
         s.logger = logger;
         
         String profilyname = ctx.getWorkingDir() + "/profily.ttl";

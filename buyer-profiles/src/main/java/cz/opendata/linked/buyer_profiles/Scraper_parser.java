@@ -9,6 +9,7 @@ import java.net.URL;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class Scraper_parser extends ScrapingTemplate{
     public PrintStream ps;
     public PrintStream zak_ps;
     public boolean AccessProfiles;
+    public boolean CurrentYearOnly;
     public Logger logger;
     
     public int numrows = 0;
@@ -96,7 +98,12 @@ public class Scraper_parser extends ScrapingTemplate{
 	                		profilZadavatele = new URL(profilZadavatele.toString() + "/XMLdataVZ");
 	                	}
 	                	
-	                	for (int i1 = 2010; i1 < 2014; i1++)
+	                	if (CurrentYearOnly)
+	                	{
+	                		int i1 = Calendar.getInstance().get(Calendar.YEAR);
+	                		out.add(new ParseEntry(new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1), "profil", "xml"));
+	                	}
+	                	else for (int i1 = 2010; i1 <= Calendar.getInstance().get(Calendar.YEAR); i1++)
 	                	{
 	                		
 		                	out.add(new ParseEntry(new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1), "profil", "xml"));
