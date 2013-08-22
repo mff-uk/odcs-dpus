@@ -13,7 +13,7 @@
     
     <properties>    
     	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>0.0.1</dpu.version>
+        <dpu.version>1.0.0</dpu.version>
         <!-- TODO 3: fill module description, the description will be visible to the user -->
         <dpu.description>This extractor scrapes law metadata from psp.cz and creates a Turtle file</dpu.description>
         <!-- TODO 4: fill the name of root package -->
@@ -26,12 +26,6 @@
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>1.7.2</version>
-		</dependency> 		
-		<dependency>
-		  <groupId>cz.cuni.mff.starka</groupId>
-		  <artifactId>ScraperLibrary</artifactId>
-		  <version>1.0.0</version>
-		  <type>jar</type>
-		</dependency> 		 
+		</dependency> 		 		 
  	</dependencies>
 </project>
