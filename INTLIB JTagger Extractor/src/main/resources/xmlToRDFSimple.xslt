@@ -382,7 +382,7 @@
 		<!-- <xsl:variable name="fileYear"><xsl:value-of select="substring(substring-after($decisionURI,'decision/'),1,4)"/></xsl:variable> 
 		<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$fileYear"/>/<xsl:value-of select="$decisionURI"/>&gt;</xsl:variable> -->
 		<!-- TODO HACK CORRECTLY: judgment -> decision -->
-		<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="substring-after($decisionURI,'judgment/')"/>&gt;</xsl:variable>
+		<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="substring-after($decisionURI,'decision/')"/>&gt;</xsl:variable>
 		
 		<xsl:value-of select="$file"/> a lex:File .
 		
