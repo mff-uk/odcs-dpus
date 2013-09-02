@@ -334,7 +334,7 @@ public class Parser extends ScrapingTemplate{
                 
                 String type = getLexTypeFromTitle(title);
                 
-                String actUri = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(title).toLowerCase() + "/" + year + "/" + cislo;
+                String actUri = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(title).toLowerCase() + "/" + year + "/" + cislo + "-" + year;
                 ps.println("<" + actUri + ">\n\ta " + type + " ;");
                 ps.println("\tdcterms:title \"" + title +"\"@cs ;");
                 ps.println("\tdcterms:identifier \"" + identifier + "\" ;");
