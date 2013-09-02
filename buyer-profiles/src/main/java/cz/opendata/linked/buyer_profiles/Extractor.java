@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
 import cz.cuni.xrg.intlib.commons.data.DataUnitType;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
@@ -24,6 +25,12 @@ import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 public class Extractor 
         extends ConfigurableBase<ExtractorConfig> 
         implements Extract, ConfigDialogProvider<ExtractorConfig> {
+	
+	@OutputDataUnit(name = "contracts")
+	public RDFDataUnit contractsDataUnit;
+
+	@OutputDataUnit(name = "profiles")
+	public RDFDataUnit profilesDataUnit;
 
 	/**
 	 * DPU's configuration.
@@ -129,8 +136,6 @@ public class Extractor
         s.zak_ps.close();
 
         //give ttl to odcs
-        RDFDataUnit contractsDataUnit;
-        RDFDataUnit profilesDataUnit;
         try {
         	contractsDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "contracts");
         	profilesDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "profiles");
