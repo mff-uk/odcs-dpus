@@ -27,7 +27,7 @@ import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.module.file.FileManager;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 
 public class Extractor 
@@ -41,7 +41,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 	private Logger logger = LoggerFactory.getLogger(Extract.class);
 
 	public Extractor(){
-		super(new ExtractorConfig());
+		super(ExtractorConfig.class);
 	}
 
 	@Override
@@ -111,15 +111,15 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		s.ps.close();
 
 		//give ttl to odcs
-		RDFDataRepository outputRepository;
+		RDFDataUnit outputDataUnit;
 		try {
-			outputRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "output");
+			outputDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "output");
 		} catch (DataUnitCreateException e) {
 			throw new ExtractException("Can't create DataUnit", e);
 		}
 
 		try {
-			outputRepository.extractFromLocalTurtleFile(tempfilename);
+			outputDataUnit.extractFromLocalTurtleFile(tempfilename);
 		}
 		catch (RDFException e)
 		{

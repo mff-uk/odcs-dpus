@@ -31,7 +31,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField timeout;
     
 	public ExtractorDialog() {
-		super(new ExtractorConfig());
+		super(ExtractorConfig.class);
         buildMainLayout();
         setCompositionRoot(mainLayout);        
     }  
