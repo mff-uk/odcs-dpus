@@ -33,7 +33,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 	private Logger logger = LoggerFactory.getLogger(Extract.class);
 
 	public Extractor(){
-		super(new ExtractorConfig());
+		super(ExtractorConfig.class);
 	}
 
 	private int countTodaysCacheFiles(ExtractContext ctx) throws ParseException 
