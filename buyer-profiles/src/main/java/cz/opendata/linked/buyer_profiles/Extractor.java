@@ -19,7 +19,7 @@ import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 
 public class Extractor 
         extends ConfigurableBase<ExtractorConfig> 
@@ -32,7 +32,7 @@ public class Extractor
 	private Logger logger = LoggerFactory.getLogger(Extract.class);
 
     public Extractor() {
-        super(new ExtractorConfig());
+        super(ExtractorConfig.class);
     }
 	 
     @Override
@@ -129,18 +129,18 @@ public class Extractor
         s.zak_ps.close();
 
         //give ttl to odcs
-        RDFDataRepository contractsRepository;
-        RDFDataRepository profilesRepository;
+        RDFDataUnit contractsDataUnit;
+        RDFDataUnit profilesDataUnit;
         try {
-        	contractsRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "contracts");
-        	profilesRepository = (RDFDataRepository) ctx.addOutputDataUnit(DataUnitType.RDF, "profiles");
+        	contractsDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "contracts");
+        	profilesDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "profiles");
         } catch (DataUnitCreateException e) {
             logger.error("Can't create DataUnit");
         	throw new ExtractException("Can't create DataUnit", e);
         }
         try {
-        	contractsRepository.extractFromLocalTurtleFile(zakazkyname);
-        	profilesRepository.extractFromLocalTurtleFile(profilyname);
+        	contractsDataUnit.extractFromLocalTurtleFile(zakazkyname);
+        	profilesDataUnit.extractFromLocalTurtleFile(profilyname);
         }
         catch (RDFException e)
         {

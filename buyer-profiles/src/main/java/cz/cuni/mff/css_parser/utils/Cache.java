@@ -168,7 +168,7 @@ public class Cache {
         		    
                     //Thread.sleep(interval);
 		} catch (java.io.IOException ex) {
-                    logger.info("Warning (retrying): " + ex.getMessage());
+                    logger.info("Warning (retrying): " + ex.getMessage() + url);
                     if (
                     	ex.getMessage() == null 
                     	|| ex.getMessage().equals("HTTP error fetching URL")

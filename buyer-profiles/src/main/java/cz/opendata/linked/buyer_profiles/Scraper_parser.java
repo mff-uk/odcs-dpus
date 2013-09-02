@@ -754,6 +754,14 @@ public class Scraper_parser extends ScrapingTemplate{
     	}
     }
     
+    private String fixIC(String oldIC)
+    {
+		if (oldIC == null) return null;
+    	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
+		//logger.info("Varování: ICO obsahuje mezery: " + ico + " Oprava: " + ico.replace(" ", "").replace(" ", "").replaceAll("\\|.*", ""));
+    	return oldIC.replace(" ", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
+    }
+    
     @Override
     protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) {
         if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
@@ -777,13 +785,8 @@ public class Scraper_parser extends ScrapingTemplate{
             	String contractId = rowElements.get(1).text();
             	String evidencniCislo = rowElements.get(2).text();
             	String nazevZadavatele = escapeString(rowElements.get(3).text());
-            	String ico = rowElements.get(4).text().replace(" ", "").replace(" ", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
-            	if (ico.contains(" ") || ico.contains(" ") || ico.contains("|"))
-            	{
-            		//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
-            		//logger.info("Varování: ICO obsahuje mezery: " + ico + " Oprava: " + ico.replace(" ", "").replace(" ", "").replaceAll("\\|.*", ""));
-            		ico = ico.replace(" ", "").replace(" ", "").replaceAll("\\|.*", "");
-            	}
+            	String ico = fixIC(rowElements.get(4).text());
+            	
             	
             	String guid = null;
             	String BEuri;
@@ -878,7 +881,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	String stat = escapeString(doc.select("select#FormItems_Stat_I option[selected=selected]").attr("value"));
         	
         	String kodPravniFormy = escapeString(doc.select("input#FormItems_KodPravniFormy_I").attr("value"));
-        	String ico = escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value").replace(" ", ""));
+        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")));
         	String guid = null;
         	if (ico.isEmpty()) 
     		{
@@ -886,7 +889,7 @@ public class Scraper_parser extends ScrapingTemplate{
         		//logger.info("Varování: Nenalezeno IČ: " + nazev);
         		missingIco++;
     		}
-        	String dic = escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value"));
+        	String dic = fixIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")));
         	String zujObce = escapeString(doc.select("input#FormItems_ZujObce_I").attr("value"));
         	String kodNuts = escapeString(doc.select("input#FormItems_KodNuts_I").attr("value"));
         	if (kodNuts.startsWith("CZ")) kodNuts = kodNuts.substring(2);
@@ -1125,7 +1128,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	String stat = escapeString(doc.select("select#FormItems_Stat_I option[selected=selected]").attr("value"));
         	
         	String kodPravniFormy = escapeString(doc.select("input#FormItems_KodPravniFormy_I").attr("value"));
-        	String ico = escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value").replace(" ", ""));
+        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")));
         	String guid = null;
         	if (ico.isEmpty()) 
     		{
@@ -1133,7 +1136,7 @@ public class Scraper_parser extends ScrapingTemplate{
         		//logger.info("Varování: Nenalezeno IČ: " + nazev);
         		missingIco++;
     		}
-        	String dic = escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value"));
+        	String dic = fixIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")));
         	String zujObce = escapeString(doc.select("input#FormItems_ZujObce_I").attr("value"));
         	String kodNuts = escapeString(doc.select("input#FormItems_KodNuts_I").attr("value"));
         	if (kodNuts.startsWith("CZ")) kodNuts = kodNuts.substring(2);
@@ -1335,7 +1338,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	        	if (ic_element.size() > 0)
 	        	{
 	        		found = true;
-	        		IC = escapeString(ic_element.first().text().replace(" ", ""));
+	        		IC = fixIC(escapeString(ic_element.first().text()));
 	        	}
 	        	//else //logger.info("Chybí IČ v XML profilu zadavatele: " + url);
 	        	
@@ -1457,13 +1460,21 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		int currentUchazec = 0;
 	            		for (Element uchazec: zakazka.select("uchazec"))
 	            		{
+	            			if (uchazec == null) logger.error("Uchazec null");
 	            			numuchazeci++;
-	            			String icUchazece = getStringFromElements(uchazec.select("ico")).replace(" ", "");
-	            			String nazevUchazece = getStringFromElements(uchazec.select("nazev_uchazece"));
-	            			String zemeSidlaUchazece = getStringFromElements(uchazec.select("zeme_sidla"));
-	            			String mistoPodnikani = getStringFromElements(uchazec.select("misto_podnikani"));
-	            			String cena_s_dph = getStringFromElements(uchazec.select("cena_s_dph"));
-	            			String bydliste = getStringFromElements(uchazec.select("bydliste"));
+	            			String icUchazece = null;
+	            			if (uchazec.select("ico") != null) icUchazece = fixIC(getStringFromElements(uchazec.select("ico")));
+	            			String nazevUchazece = null;
+	            			if (uchazec.select("nazev_uchazece") != null) nazevUchazece = getStringFromElements(uchazec.select("nazev_uchazece"));
+	            			String zemeSidlaUchazece = null;
+	            			if (uchazec.select("zeme_sidla") != null) zemeSidlaUchazece = getStringFromElements(uchazec.select("zeme_sidla"));
+	            			String mistoPodnikani = null;
+	            			if (uchazec.select("misto_podnikani") != null) mistoPodnikani = getStringFromElements(uchazec.select("misto_podnikani"));
+	            			String cena_s_dph = null;
+	            			if (uchazec.select("cena_s_dph") != null) cena_s_dph = getStringFromElements(uchazec.select("cena_s_dph"));
+	            			else if (uchazec.select("cena_s_DPH") != null) cena_s_dph = getStringFromElements(uchazec.select("cena_s_DPH"));
+	            			String bydliste = null;
+	            			if (uchazec.select("bydliste") != null) bydliste = getStringFromElements(uchazec.select("bydliste"));
 	            			
 	            			currentUchazec++;
 	            			String uriTender;
@@ -1527,15 +1538,27 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		int currentDodavatel = 1;
 	            		for (Element dodavatel: zakazka.select("dodavatel"))
 	            		{
+	            			if (dodavatel == null) logger.error("Dodavatel null");
 	            			numdodavatele++;
-	            			String icDodavatele = getStringFromElements(dodavatel.select("ico")).replace(" ", "");
-	            			String nazevDodavatele = getStringFromElements(dodavatel.select("nazev_dodavatele"));
-	            			String zemeSidlaDodavatele = getStringFromElements(dodavatel.select("zeme_sidla"));
-	            			String cena_s_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_dph"));
-	            			String cena_bez_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_dph"));
-	            			String rozpad = getStringFromElements(dodavatel.select("rozpad"));
-	            			String mistoPodnikani = getStringFromElements(dodavatel.select("misto_podnikani_dodavatele"));
-	            			String bydliste = getStringFromElements(dodavatel.select("bydliste_dodavatele"));
+	            			String icDodavatele = null;
+	            			if (dodavatel.select("ico") != null) icDodavatele = fixIC(getStringFromElements(dodavatel.select("ico")));
+	            			String nazevDodavatele = null;
+	            			if (dodavatel.select("nazev_dodavatele") != null) nazevDodavatele = getStringFromElements(dodavatel.select("nazev_dodavatele"));
+	            			String zemeSidlaDodavatele = null;
+	            			if (dodavatel.select("zeme_sidla_dodavatele") != null) zemeSidlaDodavatele = getStringFromElements(dodavatel.select("zeme_sidla_dodavatele"));
+	            			String mistoPodnikani = null;
+	            			if (dodavatel.select("misto_podnikani_dodavatele") != null) mistoPodnikani = getStringFromElements(dodavatel.select("misto_podnikani_dodavatele"));
+	            			String cena_s_dph = null;
+	            			if (dodavatel.select("cena_celkem_dle_smlouvy_dph") != null) cena_s_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_dph"));
+	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_DPH") != null) cena_s_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_DPH"));
+	            			String bydliste = null;
+	            			if (dodavatel.select("bydliste_dodavatele") != null) bydliste = getStringFromElements(dodavatel.select("bydliste_dodavatele"));
+	            			String cena_bez_dph = null;
+	            			if (dodavatel.select("cena_celkem_dle_smlouvy_bez_dph") != null) cena_bez_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_dph"));
+	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH") != null) cena_bez_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH"));
+	            			String rozpad = null;
+	            			if (dodavatel.select("rozpad") != null) rozpad = getStringFromElements(dodavatel.select("rozpad"));
+
 
 	            			//if (rozpad != null && !rozpad.isEmpty()) //logger.info("Rozpad: " + rozpad);
 	            			
