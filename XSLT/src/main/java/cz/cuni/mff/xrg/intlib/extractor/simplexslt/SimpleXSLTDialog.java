@@ -8,6 +8,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
+import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 
 /**
@@ -15,13 +16,14 @@ import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
  * configuration.
  *
  */
-public class SimpleXSLTDialog extends AbstractConfigDialog<SimpleXSLTConfig> {
+public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
     private GridLayout mainLayout;
     private TextField xsltPath; //Path
     private TextField xmlPath; //Path
 
     public SimpleXSLTDialog() {
+        super(new SimpleXSLTConfig());
         buildMainLayout();
         setCompositionRoot(mainLayout);
     }

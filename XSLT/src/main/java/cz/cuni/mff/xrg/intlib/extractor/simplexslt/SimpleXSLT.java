@@ -14,7 +14,7 @@ import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.enums.FileExtractType;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +33,12 @@ import net.sf.saxon.s9api.XsltTransformer;
  * @author tomasknap
  */
 public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Extract, ConfigDialogProvider<SimpleXSLTConfig> {
+    
+
+    public SimpleXSLT(){
+            super(new SimpleXSLTConfig());
+        }
+    
 
     /**
      * DPU's configuration.
@@ -66,18 +72,18 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Ex
         File outputFile = new File(config.getXmlFile() + ".ttl");
         
         //outputs
-        RDFDataRepository outputRepository;
+        RDFDataUnit outputRepository;
         try {
-            outputRepository = (RDFDataRepository) context.addOutputDataUnit(DataUnitType.RDF, "output");
+            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
         } catch (DataUnitCreateException e) {
             throw new ExtractException("Can't create DataUnit", e);
         }
-        try {
-            outputRepository.extractfromFile(FileExtractType.PATH_TO_FILE, config.getXmlFile() + ".ttl", "", "", false, false);
-            ////////////
-        } catch (RDFException ex) {
-            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            //TODO outputRepository.extractFromFile(config.getXmlFile());
+//            ////////////
+//        } catch (RDFException ex) {
+//            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
 
         //xslt
