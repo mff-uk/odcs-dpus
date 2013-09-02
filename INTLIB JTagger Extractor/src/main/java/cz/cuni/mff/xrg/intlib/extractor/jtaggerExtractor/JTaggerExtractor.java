@@ -18,7 +18,7 @@ import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataRepository;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -124,9 +124,9 @@ public class JTaggerExtractor
 
         //*****************************
         //Prepare OUTPUTS - copy prepare file to output data unit
-        RDFDataRepository outputRepository;
+        RDFDataUnit outputRepository;
         try {
-            outputRepository = (RDFDataRepository) context.addOutputDataUnit(DataUnitType.RDF, "output");
+            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
         } catch (DataUnitCreateException e) {
             throw new ExtractException("Can't create DataUnit", e);
         }
