@@ -20,7 +20,7 @@ public class ExtractorConfig implements DPUConfigObject {
 	
 	public int timeout = 10000;
 	
-	public int interval = 2000;
+	public int interval = 0;
 	
 	public boolean currentYearOnly = false;
 	
