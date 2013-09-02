@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cz.cuni.xrg.intlib</groupId>
-        <artifactId>module_master</artifactId>
+        <artifactId>module-base</artifactId>
         <version>0.0.1</version>
     </parent>    
     <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
