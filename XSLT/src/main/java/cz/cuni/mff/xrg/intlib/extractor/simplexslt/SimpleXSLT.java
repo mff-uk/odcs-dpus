@@ -9,6 +9,7 @@ import cz.cuni.xrg.intlib.commons.data.DataUnitType;
 import cz.cuni.xrg.intlib.commons.dpu.DPU;
 import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
@@ -31,6 +32,7 @@ import net.sf.saxon.s9api.XsltTransformer;
  *
  * @author tomasknap
  */
+@AsExtractor
 public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DPU, ConfigDialogProvider<SimpleXSLTConfig> {
     
 
