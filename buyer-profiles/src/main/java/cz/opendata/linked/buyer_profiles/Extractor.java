@@ -1,5 +1,6 @@
 package cz.opendata.linked.buyer_profiles;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -137,8 +138,8 @@ public class Extractor
         s.zak_ps.close();
 
         try {
-        	contractsDataUnit.extractFromLocalTurtleFile(zakazkyname);
-        	profilesDataUnit.extractFromLocalTurtleFile(profilyname);
+        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
+        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
         }
         catch (RDFException e)
         {

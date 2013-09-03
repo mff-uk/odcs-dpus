@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Jakub Starka
+ * @author Jakub Stárka
+ * @author Jakub Klímek
  */
 public class IntLibLink {
     
@@ -105,11 +106,11 @@ public class IntLibLink {
         //set the tempDir        
         if (context != null) {  
             SparqlLoader.tempDir = context.getWorkingDir();
+            logger.info("Tmp set as: " + context.getWorkingDir());
           
         } else {
             SparqlLoader.tempDir = new File(System.getProperty("java.io.tmpdir"));
         }
-        logger.info("Tmp set as: " + context.getWorkingDir());
       
         
         try {

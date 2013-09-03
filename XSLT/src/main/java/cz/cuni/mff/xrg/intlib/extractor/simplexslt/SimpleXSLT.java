@@ -114,7 +114,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DP
         }
         
               
-            rdfDataUnit.extractFromFile(new File(config.getXmlFile()));
+            rdfDataUnit.addFromFile(new File(config.getXmlFile()));
             ////////////
        
         

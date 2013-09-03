@@ -1,5 +1,6 @@
 package cz.opendata.linked.psp_cz.metadata;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -109,7 +110,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		//give ttl to odcs
 		try {
-			outputDataUnit.extractFromLocalTurtleFile(tempfilename);
+			outputDataUnit.addFromTurtleFile(new File(tempfilename));
 		}
 		catch (RDFException e)
 		{

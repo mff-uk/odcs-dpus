@@ -231,7 +231,7 @@ public class JTaggerExtractor
             if (runXSLT(outputURIGeneratorFilenameWithParagraphs, outputXSLT, xsltTemplate)) {
                 logger.info("About to write result {} to output", outputXSLT);
                 try {
-                    outputRepository.extractFromLocalTurtleFile(outputXSLT);
+                    outputRepository.addFromTurtleFile(new File(outputXSLT));
                     //outputRepository.extractfromFile(FileExtractType.PATH_TO_FILE, outputXSLT, "", "", false, false);
                 } catch (RDFException ex) {
                     logger.error("Problems with adding RDF data to output data unit", ex.getLocalizedMessage());
