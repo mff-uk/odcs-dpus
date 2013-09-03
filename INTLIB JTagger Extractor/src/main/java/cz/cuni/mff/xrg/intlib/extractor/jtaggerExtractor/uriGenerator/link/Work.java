@@ -61,11 +61,13 @@ public class Work implements Comparable<Work> {
          " )", 
          "a b", 
          " ) a", 
-         "téhož zákona", 
+         "téhož zákona",
+         "zákona",
          "cit. zákona", 
          "cit. zák.",
          "cit. vyhl.",
-         "druhý odstavec"
+         "druhý odstavec",
+         "citovaného předpisu"
     };
 
     
