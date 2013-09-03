@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 
 
 <base>
@@ -128,7 +128,7 @@
 		<alias>ústava české republiky</alias>		
 		<alias>ústavy české republiky</alias>		
 	</document>
-	<document country="cz" year="2003" number="89">
+	<document country="cz" year="1964" number="40">
 		<alias>občanského zákoníku</alias>
 		<alias>obč. zák.</alias>
 		<alias>obč. zák</alias>		
