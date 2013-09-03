@@ -4,16 +4,16 @@ import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.configuration.Configurable;
 
 import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
+import cz.cuni.xrg.intlib.commons.data.DataUnitException;
 import cz.cuni.xrg.intlib.commons.data.DataUnitType;
-import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.transformer.TransformException;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.enums.FileExtractType;
-import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 import java.util.logging.Level;
@@ -32,13 +32,16 @@ import net.sf.saxon.s9api.XsltTransformer;
  *
  * @author tomasknap
  */
-public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Extract, ConfigDialogProvider<SimpleXSLTConfig> {
+@AsExtractor
+public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DPU, ConfigDialogProvider<SimpleXSLTConfig> {
     
 
     public SimpleXSLT(){
             super(new SimpleXSLTConfig());
         }
     
+    @OutputDataUnit
+	public RDFDataUnit rdfDataUnit;
 
     /**
      * DPU's configuration.
@@ -62,7 +65,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Ex
 
     // TODO 2: Provide implementation of unimplemented methods 
     @Override
-    public void extract(ExtractContext context) throws ExtractException {
+    public void execute(DPUContext context) throws DPUException, DataUnitException  {
 
         //inputs
         File stylesheet = new File(config.getXslTemplate());
@@ -71,19 +74,16 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Ex
 
         File outputFile = new File(config.getXmlFile() + ".ttl");
         
-        //outputs
-        RDFDataUnit outputRepository;
-        try {
-            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
-        } catch (DataUnitCreateException e) {
-            throw new ExtractException("Can't create DataUnit", e);
-        }
+        
+        
+//        //outputs
+//        RDFDataUnit outputRepository;
 //        try {
-//            //TODO outputRepository.extractFromFile(config.getXmlFile());
-//            ////////////
-//        } catch (RDFException ex) {
-//            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
+//            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
+//        } catch (DataUnitCreateException e) {
+//            throw new DPUException("Can't create DataUnit", e);
 //        }
+
 
 
         //xslt
@@ -110,8 +110,14 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Ex
             trans.transform();
 
         } catch (SaxonApiException ex) {
-            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
+            
         }
+        
+              
+            rdfDataUnit.extractFromFile(new File(config.getXmlFile()));
+            ////////////
+       
+        
 
     }
 }
