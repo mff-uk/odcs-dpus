@@ -10,10 +10,9 @@
     <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>Extractor_psp_cz_metadata</artifactId>
     <packaging>bundle</packaging>
+    <version>0.0.1</version>
     
     <properties>    
-    	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>1.0.0</dpu.version>
         <!-- TODO 3: fill module description, the description will be visible to the user -->
         <dpu.description>This extractor scrapes law metadata from psp.cz and creates a Turtle file</dpu.description>
         <!-- TODO 4: fill the name of root package -->

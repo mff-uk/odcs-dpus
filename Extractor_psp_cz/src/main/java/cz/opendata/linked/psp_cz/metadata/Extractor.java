@@ -1,9 +1,5 @@
 package cz.opendata.linked.psp_cz.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -13,32 +9,33 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Calendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
-import cz.cuni.xrg.intlib.commons.configuration.Configurable;
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
-import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.module.file.FileManager;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
-implements Extract, ConfigDialogProvider<ExtractorConfig> {
+implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	/**
 	 * DPU's configuration.
 	 */
 
-	private Logger logger = LoggerFactory.getLogger(Extract.class);
+	@OutputDataUnit
+	RDFDataUnit outputDataUnit;
+
+	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -49,7 +46,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
-	public void extract(ExtractContext ctx) throws ExtractException
+	public void execute(DPUContext ctx) throws DPUException
 	{
 		// vytvorime si parser
 		Cache.setInterval(config.interval);
@@ -111,20 +108,13 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		s.ps.close();
 
 		//give ttl to odcs
-		RDFDataUnit outputDataUnit;
-		try {
-			outputDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "output");
-		} catch (DataUnitCreateException e) {
-			throw new ExtractException("Can't create DataUnit", e);
-		}
-
 		try {
 			outputDataUnit.extractFromLocalTurtleFile(tempfilename);
 		}
 		catch (RDFException e)
 		{
 			logger.error("Cannot put TTL to repository.");
-			throw new ExtractException("Cannot put TTL to repository.");
+			throw new DPUException("Cannot put TTL to repository.");
 		}
 
 	}

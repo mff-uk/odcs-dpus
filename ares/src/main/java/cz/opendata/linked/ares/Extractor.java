@@ -2,7 +2,6 @@ package cz.opendata.linked.ares;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
@@ -15,28 +14,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 
+@AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
-implements Extract, ConfigDialogProvider<ExtractorConfig> {
+implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	/**
 	 * DPU's configuration.
 	 */
 
-	private Logger logger = LoggerFactory.getLogger(Extract.class);
+	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
 	}
 
-	private int countTodaysCacheFiles(ExtractContext ctx) throws ParseException 
+	private int countTodaysCacheFiles(DPUContext ctx) throws ParseException 
 	{
 		int count = 0;
 
@@ -75,7 +76,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
-	public void extract(ExtractContext ctx) throws ExtractException
+	public void execute(DPUContext ctx) throws DPUException
 	{
 		Cache.setInterval(config.interval);
 		Cache.setTimeout(config.timeout);

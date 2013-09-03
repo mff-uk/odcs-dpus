@@ -10,21 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 
+@AsExtractor
 public class Extractor 
         extends ConfigurableBase<ExtractorConfig> 
-        implements Extract, ConfigDialogProvider<ExtractorConfig> {
+        implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	
 	@OutputDataUnit(name = "contracts")
 	public RDFDataUnit contractsDataUnit;
@@ -36,7 +37,7 @@ public class Extractor
 	 * DPU's configuration.
 	 */
 	
-	private Logger logger = LoggerFactory.getLogger(Extract.class);
+	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
         super(ExtractorConfig.class);
@@ -47,7 +48,7 @@ public class Extractor
 		return new ExtractorDialog();
 	}
 	
-	public void extract(ExtractContext ctx) throws ExtractException
+	public void execute(DPUContext ctx) throws DPUException
 	{
         // vytvorime si parser
         
@@ -135,14 +136,6 @@ public class Extractor
         s.ps.close();
         s.zak_ps.close();
 
-        //give ttl to odcs
-        try {
-        	contractsDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "contracts");
-        	profilesDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "profiles");
-        } catch (DataUnitCreateException e) {
-            logger.error("Can't create DataUnit");
-        	throw new ExtractException("Can't create DataUnit", e);
-        }
         try {
         	contractsDataUnit.extractFromLocalTurtleFile(zakazkyname);
         	profilesDataUnit.extractFromLocalTurtleFile(profilyname);
@@ -150,7 +143,7 @@ public class Extractor
         catch (RDFException e)
         {
         	logger.error("Cannot put TTL to repository.");
-        	throw new ExtractException("Cannot put TTL to repository.", e);
+        	throw new DPUException("Cannot put TTL to repository.", e);
         }
         
     }
