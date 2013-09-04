@@ -82,41 +82,45 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		// a spustim na vychozi stranku
 
 		logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
-		for (int i = config.Start_year; i <= config.End_year; i++)
-		{   
-			java.util.Date date = new java.util.Date();
-			long start = date.getTime();
-			try {
-				if (!config.cachedLists)
-				{
-					Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
-					logger.info("Deleting " + path);
-					Files.deleteIfExists(path);
+		
+		try {
+			for (int i = config.Start_year; i <= config.End_year; i++)
+			{   
+				try {
+					java.util.Date date = new java.util.Date();
+					long start = date.getTime();
+					if (!config.cachedLists)
+					{
+						Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
+						logger.info("Deleting " + path);
+						Files.deleteIfExists(path);
+					}
+					s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
+					java.util.Date date2 = new java.util.Date();
+					long end = date2.getTime();
+					
+					logger.info("Processed " + i + " in " + (end-start) + "ms");
 				}
-				s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
-			} catch (MalformedURLException e) {
-				logger.error(e.getLocalizedMessage());
-			} catch (InterruptedException e) {
-				logger.error(e.getLocalizedMessage());
-			} catch (IOException e) {
-				logger.error(e.getLocalizedMessage());
+				catch (IOException e) {
+					logger.error(e.getLocalizedMessage());
+				}
 			}
-			java.util.Date date2 = new java.util.Date();
-			long end = date2.getTime();
-			logger.info("Processed " + i + " in " + (end-start) + "ms");
+        	
+			logger.info("Parsing done. Passing RDF to ODCS");
+			//give ttl to odcs
+			try {
+				outputDataUnit.addFromTurtleFile(new File(tempfilename));
+			}
+			catch (RDFException e)
+			{
+				logger.error("Cannot put TTL to repository.");
+				throw new DPUException("Cannot put TTL to repository.");
+			}
+		} catch (InterruptedException intex) {
+			logger.error("Interrupted");
 		}
 
 		s.ps.close();
-
-		//give ttl to odcs
-		try {
-			outputDataUnit.addFromTurtleFile(new File(tempfilename));
-		}
-		catch (RDFException e)
-		{
-			logger.error("Cannot put TTL to repository.");
-			throw new DPUException("Cannot put TTL to repository.");
-		}
 
 	}
 
