@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -123,5 +122,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.ps.close();
 
 	}
+
+	@Override
+	public void cleanUp() {	}
 
 }

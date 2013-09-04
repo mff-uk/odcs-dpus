@@ -1,7 +1,5 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +16,7 @@ public class SparqlLoader {
     
      public static File tempDir; 
 
-     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SparqlLoader.class);
+     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SparqlLoader.class);
     
     
     public static File getCacheDir() {

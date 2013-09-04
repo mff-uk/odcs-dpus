@@ -217,4 +217,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	}
 
+	@Override
+	public void cleanUp() {	}
+
 }

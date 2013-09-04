@@ -29,95 +29,93 @@ import net.sf.saxon.s9api.XsltTransformer;
 
 /**
  * Simple XSLT Extractor
- *
+ * 
  * @author tomasknap
  */
 @AsExtractor
-public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DPU, ConfigDialogProvider<SimpleXSLTConfig> {
-    
+public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig>
+		implements DPU, ConfigDialogProvider<SimpleXSLTConfig> {
 
-    public SimpleXSLT(){
-            super(new SimpleXSLTConfig());
-        }
-    
-    @OutputDataUnit
+	public SimpleXSLT() {
+		super(SimpleXSLTConfig.class);
+	}
+
+	@OutputDataUnit
 	public RDFDataUnit rdfDataUnit;
 
-    /**
-     * DPU's configuration.
-     */
-//    private SimpleXSLTConfig config;
+	/**
+	 * DPU's configuration.
+	 */
+	// private SimpleXSLTConfig config;
 
-    @Override
-    public AbstractConfigDialog<SimpleXSLTConfig> getConfigurationDialog() {
-        return new SimpleXSLTDialog();
-    }
+	@Override
+	public AbstractConfigDialog<SimpleXSLTConfig> getConfigurationDialog() {
+		return new SimpleXSLTDialog();
+	}
 
-//    @Override
-//    public void configure(SimpleXSLTConfig c) throws ConfigException {
-//        config = c;
-//    }
-//
-//    @Override
-//    public SimpleXSLTConfig getConfiguration() {
-//        return config;
-//    }
+	// @Override
+	// public void configure(SimpleXSLTConfig c) throws ConfigException {
+	// config = c;
+	// }
+	//
+	// @Override
+	// public SimpleXSLTConfig getConfiguration() {
+	// return config;
+	// }
 
-    // TODO 2: Provide implementation of unimplemented methods 
-    @Override
-    public void execute(DPUContext context) throws DPUException, DataUnitException  {
+	// TODO 2: Provide implementation of unimplemented methods
+	@Override
+	public void execute(DPUContext context)
+			throws DPUException,
+				DataUnitException {
 
-        //inputs
-        File stylesheet = new File(config.getXslTemplate());
+		// inputs
+		File stylesheet = new File(config.getXslTemplate());
 
-        File inputFile = new File(config.getXmlFile());
+		File inputFile = new File(config.getXmlFile());
 
-        File outputFile = new File(config.getXmlFile() + ".ttl");
-        
-        
-        
-//        //outputs
-//        RDFDataUnit outputRepository;
-//        try {
-//            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
-//        } catch (DataUnitCreateException e) {
-//            throw new DPUException("Can't create DataUnit", e);
-//        }
+		File outputFile = new File(config.getXmlFile() + ".ttl");
 
+		// //outputs
+		// RDFDataUnit outputRepository;
+		// try {
+		// outputRepository = (RDFDataUnit)
+		// context.addOutputDataUnit(DataUnitType.RDF, "output");
+		// } catch (DataUnitCreateException e) {
+		// throw new DPUException("Can't create DataUnit", e);
+		// }
 
+		// xslt
+		Processor proc = new Processor(false);
+		XsltCompiler compiler = proc.newXsltCompiler();
+		XsltExecutable exp;
+		try {
+			exp = compiler.compile(new StreamSource(stylesheet));
 
-        //xslt
-        Processor proc = new Processor(false);
-        XsltCompiler compiler = proc.newXsltCompiler();
-        XsltExecutable exp;
-        try {
-            exp = compiler.compile(new StreamSource(stylesheet));
+			XdmNode source = proc.newDocumentBuilder().build(
+					new StreamSource(inputFile));
 
+			Serializer out = new Serializer();
+			out.setOutputProperty(Serializer.Property.METHOD, "text");
+			out.setOutputProperty(Serializer.Property.INDENT, "yes");
+			out.setOutputFile(outputFile);
 
-            XdmNode source = proc.newDocumentBuilder().build(new StreamSource(inputFile));
+			XsltTransformer trans = exp.load();
 
+			trans.setInitialContextNode(source);
+			trans.setDestination(out);
+			trans.transform();
 
+		} catch (SaxonApiException ex) {
 
-            Serializer out = new Serializer();
-            out.setOutputProperty(Serializer.Property.METHOD, "text");
-            out.setOutputProperty(Serializer.Property.INDENT, "yes");
-            out.setOutputFile(outputFile);
+		}
 
-            XsltTransformer trans = exp.load();
+		rdfDataUnit.addFromFile(new File(config.getXmlFile()));
+		// //////////
 
-            trans.setInitialContextNode(source);
-            trans.setDestination(out);
-            trans.transform();
+	}
 
-        } catch (SaxonApiException ex) {
-            
-        }
-        
-              
-            rdfDataUnit.addFromFile(new File(config.getXmlFile()));
-            ////////////
-       
-        
-
-    }
+	@Override
+	public void cleanUp() {	}
+	
 }
