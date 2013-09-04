@@ -58,12 +58,13 @@ public class Extractor
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
     	Cache.setTimeout(config.timeout);
     	Cache.setInterval(config.interval);
-        try {
+		try {
 			Cache.setTrustAllCerts();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e1) {
+			logger.error("Unexpected error when setting trust to all certificates");
+			e1.printStackTrace();
 		}
+		
         Scraper_parser s = new Scraper_parser();
         s.AccessProfiles = config.accessProfiles;
         s.CurrentYearOnly = config.currentYearOnly;
@@ -75,7 +76,7 @@ public class Extractor
 			s.ps = new PrintStream(profilyname, "UTF-8");
 			s.zak_ps = new PrintStream(zakazkyname, "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			logger.error("Unexpected error opening filestreams for temp files");
 			e.printStackTrace();
 		}
 
@@ -113,11 +114,28 @@ public class Extractor
 	    	
 	    	s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowPublicPublisherProfiles"), "first");
 		    s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
-		} catch (MalformedURLException | InterruptedException e) {
-			// TODO Auto-generated catch block
+	        
+        	logger.info("Parsing done. Passing RDF to ODCS");
+	        try {
+	        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
+	        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
+	        }
+	        catch (RDFException e)
+	        {
+	        	logger.error("Cannot put TTL to repository.");
+	        	throw new DPUException("Cannot put TTL to repository.", e);
+	        }
+		} catch (MalformedURLException e) {
+			logger.error("Unexpected malformed URL exception");
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			logger.error("Interrputed");
 		}
-	    java.util.Date date2 = new java.util.Date();
+        
+	    s.ps.close();
+        s.zak_ps.close();
+        
+        java.util.Date date2 = new java.util.Date();
 	    long end = date2.getTime();
 	    logger.info("Processed in " + (end-start) + "ms");
 	    logger.info("Rows: " + s.numrows);
@@ -133,19 +151,6 @@ public class Extractor
 	    logger.info("Dodavatelé: " + s.numdodavatele);
 	    logger.info("Subdodavatelé: " + s.numsub);
 	    logger.info("Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
-        
-        s.ps.close();
-        s.zak_ps.close();
-
-        try {
-        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
-        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
-        }
-        catch (RDFException e)
-        {
-        	logger.error("Cannot put TTL to repository.");
-        	throw new DPUException("Cannot put TTL to repository.", e);
-        }
         
     }
 }
