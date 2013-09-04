@@ -4,12 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import org.jsoup.nodes.Document;
+import org.openrdf.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +22,11 @@ import cz.cuni.xrg.intlib.commons.dpu.DPU;
 import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.dpu.DPUException;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 
 @AsExtractor
 public class Extractor 
@@ -31,6 +37,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	 * DPU's configuration.
 	 */
 
+	@InputDataUnit(name = "ICs", optional = true )
+	public RDFDataUnit duICs;
+	
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
@@ -58,7 +67,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				currentFile = listOfFiles[i];
 
 				Date now = new Date();
-				//    	    	  System.currentTimeMillis()
 				Date modified = sdf.parse(sdf.format(currentFile.lastModified()));
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
@@ -113,21 +121,47 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		BufferedReader in = null;
+		List<String> ICs = new LinkedList<String>();
+
+		//Load ICs from input DataUnit
+		
 		int lines = 0;
+		if (duICs.getTripleCount() > 0)
+		{
+			List<Statement> statements = duICs.getTriples();
+			
+			URL textPredicate = null;
+			try {
+				textPredicate = new URL("http://linked.opendata.cz/ontology/odcs/textValue");
+				for (Statement stmt : statements)
+				{
+					if (stmt.getPredicate().equals(textPredicate))
+					{
+						ICs.add(stmt.getObject().stringValue());
+						lines++;
+					}
+				}
+			} catch (MalformedURLException e) {
+				logger.error("Unexpected malformed URL of ODCS textValue predicate");
+			}
+		}
+		logger.info(lines + " ICs loaded from input");
+		
+		//Load ICs from file
+		BufferedReader in = null;
+		lines = 0;
 		try {
 			in = new BufferedReader(new FileReader(new File(ctx.getUserDirectory(),"ic.txt")));
 			while (in.ready()) {
-				String line = in.readLine();
+				ICs.add(in.readLine());
 				lines++;
 			}
 			in.close();
-			logger.info("I see " + lines + " ICs.");
-			in = new BufferedReader(new FileReader(new File(ctx.getUserDirectory(),"ic.txt")));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IOException e) {
+			logger.error("IO error when loading ICs from file");
 		}
+		logger.info(lines + " ICs loaded from config file");
+		//End Load ICs from file
 
 		int downloaded = 0;
 		int cachedToday = 0;
@@ -139,12 +173,30 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		logger.info("I see " + ICs.size() + " ICs before deduplication.");
+
+		//Remove duplicate ICs
+		List<String> dedupICs = new LinkedList<String>();    
+		for (String currentIC: ICs)
+		{
+		  if (!dedupICs.contains(currentIC)) 
+		  {
+			  dedupICs.add(currentIC);
+		  }
+		 }
 		
+		ICs = dedupICs;
+		
+		//Download
 		int toCache = (config.PerDay - cachedToday);
+		Iterator<String> li = ICs.iterator();
+		logger.info("I see " + ICs.size() + " ICs after deduplication.");
+
 		try {
-			while (in.ready() && downloaded < toCache) {
-				String line = in.readLine();
-				URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + line);
+			while (li.hasNext() && downloaded < toCache) {
+				String currentIC = li.next();
+				URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
 				if (!Cache.isCached(current))
 				{
 					Document doc = Cache.getDocument(current, 10, "xml");
@@ -152,14 +204,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				}
 				else cachedEarlier++;
 			}
-			in.close();
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
+		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Interrupted");
 		}
 
 		java.util.Date date2 = new java.util.Date();
