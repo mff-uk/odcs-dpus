@@ -135,7 +135,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				textPredicate = new URL("http://linked.opendata.cz/ontology/odcs/textValue");
 				for (Statement stmt : statements)
 				{
-					if (stmt.getPredicate().equals(textPredicate))
+					if (stmt.getPredicate().toString().equals(textPredicate.toString()))
 					{
 						ICs.add(stmt.getObject().stringValue());
 						lines++;
