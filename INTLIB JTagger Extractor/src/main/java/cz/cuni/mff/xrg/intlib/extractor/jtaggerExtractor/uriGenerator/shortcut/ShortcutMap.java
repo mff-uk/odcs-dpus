@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
 
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.WorkType;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import java.io.BufferedReader;
 import java.io.File;
@@ -115,7 +116,7 @@ public class ShortcutMap extends HashMap<String, Work> {
         }
     }
 
-    public void load(ExtractContext context) throws FileNotFoundException, IOException {
+    public void load(DPUContext context) throws FileNotFoundException, IOException {
         
          //set the tempDir        
         if (context != null) {  

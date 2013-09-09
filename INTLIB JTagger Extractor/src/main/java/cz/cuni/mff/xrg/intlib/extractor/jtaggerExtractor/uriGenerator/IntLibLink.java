@@ -7,6 +7,7 @@ import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.LawDo
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.SparqlLoader;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.ValidityMap;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import java.io.*;
 //import java.util.logging.Handler;
@@ -22,7 +23,7 @@ public class IntLibLink {
     
      private static final org.slf4j.Logger logger = LoggerFactory.getLogger(IntLibLink.class);
 
-     private static ExtractContext context = null;
+     private static DPUContext context = null;
      
     private static final String VSTUPNI_SOUBOR = "base.xml";
     
@@ -66,19 +67,19 @@ public class IntLibLink {
         
     }
     
-    public static void processFiles(String input, String output, ExtractContext context) {
+    public static void processFiles(String input, String output, DPUContext context) {
         String[] args = new String[]{"-inputFile="+ input, "-outputFile="+ output};
         IntLibLink.context = context;
         main(args);
     }
     
-    public static void processFiles(String input, String output, String configURiGen, ExtractContext context) {
+    public static void processFiles(String input, String output, String configURiGen, DPUContext context) {
         String[] args = new String[]{"-inputFile="+ input, "-outputFile="+ output, "-configFile="+ configURiGen};
         IntLibLink.context = context;
         main(args);
     }
     
-     public static void processDirectories(String input, String output, ExtractContext context) {
+     public static void processDirectories(String input, String output, DPUContext context) {
         String[] args = new String[]{"-inputDir="+ input, "-outputDir="+ output};
         IntLibLink.context = context;
         main(args);

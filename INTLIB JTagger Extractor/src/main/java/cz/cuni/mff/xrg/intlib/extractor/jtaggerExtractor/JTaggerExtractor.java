@@ -11,6 +11,10 @@ import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink
 
 import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
 import cz.cuni.xrg.intlib.commons.data.DataUnitType;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
 import cz.cuni.xrg.intlib.commons.extractor.Extract;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
 import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
@@ -58,9 +62,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author tomasknap
  */
+@AsExtractor
 public class JTaggerExtractor 
         extends ConfigurableBase<JTaggerExtractorConfig> 
-        implements Extract, ConfigDialogProvider<JTaggerExtractorConfig> {
+        implements DPU, ConfigDialogProvider<JTaggerExtractorConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(JTaggerExtractor.class);
 
@@ -74,7 +79,7 @@ public class JTaggerExtractor
     }
 
     @Override
-    public void extract(ExtractContext context) throws ExtractException {
+    public void execute(DPUContext context) throws DPUException {
 
         //get working dir
         File workingDir = context.getWorkingDir();
@@ -128,7 +133,7 @@ public class JTaggerExtractor
         try {
             outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
         } catch (DataUnitCreateException e) {
-            throw new ExtractException("Can't create DataUnit", e);
+            throw new DPUException("Can't create DataUnit", e);
         }
 
 
@@ -231,7 +236,7 @@ public class JTaggerExtractor
             if (runXSLT(outputURIGeneratorFilenameWithParagraphs, outputXSLT, xsltTemplate)) {
                 logger.info("About to write result {} to output", outputXSLT);
                 try {
-                    outputRepository.extractFromLocalTurtleFile(outputXSLT);
+                    outputRepository.addFromTurtleFile(new File(outputXSLT));
                     //outputRepository.extractfromFile(FileExtractType.PATH_TO_FILE, outputXSLT, "", "", false, false);
                 } catch (RDFException ex) {
                     logger.error("Problems with adding RDF data to output data unit", ex.getLocalizedMessage());
@@ -291,7 +296,7 @@ public class JTaggerExtractor
         }
     }
 
-    private void runURIGenerator(String file, String output, String configURiGen, ExtractContext context) {
+    private void runURIGenerator(String file, String output, String configURiGen, DPUContext context) {
         logger.info("About to run URI generator for {}", file);
         IntLibLink.processFiles(file, output, configURiGen,context);
         
@@ -437,7 +442,7 @@ public class JTaggerExtractor
         
     }
 
-    private void runParagraphAdjustment(String outputURIGeneratorFilename, String outputURIGeneratorFilenameWithParagraphs, ExtractContext context) {
+    private void runParagraphAdjustment(String outputURIGeneratorFilename, String outputURIGeneratorFilenameWithParagraphs, DPUContext context) {
 
       
         

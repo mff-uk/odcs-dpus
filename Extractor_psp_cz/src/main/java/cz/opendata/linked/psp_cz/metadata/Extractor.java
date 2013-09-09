@@ -119,7 +119,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		}
 
 		try {
-			outputDataUnit.extractFromLocalTurtleFile(tempfilename);
+			outputDataUnit.addFromTurtleFile(tempfilename);
 		}
 		catch (RDFException e)
 		{
