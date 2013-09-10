@@ -11,6 +11,7 @@ import java.net.URL;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 /**
@@ -137,6 +138,7 @@ public class Cache {
 						out = Jsoup.connect(url.toString()).parser(Parser.xmlParser()).timeout(timeout).get();
 					}
 					else out = Jsoup.parse(url, timeout);
+					out.outputSettings().escapeMode(EscapeMode.xhtml);
 
 					java.util.Date date2= new java.util.Date();
 					lastDownload = date2.getTime();
@@ -207,7 +209,11 @@ public class Cache {
 				out = Jsoup.parse(new FileInputStream(hFile), "UTF-8", host, Parser.xmlParser());
 
 			}
-			else out = Jsoup.parse(hFile, "UTF-8", host);
+			else
+			{
+				out = Jsoup.parse(hFile, "UTF-8", host);
+			}
+			out.outputSettings().escapeMode(EscapeMode.xhtml);
 
 		}
 		return out;
