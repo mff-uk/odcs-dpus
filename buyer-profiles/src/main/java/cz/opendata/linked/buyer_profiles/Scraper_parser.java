@@ -1,5 +1,4 @@
 package cz.opendata.linked.buyer_profiles;
-import cz.mff.cuni.scraper.lib.selector.CssSelector;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
