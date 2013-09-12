@@ -10,20 +10,39 @@ import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
  */
 public class SimpleXSLTConfig implements DPUConfigObject {
     
-    private String xslTemplate;
-     private  String xmlFile;
+    private String xslTemplate = "";
+     private  String inputPredicate = "";
+       private  String outputPredicate = "";
+     
+       public enum OutputType {
+         RDFXML,
+         TTL,
+         Literal
+                 
+         
+     }
+     private OutputType outputType = OutputType.Literal;
 
-    public SimpleXSLTConfig(String xslTemplate, String xmlFile) {
+    public SimpleXSLTConfig(String xslTemplate, String ip ,OutputType ot, String op ) {
         this.xslTemplate = xslTemplate;
-        this.xmlFile = xmlFile;
+        this.inputPredicate = ip;
+        this.outputPredicate = op;
+        this.outputType = ot;
+    }
+
+    public OutputType getOutputType() {
+        return outputType;
     }
 
     public SimpleXSLTConfig() {
 
     }
     
-    public String getXmlFile() {
-        return xmlFile;
+    public String getInputPredicate() {
+        return inputPredicate;
+    }
+     public String getOutputPredicate() {
+        return outputPredicate;
     }
 
     public String getXslTemplate() {
