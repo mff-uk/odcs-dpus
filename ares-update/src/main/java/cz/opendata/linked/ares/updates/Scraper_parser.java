@@ -1,13 +1,18 @@
 package cz.opendata.linked.ares.updates;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
@@ -22,6 +27,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	private static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
 	public Logger logger ;
 	public PrintStream ps;
+	public DPUContext ctx;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
@@ -33,6 +39,13 @@ public class Scraper_parser extends ScrapingTemplate{
         	int davod = Integer.parseInt(elemsod.text());
         	int davdo = Integer.parseInt(elemsdo.text());
         	try {
+    			Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/wwwinfo.mfcr.cz/cgi-bin/ares/darv_zm.cgi@cislo_zdroje=2&cislo_davky_od=" + davod + "&cislo_davky_do=" + davdo);
+    			logger.info("Deleting " + path);
+    			try {
+					Files.deleteIfExists(path);
+				} catch (IOException e) {
+					logger.info("Unable to delete IC list");
+				}
 				out.add(new ParseEntry(new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_zm.cgi?cislo_zdroje=2&cislo_davky_od=" + davod + "&cislo_davky_do=" + davdo), "list",  "xml"));
 			} catch (MalformedURLException e) {
 				logger.error("Unexpected Malformed URI");
@@ -40,11 +53,6 @@ public class Scraper_parser extends ScrapingTemplate{
 			}
         }
         return out;
-    }
-    
-    private String escapeString(String original)
-    {
-    	return original.replace("\n", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
     }
     
     @Override
@@ -66,7 +74,6 @@ public class Scraper_parser extends ScrapingTemplate{
 	        	ps.println();
 
     			ps.println("<" + icoBEprefix + currentIC + "/identifier/" + currentIC + "> a adms:Identifier ;");
-    			ps.println("\tskos:notation \"" + currentIC + "\" ;");
     			ps.println("\tskos:notation \"" + currentIC + "\" ;");
 	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 	        	ps.println("\t.");

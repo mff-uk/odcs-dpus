@@ -35,7 +35,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	 */
 
 	@OutputDataUnit
-	RDFDataUnit outputDataUnit;
+	public RDFDataUnit outputDataUnit;
 
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 

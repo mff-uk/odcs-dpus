@@ -103,6 +103,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			Files.deleteIfExists(path);
 			
 			s.parse(init, "init");
+			
+			s.ps.close();
 
         	logger.info("Parsing done. Passing RDF to ODCS");
 	        try {
@@ -118,9 +120,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			logger.error("Interrupted");
+			s.ps.close();
 		}
 
-		s.ps.close();
+		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
