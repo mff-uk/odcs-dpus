@@ -12,8 +12,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.jsoup.nodes.Document;
+import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
+import org.openrdf.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +26,7 @@ import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.dpu.DPUException;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
@@ -40,6 +44,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@InputDataUnit(name = "ICs", optional = true )
 	public RDFDataUnit duICs;
 	
+	@OutputDataUnit(name = "XMLs")
+	public RDFDataUnit outXMLs;
+
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
@@ -158,7 +165,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
 			in.close();
 		} catch (IOException e) {
-			logger.error("IO error when loading ICs from file");
+			logger.info("IO error when loading ICs from file - probably not present");
 		}
 		logger.info(lines + " ICs loaded from config file");
 		//End Load ICs from file
@@ -200,6 +207,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (!Cache.isCached(current))
 				{
 					Document doc = Cache.getDocument(current, 10, "xml");
+					outXMLs.addTriple(outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outXMLs.createLiteral(doc.data()));
 					logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
 				}
 				else cachedEarlier++;

@@ -8,15 +8,15 @@
         <version>0.0.1</version>
     </parent>    
     <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
-    <artifactId>Extractor_ares</artifactId>
+    <artifactId>Extractor_ares_updates</artifactId>
     <packaging>bundle</packaging>
-    <version>0.0.2</version>
+    <version>0.0.1</version>
     
     <properties>    
         <!-- TODO 3: fill module description, the description will be visible to the user -->
-        <dpu.description>This extractor scrapes ARES XML records about Czech business entities</dpu.description>
+        <dpu.description>This extractor scrapes ARES XML records about updates to Czech business entities and registers their ICs to be updated</dpu.description>
         <!-- TODO 4: fill the name of root package -->
-        <dpu.package>cz.opendata.linked.ares</dpu.package>
+        <dpu.package>cz.opendata.linked.ares.updates</dpu.package>
         <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>

@@ -136,9 +136,9 @@ public class Cache {
 					if (datatype.equals("xml"))
 					{
 						out = Jsoup.connect(url.toString()).parser(Parser.xmlParser()).timeout(timeout).get();
+						out.outputSettings().escapeMode(EscapeMode.xhtml);
 					}
 					else out = Jsoup.parse(url, timeout);
-					out.outputSettings().escapeMode(EscapeMode.xhtml);
 
 					java.util.Date date2= new java.util.Date();
 					lastDownload = date2.getTime();
@@ -207,13 +207,12 @@ public class Cache {
 			if (datatype.equals("xml"))
 			{
 				out = Jsoup.parse(new FileInputStream(hFile), "UTF-8", host, Parser.xmlParser());
-
+				out.outputSettings().escapeMode(EscapeMode.xhtml);
 			}
 			else
 			{
 				out = Jsoup.parse(hFile, "UTF-8", host);
 			}
-			out.outputSettings().escapeMode(EscapeMode.xhtml);
 
 		}
 		return out;
