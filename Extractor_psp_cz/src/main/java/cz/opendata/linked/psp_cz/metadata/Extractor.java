@@ -1,44 +1,43 @@
 package cz.opendata.linked.psp_cz.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Calendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
-import cz.cuni.xrg.intlib.commons.configuration.Configurable;
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
-import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.dpu.DPU;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.xrg.intlib.commons.dpu.DPUException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.module.file.FileManager;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
+import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 
+@AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
-implements Extract, ConfigDialogProvider<ExtractorConfig> {
+implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	/**
 	 * DPU's configuration.
 	 */
 
-	private Logger logger = LoggerFactory.getLogger(Extract.class);
+	@OutputDataUnit
+	RDFDataUnit outputDataUnit;
+
+	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -49,7 +48,7 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
-	public void extract(ExtractContext ctx) throws ExtractException
+	public void execute(DPUContext ctx) throws DPUException
 	{
 		// vytvorime si parser
 		Cache.setInterval(config.interval);
@@ -84,49 +83,50 @@ implements Extract, ConfigDialogProvider<ExtractorConfig> {
 		// a spustim na vychozi stranku
 
 		logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
-		for (int i = config.Start_year; i <= config.End_year; i++)
-		{   
-			java.util.Date date = new java.util.Date();
-			long start = date.getTime();
-			try {
-				if (!config.cachedLists)
-				{
-					Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
-					logger.info("Deleting " + path);
-					Files.deleteIfExists(path);
+		
+		try {
+			for (int i = config.Start_year; i <= config.End_year; i++)
+			{   
+				try {
+					java.util.Date date = new java.util.Date();
+					long start = date.getTime();
+					if (!config.cachedLists)
+					{
+						Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
+						logger.info("Deleting " + path);
+						Files.deleteIfExists(path);
+					}
+					s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
+					java.util.Date date2 = new java.util.Date();
+					long end = date2.getTime();
+					
+					logger.info("Processed " + i + " in " + (end-start) + "ms");
 				}
-				s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
-			} catch (MalformedURLException e) {
-				logger.error(e.getLocalizedMessage());
-			} catch (InterruptedException e) {
-				logger.error(e.getLocalizedMessage());
-			} catch (IOException e) {
-				logger.error(e.getLocalizedMessage());
+				catch (IOException e) {
+					logger.error(e.getLocalizedMessage());
+				}
 			}
-			java.util.Date date2 = new java.util.Date();
-			long end = date2.getTime();
-			logger.info("Processed " + i + " in " + (end-start) + "ms");
+        	
+			logger.info("Parsing done. Passing RDF to ODCS");
+			//give ttl to odcs
+			try {
+				outputDataUnit.addFromTurtleFile(new File(tempfilename));
+			}
+			catch (RDFException e)
+			{
+				logger.error("Cannot put TTL to repository.");
+				throw new DPUException("Cannot put TTL to repository.");
+			}
+		} catch (InterruptedException intex) {
+			logger.error("Interrupted");
 		}
 
 		s.ps.close();
 
-		//give ttl to odcs
-		RDFDataUnit outputDataUnit;
-		try {
-			outputDataUnit = (RDFDataUnit) ctx.addOutputDataUnit(DataUnitType.RDF, "output");
-		} catch (DataUnitCreateException e) {
-			throw new ExtractException("Can't create DataUnit", e);
-		}
-
-		try {
-			outputDataUnit.addFromTurtleFile(tempfilename);
-		}
-		catch (RDFException e)
-		{
-			logger.error("Cannot put TTL to repository.");
-			throw new ExtractException("Cannot put TTL to repository.");
-		}
 
 	}
+
+	@Override
+	public void cleanUp() {	}
 
 }

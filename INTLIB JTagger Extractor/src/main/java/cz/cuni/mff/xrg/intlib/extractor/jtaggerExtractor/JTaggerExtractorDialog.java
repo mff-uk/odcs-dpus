@@ -1,15 +1,10 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 
-import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
@@ -23,7 +18,7 @@ public class JTaggerExtractorDialog extends BaseConfigDialog<JTaggerExtractorCon
     private TextField dateFrom; //Path
 
     public JTaggerExtractorDialog() {
-        super(new JTaggerExtractorConfig());
+        super(JTaggerExtractorConfig.class);
         buildMainLayout();
         setCompositionRoot(mainLayout);
     }

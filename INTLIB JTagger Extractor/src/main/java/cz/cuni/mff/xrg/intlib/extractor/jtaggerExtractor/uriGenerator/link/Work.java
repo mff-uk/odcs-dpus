@@ -43,7 +43,9 @@ public class Work implements Comparable<Work> {
 
     private static String [] startShortcutTrimmings = new String [] 
         {"části věty před středníkem", 
+    	 "části věty za středníkem",
          "část věty za středníkem", 
+         "část věty před středníkem",
          "část první věty za středníkem", 
          "věty před středníkem", 
          "věty za středníkem", 
@@ -59,11 +61,13 @@ public class Work implements Comparable<Work> {
          " )", 
          "a b", 
          " ) a", 
-         "téhož zákona", 
+         "téhož zákona",
+         "zákona",
          "cit. zákona", 
          "cit. zák.",
          "cit. vyhl.",
-         "druhý odstavec"
+         "druhý odstavec",
+         "citovaného předpisu"
     };
 
     
@@ -586,7 +590,8 @@ public class Work implements Comparable<Work> {
                 }
                 else
                 {
-                    sectionsSubstring = expression.substring(0, expression.lastIndexOf(shortcut)).trim();
+                    //TODO: Add shortuct start trimmings delete
+                	sectionsSubstring = expression.substring(0, expression.lastIndexOf(shortcut)).trim();
                     if (!shortcut.isEmpty())
                     {
                         lastFoundShortcut = shortcut;

@@ -3,21 +3,16 @@ package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTagger;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTaggerResult;
 //import cz.cuni.mff.ksi.intlib.jtagger.LineJoiner;
-import ch.qos.logback.core.util.FileUtil;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTagger;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTaggerResult;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.LineJoiner;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
-
 import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
 import cz.cuni.xrg.intlib.commons.dpu.DPU;
 import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.cuni.xrg.intlib.commons.dpu.DPUException;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
-import cz.cuni.xrg.intlib.commons.extractor.Extract;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractContext;
-import cz.cuni.xrg.intlib.commons.extractor.ExtractException;
+import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
@@ -40,7 +35,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import javax.xml.transform.stream.StreamSource;
@@ -59,7 +53,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Simple XSLT Extractor
- *
+ * 
  * @author tomasknap
  */
 @AsExtractor
@@ -69,8 +63,11 @@ public class JTaggerExtractor
 
     private static final Logger logger = LoggerFactory.getLogger(JTaggerExtractor.class);
 
+    @OutputDataUnit
+    private RDFDataUnit outputRepository;
+    
     public JTaggerExtractor(){
-            super(new JTaggerExtractorConfig());
+            super(JTaggerExtractorConfig.class);
         }
     
     @Override
@@ -127,15 +124,7 @@ public class JTaggerExtractor
         }
 
 
-        //*****************************
-        //Prepare OUTPUTS - copy prepare file to output data unit
-        RDFDataUnit outputRepository;
-        try {
-            outputRepository = (RDFDataUnit) context.addOutputDataUnit(DataUnitType.RDF, "output");
-        } catch (DataUnitCreateException e) {
-            throw new DPUException("Can't create DataUnit", e);
-        }
-
+     
 
         //*****************************
         //get data (zipped file) from target URL 
@@ -510,17 +499,25 @@ public class JTaggerExtractor
   byte[] encoded = Files.readAllBytes(Paths.get(path));
   return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 }
-
+    
+    
     private boolean outputGenerated(String output) {
-     File f = new File(output);
-            if(!f.exists()) {
-                logger.warn("File {} was not created", output);
-                logger.warn("Skipping rest of the steps for the given file");
-                return false;
-            }
-            else {
-                logger.info("File {} was generated as result of URI generator", output);
-                return true;
-            }
-                }
+		File f = new File(output);
+		if (!f.exists()) {
+			logger.warn("File {} was not created", output);
+			logger.warn("Skipping rest of the steps for the given file");
+			return false;
+		} else {
+			logger.info("File {} was generated as result of URI generator",
+					output);
+			return true;
+		}
+	}
+
+    @Override
+    public void cleanUp() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+
 }

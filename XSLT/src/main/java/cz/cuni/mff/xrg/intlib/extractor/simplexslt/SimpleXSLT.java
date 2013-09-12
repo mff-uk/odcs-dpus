@@ -37,7 +37,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DP
     
 
     public SimpleXSLT(){
-            super(new SimpleXSLTConfig());
+            super(SimpleXSLTConfig.class);
         }
     
     @OutputDataUnit
@@ -120,4 +120,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements DP
         
 
     }
+
+    @Override
+    public void cleanUp() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
+

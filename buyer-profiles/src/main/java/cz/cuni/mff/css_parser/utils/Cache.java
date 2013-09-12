@@ -202,7 +202,11 @@ public class Cache {
 	    }
 	    catch (Exception e)
 	    {
-	    	logger.error("ERROR caching");
+			if (e.getClass() == InterruptedException.class)
+			{
+				throw e;
+			}
+			else logger.error("ERROR caching");
 	    }
 	} else {
 	    //logger.info("Using cache for URL: " + url.getHost() + url.getFile());
