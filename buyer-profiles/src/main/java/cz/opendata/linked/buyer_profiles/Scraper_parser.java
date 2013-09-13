@@ -832,6 +832,7 @@ public class Scraper_parser extends ScrapingTemplate{
             	{
 		        	ps.println("<" + icoBEprefix + ico + "/identifier> a adms:Identifier ;");
 		        	ps.println("\tskos:notation \"" + ico + "\" ;");
+	    			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 		        	ps.println("\tskos:prefLabel \"" + ico + "\" ;");
 		        	ps.println("\tadms:schemeAgency \"Český statistický úřad\"");
 		        	ps.println("\t.");
@@ -1039,6 +1040,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	if (!ico.isEmpty()) {
         		ps.println("<" + BEuri + "/identifier> a adms:Identifier ;");
 	        	ps.println("\tskos:notation \"" + ico + "\" ;");
+    			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 	        	ps.println("\tskos:prefLabel \"" + ico + "\" ;");
 	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\"");
 	        	ps.println("\t.");
@@ -1221,6 +1223,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	if (!ico.isEmpty()) {
         		ps.println("<" + BEuri + "/identifier> a adms:Identifier ;");
         		ps.println("\tskos:prefLabel \"" + ico + "\" ;");
+    			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
         		ps.println("\tskos:notation \"" + ico + "\" ;");
 	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\"");
 	        	ps.println("\t.");
@@ -1394,6 +1397,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		ps.println("<" + icoBEprefix + IC + "/identifier> a adms:Identifier ;");
 	    	        	ps.println("\tskos:notation \"" + IC + "\" ;");
 	    	        	ps.println("\tskos:prefLabel \"" + IC + "\" ;");
+	        			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 	    	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 	    	        	ps.println("\t.");
 	    	        	ps.println();
@@ -1522,6 +1526,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	    	            		ps.println("<" + icoBEprefix + icUchazece + "/identifier> a adms:Identifier ;");
 	    	    	        	ps.println("\tskos:notation \"" + icUchazece + "\" ;");
 	    	    	        	ps.println("\tskos:prefLabel \"" + icUchazece + "\" ;");
+	    	        			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 	    	    	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 	    	    	        	ps.println("\t.");
 	    	    	        	ps.println();
@@ -1623,6 +1628,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            				
 	    	            		ps.println("<" + icoBEprefix + icDodavatele + "/identifier> a adms:Identifier ;");
 	    	    	        	ps.println("\tskos:notation \"" + icDodavatele + "\" ;");
+	    	        			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 	    	    	        	ps.println("\tskos:prefLabel \"" + icDodavatele + "\" ;");
 	    	    	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 	    	    	        	ps.println("\t.");
@@ -1655,6 +1661,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		    	            		ps.println("<" + icoBEprefix + icSub + "/identifier> a adms:Identifier ;");
 		    	    	        	ps.println("\tskos:notation \"" + icSub + "\" ;");
 		    	    	        	ps.println("\tskos:prefLabel \"" + icSub + "\" ;");
+		    	        			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 		    	    	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 		    	    	        	ps.println("\t.");
 		    	    	        	ps.println();

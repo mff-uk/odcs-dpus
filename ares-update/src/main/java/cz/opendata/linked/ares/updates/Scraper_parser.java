@@ -75,6 +75,7 @@ public class Scraper_parser extends ScrapingTemplate{
 
     			ps.println("<" + icoBEprefix + currentIC + "/identifier/" + currentIC + "> a adms:Identifier ;");
     			ps.println("\tskos:notation \"" + currentIC + "\" ;");
+    			ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
 	        	ps.println("\tadms:schemeAgency \"Český statistický úřad\" ;");
 	        	ps.println("\t.");
 	        	ps.println();
