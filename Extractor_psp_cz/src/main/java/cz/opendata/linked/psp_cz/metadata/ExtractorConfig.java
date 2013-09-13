@@ -28,7 +28,7 @@ public class ExtractorConfig implements DPUConfigObject {
 	
 	public int timeout = 10000;
 
-	public int interval = 0;
+	public int interval = 2000;
 
 	@Override
     public boolean isValid() {
