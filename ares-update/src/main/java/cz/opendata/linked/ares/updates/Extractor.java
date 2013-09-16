@@ -70,6 +70,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Cache.logger = logger;
 		Scraper_parser s = new Scraper_parser();
 		s.logger = logger;
+		s.ctx = ctx;
 
         String ICfilename = ctx.getWorkingDir() + "/ic.ttl";
         try {

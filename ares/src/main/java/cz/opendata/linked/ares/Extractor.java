@@ -195,27 +195,31 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		ICs = dedupICs;
 		
-		//Download
-		int toCache = (config.PerDay - cachedToday);
-		Iterator<String> li = ICs.iterator();
-		logger.info("I see " + ICs.size() + " ICs after deduplication.");
-
-		try {
-			while (li.hasNext() && downloaded < toCache) {
-				String currentIC = li.next();
-				URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
-				if (!Cache.isCached(current))
-				{
-					Document doc = Cache.getDocument(current, 10, "xml");
-					outXMLs.addTriple(outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outXMLs.createLiteral(doc.data()));
-					logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+		if (!ctx.canceled())
+		{
+			//Download
+			int toCache = (config.PerDay - cachedToday);
+			Iterator<String> li = ICs.iterator();
+			logger.info("I see " + ICs.size() + " ICs after deduplication.");
+	
+			try {
+				while (li.hasNext() && downloaded < toCache && !ctx.canceled()) {
+					String currentIC = li.next();
+					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
+					if (!Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						outXMLs.addTriple(outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outXMLs.createLiteral(doc.data()));
+						logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+					}
+					else cachedEarlier++;
 				}
-				else cachedEarlier++;
+				if (ctx.canceled()) logger.error("Interrupted");
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				logger.error("Interrupted");
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			logger.error("Interrupted");
 		}
 
 		java.util.Date date2 = new java.util.Date();

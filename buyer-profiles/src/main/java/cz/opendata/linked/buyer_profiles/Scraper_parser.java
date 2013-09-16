@@ -1,4 +1,5 @@
 package cz.opendata.linked.buyer_profiles;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
