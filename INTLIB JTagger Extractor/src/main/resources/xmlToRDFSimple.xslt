@@ -126,8 +126,9 @@
 		
 		<xsl:value-of select="$decMani"/> a  frbr:Manifestation .
 		<xsl:value-of select="$decMani"/> frbr:embodimentOf <xsl:value-of select="$decExpr"/> .
+		
 		<!-- TODO THis should be RDFa representation -->
-		<xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" .
+		<!--<xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" . -->
 	
 	   <!-- create file for the processed decision -->
 	<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnacka"/>&gt;</xsl:variable>

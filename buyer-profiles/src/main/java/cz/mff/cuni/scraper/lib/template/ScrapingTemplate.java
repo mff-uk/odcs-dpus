@@ -5,12 +5,15 @@
 package cz.mff.cuni.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jsoup.nodes.Document;
 
 /**
@@ -43,6 +46,8 @@ public abstract class ScrapingTemplate {
      */
     protected abstract void parse(Document doc, String docType, URL uri);    
     
+    public DPUContext ctx;
+
     /**
      * Run scraping on given URL and given document type.
      * 
@@ -55,7 +60,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type, "html"));
         
-        while (!toParse.isEmpty()) {
+        while (!toParse.isEmpty() && !ctx.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed

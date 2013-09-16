@@ -58,9 +58,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Cache.logger = logger;
 		String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
 		Parser s = new Parser();
+		s.logger = logger;
+		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
-			s.logger = logger;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -79,6 +80,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						"@prefix lex:      <http://purl.org/lex#> .\n"
 
 				);
+		
 
 		// a spustim na vychozi stranku
 
@@ -87,6 +89,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		try {
 			for (int i = config.Start_year; i <= config.End_year; i++)
 			{   
+				if (ctx.canceled())
+				{
+					logger.error("Interrupted");
+					break;
+				}
 				try {
 					java.util.Date date = new java.util.Date();
 					long start = date.getTime();

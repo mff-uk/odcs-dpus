@@ -68,6 +68,7 @@ public class Extractor
         s.AccessProfiles = config.accessProfiles;
         s.CurrentYearOnly = config.currentYearOnly;
         s.logger = logger;
+        s.ctx = ctx;
         
         String profilyname = ctx.getWorkingDir() + "/profily.ttl";
         String zakazkyname = ctx.getWorkingDir() + "/zakazky.ttl";
@@ -110,20 +111,23 @@ public class Extractor
 	    
 	    try {
 			//TODO: Vyresit cisteni cache... jak seznamy, tak profily.
-	    	
-	    	s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowPublicPublisherProfiles"), "first");
-		    s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
-	        
-        	logger.info("Parsing done. Passing RDF to ODCS");
-	        try {
-	        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
-	        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
-	        }
-	        catch (RDFException e)
-	        {
-	        	logger.error("Cannot put TTL to repository.");
-	        	throw new DPUException("Cannot put TTL to repository.", e);
-	        }
+	    	if (!ctx.canceled())
+	    	{
+		    	s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowPublicPublisherProfiles"), "first");
+			    s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
+		        
+	        	logger.info("Parsing done. Passing RDF to ODCS");
+		        try {
+		        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
+		        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
+		        }
+		        catch (RDFException e)
+		        {
+		        	logger.error("Cannot put TTL to repository.");
+		        	throw new DPUException("Cannot put TTL to repository.", e);
+		        }
+	    	}
+	    	if (ctx.canceled()) logger.error("Interrputed");
 		} catch (MalformedURLException e) {
 			logger.error("Unexpected malformed URL exception");
 			e.printStackTrace();

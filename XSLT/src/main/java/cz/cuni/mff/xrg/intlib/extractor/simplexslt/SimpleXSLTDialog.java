@@ -5,11 +5,8 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.TextArea;
@@ -24,7 +21,6 @@ import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.Outpu
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.xrg.intlib.rdf.enums.WriteGraphType;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import org.slf4j.Logger;
@@ -33,28 +29,34 @@ import org.slf4j.LoggerFactory;
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
+ * 
+ * 
  *
  */
 public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
    private static final Logger logger = LoggerFactory.getLogger(SimpleXSLTDialog.class);
    
- 
-    
-    private static final String XML_VALUE_PREDICATE = "http://linked.opendata.cz/ontology/odcs/xmlValue";
+
     private static final String OUTPUT_RDFXML = "RDF/XML";
     private static final String OUTPUT_TTL = "TTL";
+    private static final String OUTPUT_WRAP = "WRAP";
     
     private VerticalLayout mainLayout;
     private TextField tfInputPredicate; 
     private TextField tfOutputPredicate; 
+       private TextField tfOutputXSLTMethod; 
     private OptionGroup ogOutputFormat;
+    
+    private Label lFileName;
     
     
     
     private TextArea taXSLTemplate;
     
     private UploadInfoWindow uploadInfoWindow;
+    
+    //TODO refactor
     static int fl = 0;
 
     public SimpleXSLTDialog() {
@@ -81,9 +83,9 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
          final FileUploadReceiver fileUploadReceiver = new FileUploadReceiver();
 
         //Upload component
-        Upload fileUpload = new Upload("Uploading Silk config file", fileUploadReceiver);
+        Upload fileUpload = new Upload("XSLT Template: ", fileUploadReceiver);
         fileUpload.setImmediate(true);
-        fileUpload.setButtonCaption("Choose");
+        fileUpload.setButtonCaption("Upload");
         //Upload started event listener
         fileUpload.addStartedListener(new Upload.StartedListener() {
             @Override
@@ -108,16 +110,12 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
                 uploadInfoWindow.close();
                 //If upload wasn't interrupt by user
                 if (fl == 0) {
-                    //textFieldPath.setReadOnly(false);
-                    //File was upload to the temp folder. 
-                    //Path to this file is setting to the textFieldPath field
+                   
                     String configText = fileUploadReceiver.getOutputStream().toString();
                     taXSLTemplate.setValue(configText);
+                    lFileName.setValue("File " + fileUploadReceiver.getFileName() + " was successfully uploaded.");
 
-//                   silkConfigTextArea.setValue(
-//                            FileUploadReceiver.file
-//                            .toString());
-                    //textFieldPath.setReadOnly(true);
+//                 
                 } //If upload was interrupt by user
                 else {
                     //textFieldPath.setReadOnly(false);
@@ -135,14 +133,25 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         
          mainLayout.addComponent(fileUpload);
         
-
+//label for xslt filename
+         lFileName = new Label("File not uploaded");
+         mainLayout.addComponent(lFileName);
+         
+         //empty line
+         Label emptyLabel = new Label("");
+        emptyLabel.setHeight("1em");
+        mainLayout.addComponent(emptyLabel);
+         
+         Label lInput = new Label();
+         lInput.setValue("Input:");
+         mainLayout.addComponent(lInput);
+         
+         
         tfInputPredicate = new TextField();
-        tfInputPredicate.setNullRepresentation("");
         tfInputPredicate.setCaption("Apply the script to all values (one by one) of the predicate:");
-        tfInputPredicate.setImmediate(false);
         tfInputPredicate.setWidth("100%");
-        tfInputPredicate.setHeight("-1px");
-        tfInputPredicate.setValue(XML_VALUE_PREDICATE);
+        
+         tfInputPredicate.setImmediate(true);
         tfInputPredicate.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws Validator.InvalidValueException {
@@ -154,52 +163,55 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         });
         mainLayout.addComponent(tfInputPredicate);
 
-
+        //empty line
+        Label emptyLabel2 = new Label("");
+        emptyLabel2.setHeight("1em");
+        mainLayout.addComponent(emptyLabel2);
+        
 
         // OptionGroup graphOption
         ogOutputFormat = new OptionGroup("Output:");
 
-        ogOutputFormat.addItem(0);
-        ogOutputFormat.setItemCaption(0, "RDF/XML");
+        ogOutputFormat.addItem(OUTPUT_RDFXML);
+        ogOutputFormat.setItemCaption(OUTPUT_RDFXML, OUTPUT_RDFXML);
 
-        ogOutputFormat.addItem(1);
-        ogOutputFormat.setItemCaption(1, "Turtle");
+        ogOutputFormat.addItem(OUTPUT_TTL);
+        ogOutputFormat.setItemCaption(OUTPUT_TTL, OUTPUT_TTL);
 
-        ogOutputFormat.addItem(2);
-        ogOutputFormat.setItemCaption(0, "Wrap each output of the script as a literal value of the predicate:");
+        ogOutputFormat.addItem(OUTPUT_WRAP);
+        ogOutputFormat.setItemCaption(OUTPUT_WRAP, "Wrap each output of the script as a literal value of the predicate:");
 
-        ogOutputFormat.setImmediate(true);
-        
+       
+        ogOutputFormat.select(2);
+        ogOutputFormat.setImmediate(true);        
         ogOutputFormat.setNullSelectionAllowed(false);
-        ogOutputFormat.setWidth("-1px");
-        ogOutputFormat.setHeight("-1px");
+        //ogOutputFormat.setWidth("-1px");
+        //ogOutputFormat.setHeight("-1px");
         ogOutputFormat.setMultiSelect(false);
 
 
+        //TODO disallow text box with output predicate when choice1 and 2 is selected
         ogOutputFormat.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void valueChange(final ValueChangeEvent event) {
                 final String valueString = String.valueOf(event.getProperty()
                         .getValue());
                 if (valueString.equals(OUTPUT_RDFXML) || valueString.equals(OUTPUT_TTL)) {
-                    tfOutputPredicate.setEnabled(true);
+                    tfOutputPredicate.setEnabled(false);
                 } else {
                     //it is not option 3, disable textbox with output pred
-                    tfOutputPredicate.setEnabled(false);
+                    tfOutputPredicate.setEnabled(true);
                 }
 //                Notification.show("Value changed:", valueString,
 //                        Type.TRAY_NOTIFICATION);
             }
         });
 
+        mainLayout.addComponent(ogOutputFormat);
 
         tfOutputPredicate = new TextField();
-        tfOutputPredicate.setNullRepresentation("");
-        tfOutputPredicate.setCaption("");
-        tfOutputPredicate.setImmediate(false);
+        tfOutputPredicate.setImmediate(true);
         tfOutputPredicate.setWidth("100%");
-        tfOutputPredicate.setHeight("-1px");
-        tfOutputPredicate.setValue(XML_VALUE_PREDICATE);
 //        inputPredicate.addValidator(new Validator() {
 //            @Override
 //            public void validate(Object value) throws Validator.InvalidValueException {
@@ -211,6 +223,22 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 //        });
 
         mainLayout.addComponent(tfOutputPredicate);
+        
+        
+         //empty line
+         Label emptyLabel3 = new Label("");
+        emptyLabel3.setHeight("1em");
+        mainLayout.addComponent(emptyLabel3);
+        
+        //TODO validate input
+         tfOutputXSLTMethod = new TextField();
+        tfOutputXSLTMethod.setImmediate(true);
+        //tfOutputMethod.setWidth("100%");
+
+
+        mainLayout.addComponent(tfOutputXSLTMethod);
+        
+        
         
         
          //***************
@@ -242,15 +270,18 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     public void setConfiguration(SimpleXSLTConfig conf) throws ConfigException {
         
         taXSLTemplate.setValue(conf.getXslTemplate());
+        lFileName.setValue(conf.getXslTemplateFileName());
          
         
-        tfInputPredicate.setValue(conf.getInputPredicate());
+         tfInputPredicate.setValue(conf.getInputPredicate());
          tfOutputPredicate.setValue(conf.getOutputPredicate());
          
+         tfOutputXSLTMethod.setValue(conf.getOutputXSLTMethod());
+         
          switch(conf.getOutputType()) {
-             case RDFXML:  ogOutputFormat.select(0); tfOutputPredicate.setEnabled(false); break;
-                 case TTL:  ogOutputFormat.select(1); tfOutputPredicate.setEnabled(false); break; 
-                     case Literal:  ogOutputFormat.select(2); tfOutputPredicate.setEnabled(true); break; 
+             case RDFXML:  ogOutputFormat.select(OUTPUT_RDFXML); tfOutputPredicate.setEnabled(false); break;
+                 case TTL:  ogOutputFormat.select(OUTPUT_TTL); tfOutputPredicate.setEnabled(false); break; 
+                     case Literal:  ogOutputFormat.select(OUTPUT_WRAP); tfOutputPredicate.setEnabled(true); break; 
          }
     
          
@@ -272,37 +303,51 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
               throw new ConfigException("No input predicate");
          }
          
-         
-             if (ogOutputFormat.getValue().equals("2") && tfOutputPredicate.getValue().trim().isEmpty()) {
-              throw new ConfigException("No output predicate");
+        if (ogOutputFormat.getValue().equals(OUTPUT_WRAP) && tfOutputPredicate.getValue().trim().isEmpty()) {
+              throw new ConfigException("No output predicate, but it has to be specied for the given output choice");
          }
         
+          if (tfOutputXSLTMethod.getValue().trim().isEmpty()) {
+              throw new ConfigException("No xslt output");
+         }
          
-      
+         
+     
           
        //prepare output type:
         SimpleXSLTConfig.OutputType ot = null;
-       switch(ogOutputFormat.getId()) {
-             case "0":  ot = OutputType.RDFXML; break;
-              case "1":  ot = OutputType.TTL; break;  
-                  case "2":  ot = OutputType.Literal; break;
+         SimpleXSLTConfig conf = null;
+       switch((String)ogOutputFormat.getValue()) {
+             case OUTPUT_RDFXML:  
+                    ot = OutputType.RDFXML;  
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputXSLTMethod.getValue().trim() );
+                    break;
+              case OUTPUT_TTL:  
+                    ot = OutputType.TTL; 
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputXSLTMethod.getValue().trim()  );
+                    break;  
+                  case OUTPUT_WRAP:  
+                    ot = OutputType.Literal;
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim()  );
+                    break;
+                  default:  throw new ConfigException("One option for the output must be selected");  
          }
        
        
-        //TODO check output predicate existence if choice 3 is selected
-        if (!tfInputPredicate.isValid()) {
-            throw new ConfigException();
-        } else {
-            SimpleXSLTConfig conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputPredicate.getValue().trim() );
-            return conf;
-        }
-        
+
+         return conf;
+
+
         
         
         
         
     }
 }
+
+
+
+
 
 /**
      * Upload selected file to template directory
@@ -320,8 +365,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 //    public static File file;
 //    public static Path path;
 //    private DPUContext context;
+    private String fileName;
     
     private OutputStream fos;
+
+    public String getFileName() {
+        return fileName;
+    }
+
+  
     
     public OutputStream getOutputStream() {
         return fos;
@@ -359,13 +411,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
 //            file = new File("/" + path + "/" + filename); // path for upload file in temp directory
 
-      
+        this.fileName = filename;
         fos = new ByteArrayOutputStream();
         return fos;
         
     
 
     }
+
+   
 
 }
 

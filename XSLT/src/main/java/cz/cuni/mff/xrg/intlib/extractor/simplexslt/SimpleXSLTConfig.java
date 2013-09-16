@@ -2,17 +2,22 @@ package cz.cuni.mff.xrg.intlib.extractor.simplexslt;
 
 
 import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
+import cz.cuni.xrg.intlib.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class SimpleXSLTConfig implements DPUConfigObject {
+public class SimpleXSLTConfig extends DPUConfigObjectBase {
+    
+     public static final String XML_VALUE_PREDICATE = "http://linked.opendata.cz/ontology/odcs/xmlValue";
+ 
     
     private String xslTemplate = "";
-     private  String inputPredicate = "";
-       private  String outputPredicate = "";
+     private  String inputPredicate = XML_VALUE_PREDICATE;
+       private  String outputPredicate = XML_VALUE_PREDICATE;
+       private String xslTemplateFileName ="";
      
        public enum OutputType {
          RDFXML,
@@ -22,12 +27,24 @@ public class SimpleXSLTConfig implements DPUConfigObject {
          
      }
      private OutputType outputType = OutputType.Literal;
+     
+     private String outputXSLTMethod = "text"; //text/xml/..
 
-    public SimpleXSLTConfig(String xslTemplate, String ip ,OutputType ot, String op ) {
-        this.xslTemplate = xslTemplate;
+    public SimpleXSLTConfig(String xslT, String xslTFileName, String ip ,OutputType ot, String op, String outputXSLTMeth ) {
+        this.xslTemplate = xslT;
+        this.xslTemplateFileName = xslTFileName;
         this.inputPredicate = ip;
         this.outputPredicate = op;
         this.outputType = ot;
+        this.outputXSLTMethod = outputXSLTMeth;
+    }
+    
+     public SimpleXSLTConfig(String xslT, String xslTFileName, String ip ,OutputType ot, String outputXSLTMeth) {
+        this.xslTemplate = xslT;
+        this.xslTemplateFileName = xslTFileName;
+        this.inputPredicate = ip;
+        this.outputType = ot;
+        this.outputXSLTMethod = outputXSLTMeth;
     }
 
     public OutputType getOutputType() {
@@ -36,6 +53,16 @@ public class SimpleXSLTConfig implements DPUConfigObject {
 
     public SimpleXSLTConfig() {
 
+    }
+
+    public String getOutputXSLTMethod() {
+        return outputXSLTMethod;
+    }
+
+    
+    
+    public String getXslTemplateFileName() {
+        return xslTemplateFileName;
     }
     
     public String getInputPredicate() {
@@ -49,10 +76,7 @@ public class SimpleXSLTConfig implements DPUConfigObject {
         return xslTemplate;
     }
 
-    @Override
-    public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+   
     
 
 }

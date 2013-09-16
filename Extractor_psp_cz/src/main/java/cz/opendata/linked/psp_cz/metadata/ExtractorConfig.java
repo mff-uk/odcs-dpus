@@ -28,11 +28,11 @@ public class ExtractorConfig implements DPUConfigObject {
 	
 	public int timeout = 10000;
 
-	public int interval = 0;
+	public int interval = 2000;
 
 	@Override
     public boolean isValid() {
-        return Start_year < End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
+        return Start_year <= End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
     }
 
 }

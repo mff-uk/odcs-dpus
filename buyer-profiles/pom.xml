@@ -10,7 +10,7 @@
     <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>Extractor_buyer_profiles_cz</artifactId>
     <packaging>bundle</packaging>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     
     <properties>    
         <!-- TODO 3: fill module description, the description will be visible to the user -->

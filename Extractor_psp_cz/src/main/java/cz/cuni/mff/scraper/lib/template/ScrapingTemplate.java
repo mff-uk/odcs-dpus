@@ -5,12 +5,15 @@
 package cz.cuni.mff.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jsoup.nodes.Document;
 
 /**
@@ -26,7 +29,9 @@ import org.jsoup.nodes.Document;
  */
 public abstract class ScrapingTemplate {
     
-    /** 
+    public DPUContext ctx;
+	
+	/** 
      * This method looks for links in actual document and create entries with URL and document type.
      * 
      * @param doc Input JSoup document.
