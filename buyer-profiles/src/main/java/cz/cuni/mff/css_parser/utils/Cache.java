@@ -147,46 +147,51 @@ public class Cache {
 			}
 			else out = Jsoup.parse(url, timeout);
 			
+			
+			
 			java.util.Date date2= new java.util.Date();
 		    lastDownload = date2.getTime();
-                    logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
-                    break;
+            logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
+            break;
 		} catch (SocketTimeoutException ex) {
-                    java.util.Date date3= new java.util.Date();
-                    long failed = date3.getTime();
-                    logger.info("Timeout (attempt " + attempt + ") in " + (failed - curTS)+ " : " + url.getHost() + url.getFile());
-                    
-                    //Comment to retry when timeout
-                    if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
-                    {
-	                    BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-	        		    fw.close();
-	        		    return null;
-                    }
-        		    
-        		    //END comment
-        		    
-                    //Thread.sleep(interval);
+            java.util.Date date3= new java.util.Date();
+            long failed = date3.getTime();
+            logger.info("Timeout (attempt " + attempt + ") in " + (failed - curTS)+ " : " + url.getHost() + url.getFile());
+            
+            //Comment to retry when timeout
+            if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+            {
+                BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+    		    fw.close();
+    		    return null;
+            }
+		    
+		    //END comment
+		    
+            //Thread.sleep(interval);
 		} catch (java.io.IOException ex) {
-                    logger.info("Warning (retrying): " + ex.getMessage() + url);
-                    if (
-                    	ex.getMessage() == null 
-                    	|| ex.getMessage().equals("HTTP error fetching URL")
-                    	|| ex.getMessage().equals("Connection reset")
-                    	|| ex.getMessage().startsWith("Too many redirects occurred trying to load URL")
-                    	|| ex.getMessage().startsWith("Unhandled content type.")
-                    	|| ex.getMessage().startsWith("handshake alert:")
-                    	|| ex.getMessage().equals(url.getHost())
-                    	)
-                    {
-            	    	//This makes sure that next run will see the errorneous page as cached. Does not have to be always desirable
-                    	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-            		    fw.close();
-                    	return null;
-                    }
-                    Thread.sleep(interval);
-                }
-			attempt ++;
+            logger.info("Warning (retrying): " + ex.getMessage() + " " + url);
+            if (
+            	ex.getMessage() == null 
+            	|| ex.getMessage().equals("HTTP error fetching URL")
+            	|| ex.getMessage().equals("Connection reset")
+            	|| ex.getMessage().startsWith("Too many redirects occurred trying to load URL")
+            	|| ex.getMessage().startsWith("Unhandled content type.")
+            	|| ex.getMessage().startsWith("handshake alert:")
+            	|| ex.getMessage().equals(url.getHost())
+            	)
+            {
+    	    	//This makes sure that next run will see the errorneous page as cached. Does not have to be always desirable
+                if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+            	{
+                	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+        		    fw.close();
+                	return null;
+            	}
+            }
+            Thread.sleep(interval);
+        	}
+		attempt++;
 	    }
 	    if (attempt == maxAttempts) {
 			logger.error("ERROR: " + url.getHost() + url.getPath());
