@@ -32,7 +32,7 @@ public class ExtractorConfig implements DPUConfigObject {
 
 	@Override
     public boolean isValid() {
-        return Start_year < End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
+        return Start_year <= End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
     }
 
 }
