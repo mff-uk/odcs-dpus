@@ -44,8 +44,13 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     
     private VerticalLayout mainLayout;
     private TextField tfInputPredicate; 
-    private TextField tfOutputPredicate; 
-       private TextField tfOutputXSLTMethod; 
+    private TextField tfOutputPredicate;
+    
+    //output of xslt - could be xml/text/...
+    private TextField tfOutputXSLTMethod; 
+    
+    private TextField tfEscaped; 
+    
     private OptionGroup ogOutputFormat;
     
     private Label lFileName;
@@ -150,6 +155,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         tfInputPredicate = new TextField();
         tfInputPredicate.setCaption("Apply the script to all values (one by one) of the predicate:");
         tfInputPredicate.setWidth("100%");
+        tfInputPredicate.setReadOnly(true);
         
          tfInputPredicate.setImmediate(true);
         tfInputPredicate.addValidator(new Validator() {
@@ -234,9 +240,25 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
          tfOutputXSLTMethod = new TextField();
         tfOutputXSLTMethod.setImmediate(true);
         //tfOutputMethod.setWidth("100%");
-
-
+           tfOutputXSLTMethod.setCaption("Specify output XML method of XSLT (text,xml,..) ");
+       tfOutputXSLTMethod.setWidth("100%");
+        
         mainLayout.addComponent(tfOutputXSLTMethod);
+
+        
+         //empty line
+         Label emptyLabel4 = new Label("");
+        emptyLabel4.setHeight("1em");
+        mainLayout.addComponent(emptyLabel4);
+        
+          //TODO validate input
+         tfEscaped = new TextField();
+        tfEscaped.setImmediate(true);
+        tfEscaped.setCaption("Specify escaping mappings in the form \"string:replacement string2:replacement2\". These mappings are applied when wrapped output is produced. ");
+        tfEscaped.setWidth("100%");
+      
+
+        mainLayout.addComponent(tfEscaped);
         
         
         
@@ -273,10 +295,11 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         lFileName.setValue(conf.getXslTemplateFileName());
          
         
-         tfInputPredicate.setValue(conf.getInputPredicate());
+         //tfInputPredicate.setValue(conf.getInputPredicate());
          tfOutputPredicate.setValue(conf.getOutputPredicate());
          
          tfOutputXSLTMethod.setValue(conf.getOutputXSLTMethod());
+         tfEscaped.setValue(conf.getEscapedString());
          
          switch(conf.getOutputType()) {
              case RDFXML:  ogOutputFormat.select(OUTPUT_RDFXML); tfOutputPredicate.setEnabled(false); break;
@@ -299,9 +322,9 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
            throw new ConfigException("No configuration file uploaded");
        }
         
-         if (tfInputPredicate.getValue().trim().isEmpty()) {
-              throw new ConfigException("No input predicate");
-         }
+//         if (tfInputPredicate.getValue().trim().isEmpty()) {
+//              throw new ConfigException("No input predicate");
+//         }
          
         if (ogOutputFormat.getValue().equals(OUTPUT_WRAP) && tfOutputPredicate.getValue().trim().isEmpty()) {
               throw new ConfigException("No output predicate, but it has to be specied for the given output choice");
@@ -320,15 +343,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
        switch((String)ogOutputFormat.getValue()) {
              case OUTPUT_RDFXML:  
                     ot = OutputType.RDFXML;  
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputXSLTMethod.getValue().trim() );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim() );
                     break;
               case OUTPUT_TTL:  
                     ot = OutputType.TTL; 
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputXSLTMethod.getValue().trim()  );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim());
                     break;  
                   case OUTPUT_WRAP:  
                     ot = OutputType.Literal;
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), tfInputPredicate.getValue().trim(), ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim()  );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim() );
                     break;
                   default:  throw new ConfigException("One option for the output must be selected");  
          }

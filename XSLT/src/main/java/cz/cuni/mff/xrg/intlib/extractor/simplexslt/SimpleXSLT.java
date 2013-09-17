@@ -18,6 +18,8 @@ import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.xrg.intlib.commons.message.MessageType;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
+import cz.cuni.xrg.intlib.commons.module.utils.AddTripleWorkaround;
+import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.impl.MyTupleQueryResult;
@@ -46,6 +48,9 @@ import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.query.Binding;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.impl.TupleQueryResultImpl;
 import org.slf4j.LoggerFactory;
@@ -79,9 +84,25 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
 
+        //get working dir
+        File workingDir = context.getWorkingDir();
+        workingDir.mkdirs();
+
+                    
+        String pathToWorkingDir = null;
+        try {
+            pathToWorkingDir = workingDir.getCanonicalPath();
+        } catch (IOException ex) {
+            log.error("Cannot get path to working dir");
+            log.debug(ex.getLocalizedMessage());
+            //TODO adjust to send descr + detail
+            context.sendMessage(MessageType.ERROR, "Cannot get path to working dir "
+					+ ex.getLocalizedMessage());
+        }
+        
         //TODO store the config directly to file, global dir/{dpu_instance_id}/template.xslt
         //store xslt
-        File xslTemplate = storeStringToTempFile(context, config.getXslTemplate(), "template.xslt");
+        File xslTemplate = DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToWorkingDir + File.separator + "template.xslt");
         if (xslTemplate == null) {
             log.error("No xslt file specified");
             context.sendMessage(MessageType.ERROR, "No xslt file specifed ");
@@ -93,7 +114,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         log.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
-        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
         
 //        for (int i = 0; i < executeSelectQuery.get("o").size(); i++) {
 //
@@ -107,20 +128,32 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 //            
         
         
-        while(executeSelectQueryAsTuples.hasNext()) 
+        int i = 0;
+        try {
+            while (executeSelectQueryAsTuples.hasNext()) {
+       
+            i++;
         
-        for (int i = 0; i < executeSelectQuery.get("o").size(); i++) {
+        //for (int i = 0; i < executeSelectQuery.get("o").size(); i++) {
+
+            //process the inputs
+                BindingSet solution = executeSelectQueryAsTuples.next();
+                Binding b = solution.getBinding("o");
+                String fileContent = b.getValue().toString();
+                String subject = solution.getBinding("s").getValue().toString();
+                log.info("Processing new file for subject {}", subject);
+                log.debug("Processing file {}", fileContent);
 
 
+//            String subject = executeSelectQuery.get("s").get(i);
+//            log.info("About to execute xslt for subject: {}", subject);
 
-            String subject = executeSelectQuery.get("s").get(i);
-            log.info("About to execute xslt for subject: {}", subject);
-
-            String fileContent = executeSelectQuery.get("o").get(i);
-            log.debug("The file being processed: {}", fileContent);
-            
+//            String fileContent = executeSelectQuery.get("o").get(i);
+//            log.debug("The file being processed: {}", fileContent);
+//            
             //store the input content to file, inputs are xml files!
-            File file = storeStringToTempFile(context, fileContent, String.valueOf(i) + ".xml");
+            String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
+            File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
             if (file == null) {
                 log.warn("Problem processing object for subject {}", subject);
                 continue;
@@ -154,166 +187,80 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             
             switch (config.getOutputType()) {
                 case RDFXML:
-                    storeStringToTempFile(context, outputString, "out.xml");
-                    rdfOutput.addFromRDFXMLFile(new File(workingDirPath + "/out.xml"));
+                    String outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
+                    DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                    rdfOutput.addFromRDFXMLFile(new File(outputPath));
                     log.debug("Result was added to output data unit as RDF/XML data");
                     break;
                 case TTL:
-                    storeStringToTempFile(context, outputString, "out.ttl");
-                    rdfOutput.addFromTurtleFile(new File(workingDirPath + "/out.ttl"));
+                    outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+                    DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                    rdfOutput.addFromTurtleFile(new File(outputPath));
                     log.debug("Result was added to output data unit as turtle data");
 
                     break;
                 case Literal:
-                    String prepareTripleString = prepareTriple(subject,config.getOutputPredicate(),outputString);
-                     storeStringToTempFile(context, prepareTripleString, "out.ttl");
-                    rdfOutput.addFromTurtleFile(new File(workingDirPath + "/out.ttl"));
+                   
                     
-                    log.debug("Result was added to output data unit as turtle data containing one triple {}", prepareTripleString);
+                    
+                           //OUTPUT
+             
+               Resource subj = rdfOutput.createURI(subject);
+               URI pred = rdfOutput.createURI(config.getOutputPredicate());
+               //encode object as needed
+               Value obj = rdfOutput.createLiteral(encode(outputString,config.getEscapedString())); 
+            
+               
+               String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+               String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+         
+                
+               DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+               rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+                    
+//                    String prepareTripleString = prepareTriple(subject,config.getOutputPredicate(),outputString);
+//                    outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+                    
+//                    DataUnitUtils.storeStringToTempFile(prepareTripleString, outputPath);
+//                    rdfOutput.addFromTurtleFile(new File(outputPath));
+                    
+                    log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                      
-//                    URI subj = rdfOutput.createURI(subject);
-//                    URI pred = rdfOutput.createURI(config.getOutputPredicate());
-//                    Literal obj = rdfOutput.createQuotedLiteral(outputString);                
-//                                       
-//                    rdfOutput.addTriple(subj, pred, obj);
-//                    
-//                    log.debug("Created output triple: {}", subj.toString() + ", " + pred.toString() + ", "+ obj.toString());
                     break;
             }
 
             log.info("Output created successfully");
 
+        } 
+        } catch (QueryEvaluationException ex) {
+            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+      
+    
 
     }
     
-     private String prepareTriple(String subject, String outputPredicate, String outputString) {
+     public static String encode(String literalValue, String escapedMappings) {
         
+        String val = literalValue;
+         String[] split = escapedMappings.split("\\s+");
+        for (String s : split) {
+            String[] keyAndVal = s.split(":");
+            if (keyAndVal.length == 2) {
+                val = val.replaceAll(keyAndVal[0],keyAndVal[1]);
+                log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1] );
+          
+            } else {
+                log.warn("Wrong format of escaped character mappings, skipping the mapping");
+                
+            }
+        }
+        return val;
         
-        Resource subj = rdfOutput.createURI(subject);
-        URI pred = rdfOutput.createURI(outputPredicate);
-        Value obj = rdfOutput.createLiteral(outputString); 
-         
- 
-       
-        String triple= getSubjectInsertText(subj) + " "
-                        + getPredicateInsertText(pred) + " "
-                        + getObjectInsertText(obj) + " .";
-
-//        String escapedrdfa = rdfa.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quote;").replaceAll("\\*", "&#42;").replaceAll("\\\\", "&#92;");
-//	writer.println("<" + decisionURI + "> sdo:hasHTMLContent \"\"\"" + escapedrdfa + "\"\"\"@cs .");
-                                
-                                return triple;
     }
-
      
-     private String getSubjectInsertText(Resource subject) throws IllegalArgumentException {
-
-		if (subject instanceof URI) {
-			return prepareURIresource((URI) subject);
-		}
-
-		if (subject instanceof BNode) {
-			return prepareBlankNodeResource((BNode) subject);
-		}
-		throw new IllegalArgumentException("Subject must be URI or blank node");
-	}
-
-	private String getPredicateInsertText(URI predicate) {
-		if (predicate instanceof URI) {
-			return prepareURIresource((URI) predicate);
-		}
-		throw new IllegalArgumentException("Predicatemust be URI");
-
-	}
-
-	private String getObjectInsertText(Value object) throws IllegalArgumentException {
-
-		if (object instanceof URI) {
-			return prepareURIresource((URI) object);
-		}
-
-		if (object instanceof BNode) {
-			return prepareBlankNodeResource((BNode) object);
-		}
-
-		if (object instanceof Literal) {
-			return prepareLiteral((Literal) object);
-		}
-
-		throw new IllegalArgumentException(
-				"Object must be URI, blank node or literal");
-	}
-
-	private String prepareURIresource(URI uri) {
-		return "<" + uri.stringValue() + ">";
-	}
-
-	private String prepareBlankNodeResource(BNode bnode) {
-		return "_:" + bnode.getID();
-	}
-
-	private String prepareLiteral(Literal literal) {
-		String label = "\"\"\"" + literal.getLabel() + "\"\"\"";
-		if (literal.getLanguage() != null) {
-			//there is language tag
-			return label + "@" + literal.getLanguage();
-		} else if (literal.getDatatype() != null) {
-			return label + "^^" + prepareURIresource(literal.getDatatype());
-		}
-		//plain literal (return in """)
-		return label;
-
-	}
      
 
-    private File storeStringToTempFile(DPUContext context, String s, String fileName) {
-
-        if (s == null || s.isEmpty()) {
-            log.warn("Nothing to be stored to a file");
-            return null;
-        }
-        
-        if (fileName == null || fileName.isEmpty()) {
-             log.error("File name is missing");
-             return null;
-        }
-        
-        //log.debug("File content is: {}", s);
-
-        //prepare temp file where the a is stored
-        File workingDir = context.getWorkingDir();
-        File configFile = null;
-        try {
-            configFile = new File(workingDir.getCanonicalPath() + "/" + fileName);
-        } catch (IOException ex) {
-            log.error(ex.getLocalizedMessage());
-        }
-
-        if (configFile == null) {
-            log.error("Created file is null or empty, although the original string was non-empty .");
-            return null;
-        }
-        
-        try {
-            log.debug("File path {}", configFile.getCanonicalPath());
-        } catch (IOException ex) {
-            log.error(ex.getLocalizedMessage());
-        }
-
-        Charset charset = StandardCharsets.UTF_8;
-
-        try (BufferedWriter writer = Files.newBufferedWriter(configFile.toPath(), charset)) {
-            writer.write(s, 0, s.length());
-        } catch (IOException x) {
-            log.error("IOException: %s%n", x);
-        }
-
-        return configFile;
-
-
-    }
 
     private String executeXSLT(File xslTemplate, File file) {
 
@@ -351,6 +298,17 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
         return null;
 
+    }
+
+    private String removeTrailingQuotes(String fileContent) {
+        
+        if (fileContent.startsWith("\"")) {
+            fileContent = fileContent.substring(1);
+        }
+        if (fileContent.endsWith("\"")) {
+            fileContent = fileContent.substring(0, fileContent.length()-1);
+        }
+        return fileContent;
     }
 
    }
