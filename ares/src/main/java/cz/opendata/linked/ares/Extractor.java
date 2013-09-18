@@ -44,8 +44,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@InputDataUnit(name = "ICs", optional = true )
 	public RDFDataUnit duICs;
 	
-	@OutputDataUnit(name = "XMLs")
-	public RDFDataUnit outXMLs;
+	@OutputDataUnit(name = "Basic")
+	public RDFDataUnit outBasic;
+
+	@OutputDataUnit(name = "OR")
+	public RDFDataUnit outOR;
 
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
@@ -99,31 +102,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Cache.logger = logger;
 		Scraper_parser s = new Scraper_parser();
 		s.logger = logger;
-
-		/*String prefixes =
-                "@prefix dcterms:    <http://purl.org/dc/terms/> .\n" +
-        	    "@prefix rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                //"@prefix rdfs:       <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "@prefix xsd:        <http://www.w3.org/2001/XMLSchema#> .\n" +
-        	    "@prefix gr:         <http://purl.org/goodrelations/v1#> .\n" +
-        	    "@prefix adms:       <http://www.w3.org/ns/adms#> .\n" +
-        	    "@prefix v:          <http://www.w3.org/2006/vcard/ns#> .\n" +
-        	    "@prefix skos:       <http://www.w3.org/2004/02/skos/core#> .\n" +
-                "@prefix pc:         <http://purl.org/procurement/public-contracts#> .\n" +
-        	    "@prefix pccz:       <http://purl.org/procurement/public-contracts-czech#> .\n" +
-                "@prefix activities: <http://purl.org/procurement/public-contracts-activities#> .\n" +
-                "@prefix kinds:      <http://purl.org/procurement/public-contracts-kinds#> .\n" +
-                "@prefix authkinds:  <http://purl.org/procurement/public-contracts-authority-kinds#> .\n" +
-                "@prefix proctypes:  <http://purl.org/procurement/public-contracts-procedure-types#> .\n" +
-                "@prefix countries:  <http://linked.opendata.cz/resource/domain/buyer-profiles/country#> .\n" +
-                "@prefix czstatus:   <http://purl.org/procurement/public-contracts-czech-statuses#> .\n" +
-                    "\n" +
-                "@prefix czbe:     <http://linked.opendata.cz/resource/business-entity/> .\n";*/        
-
-		//s.ps.println(prefixes);
-		//s.zak_ps.println(prefixes);
-
-		// a spustim na vychozi stranku
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
@@ -203,13 +181,24 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			logger.info("I see " + ICs.size() + " ICs after deduplication.");
 	
 			try {
-				while (li.hasNext() && downloaded < toCache && !ctx.canceled()) {
+				while (li.hasNext() && downloaded < (toCache - 1) && !ctx.canceled()) {
 					String currentIC = li.next();
 					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
 					if (!Cache.isCached(current))
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
-						outXMLs.addTriple(outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outXMLs.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outXMLs.createLiteral(doc.data()));
+						outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
+						logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+					}
+					else cachedEarlier++;
+					
+					if (ctx.canceled()) break;
+					
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC);
+					if (!Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						outOR.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
 						logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
 					}
 					else cachedEarlier++;
@@ -225,7 +214,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
-		logger.info("Processed in " + (end-start) + "ms, ICs on input: " + lines + (cachedEarlier > 0? ", cached earlier: " + cachedEarlier : "") + ", downloaded now: " + downloaded);
+		logger.info("Processed in " + (end-start) + "ms, ICs on input: " + lines + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
 
 	}
 
