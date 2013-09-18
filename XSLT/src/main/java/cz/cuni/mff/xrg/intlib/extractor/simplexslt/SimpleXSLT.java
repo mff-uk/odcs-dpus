@@ -83,7 +83,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-
+ log.info("\n ****************************************************** \n STARTING XSLT Transformer \n *****************************************************");
+  
+        
         //get working dir
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
@@ -212,7 +214,12 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             
                
                String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-               String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+               
+               DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+               String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+            
+               
+               //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
          
                 
                DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);

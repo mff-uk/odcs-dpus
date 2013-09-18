@@ -21,8 +21,12 @@ import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.Outpu
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.xrg.intlib.commons.ontology.OdcsTerms;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
-   private static final Logger logger = LoggerFactory.getLogger(SimpleXSLTDialog.class);
+   private static final Logger log = LoggerFactory.getLogger(SimpleXSLTDialog.class);
    
 
     private static final String OUTPUT_RDFXML = "RDF/XML";
@@ -116,12 +120,22 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
                 //If upload wasn't interrupt by user
                 if (fl == 0) {
                    
-                    String configText = fileUploadReceiver.getOutputStream().toString();
+                    String configText = null;
+                    try {
+                        configText = ((ByteArrayOutputStream)fileUploadReceiver.getOutputStream()).toString("UTF-8");
+                    } catch (UnsupportedEncodingException ex) {
+                        java.util.logging.Logger.getLogger(SimpleXSLTDialog.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    if (configText == null) {
+                        log.error("Cannot save XSLT template with UTF-8 encoding");
+                        return;
+                    }
+                    
                     taXSLTemplate.setValue(configText);
                     lFileName.setValue("File " + fileUploadReceiver.getFileName() + " was successfully uploaded.");
 
 //                 
-                } //If upload was interrupt by user
+                }
                 else {
                     //textFieldPath.setReadOnly(false);
                     taXSLTemplate.setValue("");
@@ -155,18 +169,19 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         tfInputPredicate = new TextField();
         tfInputPredicate.setCaption("Apply the script to all values (one by one) of the predicate:");
         tfInputPredicate.setWidth("100%");
+        tfInputPredicate.setValue(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
         tfInputPredicate.setReadOnly(true);
         
          tfInputPredicate.setImmediate(true);
-        tfInputPredicate.addValidator(new Validator() {
-            @Override
-            public void validate(Object value) throws Validator.InvalidValueException {
-                if (value.getClass() == String.class && !((String) value).isEmpty()) {
-                    return;
-                }
-                throw new Validator.InvalidValueException("Input predicate must be filled!");
-            }
-        });
+//        tfInputPredicate.addValidator(new Validator() {
+//            @Override
+//            public void validate(Object value) throws Validator.InvalidValueException {
+//                if (value.getClass() == String.class && !((String) value).isEmpty()) {
+//                    return;
+//                }
+//                throw new Validator.InvalidValueException("Input predicate must be filled!");
+//            }
+//        });
         mainLayout.addComponent(tfInputPredicate);
 
         //empty line
@@ -275,7 +290,8 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         taXSLTemplate.setImmediate(false);
         taXSLTemplate.setWidth("100%");
         taXSLTemplate.setHeight("300px");
-        taXSLTemplate.setVisible(false);
+        taXSLTemplate.setVisible(true);
+       
 //		silkConfigTextArea.setInputPrompt(
 //				"PREFIX br:<http://purl.org/business-register#>\nMODIFY\nDELETE { ?s pc:contact ?o}\nINSERT { ?s br:contact ?o}\nWHERE {\n\t     ?s a gr:BusinessEntity .\n\t      ?s pc:contact ?o\n}");
 
