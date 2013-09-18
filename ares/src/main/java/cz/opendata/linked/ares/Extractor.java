@@ -187,8 +187,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (!Cache.isCached(current))
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
-						outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
-						logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+						if (doc != null)
+						{
+							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
+							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+						}
+						else
+						{
+							logger.warn("Document null: " + current);
+						}
 					}
 					else cachedEarlier++;
 					
@@ -198,8 +205,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (!Cache.isCached(current))
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
-						outOR.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
-						logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+						if (doc != null)
+						{
+							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
+							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+						}
+						else
+						{
+							logger.warn("Document null: " + current);
+						}
 					}
 					else cachedEarlier++;
 				}
