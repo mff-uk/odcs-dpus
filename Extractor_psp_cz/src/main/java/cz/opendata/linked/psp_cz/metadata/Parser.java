@@ -239,7 +239,7 @@ public class Parser extends ScrapingTemplate{
         }
         else 
         {
-            System.out.println("Found unknown type in " + currentId + ": " + title);
+            logger.warn("Found unknown type in " + currentId + ": " + title);
             type="lex:Act";
         }
         return type;
@@ -279,7 +279,7 @@ public class Parser extends ScrapingTemplate{
         }
         else
         {
-            System.out.println("Found unknown type of derogace in " + currentId + ": " +  string);
+        	logger.warn("Found unknown type of derogace in " + currentId + ": " +  string);
             typ = removeDiacritics(string.replaceAll(" ","-"));
         }
         return typ;
@@ -311,7 +311,7 @@ public class Parser extends ScrapingTemplate{
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Found unparsable castka date in " + identifier + ": " + castka_datum_old);
+                	logger.info("Found unparsable castka date in " + identifier + ": " + castka_datum_old);
                     castka_datum_new = "other";
                 }
                 
@@ -328,7 +328,7 @@ public class Parser extends ScrapingTemplate{
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Found unparsable valid to and valid-from date in " + identifier + ": " + validFromOld);
+                    logger.info("Found unparsable valid to and valid-from date in " + identifier + ": " + validFromOld);
                     validFromNew = "other";
                 }
                 

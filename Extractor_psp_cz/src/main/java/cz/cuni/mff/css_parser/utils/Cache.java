@@ -96,7 +96,7 @@ public class Cache {
 					/*                    logger.info("LastDownload: " + lastDownload);
                     logger.info("CurTS: " + curTS);
                     logger.info("Interval: " + interval);*/
-					logger.info("Sleeping: " + (lastDownload + interval - curTS));
+					logger.debug("Sleeping: " + (lastDownload + interval - curTS));
 					Thread.sleep(lastDownload + interval - curTS);
 				}
 				try {
@@ -117,7 +117,7 @@ public class Cache {
 				attempt ++;
 			}
 			if (attempt == maxAttempts) {
-				logger.error("ERROR: " + url.getHost() + url.getPath());
+				logger.warn("Warning, max attemts reached. Skipping: " + url.getHost() + url.getPath());
 				/*throw new SocketTimeoutException();*/
 				return null;
 			}

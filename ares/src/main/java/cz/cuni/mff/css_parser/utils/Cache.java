@@ -182,7 +182,7 @@ public class Cache {
 				attempt ++;
 			}
 			if (attempt == maxAttempts) {
-				logger.error("ERROR: " + url.getHost() + url.getPath());
+				logger.warn("Warning, max attempts reached. Skipping: " + url.getHost() + url.getPath());
 				/*throw new SocketTimeoutException();*/
 				return null;
 			}
@@ -199,7 +199,7 @@ public class Cache {
 				{
 					throw e;
 				}
-				else logger.error("ERROR caching");
+				else logger.error("ERROR caching: " + e.getLocalizedMessage());
 			}
 		} else {
 			//System.out.println("Using cache for URL: " + url.getHost() + url.getFile());

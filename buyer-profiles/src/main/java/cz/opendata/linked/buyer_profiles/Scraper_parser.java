@@ -379,45 +379,45 @@ public class Scraper_parser extends ScrapingTemplate{
     	try {
 			if (rawURL.isEmpty())
 			{
-				logger.info("Varování (" + typURL + "): Prázdné URL: Zadavatel: " + ico + " " + nazevZadavatele);
+				logger.debug("Varování (" + typURL + "): Prázdné URL: Zadavatel: " + ico + " " + nazevZadavatele);
 				return null;
 			}
 			if (rawURL.contains("\\"))
 			{
-				logger.info("Varování (" + typURL + "): Zpětné lomítko: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + " Oprava: " + rawURL.replace('\\', '/'));
+				logger.debug("Varování (" + typURL + "): Zpětné lomítko: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + " Oprava: " + rawURL.replace('\\', '/'));
 				rawURL = rawURL.replace('\\', '/');
 				numwarnings++;
 			}
 			if (rawURL.contains(" "))
 			{
-				logger.info("Chyba (" + typURL + "): Mezera v URL: " + rawURL + " Zadavatel: " + ico);
+				logger.debug("Chyba (" + typURL + "): Mezera v URL: " + rawURL + " Zadavatel: " + ico);
 				numerrors++;
 			}
 			else if (rawURL.contains("\""))
 			{
-				logger.info("Chyba (" + typURL + "): Uvozovka v URL: " + rawURL + " Zadavatel: " + ico);
+				logger.debug("Chyba (" + typURL + "): Uvozovka v URL: " + rawURL + " Zadavatel: " + ico);
 				numerrors++;
 			}
 			else if (rawURL.contains("\n"))
 			{
-				logger.info("Chyba (" + typURL + "): Nový řádek v URL: " + rawURL + " Zadavatel: " + ico);
+				logger.debug("Chyba (" + typURL + "): Nový řádek v URL: " + rawURL + " Zadavatel: " + ico);
 				numerrors++;
 			}
 			else if (!rawURL.contains(".")) 
 			{
-				logger.info("Chyba (" + typURL + "): Pravděpodobně není URL (Nenalezena tečka): " + rawURL + ico + " " + nazevZadavatele + ".");
+				logger.debug("Chyba (" + typURL + "): Pravděpodobně není URL (Nenalezena tečka): " + rawURL + ico + " " + nazevZadavatele + ".");
 				numerrors++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http//:")) 
 			{
 				cleanURL = new URL("http://" + rawURL.substring(7));
-				logger.info("Varování (" + typURL + "): \"http//:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				logger.debug("Varování (" + typURL + "): \"http//:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("www:")) 
 			{
 				cleanURL = new URL("http://www." + rawURL.substring(5));
-				logger.info("Varování (" + typURL + "): \"www:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				logger.debug("Varování (" + typURL + "): \"www:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http://") || rawURL.toLowerCase().startsWith("https://"))
@@ -427,7 +427,7 @@ public class Scraper_parser extends ScrapingTemplate{
 			else if (rawURL.toLowerCase().startsWith("http:/"))
 			{
 				cleanURL = new URL("http://" + rawURL.substring(6));
-				logger.info("Varování (" + typURL + "): Chybí lomítko v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				logger.debug("Varování (" + typURL + "): Chybí lomítko v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("https")) 
@@ -435,7 +435,7 @@ public class Scraper_parser extends ScrapingTemplate{
 				String tempURL =  rawURL.substring(5);
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("https://" + tempURL);
-				logger.info("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http")) 
@@ -443,13 +443,13 @@ public class Scraper_parser extends ScrapingTemplate{
 				String tempURL =  rawURL.substring(4);
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("http://" + tempURL);
-				logger.info("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
 			}
 			else 
 			{
 				cleanURL = new URL("http://" + rawURL);
-				logger.info("Varování: Missing protocol in URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Fixed: " + cleanURL);
+				logger.debug("Varování: Missing protocol in URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Fixed: " + cleanURL);
 			}
 		} catch (MalformedURLException e) {
 			logger.warn("Chyba (" + typURL + "): Špatné URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".");
@@ -478,7 +478,7 @@ public class Scraper_parser extends ScrapingTemplate{
 			}
     	}
 
-        logger.info("URL " + rawURL + " parsed as " + cleanURL);
+        logger.debug("URL " + rawURL + " parsed as " + cleanURL);
     	return cleanURL;
     	
     }
@@ -874,7 +874,7 @@ public class Scraper_parser extends ScrapingTemplate{
         {
         	++numdetails;
         	
-        	logger.info("Phase 1/2: " + (int)Math.floor((double)numdetails*100/(double)totalnumrows) + "% Parsing detail #" + numdetails + "/" + totalnumrows);
+        	logger.debug("Phase 1/2: " + (int)Math.floor((double)numdetails*100/(double)totalnumrows) + "% Parsing detail #" + numdetails + "/" + totalnumrows);
         	String nazev = escapeString(doc.select("textarea#FormItems_Nazev_I").text());
         	String ulice = escapeString(doc.select("textarea#FormItems_UliceCP_I").text());
         	String obec = escapeString(doc.select("input#FormItems_Obec_I").attr("value"));
@@ -1121,7 +1121,7 @@ public class Scraper_parser extends ScrapingTemplate{
         else if (docType.equals("cancelledDetail"))
         {
         	numCancelledDetails++;
-        	logger.info("Phase 2/2: " + (int)Math.floor((double)numCancelledDetails*100/(double)totalcancellednumrows) + "% Parsing cancelled detail #" + numCancelledDetails + "/" + totalcancellednumrows);
+        	logger.debug("Phase 2/2: " + (int)Math.floor((double)numCancelledDetails*100/(double)totalcancellednumrows) + "% Parsing cancelled detail #" + numCancelledDetails + "/" + totalcancellednumrows);
         	
         	String nazev = escapeString(doc.select("textarea#FormItems_Nazev_I").text());
         	String ulice = escapeString(doc.select("textarea#FormItems_UliceCP_I").text());
@@ -1324,8 +1324,8 @@ public class Scraper_parser extends ScrapingTemplate{
 					e.printStackTrace();
 				}
 				URL internalUrlProfilu = getInternalURLProfiluZadavatele(urlProfilu);
-	        	logger.info("Parsing profile #" + numprofiles++ + ": " + urlProfilu);
-	        	logger.info(url + " size " + doc.getAllElements().size());
+	        	logger.debug("Parsing profile #" + numprofiles++ + ": " + urlProfilu);
+	        	logger.debug(url + " size " + doc.getAllElements().size());
 	        	boolean found = false;
 	        	
 	        	Elements profil_kod_element = doc.select("profil_kod");
@@ -1439,7 +1439,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		{
 	                		guidVZ = UUID.randomUUID().toString();
 	                		uriVZ = "http://linked.opendata.cz/resource/domain/buyer-profiles/contract/cz/" + guidVZ;
-	                		logger.info("Chybí kód zakázky na profilu: " + url);
+	                		logger.debug("Chybí kód zakázky na profilu: " + url);
 	            		}
 	            		
 	            		zak_ps.println("<" + uriVZ + "> a pc:Contract ;");
@@ -1465,7 +1465,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		int currentUchazec = 0;
 	            		for (Element uchazec: zakazka.select("uchazec"))
 	            		{
-	            			if (uchazec == null) logger.error("Uchazec null");
+	            			if (uchazec == null) logger.warn("Uchazec null");
 	            			numuchazeci++;
 	            			String icUchazece = null;
 	            			if (uchazec.select("ico") != null) icUchazece = fixIC(getStringFromElements(uchazec.select("ico")));
@@ -1538,13 +1538,13 @@ public class Scraper_parser extends ScrapingTemplate{
 	            		int pocetDodavatelu = zakazka.select("dodavatel").size();
 	            		if (pocetDodavatelu > 1)
             			{
-	            			logger.info("Více než jeden dodavatel (" + pocetDodavatelu + "): " + uriVZ);
+	            			logger.debug("Více než jeden dodavatel (" + pocetDodavatelu + "): " + uriVZ);
 	            			multiDodavatel++;
             			}
 	            		int currentDodavatel = 1;
 	            		for (Element dodavatel: zakazka.select("dodavatel"))
 	            		{
-	            			if (dodavatel == null) logger.error("Dodavatel null");
+	            			if (dodavatel == null) logger.warn("Dodavatel null");
 	            			numdodavatele++;
 	            			String icDodavatele = null;
 	            			if (dodavatel.select("ico") != null) icDodavatele = fixIC(getStringFromElements(dodavatel.select("ico")));
@@ -1566,7 +1566,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			if (dodavatel.select("rozpad") != null) rozpad = getStringFromElements(dodavatel.select("rozpad"));
 
 
-	            			if (rozpad != null && !rozpad.isEmpty()) logger.info("Rozpad: " + rozpad);
+	            			if (rozpad != null && !rozpad.isEmpty()) logger.debug("Rozpad: " + rozpad);
 	            			
 	            			currentDodavatel++;
 	            			String uriTender;
