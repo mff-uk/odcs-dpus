@@ -57,7 +57,16 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Simple XSLT Extractor
- * 
+ *
+ * DPU which applies XSLT uploaded via configuration dialog to all y within
+ * input data (x,<http://linked.opendata.cz/ontology/odcs/xmlValue>,y).
+ *
+ * Output may be formed either by triples representing the data itself, or by
+ * triples of the form (x,a,b), where "b" is the output of the XSLT
+ * transformation , optionally encoded (can be defined in the configuration
+ * dialog), and "a" is the predicate defined in the configuration dialog. The
+ * type of output may be configured in the configuration dialog. Resulting data
+ * are encoded as defined in the configuration dialog.
  *
  * @author tomasknap
  */
@@ -83,14 +92,14 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
- log.info("\n ****************************************************** \n STARTING XSLT Transformer \n *****************************************************");
-  
-        
+        log.info("\n ****************************************************** \n STARTING XSLT Transformer \n *****************************************************");
+
+
         //get working dir
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
 
-                    
+
         String pathToWorkingDir = null;
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
@@ -99,46 +108,45 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             log.debug(ex.getLocalizedMessage());
             //TODO adjust to send descr + detail
             context.sendMessage(MessageType.ERROR, "Cannot get path to working dir "
-					+ ex.getLocalizedMessage());
+                    + ex.getLocalizedMessage());
         }
-        
-        //TODO store the config directly to file, global dir/{dpu_instance_id}/template.xslt
+
+
+
         //store xslt
-        File xslTemplate = DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToWorkingDir + File.separator + "template.xslt");
-        if (xslTemplate == null) {
-            log.error("No xslt file specified");
-            context.sendMessage(MessageType.ERROR, "No xslt file specifed ");
-            return;
+//        File xslTemplate = DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToWorkingDir + File.separator + "template.xslt");
+//        if (xslTemplate == null) {
+//            log.error("No xslt file specified");
+//            context.sendMessage(MessageType.ERROR, "No xslt file specifed ");
+//            return;
+//        }
+
+        //prepare xslt template
+        if (config.getStoredXsltFilePath().isEmpty()) {
+            log.error("No XSLT available, execution interrupted.");
+            //context.sendMessage(MessageType.ERROR, "No XSLT available, execution interrupted");
+            throw new DPUException("No XSLT available, execution interrupted");
         }
+        File xslTemplate = new File(config.getStoredXsltFilePath());
+
 
         //prepare inputs, call xslt for each input
         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
         log.debug("Query for getting input files: {}", query);
+
         //get the return values
-        //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
         MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-        
-//        for (int i = 0; i < executeSelectQuery.get("o").size(); i++) {
-//
-//
-//
-//            String subject = executeSelectQuery.get("s").get(i);
-//            log.info("About to execute xslt for subject: {}", subject);
-//
-//            String fileContent = executeSelectQuery.get("o").get(i);
-//            log.debug("The file being processed: {}", fileContent);
-//            
-        
-        
+
+
+
         int i = 0;
         try {
             while (executeSelectQueryAsTuples.hasNext()) {
-       
-            i++;
-        
-        //for (int i = 0; i < executeSelectQuery.get("o").size(); i++) {
 
-            //process the inputs
+                i++;
+
+
+                //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
                 Binding b = solution.getBinding("o");
                 String fileContent = b.getValue().toString();
@@ -147,127 +155,104 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 log.debug("Processing file {}", fileContent);
 
 
-//            String subject = executeSelectQuery.get("s").get(i);
-//            log.info("About to execute xslt for subject: {}", subject);
+                //store the input content to file, inputs are xml files!
+                String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
+                File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
+                if (file == null) {
+                    log.warn("Problem processing object for subject {}", subject);
+                    continue;
+                }
 
-//            String fileContent = executeSelectQuery.get("o").get(i);
-//            log.debug("The file being processed: {}", fileContent);
-//            
-            //store the input content to file, inputs are xml files!
-            String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
-            File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
-            if (file == null) {
-                log.warn("Problem processing object for subject {}", subject);
-                continue;
-            }
-            
-            //call xslt, obtain result in a string
-            String outputString = executeXSLT(xslTemplate, file);
-            if (outputString == null) {
-                log.warn("Problem generating output of xslt transformation for subject {}", subject);
-                continue;
-            }
+                //call xslt, obtain result in a string
+                String outputString = executeXSLT(xslTemplate, file);
+                if (outputString == null) {
+                    log.warn("Problem generating output of xslt transformation for subject {}", subject);
+                    continue;
+                }
 
-            if (outputString.isEmpty()) {
-                log.warn("Template applied to the subject {} generated empty output. Input was: ", subject, fileContent);
-                continue;
-            }
-            log.info("XSLT executed successfully, about to create output");
-            log.debug("Output of the transformation: {}", outputString);
-            
-                      
-            
-            //create output (based on the settings)
-            String workingDirPath = null;
-            try {
-                workingDirPath = context.getWorkingDir().getCanonicalPath();
-            } catch (IOException ex) {
-                log.error(ex.getLocalizedMessage());
-                log.warn("Record skipped");
-                continue;
-            }
-            
-            switch (config.getOutputType()) {
-                case RDFXML:
-                    String outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
-                    DataUnitUtils.storeStringToTempFile(outputString, outputPath);
-                    rdfOutput.addFromRDFXMLFile(new File(outputPath));
-                    log.debug("Result was added to output data unit as RDF/XML data");
-                    break;
-                case TTL:
-                    outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-                    DataUnitUtils.storeStringToTempFile(outputString, outputPath);
-                    rdfOutput.addFromTurtleFile(new File(outputPath));
-                    log.debug("Result was added to output data unit as turtle data");
+                if (outputString.isEmpty()) {
+                    log.warn("Template applied to the subject {} generated empty output. Input was: ", subject, fileContent);
+                    continue;
+                }
+                log.info("XSLT executed successfully, about to create output");
+                log.debug("Output of the transformation: {}", outputString);
 
-                    break;
-                case Literal:
-                   
-                    
-                    
-                           //OUTPUT
-             
-               Resource subj = rdfOutput.createURI(subject);
-               URI pred = rdfOutput.createURI(config.getOutputPredicate());
-               //encode object as needed
-               Value obj = rdfOutput.createLiteral(encode(outputString,config.getEscapedString())); 
-            
-               
-               String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-               
-               DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-               String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
-            
-               
-               //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-         
-                
-               DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-               rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-                    
-//                    String prepareTripleString = prepareTriple(subject,config.getOutputPredicate(),outputString);
-//                    outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-                    
-//                    DataUnitUtils.storeStringToTempFile(prepareTripleString, outputPath);
-//                    rdfOutput.addFromTurtleFile(new File(outputPath));
-                    
-                    log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-                     
-                    break;
+
+
+
+                switch (config.getOutputType()) {
+                    case RDFXML:
+                        String outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
+                        DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                        rdfOutput.addFromRDFXMLFile(new File(outputPath));
+                        log.debug("Result was added to output data unit as RDF/XML data");
+                        break;
+                    case TTL:
+                        outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+                        DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                        rdfOutput.addFromTurtleFile(new File(outputPath));
+                        log.debug("Result was added to output data unit as turtle data");
+
+                        break;
+                    case Literal:
+
+
+
+                        //OUTPUT
+
+                        Resource subj = rdfOutput.createURI(subject);
+                        URI pred = rdfOutput.createURI(config.getOutputPredicate());
+                        //encode object as needed
+                        Value obj = rdfOutput.createLiteral(encode(outputString, config.getEscapedString()));
+
+
+                        String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+
+                        DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+                        String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+
+
+                        //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+
+
+                        DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+                        rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+
+
+                        log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+
+                        break;
+                }
+
+                log.info("Output created successfully");
+
             }
-
-            log.info("Output created successfully");
-
-        } 
         } catch (QueryEvaluationException ex) {
             Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
         }
-      
-    
+
+
 
     }
-    
-     public static String encode(String literalValue, String escapedMappings) {
-        
+
+    private static String encode(String literalValue, String escapedMappings) {
+
         String val = literalValue;
-         String[] split = escapedMappings.split("\\s+");
+        String[] split = escapedMappings.split("\\s+");
         for (String s : split) {
             String[] keyAndVal = s.split(":");
             if (keyAndVal.length == 2) {
-                val = val.replaceAll(keyAndVal[0],keyAndVal[1]);
-                log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1] );
-          
+                val = val.replaceAll(keyAndVal[0], keyAndVal[1]);
+                log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1]);
+
             } else {
                 log.warn("Wrong format of escaped character mappings, skipping the mapping");
-                
+
             }
         }
         return val;
-        
-    }
-     
-     
 
+    }
 
     private String executeXSLT(File xslTemplate, File file) {
 
@@ -275,7 +260,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             log.error("Invalid inputs to executeXSLT method");
             return null;
         }
-        
+
         //xslt
         Processor proc = new Processor(false);
         XsltCompiler compiler = proc.newXsltCompiler();
@@ -308,14 +293,13 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     }
 
     private String removeTrailingQuotes(String fileContent) {
-        
+
         if (fileContent.startsWith("\"")) {
             fileContent = fileContent.substring(1);
         }
         if (fileContent.endsWith("\"")) {
-            fileContent = fileContent.substring(0, fileContent.length()-1);
+            fileContent = fileContent.substring(0, fileContent.length() - 1);
         }
         return fileContent;
     }
-
-   }
+}

@@ -19,9 +19,15 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private String xslTemplate = "";
     private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;  //input is always XML
     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
-    private String xslTemplateFileName = "";
-    private String escapedString = "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
-//    private Map<String, String> escapedChars;
+    private String xslTemplateFileNameShownInDialog = "";
+    private String escapedString =  "\"\"\":&quote;&quote;&quote; "; // "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
+    
+    private String storedXsltFilePath = "";
+
+    //    private Map<String, String> escapedChars;
+    public String getStoredXsltFilePath() {
+        return storedXsltFilePath;
+    }
     
     //rdfa.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quote;").replaceAll("\\*", "&#42;").replaceAll("\\\\", "&#92;");
 
@@ -34,20 +40,21 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private OutputType outputType = OutputType.Literal;
     private String outputXSLTMethod = "text"; //text/xml/..
 
-    public SimpleXSLTConfig(String xslT, String xslTFileName, /*String ip, */OutputType ot, String op, String outputXSLTMeth, String escaped) {
+    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String op, String outputXSLTMeth, String escaped) {
 
-        this(xslT, xslTFileName, ot, outputXSLTMeth, escaped);
+        this(xslT, xslTFileName, storedFilePath, ot, outputXSLTMeth, escaped);
         this.outputPredicate = op;
 
     }
 
-    public SimpleXSLTConfig(String xslT, String xslTFileName, /*String ip, */OutputType ot, String outputXSLTMeth, String escaped) {
+    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String outputXSLTMeth, String escaped) {
         this.xslTemplate = xslT;
-        this.xslTemplateFileName = xslTFileName;
+        this.xslTemplateFileNameShownInDialog = xslTFileName;
 //        this.inputPredicate = ip;
         this.outputType = ot;
         this.outputXSLTMethod = outputXSLTMeth;
         this.escapedString = escaped;
+        this.storedXsltFilePath = storedFilePath;
 //        escapedChars = new HashMap<>();
 
        
@@ -77,7 +84,7 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     }
 
     public String getXslTemplateFileName() {
-        return xslTemplateFileName;
+        return xslTemplateFileNameShownInDialog;
     }
 
     public String getInputPredicate() {

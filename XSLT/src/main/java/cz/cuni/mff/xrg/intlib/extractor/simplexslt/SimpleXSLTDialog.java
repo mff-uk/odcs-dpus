@@ -21,11 +21,14 @@ import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.Outpu
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
 import cz.cuni.xrg.intlib.commons.ontology.OdcsTerms;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     private static final String OUTPUT_TTL = "TTL";
     private static final String OUTPUT_WRAP = "WRAP";
     
+  
     private VerticalLayout mainLayout;
     private TextField tfInputPredicate; 
     private TextField tfOutputPredicate;
@@ -290,8 +294,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         taXSLTemplate.setImmediate(false);
         taXSLTemplate.setWidth("100%");
         taXSLTemplate.setHeight("300px");
-        taXSLTemplate.setVisible(true);
-       
+        taXSLTemplate.setVisible(false);
 //		silkConfigTextArea.setInputPrompt(
 //				"PREFIX br:<http://purl.org/business-register#>\nMODIFY\nDELETE { ?s pc:contact ?o}\nINSERT { ?s br:contact ?o}\nWHERE {\n\t     ?s a gr:BusinessEntity .\n\t      ?s pc:contact ?o\n}");
 
@@ -307,9 +310,14 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     @Override
     public void setConfiguration(SimpleXSLTConfig conf) throws ConfigException {
         
-        taXSLTemplate.setValue(conf.getXslTemplate());
-        lFileName.setValue(conf.getXslTemplateFileName());
-         
+        //taXSLTemplate.setValue(conf.getXslTemplate());
+        //load XSLT from the file
+        if (!conf.getStoredXsltFilePath().isEmpty()) {
+            String fileContent = DataUnitUtils.readFile(conf.getStoredXsltFilePath());
+            taXSLTemplate.setValue(fileContent);
+            lFileName.setValue(conf.getXslTemplateFileName());
+            log.debug("XSLT loaded from {}", conf.getStoredXsltFilePath());
+        } 
         
          //tfInputPredicate.setValue(conf.getInputPredicate());
          tfOutputPredicate.setValue(conf.getOutputPredicate());
@@ -332,16 +340,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     @Override
     public SimpleXSLTConfig getConfiguration() throws ConfigException {
         //get the conf from the dialog
+        
+       
         //check that certain xslt was uploaded
          if (taXSLTemplate.getValue().trim().isEmpty()) {
            //no config!
            throw new ConfigException("No configuration file uploaded");
+           
        }
         
-//         if (tfInputPredicate.getValue().trim().isEmpty()) {
-//              throw new ConfigException("No input predicate");
-//         }
-         
         if (ogOutputFormat.getValue().equals(OUTPUT_WRAP) && tfOutputPredicate.getValue().trim().isEmpty()) {
               throw new ConfigException("No output predicate, but it has to be specied for the given output choice");
          }
@@ -350,29 +357,37 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
               throw new ConfigException("No xslt output");
          }
          
-         
-     
+        //store the file with XSL template 
+        //TODO take the dpu's space
+        String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID.randomUUID().toString();     
+        //save the config from textarea to the file 
+        DataUnitUtils.storeStringToTempFile(taXSLTemplate.getValue(), fileWithXSLT);
+        log.debug("XSLT stored to {}", fileWithXSLT);
           
        //prepare output type:
+        // TODO storing the textarea content not needed - not readed when the configuration is shown
         SimpleXSLTConfig.OutputType ot = null;
          SimpleXSLTConfig conf = null;
        switch((String)ogOutputFormat.getValue()) {
              case OUTPUT_RDFXML:  
                     ot = OutputType.RDFXML;  
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim() );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim() );
                     break;
               case OUTPUT_TTL:  
                     ot = OutputType.TTL; 
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim());
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim());
                     break;  
                   case OUTPUT_WRAP:  
                     ot = OutputType.Literal;
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim() );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim() );
                     break;
                   default:  throw new ConfigException("One option for the output must be selected");  
          }
        
        
+        
+       
+        
 
          return conf;
 
@@ -390,9 +405,6 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
 /**
      * Upload selected file to template directory
-     *
-     * @author Maria Kukhar
-     *
      */
     class FileUploadReceiver implements Upload.Receiver {
 
