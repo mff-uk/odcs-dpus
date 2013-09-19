@@ -1,11 +1,11 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.JTaggerExtractor;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Configuration;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.LawDocument;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.SparqlLoader;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.ValidityMap;
+
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Configuration;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.LawDocument;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Work;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.SparqlLoader;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.ValidityMap;
 import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 
 import java.io.*;

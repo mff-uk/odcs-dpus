@@ -1,6 +1,5 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.ShortcutMap;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;

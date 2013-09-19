@@ -20,6 +20,7 @@ import cz.cuni.xrg.intlib.commons.message.MessageType;
 import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
 import cz.cuni.xrg.intlib.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
+import cz.cuni.xrg.intlib.commons.ontology.OdcsTerms;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
@@ -87,7 +88,8 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-
+      log.info("\n ****************************************************** \n STARTING JTAGGER ANNOTATOR \n *****************************************************");
+  
         //get working dir
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
@@ -147,6 +149,9 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             while (executeSelectQueryAsTuples.hasNext()) {
 
                 i++;
+                
+                //TODO temp hack 
+                if (i > 3) break;
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
                 Binding b = solution.getBinding("o");
@@ -159,7 +164,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".txt";
 
                 //store the input content to file, inputs are xml files!
-                File file = DataUnitUtils.storeStringToTempFile(fileContent, inputFilePath);
+                File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
                 if (file == null) {
                     log.warn("Problem processing object for subject {}", subject);
                     continue;
@@ -194,7 +199,9 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 //add paragraph elements
                 //////////////////////
                 log.info("About add paragraphs elements");
-                String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + file;
+                String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + String.valueOf(i) + ".xml";
+                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGenPara");
+            
                 runParagraphAdjustment(outputMetadataElement, outputURIGeneratorFilenameWithParagraphs);
 
                 //check output
@@ -212,12 +219,19 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                String outputString = DataUnitUtils.readFile(outputURIGeneratorFilenameWithParagraphs);
                 
                Resource subj = rdfOutput.createURI(subject);
-               URI pred = rdfOutput.createURI(config.getOutputPredicate());
+                URI pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
+               //TODO config has still textVal, why???
+                //URI pred = rdfOutput.createURI(config.getOutputPredicate());
                Value obj = rdfOutput.createLiteral(outputString); 
             
                
                String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-               String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+               
+               DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+               String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+            
+               
+               //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
          
                 
                DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
@@ -312,19 +326,29 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String before = input_string.substring(0, indexBody);
 
         String toBeProcessedTemp = input_string.substring(indexBody);
-        String toBeProcessed = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("U S N E S E N Í"));
-        String output = "<meta>" + toBeProcessed + "</meta>";
+        
+        String output = "";
+        String content = toBeProcessedTemp;
+        
+        if (toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) {
+            log.warn("Label U S N E S E N Í was not found in the processed decision, creation of metadata section will not work properly");
+        }
+        else {
+            String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("U S N E S E N Í"));
+            output = "<meta>" + metadata + "</meta>";
+            content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("U S N E S E N Í"));
+        }
 
-        String afterMetaElem = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("U S N E S E N Í"));
+       
 
 
 
 
         //add content elem </metadata> <content>USNESENI... </content></body>
-        String toBeProcessed2 = afterMetaElem.substring(0, afterMetaElem.indexOf("</body>"));
+        String toBeProcessed2 = content.substring(0, content.indexOf("</body>"));
         String output2 = "<content>" + toBeProcessed2 + "</content>";
 
-        String after = afterMetaElem.substring(afterMetaElem.indexOf("</body>"));
+        String after = content.substring(content.indexOf("</body>"));
 
 
 
@@ -332,8 +356,8 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         //log.info("Para orig {}", input_string);
         log.debug("****Para before {}", before);
         log.debug("****Para output {}", output);
-        log.debug("****Para after {}", output2);
-        log.debug("*****With Para {}", after);
+        log.debug("****Para output2 {}", output2);
+        log.debug("*****Para after {}", after);
         //log.info("Para all {}", before + output + after);
 
 
@@ -341,7 +365,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         //If they end with dots, \n is not removed if the new line character is followed by space, tab or next new line character, 
         //because this denotes new paragraph and in this case new line char is ok.  
         //output = output.replaceAll("([^.\n])\n([^\\s])", "$1$2");
-
+        log.debug("Para NEW: " + before + output + output2 + after);
         return before + output + output2 + after;
     }
 
@@ -457,5 +481,16 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         } catch (ZipException e) {
             log.error("Error {}", e.getLocalizedMessage());
         }
+    }
+    
+     private String removeTrailingQuotes(String fileContent) {
+        
+        if (fileContent.startsWith("\"")) {
+            fileContent = fileContent.substring(1);
+        }
+        if (fileContent.endsWith("\"")) {
+            fileContent = fileContent.substring(0, fileContent.length()-1);
+        }
+        return fileContent;
     }
 }

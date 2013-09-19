@@ -1,6 +1,6 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.*;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.*;
 
 import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
 import java.io.BufferedReader;

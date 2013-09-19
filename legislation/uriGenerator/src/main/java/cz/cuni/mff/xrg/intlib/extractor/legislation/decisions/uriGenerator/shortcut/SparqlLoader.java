@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut;
 
 import java.io.*;
 import java.net.HttpURLConnection;

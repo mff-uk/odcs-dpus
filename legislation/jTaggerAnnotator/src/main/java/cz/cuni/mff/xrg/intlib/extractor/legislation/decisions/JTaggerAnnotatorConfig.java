@@ -15,7 +15,7 @@ public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
      
       private String inputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
      
-     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+     private String outputPredicate = "http://linked.opendata.cz/ontology/odcs/xmlValue"; //OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
 
     public String getOutputPredicate() {
         return outputPredicate;

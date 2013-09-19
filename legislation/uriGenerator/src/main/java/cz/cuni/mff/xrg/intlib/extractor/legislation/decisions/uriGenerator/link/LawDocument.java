@@ -1,7 +1,8 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.*;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.AbbreviationMap;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.ShortcutMap;
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.ValidityMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

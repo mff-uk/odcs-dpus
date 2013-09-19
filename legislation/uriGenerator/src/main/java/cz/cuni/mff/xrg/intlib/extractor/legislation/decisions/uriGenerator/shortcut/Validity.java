@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

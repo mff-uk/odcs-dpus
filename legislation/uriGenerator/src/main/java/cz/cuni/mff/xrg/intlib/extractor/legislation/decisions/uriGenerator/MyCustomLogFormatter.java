@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator;
 
 
 import java.text.MessageFormat;

@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link;
+package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
 import java.io.IOException;
 import java.util.HashMap;
