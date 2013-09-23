@@ -117,7 +117,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
         String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
         //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
-        log.info("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
+        log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
         try {
             unzip(jarPathString, unzipedJarPathString);
         } catch (ZipException ex) {
@@ -131,7 +131,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             //chmod +x hunpos-tag, hunpos-train
             ///Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1/src/main/resources/tagger/hunpos-tag
             Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-tag");
-            log.info("Executing: chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-tag");
+            log.debug("Executing: chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-tag");
             Runtime.getRuntime().exec("chmod +x " + unzipedJarPathString + File.separator + pathToResources + File.separator + "tagger" + File.separator + "hunpos-train");
         } catch (IOException ex) {
             log.error(ex.getLocalizedMessage());
@@ -144,14 +144,15 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
         TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 
+        int i = 0;
         try {
-            int i = 0;
+            
             while (executeSelectQueryAsTuples.hasNext()) {
 
                 i++;
                 
-                //TODO temp hack 
-                if (i > 3) break;
+                //if (i > 3) break;
+             
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
                 Binding b = solution.getBinding("o");
@@ -161,8 +162,10 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 log.debug("Processing file {}", fileContent);
 
 
-                String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".txt";
-
+                String inputFilePath = pathToWorkingDir + File.separator + "input" + File.separator + String.valueOf(i) + ".txt";
+                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "input" + File.separator);
+         
+                
                 //store the input content to file, inputs are xml files!
                 File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
                 if (file == null) {
@@ -180,14 +183,21 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                     continue;
                 }
 
+                 log.info("Jtagger annotator finished successfully");
 
                 //////////////////////
                 //add meta and content elements to body
                 //////////////////////
                 String outputMetadataElement = pathToWorkingDir + File.separator + "outMetaElem" + File.separator + String.valueOf(i) + ".xml";
                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outMetaElem" + File.separator);
-
-                addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement);
+                
+                try {
+                    addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement);
+                } catch(MetadataCreationException me) {
+                    log.error("Problem when adding meta section, skipping this file");
+                    log.debug(me.getLocalizedMessage());
+                    continue;
+                }
 
                 //check output
                 if (!outputGenerated(outputMetadataElement)) {
@@ -198,7 +208,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 //////////////////////
                 //add paragraph elements
                 //////////////////////
-                log.info("About add paragraphs elements");
+                log.debug("About add paragraphs elements");
                 String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + String.valueOf(i) + ".xml";
                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGenPara");
             
@@ -209,13 +219,10 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                     continue;
                 }
 
-
-
-
-
-
-              
-                 //OUTPUT
+                   log.info("Metadata and paragraph elements generated, about to create output");
+               
+                
+               //OUTPUT
                String outputString = DataUnitUtils.readFile(outputURIGeneratorFilenameWithParagraphs);
                 
                Resource subj = rdfOutput.createURI(subject);
@@ -239,7 +246,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                
                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
-                
+               log.info("Output created successfully");
                 
      
 
@@ -248,9 +255,16 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
             }
         } catch (QueryEvaluationException ex) {
-            log.error(ex.getLocalizedMessage());
-            log.info("Further files are not annotated");
+            context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+            log.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+            log.debug(ex.getLocalizedMessage());
         }
+
+        
+        log.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
+
+        
+        log.info("\n ****************************************************** \n FINISHING JTAGGER ANNOTATOR \n *****************************************************");
 
 
 
@@ -290,7 +304,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
     }
 
-    private void addMetaAndContentElements(String inputFilePath, String outputFileName) {
+    private void addMetaAndContentElements(String inputFilePath, String outputFileName) throws MetadataCreationException {
 
         String input_text = null;
         input_text = DataUnitUtils.readFile(inputFilePath, StandardCharsets.UTF_8);
@@ -313,7 +327,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
     }
 
-    private String addMetaAndContentElementsWorker(String input_string) {
+    private String addMetaAndContentElementsWorker(String input_string) throws MetadataCreationException {
 
 
         if (input_string == null) {
@@ -331,7 +345,17 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String content = toBeProcessedTemp;
         
         if (toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) {
-            log.warn("Label U S N E S E N Í was not found in the processed decision, creation of metadata section will not work properly");
+            //try with small letters
+             if (toBeProcessedTemp.indexOf("u s n e s e n í") < 0) {
+                 log.warn("Label U S N E S E N Í/u s n e s e n í was not found in the processed decision, creation of metadata section will not work properly");
+                 throw new MetadataCreationException("Meta element not created");
+             }
+             else {
+                String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("u s n e s e n í"));
+                output = "<meta>" + metadata + "</meta>";
+                content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("u s n e s e n í"));
+             }
+            
         }
         else {
             String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("U S N E S E N Í"));
@@ -391,10 +415,10 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String output = toBeProcessed.replaceAll("([^\n]+)\n", "\n<paragraph>$1</paragraph>\n");
 
         //log.info("Para orig {}", input_string);
-        log.info("****Para before {}", before);
-        log.info("****Para output {}", toBeProcessed);
-        log.info("****Para after {}", after);
-        log.info("*****With Para {}", output);
+        log.debug("****Para before {}", before);
+        log.debug("****Para output {}", toBeProcessed);
+        log.debug("****Para after {}", after);
+        log.debug("*****With Para {}", output);
         //log.info("Para all {}", before + output + after);
 
 
@@ -416,14 +440,14 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             log.warn("Skipping rest of the steps for the given file");
             return false;
         } else {
-            log.info("File {} was generated as result of URI generator",
+            log.debug("File {} was generated as result of URI generator",
                     output);
             return true;
         }
     }
 
     private void runJTagger(String inputFile, String outputJTaggerFilename, String jarPathString, String pathToWorkingDir) {
-        log.info("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
+        log.debug("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
         try {
             //process one file in the filesystem
             ///Users/tomasknap/Documents/PROJECTS/TACR/judikaty/data from web/nejvyssiSoud/rozhodnuti-3_Tdo_348_2013.txt
@@ -451,18 +475,16 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             //JTagger.setPath("/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1");
             //JTagger.setPath(jarPathString, pathToWorkingDir);
             JTagger.setPath(jarPathString);
-            log.info("Path to extracted jar file: {}", jarPathString);
-            log.info("Path to working dir: {}", pathToWorkingDir);
+            log.debug("Path to extracted jar file: {}", jarPathString);
+            log.debug("Path to working dir: {}", pathToWorkingDir);
             JTaggerResult res = JTagger.processFile(input_text, "nscr");
-            //log.info("File {} processed", inputFile);
-            //log.debug(res.getXml());
+          
 
             //store result to a file
             PrintWriter out = new PrintWriter(outputJTaggerFilename, "UTF-8");
             out.print(res.getXml());
             out.flush();
             out.close();
-            //log.info("File {} was generated as result of JTagger", outputJTaggerFilename);
 
         } catch (Exception e) {
             log.error("JTagger error {}", e.getLocalizedMessage());

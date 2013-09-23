@@ -1,11 +1,13 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.UriGenerator;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 
 /**
@@ -14,6 +16,9 @@ import org.w3c.dom.*;
  * @author Jakub Starka
  */
 public class Work implements Comparable<Work> {
+    
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(
+            Work.class);
     
     // Label to separate section
     public static final String EMPTY_SECTION_LABEL = "-";
@@ -574,18 +579,24 @@ public class Work implements Comparable<Work> {
                 {
                     //Logger.getLogger("intlib").log(Level.INFO, expression);
                     sectionsSubstring = expression.replaceAll("(.*) [^ ]+ č\\.?.*","$1");
-                    String actref;
-                    if (expression.lastIndexOf("č") == -1)
-                    {
-                        actref = expression.substring(0,expression.lastIndexOf("zák"));
-                    }
-                    else actref = expression.substring(expression.lastIndexOf("č"));
-                    number = actref.replaceAll("[^0-9]*([0-9]+)/([0-9]+)[sS]?b?\\.?[^0-9]*","$1");
-                    year = fixYear(actref.replaceAll("[^/]*([0-9]+)/([0-9]+)[^0-9]*","$2"));
-                    shortcut = null;
-                    lastFoundShortcut = null;
-                    lastFoundYear = year;
-                    lastFoundNumber = number;
+                    try {
+                        String actref;
+                        if (expression.lastIndexOf("č") == -1)
+                        {
+
+                            actref = expression.substring(0,expression.lastIndexOf("zák"));
+
+                        }
+                        else actref = expression.substring(expression.lastIndexOf("č"));
+                        number = actref.replaceAll("[^0-9]*([0-9]+)/([0-9]+)[sS]?b?\\.?[^0-9]*","$1");
+                        year = fixYear(actref.replaceAll("[^/]*([0-9]+)/([0-9]+)[^0-9]*","$2"));
+                        shortcut = null;
+                        lastFoundShortcut = null;
+                        lastFoundYear = year;
+                        lastFoundNumber = number;
+                     } catch(StringIndexOutOfBoundsException e) {
+                            log.warn(e.getLocalizedMessage());
+                     }
                 }
                 else
                 {

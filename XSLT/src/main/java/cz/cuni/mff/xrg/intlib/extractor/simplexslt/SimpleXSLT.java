@@ -216,8 +216,13 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 
                         DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-                        rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-
+                        try {
+                            rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+                        } catch (Exception e) {
+                            log.error("Error when adding file for {} to the RDF data unit", subject);
+                            log.debug(e.getLocalizedMessage());
+                        }
+                              
 
                         log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
 
@@ -228,8 +233,13 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
             }
         } catch (QueryEvaluationException ex) {
-            Logger.getLogger(SimpleXSLT.class.getName()).log(Level.SEVERE, null, ex);
+            context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+            log.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+            log.debug(ex.getLocalizedMessage());
         }
+
+        log.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
+        
 
 
 
