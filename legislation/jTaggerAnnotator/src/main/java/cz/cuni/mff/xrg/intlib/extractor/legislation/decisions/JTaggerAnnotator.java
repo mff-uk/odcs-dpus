@@ -447,7 +447,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
     }
 
     private void runJTagger(String inputFile, String outputJTaggerFilename, String jarPathString, String pathToWorkingDir) {
-        log.debug("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
+        log.info("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
         try {
             //process one file in the filesystem
             ///Users/tomasknap/Documents/PROJECTS/TACR/judikaty/data from web/nejvyssiSoud/rozhodnuti-3_Tdo_348_2013.txt
@@ -474,10 +474,14 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             //TODO temp hack - problem reading JAR content:
             //JTagger.setPath("/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/target/dpu/JTagger_Extractor-0.0.1");
             //JTagger.setPath(jarPathString, pathToWorkingDir);
-            JTagger.setPath(jarPathString);
+            JTagger jtagger = new JTagger();
+            
+            jtagger.setPath(jarPathString);
+           
             log.debug("Path to extracted jar file: {}", jarPathString);
+             jtagger.setWorkingDir(pathToWorkingDir);
             log.debug("Path to working dir: {}", pathToWorkingDir);
-            JTaggerResult res = JTagger.processFile(input_text, "nscr");
+            JTaggerResult res = jtagger.processFile(input_text, "nscr");
           
 
             //store result to a file

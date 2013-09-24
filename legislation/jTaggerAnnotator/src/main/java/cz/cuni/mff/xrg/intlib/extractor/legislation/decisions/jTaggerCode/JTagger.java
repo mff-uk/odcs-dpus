@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,38 +20,46 @@ public class JTagger {
 
     
     //private static String path = "src/main/resources/";
-    private static String path;
-    private static final String pathToRes = "src/main/resources/";
-   
+    private String path;
+    private final String pathToRes = "src/main/resources/";
+    private  List<String> dirs = new ArrayList<>();
+    private  String pathToWorkDir;
 
-    public static void setPath(String apath) {
+    public void setPath(String apath) {
         
         path = apath + File.separator + pathToRes;
         logger.debug("Path for jTagger's resources: {}", path);
     }
     
-    private static String[] dirs = {
-        "/tmp/jtagger", 
-        "/tmp/jtagger/txt_source",
-        "/tmp/jtagger/txt",
-        "/tmp/jtagger/empty",
-        "/tmp/jtagger/hmm.in",
-        "/tmp/jtagger/hmm.out",
-        "/tmp/jtagger/tagged",
-        "/tmp/jtagger/rulebased",
-        "/tmp/jtagger/validated",
-        "/tmp/jtagger/linked",
-        "/tmp/jtagger/merged",
-        "/tmp/jtagger/validated2",
-        "/tmp/jtagger/linkedZ"
-    };
+    public void setWorkingDir(String pathToWorkingDir) {
+        
+        pathToWorkDir = pathToWorkingDir;
+        
+         dirs.add(pathToWorkingDir + "/jtagger");
+ dirs.add(pathToWorkingDir + "/jtagger/txt_source");
+ dirs.add(pathToWorkingDir + "/jtagger/txt");
+  dirs.add(pathToWorkingDir + "/jtagger/empty");
+   dirs.add(pathToWorkingDir + "/jtagger/hmm.in");
+    dirs.add(pathToWorkingDir + "/jtagger/hmm.out");
+     dirs.add(pathToWorkingDir + "/jtagger/tagged");
+      dirs.add(pathToWorkingDir + "/jtagger/rulebased");
+       dirs.add(pathToWorkingDir + "/jtagger/validated");
+        dirs.add(pathToWorkingDir + "/jtagger/linked");
+         dirs.add(pathToWorkingDir + "/jtagger/merged");
+          dirs.add(pathToWorkingDir + "/jtagger/validated2");
+                 dirs.add(pathToWorkingDir + "/jtagger/linkedZ");
+        
 
-    public static JTaggerResult processFile(String text, String court) throws Exception {
+        
+    }
+    
+   
+    public JTaggerResult processFile(String text, String court) throws Exception {
         Process process;
-
+         logger.debug("Running annotator");
         // Ak neexistuje, zalozim si adresarovu strukturu
-        for (int i = 0; i < dirs.length; i++) {
-            File handler = new File(dirs[i]);
+        for (int i = 0; i < dirs.size(); i++) {
+            File handler = new File(dirs.get(i));
             if (!handler.isDirectory()) {
                 handler.mkdir();
             }
@@ -67,19 +77,19 @@ public class JTagger {
 
         logger.debug("\n\n***\nUkadam zdrojove subory na disk...\n***\n");
 
-        logger.debug("/tmp/jtagger/txt_source/judikatura.zakon.txt");
+        logger.debug(""+ pathToWorkDir + "/jtagger/txt_source/judikatura.zakon.txt");
         PrintWriter writer = null;
-        writer = new PrintWriter("/tmp/jtagger/txt_source/judikatura.zakon.txt", "UTF-8");
+        writer = new PrintWriter(pathToWorkDir + "/jtagger/txt_source/judikatura.zakon.txt", "UTF-8");
         writer.println(text);
         writer.close();
 
-        logger.debug("/tmp/jtagger/txt_source/judikatura.rozhodnuti.txt");
-        writer = new PrintWriter("/tmp/jtagger/txt_source/judikatura.rozhodnuti.txt", "UTF-8");
+        logger.debug(""+ pathToWorkDir + "/jtagger/txt_source/judikatura.rozhodnuti.txt");
+        writer = new PrintWriter(pathToWorkDir + "/jtagger/txt_source/judikatura.rozhodnuti.txt", "UTF-8");
         writer.println(text);
         writer.close();
 
-        logger.debug("/tmp/jtagger/txt_source/judikatura.zkratky.txt");
-        writer = new PrintWriter("/tmp/jtagger/txt_source/judikatura.zkratky.txt", "UTF-8");
+        logger.debug(""+ pathToWorkDir + "/jtagger/txt_source/judikatura.zkratky.txt");
+        writer = new PrintWriter(pathToWorkDir + "/jtagger/txt_source/judikatura.zkratky.txt", "UTF-8");
         writer.println(text);
         writer.close();
 
@@ -91,18 +101,18 @@ public class JTagger {
 
         logger.debug("\n\n***\nTokenizacia\n***\n");
 
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zakon.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zakon.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.zakon.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.zakon.txt");
                //process = Runtime.getRuntime().exec("perl -I "+ path +  " " + path + "jtagger/txt_tokenization.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zakon.txt");
 
         printProcessOutput(process);
         
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.rozhodnuti.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.rozhodnuti.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.rozhodnuti.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.rozhodnuti.txt");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zkratky.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zkratky.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.zkratky.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt_tokenization.pl "+ pathToWorkDir + "/jtagger/txt "+ pathToWorkDir + "/jtagger/txt_source/judikatura.zkratky.txt");
         printProcessOutput(process);
         
         //
@@ -111,16 +121,16 @@ public class JTagger {
 
         logger.debug("\n\n***\nPrevod TXT -> VXML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.zakon.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.zakon.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.zakon.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.zakon.txt");
         printProcessOutput(process);
         
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.rozhodnuti.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.rozhodnuti.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.rozhodnuti.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.rozhodnuti.txt");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.zkratky.txt");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/empty /tmp/jtagger/txt/judikatura.zkratky.txt");
+        logger.debug(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.zkratky.txt");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/txt2vxml.pl "+ pathToWorkDir + "/jtagger/empty "+ pathToWorkDir + "/jtagger/txt/judikatura.zkratky.txt");
         printProcessOutput(process);
 
         //
@@ -129,16 +139,16 @@ public class JTagger {
 
         logger.debug("\n\n***\nPrevod VXML -> HMM...\n***\n");
         
-        logger.debug(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.zakon.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.zakon.vxml");
+        logger.debug(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.zakon.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.zakon.vxml");
         printProcessOutput(process);
         
-        logger.debug(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.rozhodnuti.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.rozhodnuti.vxml");
+        logger.debug(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.rozhodnuti.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.rozhodnuti.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.zkratky.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl /tmp/jtagger/hmm.in test Zakon /tmp/jtagger/empty/judikatura.zkratky.vxml");
+        logger.debug(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.zkratky.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2hmm.pl "+ pathToWorkDir + "/jtagger/hmm.in test Zakon "+ pathToWorkDir + "/jtagger/empty/judikatura.zkratky.vxml");
         printProcessOutput(process);
 
         //
@@ -147,13 +157,13 @@ public class JTagger {
 
         logger.debug("\n\n***\nVolanie taggeru...\n***\n");
 
-        logger.debug("cat /tmp/jtagger/hmm.in/judikatura.zakon.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/zakon.mod");
-        String[] cmd1 = {"bash", "-c", "cat /tmp/jtagger/hmm.in/judikatura.zakon.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/zakon.mod > /tmp/jtagger/hmm.out/judikatura.zakon.hmm"};
+        logger.debug("cat "+ pathToWorkDir + "/jtagger/hmm.in/judikatura.zakon.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/zakon.mod");
+        String[] cmd1 = {"bash", "-c", "cat "+ pathToWorkDir + "/jtagger/hmm.in/judikatura.zakon.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/zakon.mod > "+ pathToWorkDir + "/jtagger/hmm.out/judikatura.zakon.hmm"};
         process = Runtime.getRuntime().exec(cmd1);
         printProcessOutput(process);
 
-        logger.debug("cat /tmp/jtagger/hmm.in/judikatura.rozhodnuti.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/rozhodnuti.mod");
-        String[] cmd2 = {"bash", "-c", "cat /tmp/jtagger/hmm.in/judikatura.rozhodnuti.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/rozhodnuti.mod > /tmp/jtagger/hmm.out/judikatura.rozhodnuti.hmm"};
+        logger.debug("cat "+ pathToWorkDir + "/jtagger/hmm.in/judikatura.rozhodnuti.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/rozhodnuti.mod");
+        String[] cmd2 = {"bash", "-c", "cat "+ pathToWorkDir + "/jtagger/hmm.in/judikatura.rozhodnuti.hmm | " + path + "tagger/hunpos-tag " + path + "models/" + court + "/rozhodnuti.mod > "+ pathToWorkDir + "/jtagger/hmm.out/judikatura.rozhodnuti.hmm"};
         process = Runtime.getRuntime().exec(cmd2);
         printProcessOutput(process);
 
@@ -163,12 +173,12 @@ public class JTagger {
 
         logger.debug("\n\n***\nPrevod HMM -> VXML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/hmm2vxml.pl /tmp/jtagger/hmm.out /tmp/jtagger/tagged /tmp/jtagger/empty/judikatura.zakon.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/hmm2vxml.pl /tmp/jtagger/hmm.out /tmp/jtagger/tagged /tmp/jtagger/empty/judikatura.zakon.vxml");
+        logger.debug(perlIntro + "jtagger/hmm2vxml.pl "+ pathToWorkDir + "/jtagger/hmm.out "+ pathToWorkDir + "/jtagger/tagged "+ pathToWorkDir + "/jtagger/empty/judikatura.zakon.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/hmm2vxml.pl "+ pathToWorkDir + "/jtagger/hmm.out "+ pathToWorkDir + "/jtagger/tagged "+ pathToWorkDir + "/jtagger/empty/judikatura.zakon.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/hmm2vxml.pl /tmp/jtagger/hmm.out /tmp/jtagger/tagged /tmp/jtagger/empty/judikatura.rozhodnuti.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/hmm2vxml.pl /tmp/jtagger/hmm.out /tmp/jtagger/tagged /tmp/jtagger/empty/judikatura.rozhodnuti.vxml");
+        logger.debug(perlIntro + "jtagger/hmm2vxml.pl "+ pathToWorkDir + "/jtagger/hmm.out "+ pathToWorkDir + "/jtagger/tagged "+ pathToWorkDir + "/jtagger/empty/judikatura.rozhodnuti.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/hmm2vxml.pl "+ pathToWorkDir + "/jtagger/hmm.out "+ pathToWorkDir + "/jtagger/tagged "+ pathToWorkDir + "/jtagger/empty/judikatura.rozhodnuti.vxml");
         printProcessOutput(process);
 
         //
@@ -177,16 +187,16 @@ public class JTagger {
 
         logger.debug("\n\n***\nRulebased modul...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.zakon.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.zakon.vxml");
+        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.zakon.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.zakon.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.rozhodnuti.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.rozhodnuti.vxml");
+        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.rozhodnuti.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.rozhodnuti.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.zkratky.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl /tmp/jtagger/rulebased /tmp/jtagger/tagged/judikatura.zkratky.vxml");
+        logger.debug(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.zkratky.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/rulebased_vxml_validation.pl "+ pathToWorkDir + "/jtagger/rulebased "+ pathToWorkDir + "/jtagger/tagged/judikatura.zkratky.vxml");
         printProcessOutput(process);
 
         //
@@ -195,16 +205,16 @@ public class JTagger {
 
         logger.debug("\n\n***\nValidace VXML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.zakon.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.zakon.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.zakon.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.zakon.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.rozhodnuti.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.rozhodnuti.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.rozhodnuti.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.rozhodnuti.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.zkratky.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated /tmp/jtagger/rulebased/judikatura.zkratky.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.zkratky.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated "+ pathToWorkDir + "/jtagger/rulebased/judikatura.zkratky.vxml");
         printProcessOutput(process);
 
         //
@@ -213,16 +223,16 @@ public class JTagger {
 
         logger.debug("\n\n***\nLinker...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.zakon.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.zakon.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.zakon.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.zakon.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.rozhodnuti.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.rozhodnuti.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.rozhodnuti.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.rozhodnuti.vxml");
         printProcessOutput(process);
 
-        logger.debug(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.zkratky.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl /tmp/jtagger/linked /tmp/jtagger/validated/judikatura.zkratky.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.zkratky.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linker.pl "+ pathToWorkDir + "/jtagger/linked "+ pathToWorkDir + "/jtagger/validated/judikatura.zkratky.vxml");
         printProcessOutput(process);
 
         //
@@ -231,8 +241,8 @@ public class JTagger {
 
         logger.debug("\n\n***\nMerge...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/merge_vxml_files.pl /tmp/jtagger/txt/judikatura.zkratky.txt /tmp/jtagger/merged/final.vxml /tmp/jtagger/linked/judikatura.zakon.vxml /tmp/jtagger/linked/judikatura.rozhodnuti.vxml /tmp/jtagger/linked/judikatura.zkratky.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/merge_vxml_files.pl /tmp/jtagger/txt/judikatura.zkratky.txt /tmp/jtagger/merged/final.vxml /tmp/jtagger/linked/judikatura.zakon.vxml /tmp/jtagger/linked/judikatura.rozhodnuti.vxml /tmp/jtagger/linked/judikatura.zkratky.vxml");
+        logger.debug(perlIntro + "jtagger/merge_vxml_files.pl "+ pathToWorkDir + "/jtagger/txt/judikatura.zkratky.txt "+ pathToWorkDir + "/jtagger/merged/final.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.zakon.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.rozhodnuti.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.zkratky.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/merge_vxml_files.pl "+ pathToWorkDir + "/jtagger/txt/judikatura.zkratky.txt "+ pathToWorkDir + "/jtagger/merged/final.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.zakon.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.rozhodnuti.vxml "+ pathToWorkDir + "/jtagger/linked/judikatura.zkratky.vxml");
         printProcessOutput(process);
 
         //
@@ -241,8 +251,8 @@ public class JTagger {
 
         logger.debug("\n\n***\nValidace VXML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated2 /tmp/jtagger/merged/final.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl /tmp/jtagger/validated2 /tmp/jtagger/merged/final.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated2 "+ pathToWorkDir + "/jtagger/merged/final.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_validation.pl "+ pathToWorkDir + "/jtagger/validated2 "+ pathToWorkDir + "/jtagger/merged/final.vxml");
         printProcessOutput(process);
 
         //
@@ -251,8 +261,8 @@ public class JTagger {
 
         logger.debug("\n\n***\nZ-Linker...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml_linkerZ.pl /tmp/jtagger/linkedZ /tmp/jtagger/validated2/final.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linkerZ.pl /tmp/jtagger/linkedZ /tmp/jtagger/validated2/final.vxml");
+        logger.debug(perlIntro + "jtagger/vxml_linkerZ.pl "+ pathToWorkDir + "/jtagger/linkedZ "+ pathToWorkDir + "/jtagger/validated2/final.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml_linkerZ.pl "+ pathToWorkDir + "/jtagger/linkedZ "+ pathToWorkDir + "/jtagger/validated2/final.vxml");
         printProcessOutput(process);
 
         //
@@ -261,8 +271,8 @@ public class JTagger {
 
         logger.debug("\n\n***\nPrevod VXML -> XML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml2xml.pl /tmp/jtagger/ /tmp/jtagger/linkedZ/final.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2xml.pl /tmp/jtagger/ /tmp/jtagger/linkedZ/final.vxml");
+        logger.debug(perlIntro + "jtagger/vxml2xml.pl "+ pathToWorkDir + "/jtagger/ "+ pathToWorkDir + "/jtagger/linkedZ/final.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2xml.pl "+ pathToWorkDir + "/jtagger/ "+ pathToWorkDir + "/jtagger/linkedZ/final.vxml");
         printProcessOutput(process);
 
         //
@@ -271,14 +281,14 @@ public class JTagger {
 
         logger.debug("\n\n***\nPrevod VXML -> HTML...\n***\n");
 
-        logger.debug(perlIntro + "jtagger/vxml2html.pl /tmp/jtagger/ /tmp/jtagger/final.vxml");
-        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2html.pl /tmp/jtagger/ /tmp/jtagger/final.vxml");
+        logger.debug(perlIntro + "jtagger/vxml2html.pl "+ pathToWorkDir + "/jtagger/ "+ pathToWorkDir + "/jtagger/final.vxml");
+        process = Runtime.getRuntime().exec(perlIntro + "jtagger/vxml2html.pl "+ pathToWorkDir + "/jtagger/ "+ pathToWorkDir + "/jtagger/final.vxml");
         printProcessOutput(process);
 
         // Nacitam vysledok do stringu a vratim
         logger.debug("\n\n***\nLoading vyslednych suborov...\n***\n");
-        logger.debug("/tmp/jtagger/final.xml");
-        FileInputStream fis = new FileInputStream("/tmp/jtagger/final.xml"); 
+        logger.debug(pathToWorkDir + "/jtagger/final.xml");
+        FileInputStream fis = new FileInputStream(""+ pathToWorkDir + "/jtagger/final.xml"); 
         InputStreamReader inp = new InputStreamReader(fis, "UTF-8");
         BufferedReader reader = new BufferedReader(inp);
         String output_xml = "";
@@ -287,8 +297,8 @@ public class JTagger {
             output_xml += line + "\n";
         }
 
-        logger.debug("/tmp/jtagger/final.html");
-        FileInputStream fis2 = new FileInputStream("/tmp/jtagger/final.html"); 
+        logger.debug(pathToWorkDir + "/jtagger/final.html");
+        FileInputStream fis2 = new FileInputStream(""+ pathToWorkDir + "/jtagger/final.html"); 
         InputStreamReader inp2 = new InputStreamReader(fis2, "UTF-8");
         BufferedReader reader2 = new BufferedReader(inp2);
         String output_html = "";
@@ -303,7 +313,7 @@ public class JTagger {
         return output;
     }
 
-    private static void printProcessOutput(Process process) {
+    private void printProcessOutput(Process process) {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String line = "";
@@ -323,4 +333,6 @@ public class JTagger {
             logger.debug("Vyjimka... " + e);
         }
     }
+
+  
 }

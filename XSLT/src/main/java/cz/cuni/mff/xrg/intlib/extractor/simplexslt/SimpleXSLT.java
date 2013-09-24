@@ -22,6 +22,7 @@ import cz.cuni.xrg.intlib.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
 import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
 import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
+import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
 import cz.cuni.xrg.intlib.rdf.impl.MyTupleQueryResult;
 import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedWriter;
@@ -184,13 +185,27 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     case RDFXML:
                         String outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                        try {
                         rdfOutput.addFromRDFXMLFile(new File(outputPath));
+                         } catch (RDFException e) {
+                            log.error("Error when adding file for {} to the RDF data unit", subject);
+                            log.debug(e.getLocalizedMessage());
+                            log.info("Output not created for this file");
+                            continue;
+                        }
                         log.debug("Result was added to output data unit as RDF/XML data");
                         break;
                     case TTL:
                         outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
+                        try {
                         rdfOutput.addFromTurtleFile(new File(outputPath));
+                         } catch (RDFException e) {
+                            log.error("Error when adding file for {} to the RDF data unit", subject);
+                            log.debug(e.getLocalizedMessage());
+                            log.info("Output not created for this file");
+                            continue;
+                        }
                         log.debug("Result was added to output data unit as turtle data");
 
                         break;
@@ -218,9 +233,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                         DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
                         try {
                             rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-                        } catch (Exception e) {
+                        } catch (RDFException e) {
                             log.error("Error when adding file for {} to the RDF data unit", subject);
                             log.debug(e.getLocalizedMessage());
+                            log.info("Output not created for this file");
+                            continue;
                         }
                               
 
@@ -256,7 +273,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1]);
 
             } else {
-                log.warn("Wrong format of escaped character mappings, skipping the mapping");
+                log.warn("Wrong format of escaped character mappings {}, skipping the mapping", escapedMappings);
 
             }
         }
