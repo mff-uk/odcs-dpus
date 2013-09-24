@@ -58,6 +58,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     private TextField tfOutputXSLTMethod; 
     
     private TextField tfEscaped; 
+     private TextField tfNumberOfTriesToReconnect;
     
     private OptionGroup ogOutputFormat;
     
@@ -276,11 +277,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         tfEscaped.setCaption("Specify escaping mappings in the form \"string:replacement string2:replacement2\". These mappings are applied when wrapped output is produced. ");
         tfEscaped.setWidth("100%");
       
+       
 
         mainLayout.addComponent(tfEscaped);
         
-        
-        
+            tfNumberOfTriesToReconnect = new TextField();
+        tfNumberOfTriesToReconnect.setImmediate(true);
+         tfNumberOfTriesToReconnect.setCaption("Specify how many times the DPU re-tries to add the processed file to output data unit in case of problem (-1 for infinite): ");
+         tfNumberOfTriesToReconnect.setWidth("100%");
+         mainLayout.addComponent( tfNumberOfTriesToReconnect);
         
          //***************
         // TEXT AREA
@@ -324,6 +329,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
          
          tfOutputXSLTMethod.setValue(conf.getOutputXSLTMethod());
          tfEscaped.setValue(conf.getEscapedString());
+         tfNumberOfTriesToReconnect.setValue(String.valueOf(conf.getNumberOfTriesToConnect()));
          
          switch(conf.getOutputType()) {
              case RDFXML:  ogOutputFormat.select(OUTPUT_RDFXML); tfOutputPredicate.setEnabled(false); break;
@@ -331,6 +337,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
                      case Literal:  ogOutputFormat.select(OUTPUT_WRAP); tfOutputPredicate.setEnabled(true); break; 
          }
     
+         
          
          
   
@@ -364,6 +371,14 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         DataUnitUtils.storeStringToTempFile(taXSLTemplate.getValue(), fileWithXSLT);
         log.debug("XSLT stored to {}", fileWithXSLT);
           
+        int parsedNumberOfTries;
+        try {
+             parsedNumberOfTries = Integer.parseInt(tfNumberOfTriesToReconnect.getValue());
+             if (parsedNumberOfTries < -1)  { throw new ConfigException("Number of tries is not a valid number, it must be 0+ or -1 for infinite " + parsedNumberOfTries); }
+        } catch (NumberFormatException e) {
+             throw new ConfigException("Number of tries is not a valid number " + e.getLocalizedMessage());
+        }
+        
        //prepare output type:
         // TODO storing the textarea content not needed - not readed when the configuration is shown
         SimpleXSLTConfig.OutputType ot = null;
@@ -371,15 +386,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
        switch((String)ogOutputFormat.getValue()) {
              case OUTPUT_RDFXML:  
                     ot = OutputType.RDFXML;  
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim() );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries );
                     break;
               case OUTPUT_TTL:  
                     ot = OutputType.TTL; 
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim());
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries);
                     break;  
                   case OUTPUT_WRAP:  
                     ot = OutputType.Literal;
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim() );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim(), parsedNumberOfTries );
                     break;
                   default:  throw new ConfigException("One option for the output must be selected");  
          }

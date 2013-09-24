@@ -21,6 +21,11 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
     private String xslTemplateFileNameShownInDialog = "";
     private String escapedString =  "\"\"\":&quote;&quote;&quote; "; // "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
+    private int numberOfTriesToConnect = -1;
+
+    public int getNumberOfTriesToConnect() {
+        return numberOfTriesToConnect;
+    }
     
     private String storedXsltFilePath = "";
 
@@ -40,14 +45,18 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private OutputType outputType = OutputType.Literal;
     private String outputXSLTMethod = "text"; //text/xml/..
 
-    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String op, String outputXSLTMeth, String escaped) {
+    public SimpleXSLTConfig() {
+    
+        }
+    
+    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String op, String outputXSLTMeth, String escaped, int parsedNumberOfTries) {
 
-        this(xslT, xslTFileName, storedFilePath, ot, outputXSLTMeth, escaped);
+        this(xslT, xslTFileName, storedFilePath, ot, outputXSLTMeth, escaped, parsedNumberOfTries);
         this.outputPredicate = op;
 
     }
 
-    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String outputXSLTMeth, String escaped) {
+    public SimpleXSLTConfig(String xslT, String xslTFileName, String storedFilePath, /*String ip, */OutputType ot, String outputXSLTMeth, String escaped, int parsedNumberOfTries) {
         this.xslTemplate = xslT;
         this.xslTemplateFileNameShownInDialog = xslTFileName;
 //        this.inputPredicate = ip;
@@ -55,6 +64,7 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
         this.outputXSLTMethod = outputXSLTMeth;
         this.escapedString = escaped;
         this.storedXsltFilePath = storedFilePath;
+        this.numberOfTriesToConnect = parsedNumberOfTries;
 //        escapedChars = new HashMap<>();
 
        
@@ -76,9 +86,7 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
         return escapedString;
     }
 
-    public SimpleXSLTConfig() {
-    }
-
+   
     public String getOutputXSLTMethod() {
         return outputXSLTMethod;
     }

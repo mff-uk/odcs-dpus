@@ -151,7 +151,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
                 i++;
                 
-                //if (i > 3) break;
+                if (i > 1) break;
              
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();

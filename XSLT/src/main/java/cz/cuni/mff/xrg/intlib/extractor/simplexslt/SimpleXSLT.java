@@ -136,12 +136,23 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         log.debug("Query for getting input files: {}", query);
 
         //get the return values
+         MyTupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
+        int resSize = 0;
+        try {
+            resSize = executeSelectQueryAsTuplesCount.asList().size();
+            log.info("Number of files to be processed: {}", resSize);
+        } catch (QueryEvaluationException ex) {
+            log.error("Cannot evaluate query for counting number of triples" + ex.getLocalizedMessage());
+            return;
+        }
+         
         MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-
-
+        
+  
 
         int i = 0;
         try {
+            
             while (executeSelectQueryAsTuples.hasNext()) {
 
                 i++;
@@ -152,8 +163,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 Binding b = solution.getBinding("o");
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
-                log.info("Processing new file for subject {}", subject);
-                log.debug("Processing file {}", fileContent);
+                 
+                log.info("Processing file: {}/{} for the subject {}", i, resSize, subject);
+                //log.debug("Processing file {}", fileContent);
 
 
                 //store the input content to file, inputs are xml files!
@@ -176,7 +188,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     continue;
                 }
                 log.info("XSLT executed successfully, about to create output");
-                log.debug("Output of the transformation: {}", outputString);
+                //log.debug("Output of the transformation: {}", outputString);
 
 
 
@@ -230,23 +242,63 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                         //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
 
 
+                        
                         DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-                        try {
-                            rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-                        } catch (RDFException e) {
-                            log.error("Error when adding file for {} to the RDF data unit", subject);
-                            log.debug(e.getLocalizedMessage());
-                            log.info("Output not created for this file");
-                            continue;
-                        }
+                        
+                        boolean retry = false;
+                        int numberOfTries = 0;
+                        do {
+                            try {
+
+                                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+                                
+
+                            } catch (RDFException e) {
+                               
+                                log.warn("Error when adding file {}/{} to the RDF data unit", i, resSize);
+                                log.debug(e.getLocalizedMessage());
+                                
+                                
+                                
+                                if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {
+                                     log.warn("Error still occurs after {} tries, skipping input {}/{}", config.getNumberOfTriesToConnect(),i, resSize);
+                                     retry = false;
+                                }
+                                else {
+                                     retry = true;
+                                    numberOfTries++;
+                                    
+                                   if (context.canceled()) {
+                                        log.info("DPU cancelled, no further attempts");
+                                        return;
+                                    }
+                                    
+                                    log.info("Trying again in 10s");
+                                    try {
+                                        Thread.sleep(10000);
+                                    } catch (InterruptedException ex) {
+                                        log.info("Sleep interrupted, continues");
+                                    }
+                                    
+                                }
+                                
+                                
+                                
+                            }
+                         } while(retry);
                               
 
-                        log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+                        //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
 
                         break;
                 }
 
                 log.info("Output created successfully");
+                
+                 if (context.canceled()) {
+                      log.info("DPU cancelled");
+                      return;
+                 }
 
             }
         } catch (QueryEvaluationException ex) {
