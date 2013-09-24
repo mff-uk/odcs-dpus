@@ -3,6 +3,9 @@ package cz.cuni.mff.xrg.intlib.extractor.simplexslt;
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.Literal;
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.RDFXML;
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
+import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.DataRDFXML;
+import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.DataTTL;
+import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.RDFLoaderWrapper;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.configuration.Configurable;
 
@@ -136,7 +139,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         log.debug("Query for getting input files: {}", query);
 
         //get the return values
-         MyTupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
+        MyTupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
         int resSize = 0;
         try {
             resSize = executeSelectQueryAsTuplesCount.asList().size();
@@ -145,14 +148,14 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             log.error("Cannot evaluate query for counting number of triples" + ex.getLocalizedMessage());
             return;
         }
-         
+
         MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-        
-  
+
+
 
         int i = 0;
         try {
-            
+
             while (executeSelectQueryAsTuples.hasNext()) {
 
                 i++;
@@ -163,7 +166,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 Binding b = solution.getBinding("o");
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
-                 
+
                 log.info("Processing file: {}/{} for the subject {}", i, resSize, subject);
                 //log.debug("Processing file {}", fileContent);
 
@@ -192,38 +195,39 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 
 
-
+                String outputPath = null;
+                RDFLoaderWrapper loaderWrapper = null;
                 switch (config.getOutputType()) {
                     case RDFXML:
-                        String outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
+                        outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
-                        try {
-                        rdfOutput.addFromRDFXMLFile(new File(outputPath));
-                         } catch (RDFException e) {
-                            log.error("Error when adding file for {} to the RDF data unit", subject);
-                            log.debug(e.getLocalizedMessage());
-                            log.info("Output not created for this file");
-                            continue;
-                        }
-                        log.debug("Result was added to output data unit as RDF/XML data");
+//                        try {
+//                        rdfOutput.addFromRDFXMLFile(new File(outputPath));
+//                         } catch (RDFException e) {
+//                            log.error("Error when adding file for {} to the RDF data unit", subject);
+//                            log.debug(e.getLocalizedMessage());
+//                            log.info("Output not created for this file");
+//                            continue;
+//                        }
+//                        log.debug("Result was added to output data unit as RDF/XML data");
+                        loaderWrapper = new DataRDFXML(rdfOutput);
                         break;
                     case TTL:
                         outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
-                        try {
-                        rdfOutput.addFromTurtleFile(new File(outputPath));
-                         } catch (RDFException e) {
-                            log.error("Error when adding file for {} to the RDF data unit", subject);
-                            log.debug(e.getLocalizedMessage());
-                            log.info("Output not created for this file");
-                            continue;
-                        }
-                        log.debug("Result was added to output data unit as turtle data");
+//                        try {
+//                        rdfOutput.addFromTurtleFile(new File(outputPath));
+//                         } catch (RDFException e) {
+//                            log.error("Error when adding file for {} to the RDF data unit", subject);
+//                            log.debug(e.getLocalizedMessage());
+//                            log.info("Output not created for this file");
+//                            continue;
+//                        }
+//                        log.debug("Result was added to output data unit as turtle data");
+                        loaderWrapper = new DataTTL(rdfOutput);
 
                         break;
                     case Literal:
-
-
 
                         //OUTPUT
 
@@ -236,69 +240,81 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                         String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
 
                         DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-                        String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+                        outputPath = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
 
 
                         //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
 
 
-                        
-                        DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-                        
-                        boolean retry = false;
-                        int numberOfTries = 0;
-                        do {
-                            try {
 
-                                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-                                
+                        DataUnitUtils.storeStringToTempFile(preparedTriple, outputPath);
 
-                            } catch (RDFException e) {
-                               
-                                log.warn("Error when adding file {}/{} to the RDF data unit", i, resSize);
-                                log.debug(e.getLocalizedMessage());
-                                
-                                
-                                
-                                if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {
-                                     log.warn("Error still occurs after {} tries, skipping input {}/{}", config.getNumberOfTriesToConnect(),i, resSize);
-                                     retry = false;
-                                }
-                                else {
-                                     retry = true;
-                                    numberOfTries++;
-                                    
-                                   if (context.canceled()) {
-                                        log.info("DPU cancelled, no further attempts");
-                                        return;
-                                    }
-                                    
-                                    log.info("Trying again in 10s");
-                                    try {
-                                        Thread.sleep(10000);
-                                    } catch (InterruptedException ex) {
-                                        log.info("Sleep interrupted, continues");
-                                    }
-                                    
-                                }
-                                
-                                
-                                
-                            }
-                         } while(retry);
-                              
+
+                        loaderWrapper = new DataTTL(rdfOutput);
 
                         //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
 
                         break;
+
+                    default:
+                        log.error("Unsupported type of output");
+                        return;
+
                 }
 
-                log.info("Output created successfully");
+                //load RDF data to data unit
+
+
+                boolean retry = false;
+                int numberOfTries = 0;
+                do {
+                    try {
+
+                        loaderWrapper.addData(new File(outputPath));
+
+
+                    } catch (RDFException e) {
+
+                        log.warn("Error when adding file {}/{} to the RDF data unit", i, resSize);
+                        log.debug(e.getLocalizedMessage());
+
+
+
+                        if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {
+                            log.warn("Error still occurs after {} tries, skipping input {}/{}", config.getNumberOfTriesToConnect(), i, resSize);
+                            retry = false;
+                        } else {
+                            retry = true;
+                            numberOfTries++;
+
+                            if (context.canceled()) {
+                                log.info("DPU cancelled, no further attempts");
+                                return;
+                            }
+
+                            log.info("Trying again in 10s");
+                            try {
+                                Thread.sleep(10000);
+                            } catch (InterruptedException ex) {
+                                log.info("Sleep interrupted, continues");
+                            }
+
+                        }
+
+
+
+                    }
+                } while (retry);
+
                 
-                 if (context.canceled()) {
-                      log.info("DPU cancelled");
-                      return;
-                 }
+                log.info("Output created successfully");
+
+                if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
+                }
+                
+                //end of one file processing
 
             }
         } catch (QueryEvaluationException ex) {
@@ -308,7 +324,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         }
 
         log.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
-        
+
 
 
 
