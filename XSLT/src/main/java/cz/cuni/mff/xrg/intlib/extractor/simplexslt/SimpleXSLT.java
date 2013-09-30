@@ -115,7 +115,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     + ex.getLocalizedMessage());
         }
 
-
+//rdfOutput.getDataGraph();
 
         //store xslt
 //        File xslTemplate = DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToWorkingDir + File.separator + "template.xslt");
@@ -199,7 +199,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 RDFLoaderWrapper loaderWrapper = null;
                 switch (config.getOutputType()) {
                     case RDFXML:
-                        outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.xml";
+                        outputPath = pathToWorkingDir + File.separator + "out"  + File.separator + String.valueOf(i) + ".rdf";
+                        DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out" + File.separator);
+                        
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
 //                        try {
 //                        rdfOutput.addFromRDFXMLFile(new File(outputPath));
@@ -213,7 +215,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                         loaderWrapper = new DataRDFXML(rdfOutput);
                         break;
                     case TTL:
-                        outputPath = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+                         outputPath = pathToWorkingDir + File.separator + "out"  + File.separator + String.valueOf(i) + ".ttl";
+                        DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out" + File.separator);
+                        
+                    
                         DataUnitUtils.storeStringToTempFile(outputString, outputPath);
 //                        try {
 //                        rdfOutput.addFromTurtleFile(new File(outputPath));
@@ -239,6 +244,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
                         String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
 
+                        
+                 
+                        
                         DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
                         outputPath = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
 
@@ -333,16 +341,18 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     private static String encode(String literalValue, String escapedMappings) {
 
         String val = literalValue;
-        String[] split = escapedMappings.split("\\s+");
-        for (String s : split) {
-            String[] keyAndVal = s.split(":");
-            if (keyAndVal.length == 2) {
-                val = val.replaceAll(keyAndVal[0], keyAndVal[1]);
-                log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1]);
+        if (escapedMappings.length() > 0) { 
+            String[] split = escapedMappings.split("\\s+");
+            for (String s : split) {
+                String[] keyAndVal = s.split(":");
+                if (keyAndVal.length == 2) {
+                    val = val.replaceAll(keyAndVal[0], keyAndVal[1]);
+                    log.debug("Encoding mapping {} to {} was applied.", keyAndVal[0], keyAndVal[1]);
 
-            } else {
-                log.warn("Wrong format of escaped character mappings {}, skipping the mapping", escapedMappings);
+                } else {
+                    log.warn("Wrong format of escaped character mappings {}, skipping the mapping", escapedMappings);
 
+                }
             }
         }
         return val;

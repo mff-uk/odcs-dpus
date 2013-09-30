@@ -194,7 +194,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 try {
                     addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement);
                 } catch(MetadataCreationException me) {
-                    log.error("Problem when adding meta section, skipping this file");
+                    log.error("Problem when adding meta section, skipping file {}", subject);
                     log.debug(me.getLocalizedMessage());
                     continue;
                 }
