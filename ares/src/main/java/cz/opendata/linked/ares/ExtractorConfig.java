@@ -21,6 +21,8 @@ public class ExtractorConfig implements DPUConfigObject {
     public int timeout = 10000;
     
     public int interval = 0;
+    
+    public boolean sendCache = false;
 	
 	@Override
     public boolean isValid() {

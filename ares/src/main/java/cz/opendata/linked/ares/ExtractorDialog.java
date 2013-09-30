@@ -1,6 +1,7 @@
 package cz.opendata.linked.ares;
 
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
 
@@ -18,6 +19,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 	private GridLayout mainLayout;
+	private CheckBox chkSendCache;
     private TextField numDownloads;
     private TextField hoursToCheck;
     private TextField interval;
@@ -42,6 +44,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
+        chkSendCache = new CheckBox("Only send what is cached:");
+        chkSendCache.setDescription("When selected, DPU goes through cache and sends whats in it regardless of download limits.");
+        chkSendCache.setWidth("100%");
+        
+        mainLayout.addComponent(chkSendCache);
+        
         numDownloads = new TextField();
         numDownloads.setCaption("Number of downloads in the last X hours:");
         mainLayout.addComponent(numDownloads);
@@ -64,6 +72,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+		chkSendCache.setValue(conf.sendCache);
 		interval.setValue(Integer.toString(conf.interval));
 		timeout.setValue(Integer.toString(conf.timeout));
 		numDownloads.setValue(Integer.toString(conf.PerDay));
@@ -74,6 +83,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
+		conf.sendCache = chkSendCache.getValue();
 		try { Integer.parseInt(numDownloads.getValue()); } catch (InvalidValueException e) { return conf;}
 		conf.PerDay = Integer.parseInt(numDownloads.getValue());
 		try { Integer.parseInt(hoursToCheck.getValue()); } catch (InvalidValueException e) { return conf;}
