@@ -512,6 +512,7 @@ public class Work implements Comparable<Work> {
     public static LinkedList<Work> parse(String expression, WorkType type, LawDocument law, Integer referedId) {
         // results
         LinkedList<Work> result = new LinkedList<>();
+        String originalExpression = expression;
         expression = expression.toLowerCase();
         
         String country = null;
@@ -799,10 +800,10 @@ public class Work implements Comparable<Work> {
         else if (expression.contains("sp. zn."))
         {
             //Logger.getLogger("intlib").log(Level.INFO, "\"{0}\" identified as \"spisová značka\": contains \"sp. zn.\"", expression);
-            String spzn = expression.replaceAll(".*sp\\. ?zn\\.(.*)", "$1").trim();
+            String spzn = originalExpression.replaceAll(".*[Ss][Pp]\\. ?[Zz][Nn]\\.(.*)", "$1").trim();
             //Logger.getLogger("intlib").log(Level.INFO, "Parsing \"spisová značka\" {0}", spzn);
-            String first = spzn.replaceAll("([^ ]+) [^ ]+ [^ ]+", "$1").toLowerCase();
-            String second = spzn.replaceAll("[^ ]+ ([^ ]+) [^ ]+", "$1").toLowerCase();
+            String first = spzn.replaceAll("([^ ]+) [^ ]+ [^ ]+", "$1");//.toLowerCase();
+            String second = spzn.replaceAll("[^ ]+ ([^ ]+) [^ ]+", "$1");//.toLowerCase();
             String third = spzn.replaceAll("[^ ]+ [^ ]+ ([^ ]+)", "$1");
             String yearstr = null;
             if (third.contains("/")) yearstr = third.replaceAll("[^/]+/(.+)", "$1");
