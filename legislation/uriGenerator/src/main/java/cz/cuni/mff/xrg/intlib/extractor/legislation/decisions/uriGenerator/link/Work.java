@@ -1169,7 +1169,7 @@ public class Work implements Comparable<Work> {
         if (data == null) {
             return null;
         }
-        data = data.toLowerCase().replaceAll("ž", "z")
+        data = data.replaceAll("ž", "z")
                 .replaceAll("š", "s")
                 .replaceAll("č", "c")
                 .replaceAll("ř", "r")
@@ -1177,17 +1177,30 @@ public class Work implements Comparable<Work> {
                 .replaceAll("ť", "t")
                 .replaceAll("ň", "n")
                 .replaceAll("á", "a")
+                .replaceAll("Ž", "z")
+                .replaceAll("Š", "S")
+                .replaceAll("Č", "C")
+                .replaceAll("Ř", "R")
+                .replaceAll("Ď", "D")
+                .replaceAll("Ť", "T")
+                .replaceAll("Ň", "N")
+                .replaceAll("Á", "A")
                 .replaceAll("[ěé]", "e")
+                .replaceAll("[ĚÉ]", "E")
                 .replaceAll("í", "i")
+                .replaceAll("Í", "I")
                 .replaceAll("ó", "o")
+                .replaceAll("Ó", "O")
                 .replaceAll("[úů]", "u")
+                .replaceAll("[ÚŮ]", "U")
                 .replaceAll("ý", "y")
+                .replaceAll("Ý", "Y")
                 .replaceAll("[/\\\\]", "-")
                 .replaceAll(" ", "-")
                 .replaceAll("^-", "")
                 .replaceAll("-$", "")
                 .replaceAll("-[-]+", "-")
-                .replaceAll("[^0-9a-z -]", "");
+                .replaceAll("[^0-9a-zA-Z -]", "");
         
         if (data.isEmpty()) {
             data = EMPTY_SECTION_LABEL;
