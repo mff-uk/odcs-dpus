@@ -364,8 +364,8 @@ public class Parser extends ScrapingTemplate{
                 
                 if (!"other".equals(validFromNew)) ps.println("\tdcterms:valid \""+validFromNew+"\"^^xsd:date ;");
                 
-                ps.println("\tlex:castka-cislo \"" + castka_cislo + "\" ;");
-                if (!"other".equals(castka_datum_new)) ps.println("\tlex:castka-datum \"" + castka_datum_new + "\"^^xsd:date ;");
+                ps.println("\todcs:castka-cislo \"" + castka_cislo + "\" ;");
+                if (!"other".equals(castka_datum_new)) ps.println("\todcs:castka-datum \"" + castka_datum_new + "\"^^xsd:date ;");
                 
                 int i = 0;
                 String derogace = null;
@@ -378,7 +378,7 @@ public class Parser extends ScrapingTemplate{
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
                     String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
 
-                    ps.println("\tlex:aktivni-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    ps.println("\todcs:aktivni-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
                 }
 
@@ -392,7 +392,7 @@ public class Parser extends ScrapingTemplate{
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
                     String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
 
-                    ps.println("\tlex:pasivni-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    ps.println("\todcs:pasivni-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
                 }
 
@@ -406,7 +406,7 @@ public class Parser extends ScrapingTemplate{
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
                     String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
 
-                    ps.println("\tlex:vztahovano-k-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    ps.println("\todcs:vztahovano-k-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
                 }
                 

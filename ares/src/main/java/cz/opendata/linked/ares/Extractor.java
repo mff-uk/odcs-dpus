@@ -181,15 +181,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			logger.info("I see " + ICs.size() + " ICs after deduplication.");
 	
 			try {
-				while (li.hasNext() && downloaded < (toCache - 1) && !ctx.canceled()) {
+				while (li.hasNext() && !ctx.canceled() && (config.sendCache || (downloaded < (toCache - 1)))) {
 					String currentIC = li.next();
 					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
-					if (!Cache.isCached(current))
+					if (!Cache.isCached(current) && !config.sendCache)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						if (doc != null)
 						{
-							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
+							//logger.trace(doc.outerHtml());
+							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
 							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
 						}
 						else
@@ -197,25 +198,52 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 							logger.warn("Document null: " + current);
 						}
 					}
-					else cachedEarlier++;
-					
+					else if (Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							//logger.trace(doc.outerHtml());
+							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
+						}
+						else
+						{
+							logger.warn("Document null: " + current);
+						}
+					}
+						
 					if (ctx.canceled()) break;
 					
 					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC);
-					if (!Cache.isCached(current))
+					if (!Cache.isCached(current) && !config.sendCache)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						if (doc != null)
 						{
-							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.data()));
-							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run: " + current);
 						}
 						else
 						{
 							logger.warn("Document null: " + current);
 						}
 					}
-					else cachedEarlier++;
+					else if (Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
+						}
+						else
+						{
+							logger.warn("Document null: " + current);
+						}
+					}
 				}
 				if (ctx.canceled()) logger.error("Interrupted");
 			} catch (IOException e) {
@@ -228,7 +256,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
-		logger.info("Processed in " + (end-start) + "ms, ICs on input: " + lines + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
+		logger.info("Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
 
 	}
 

@@ -77,6 +77,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						"@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .\n" +
 						"\n" +
 						"@prefix frbr:     <http://purl.org/vocab/frbr/core#> .\n" +
+						"@prefix odcs:     <http://linked.opendata.cz/ontology/odcs/temp/psp.cz-metadata/> .\n" +
 						"@prefix lex:      <http://purl.org/lex#> .\n"
 
 				);
