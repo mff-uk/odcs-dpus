@@ -1,19 +1,19 @@
 package cz.cuni.mff.xrg.intlib.rdfUtils;
 
 
-import cz.cuni.xrg.intlib.commons.data.DataUnitException;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-import cz.cuni.xrg.intlib.commons.dpu.DPUException;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsTransformer;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.xrg.intlib.commons.message.MessageType;
-import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
                 log.info("Processing new file for subject {}", subject);
-                log.debug("Processing file {}", fileContent);
+                //log.debug("Processing file {}", fileContent);
 
 
                 String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
@@ -130,8 +130,8 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
 //            Process p = Runtime.getRuntime().exec("java -DconfigFile=/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/tmp/be-sameAs.xml -jar /Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/tmp/silk_2.5.2/silk.jar");
             log.debug("About to execute: java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
             
-            Process p = Runtime.getRuntime().exec("java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
-            //Process p = Runtime.getRuntime().exec("java -jar /data/odcs/libs/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
+            //Process p = Runtime.getRuntime().exec("java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
+            Process p = Runtime.getRuntime().exec("java -jar /data/odcs/libs/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
 
             
             
@@ -212,18 +212,18 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
             BufferedReader in = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String line = "";
             while ((line = in.readLine()) != null) {
-                log.debug(line);
+                log.warn(line);
             }
             in.close();
 
             in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             line = "";
             while ((line = in.readLine()) != null) {
-                log.debug(line);
+                //log.debug(line);
             }
             in.close();
         } catch (Exception e) {
-            log.debug("Vynimka... " + e);
+            log.warn("Vyjimka... " + e);
         }
     }
 

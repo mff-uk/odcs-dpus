@@ -6,7 +6,7 @@ import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.SparqlLoader;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.ValidityMap;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 import java.io.*;
 //import java.util.logging.Handler;

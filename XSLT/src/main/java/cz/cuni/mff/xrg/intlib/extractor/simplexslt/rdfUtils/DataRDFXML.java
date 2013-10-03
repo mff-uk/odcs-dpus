@@ -4,8 +4,8 @@
  */
 package cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils;
 
-import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 
 /**

@@ -2,7 +2,7 @@ package cz.opendata.linked.psp_cz.metadata;
 
 import java.util.Calendar;
 
-import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
+import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
 
 /**
  *

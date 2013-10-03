@@ -1,25 +1,25 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
-import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
-import cz.cuni.xrg.intlib.commons.configuration.Configurable;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.configuration.Configurable;
 
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
-import cz.cuni.xrg.intlib.commons.dpu.DPU;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-import cz.cuni.xrg.intlib.commons.dpu.DPUException;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsTransformer;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.xrg.intlib.commons.message.MessageType;
-import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.module.utils.AddTripleWorkaround;
-import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitCreateException;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitType;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -171,7 +171,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
             String output = null;
             try {
-                output = readFile(file.getCanonicalPath().toString(), Charset.forName("Cp1250"));
+                output =  DataUnitUtils.readFile(file.getCanonicalPath().toString(), Charset.forName("Cp1250"));
             } catch (IOException ex) {
                 Logger.getLogger(Unzipper.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -190,9 +190,13 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             //http://linked.opendata.cz/resource/legislation/cz/decision/rozhodnuti-11_Td_30_2013.txt to
             //http://linked.opendata.cz/resource/legislation/cz/decision/2011/22-cdo-1661-2011/expression
             //////////////////////
+           
+            
             String subject = config.getDecisionPrefix() + file.getName();
             String newSubjectPrefix = subject.substring(0, subject.lastIndexOf("/"));
-            String decisionID = subject.substring(subject.lastIndexOf("-") + 1, subject.lastIndexOf(".txt")).replaceAll("_", "-").toLowerCase();
+            String decisionID = subject.substring(subject.lastIndexOf("-") + 1, subject.lastIndexOf(".txt")).replaceAll("_", "-");
+            //String decisionID = prepare
+          
             String year = decisionID.substring(decisionID.lastIndexOf("-") + 1);
             String newSubject = newSubjectPrefix + "/" + year + "/" + decisionID + "/expression";
 
@@ -282,9 +286,9 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         }
     }
 
-    static String readFile(String path, Charset encoding)
-            throws IOException {
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return encoding.decode(ByteBuffer.wrap(encoded)).toString();
-    }
+//    static String readFile(String path, Charset encoding)
+//            throws IOException {
+//        byte[] encoded = Files.readAllBytes(Paths.get(path));
+//        return encoding.decode(ByteBuffer.wrap(encoded)).toString();
+//    }
 }

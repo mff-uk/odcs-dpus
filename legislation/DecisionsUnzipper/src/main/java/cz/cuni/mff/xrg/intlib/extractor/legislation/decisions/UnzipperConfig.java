@@ -2,8 +2,8 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
 
 import com.vaadin.ui.Calendar;
-import cz.cuni.xrg.intlib.commons.module.config.DPUConfigObjectBase;
-import cz.cuni.xrg.intlib.commons.ontology.OdcsTerms;
+import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
+import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 
 /**
  *

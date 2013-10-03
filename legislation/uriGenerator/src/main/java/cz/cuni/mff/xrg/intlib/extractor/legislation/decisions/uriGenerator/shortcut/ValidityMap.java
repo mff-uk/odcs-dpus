@@ -2,7 +2,7 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shor
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.*;
 
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;

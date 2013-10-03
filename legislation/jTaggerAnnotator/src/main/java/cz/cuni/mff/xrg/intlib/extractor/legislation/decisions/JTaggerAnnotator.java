@@ -3,55 +3,33 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.JTagger;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.JTaggerResult;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.LineJoiner;
-import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
-import cz.cuni.xrg.intlib.commons.configuration.Configurable;
 
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitException;
-import cz.cuni.xrg.intlib.commons.data.DataUnitType;
-import cz.cuni.xrg.intlib.commons.dpu.DPU;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-import cz.cuni.xrg.intlib.commons.dpu.DPUException;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsTransformer;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.InputDataUnit;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.xrg.intlib.commons.message.MessageType;
-import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.module.utils.AddTripleWorkaround;
-import cz.cuni.xrg.intlib.commons.module.utils.DataUnitUtils;
-import cz.cuni.xrg.intlib.commons.ontology.OdcsTerms;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.transform.stream.StreamSource;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
-import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -151,7 +129,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
                 i++;
                 
-                if (i > 1) break;
+                //if (i > 1) break;
              
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
@@ -344,24 +322,49 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String output = "";
         String content = toBeProcessedTemp;
         
-        if (toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) {
-            //try with small letters
-             if (toBeProcessedTemp.indexOf("u s n e s e n í") < 0) {
-                 log.warn("Label U S N E S E N Í/u s n e s e n í was not found in the processed decision, creation of metadata section will not work properly");
-                 throw new MetadataCreationException("Meta element not created");
-             }
-             else {
-                String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("u s n e s e n í"));
-                output = "<meta>" + metadata + "</meta>";
-                content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("u s n e s e n í"));
-             }
-            
+        String label = "Kategorie rozhodnutí : ";
+        if ((toBeProcessedTemp.indexOf(label) < 0)) {
+            log.warn("Label Kategorie rozhodnutí : was not found in the processed decision, creation of metadata section will not work properly");
+            throw new MetadataCreationException("Meta element not created");
         }
         else {
-            String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("U S N E S E N Í"));
-            output = "<meta>" + metadata + "</meta>";
-            content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("U S N E S E N Í"));
+                    
+            
+             String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label)+label.length()+2); //to accommodate label plus the category letter to metadata.
+            output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
+            content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label)+label.length()+2);
         }
+                
+        
+//        if ((toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) && (toBeProcessedTemp.indexOf("ČESKÁ REPUBLIKA ROZSUDEKJMÉNEM REPUBLIKY") < 0))  {
+//            //try with small letters
+////             if (toBeProcessedTemp.indexOf("u s n e s e n í") < 0) {
+////                 log.warn("Label U S N E S E N Í/u s n e s e n í was not found in the processed decision, creation of metadata section will not work properly");
+////                 throw new MetadataCreationException("Meta element not created");
+////             }
+////             else {
+////                String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("u s n e s e n í"));
+////                output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
+////                content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("u s n e s e n í"));
+////             }
+//            log.warn("Label U S N E S E N Í/ROZSUDEK was not found in the processed decision, creation of metadata section will not work properly");
+//            throw new MetadataCreationException("Meta element not created");
+//            
+//        }
+//        
+//        String label;
+//        if (toBeProcessedTemp.indexOf("U S N E S E N Í") > 0) {
+//            label = "U S N E S E N Í";
+//        }
+//        else {
+//            label = "ČESKÁ REPUBLIKA ROZSUDEKJMÉNEM REPUBLIKY";
+//        }
+            
+            
+//        String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label));
+//        output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
+//        content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label));
+        
 
        
 
@@ -415,10 +418,10 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         String output = toBeProcessed.replaceAll("([^\n]+)\n", "\n<paragraph>$1</paragraph>\n");
 
         //log.info("Para orig {}", input_string);
-        log.debug("****Para before {}", before);
-        log.debug("****Para output {}", toBeProcessed);
-        log.debug("****Para after {}", after);
-        log.debug("*****With Para {}", output);
+//        log.debug("****Para before {}", before);
+//        log.debug("****Para output {}", toBeProcessed);
+//        log.debug("****Para after {}", after);
+//        log.debug("*****With Para {}", output);
         //log.info("Para all {}", before + output + after);
 
 
@@ -518,5 +521,53 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             fileContent = fileContent.substring(0, fileContent.length()-1);
         }
         return fileContent;
+    }
+     
+     
+    //denote particular metadata with extra elements - used for reasoneToAppeal and concernedSources
+    private String addElemsToMetadata(String metadata) {
+        
+         StringBuilder res = new StringBuilder();
+        
+         if (metadata.indexOf("Důvod dovolání :") > -1) {
+            //duvod dovolani is present
+            res.append(metadata.substring(0,metadata.indexOf("Důvod dovolání :")));
+            res.append(" <reasons> " + metadata.substring(metadata.indexOf("Důvod dovolání :"),metadata.indexOf("Spisová značka :"))  + " </reasons> \n");
+            
+            if ((metadata.indexOf("Dotčené předpisy :") > -1)) {
+                //dotcene predpisy is present
+                res.append(metadata.substring(metadata.indexOf("Spisová značka :"), metadata.indexOf("Dotčené předpisy :")));
+            }
+            else {
+                //no dotcene predpisy
+                 log.warn("Not found label: Dotčené předpisy : ");
+                res.append(metadata.substring(metadata.indexOf("Spisová značka :"))); //append all and end
+                return res.toString();
+            }
+     
+         } else {
+             log.warn("Not found label: Důvod dovolání : ");
+             if ((metadata.indexOf("Dotčené předpisy :") > -1)) {
+                 //dotcene predpisy is present
+                res.append(metadata.substring(0,metadata.indexOf("Dotčené předpisy :"))); //append everything till dotcene predpisy
+                
+                
+             }
+             else {
+                  log.warn("Not found label: Dotčené předpisy : ");
+                log.warn("No elems in metadata section");
+                return metadata;
+             }
+         }
+         
+         res.append(" <concernedSources> " + metadata.substring(metadata.indexOf("Dotčené předpisy :"),metadata.indexOf("Kategorie rozhodnutí :"))  + " </concernedSources> \n");
+         res.append(metadata.substring(metadata.indexOf("Kategorie rozhodnutí :")));
+        
+     
+        
+        return res.toString();
+        
+        
+        
     }
 }
