@@ -247,7 +247,7 @@ public class Parser extends ScrapingTemplate{
 
     private String getTypeFromTitle(String title)
     {
-        return getLexTypeFromTitle(title).substring(4);
+        return getLexTypeFromTitle(title).substring(4).toLowerCase();
     }
     
     private String getTypDerogace(String string)
@@ -376,7 +376,7 @@ public class Parser extends ScrapingTemplate{
                     String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr) td:eq(0) a", i).getValue();
                     String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
+                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
 
                     ps.println("\todcs:aktivni-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
@@ -390,7 +390,7 @@ public class Parser extends ScrapingTemplate{
                     String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr) td:eq(0) a", i).getValue();
                     String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
+                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
 
                     ps.println("\todcs:pasivni-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
@@ -404,7 +404,7 @@ public class Parser extends ScrapingTemplate{
                     String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr td:eq(0) a", i).getValue();
                     String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
                     String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace;
+                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
 
                     ps.println("\todcs:vztahovano-k-" + typ_derogace + " <" + uri_derogace + "> ;");
                     i++;
