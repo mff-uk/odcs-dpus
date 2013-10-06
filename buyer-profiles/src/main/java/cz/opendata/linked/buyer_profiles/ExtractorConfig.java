@@ -1,6 +1,6 @@
 package cz.opendata.linked.buyer_profiles;
 
-import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
+import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
 
 /**
  *
