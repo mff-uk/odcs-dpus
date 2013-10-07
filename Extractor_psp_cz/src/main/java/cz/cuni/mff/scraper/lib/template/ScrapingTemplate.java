@@ -60,7 +60,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type));
         
-        while (!toParse.isEmpty()) {
+        while (!toParse.isEmpty() && !ctx.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
