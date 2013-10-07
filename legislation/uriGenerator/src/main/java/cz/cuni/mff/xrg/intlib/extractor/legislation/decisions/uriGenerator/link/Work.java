@@ -261,7 +261,18 @@ public class Work implements Comparable<Work> {
      * @return 
      */
     public String createFormatString() {
-        StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}");
+        
+        //TODO adjust URI
+        StringBuilder uriFormat;
+        
+        if (typeOfWork == WorkType.DECISION) {
+            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}");
+        }
+        else {
+            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{3}/{2,number,#}-{3}");
+        }
+        
+        //StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}");
         if (countryOfIssue == null || typeOfWork == null || year == null || number == null) {
             Logger.getLogger("IntLib").log(Level.WARNING, "Nedostatecne udaje pro vytvoreni odkazu: ''{0}''", source);
             Work.nedostatecne++;
@@ -293,6 +304,9 @@ public class Work implements Comparable<Work> {
      * @return 
      */
     public String createExpressionFormatString() {
+        
+        //TODO adjust URI
+        
         StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("expression") + "{0}/{1}/{2,number,#}/{3}/version/{4}/{5}");
         if (countryOfIssue == null || typeOfWork == null || year == null || number == null) {
             Logger.getLogger("IntLib").log(Level.INFO, "Nedostatecne udaje pro vytvoreni odkazu: '" + source + "'");
