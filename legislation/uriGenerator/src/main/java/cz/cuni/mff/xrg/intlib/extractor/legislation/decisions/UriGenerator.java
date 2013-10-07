@@ -113,7 +113,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
                 log.info("Processing new file for subject {}", subject);
-                log.debug("Processing file {}", fileContent);
+                //log.debug("Processing file {}", fileContent);
 
 
                 String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";

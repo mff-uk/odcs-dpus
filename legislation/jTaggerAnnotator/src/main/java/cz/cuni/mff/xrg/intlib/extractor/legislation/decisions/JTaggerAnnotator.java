@@ -137,7 +137,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
                 log.info("Processing new file for subject {}", subject);
-                log.debug("Processing file {}", fileContent);
+                //log.debug("Processing file {}", fileContent);
 
 
                 String inputFilePath = pathToWorkingDir + File.separator + "input" + File.separator + String.valueOf(i) + ".txt";
@@ -380,19 +380,17 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
 
 
-        //log.info("Para orig {}", input_string);
-        log.debug("****Para before {}", before);
-        log.debug("****Para output {}", output);
-        log.debug("****Para output2 {}", output2);
-        log.debug("*****Para after {}", after);
-        //log.info("Para all {}", before + output + after);
+        //log.debug("****Para before {}", before);
+        //log.debug("****Para output {}", output);
+        //log.debug("****Para output2 {}", output2);
+        //log.debug("*****Para after {}", after);
 
 
         //to remove \n from lines which do not end with "." (line in the paragraph) and new line char (empty line between paragraphs)
         //If they end with dots, \n is not removed if the new line character is followed by space, tab or next new line character, 
         //because this denotes new paragraph and in this case new line char is ok.  
         //output = output.replaceAll("([^.\n])\n([^\\s])", "$1$2");
-        log.debug("Para NEW: " + before + output + output2 + after);
+        //log.debug("Para NEW: " + before + output + output2 + after);
         return before + output + output2 + after;
     }
 
