@@ -13,9 +13,21 @@ public class UriGeneratorConfig extends DPUConfigObjectBase {
     
  
      
-      private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
-     
-     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+    private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+
+    private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+
+    private String fileNameShownInDialog = "";
+    private String storedXsltFilePath = "";
+
+    public UriGeneratorConfig(String fileNameInDialog, String tempFile) {
+        this.fileNameShownInDialog = fileNameInDialog;
+        this.storedXsltFilePath = tempFile;
+    }
+    
+    public UriGeneratorConfig() {
+        
+    }
 
     public String getOutputPredicate() {
         return outputPredicate;
@@ -24,7 +36,16 @@ public class UriGeneratorConfig extends DPUConfigObjectBase {
     public String getInputPredicate() {
         return inputPredicate;
     }
+
+    public String getfileNameShownInDialog() {
+        return fileNameShownInDialog;
+    }
+
+    public String getStoredXsltFilePath() {
+        return storedXsltFilePath;
+    }
      
+    
     
   
     

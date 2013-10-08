@@ -451,31 +451,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
     @Override
     public OutputStream receiveUpload(final String filename,
             final String MIMEType) {
-//        fileName = filename;
 
-//        //get the dpu id
-//        context
-        
-        
-        
-//        // creates file manager
-//        FileManager fileManager = new FileManager(context);
-//        // obtains file in sub-directory in global directory
-//        file = fileManager.getGlobal().directory("silkConfs").directory("x").file(filename);
-        
-
-//            File globalDirectory = context.getGlobalDirectory();
-//
-//            try {
-//                //create template directory
-//                path = Files.createTempDirectory("SilkConfUpload");
-//            } catch (IOException e) {
-//                throw new RuntimeException(e.getMessage(), e);
-//            }
-
-
-
-//            file = new File("/" + path + "/" + filename); // path for upload file in temp directory
 
         this.fileName = filename;
         fos = new ByteArrayOutputStream();
@@ -492,7 +468,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 /**
  * Dialog for uploading status. Appear automatically after file upload start.
  *
- * @author Maria Kukhar
+ * @author tknap
  *
  */
 class UploadInfoWindow extends Window implements Upload.StartedListener,

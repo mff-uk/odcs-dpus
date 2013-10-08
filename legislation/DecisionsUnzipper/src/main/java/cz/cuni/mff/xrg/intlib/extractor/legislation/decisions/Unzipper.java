@@ -92,16 +92,15 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         } catch (IOException ex) {
             log.error(ex.getLocalizedMessage());
         }
-
         //*****************************
-        //get data (zipped file) from target URL 
+        //get data (zipped file) from target URL
 
         String tmpCourtFilesZipFile = pathToWorkingDir + File.separator + "data.zip";
         String tmpCourtFiles = pathToWorkingDir + File.separator + "unzipped";
 
         String urlWithZip = null;
         try {
-            urlWithZip = buildURL(config);
+            urlWithZip = buildURL(config,context.getLastExecutionTime());
         } catch (ConfigException ex) {
             log.error("DateFrom must be filled");
             context.sendMessage(MessageType.ERROR, "DateFrom must be filled");
@@ -231,7 +230,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
     }
 
-    private String buildURL(UnzipperConfig config) throws ConfigException {
+    private String buildURL(UnzipperConfig config, Date lastExecutionTime) throws ConfigException {
 
         String urlWithZip = "http://www.nsoud.cz/Judikatura/judikatura_ns.nsf/zip?openAgent&query=%5Bdatum_predani_na_web%5D%3E%3D";
 
@@ -250,6 +249,8 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             log.info("Getting decisions for the date {}", today);
 
         }
+        //TODO isCurrentDayAndAllPreviousNonSuccess
+       
 
 
 

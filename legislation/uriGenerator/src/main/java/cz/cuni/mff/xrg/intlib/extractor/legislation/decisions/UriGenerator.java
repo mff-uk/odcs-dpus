@@ -68,29 +68,29 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
             log.error(ex.getLocalizedMessage());
         }
 
-        //prepare access to resources of the jar file
-        //get path JAR file, so that resources (such as perl script can be read)
-        //File jarPath = context.getJarPath();
-        String jarPathString = null;
-        try {
-            jarPathString = context.getJarPath().getCanonicalPath();
-        } catch (IOException ex) {
-            log.error("Cannot get path to the jar file with jTagger resources");
-            log.debug(ex.getLocalizedMessage());
-        }
-
-        //to get unzipped version of JAR
-        String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
-        String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
-        //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
-        log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
-        try {
-            unzip(jarPathString, unzipedJarPathString);
-        } catch (ZipException ex) {
-            log.error("Unzip error, {}", ex.getLocalizedMessage());
-        } catch (IOException ex) {
-            log.error("Error:: " + ex.getLocalizedMessage());
-        }
+//        //prepare access to resources of the jar file
+//        //get path JAR file, so that resources (such as perl script can be read)
+//        //File jarPath = context.getJarPath();
+//        String jarPathString = null;
+//        try {
+//            jarPathString = context.getJarPath().getCanonicalPath();
+//        } catch (IOException ex) {
+//            log.error("Cannot get path to the jar file with jTagger resources");
+//            log.debug(ex.getLocalizedMessage());
+//        }
+//
+//        //to get unzipped version of JAR
+//        String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
+//        String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
+//        //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
+//        log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
+//        try {
+//            unzip(jarPathString, unzipedJarPathString);
+//        } catch (ZipException ex) {
+//            log.error("Unzip error, {}", ex.getLocalizedMessage());
+//        } catch (IOException ex) {
+//            log.error("Error:: " + ex.getLocalizedMessage());
+//        }
 
 
         //prepare inputs, call xslt for each input
@@ -131,12 +131,12 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
            
               
                  
-                 //where the resources within unzipped jar files are located.
-                 String unzipedJarPathStringResources = unzipedJarPathString + File.separator + pathToResources;
-                 //config for URI generator
-                 String configURiGen = unzipedJarPathStringResources + File.separator + "uriGenConfig.xml";
+//                 //where the resources within unzipped jar files are located.
+//                 String unzipedJarPathStringResources = unzipedJarPathString + File.separator + pathToResources;
+//                 //config for URI generator
+//                 String configURiGen = unzipedJarPathStringResources + File.separator + "uriGenConfig.xml";
                  
-                 runURIGenerator(inputFilePath, outputURIGeneratorFilename, configURiGen, context) ;
+                 runURIGenerator(inputFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
             
                 //check output
                 if (!outputGenerated(outputURIGeneratorFilename)) {
