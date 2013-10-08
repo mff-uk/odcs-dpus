@@ -342,8 +342,8 @@ public class Parser extends ScrapingTemplate{
                 ps.println("\t.");
                 ps.println("");
                 
-                String expressionUri;
-                if ("other".equals(validFromNew))
+                String expressionUri = "http://linked.opendata.cz/resource/legislation/cz/expression/" + year + "/" + cislo + "-" + year;
+                /*if ("other".equals(validFromNew))
                 {
                     if (!"other".equals(castka_datum_new))
                     {
@@ -358,6 +358,7 @@ public class Parser extends ScrapingTemplate{
                 {
                     expressionUri = actUri + "/version/cz/" + validFromNew;
                 }
+                */
                 
                 ps.println("<" + expressionUri + ">\n\ta " + "frbr:Expression" + " ;");
                 ps.println("\tdcterms:title \"" + title +"\"@cs ;");
