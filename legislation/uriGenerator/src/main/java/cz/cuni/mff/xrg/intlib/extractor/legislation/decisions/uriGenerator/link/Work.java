@@ -234,7 +234,9 @@ public class Work implements Comparable<Work> {
         if (formatString == null) {
             return null;
         }
+         log.info("URIFormat is: " + MessageFormat.format(formatString, countryOfIssue, typeOfWork, year, number, section, subsection, paraNumber, subparaNumber));
         return MessageFormat.format(formatString, countryOfIssue, typeOfWork, year, number, section, subsection, paraNumber, subparaNumber);
+       
     }
     
     /**
@@ -252,6 +254,8 @@ public class Work implements Comparable<Work> {
      * @return 
      */    
     public String toExpressionString() {
+        log.info("URIFormat is: " + MessageFormat.format(createExpressionFormatString(), countryOfIssue, typeOfWork, year, number, language, version, section, subsection, paraNumber, subparaNumber));
+
         return MessageFormat.format(createExpressionFormatString(), countryOfIssue, typeOfWork, year, number, language, version, section, subsection, paraNumber, subparaNumber);
     }
     
@@ -262,15 +266,17 @@ public class Work implements Comparable<Work> {
      */
     public String createFormatString() {
         
-        //TODO adjust URI
+        //TODO for decisions, small letter are sometimes used: 2011/18-co-567-2011
+
         StringBuilder uriFormat;
         
-        if (typeOfWork == WorkType.DECISION) {
+        if (typeOfWork == WorkType.DECISION || typeOfWork == WorkType.JUDGMENT ) {
             uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}");
         }
         else {
-            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{3}/{2,number,#}-{3}");
+            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}-{2,number,#}");
         }
+       
         
         //StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("work") + "{0}/{1}/{2,number,#}/{3}");
         if (countryOfIssue == null || typeOfWork == null || year == null || number == null) {
@@ -305,9 +311,21 @@ public class Work implements Comparable<Work> {
      */
     public String createExpressionFormatString() {
         
-        //TODO adjust URI
+        //TODO for decisions, small letter are sometimes used: 2011/18-co-567-2011
+        StringBuilder uriFormat;
+         if (typeOfWork == WorkType.DECISION || typeOfWork == WorkType.JUDGMENT ) {
+            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("expression") + "{0}/{1}/{2,number,#}/{3}/version/{4}/{5}");
+        }
+        else {
+            //sample: http://linked.opendata.cz/resource/legislation/cz/expression/2006/137-2006
+            //http://linked.opendata.cz/resource/legislation/cz/expression/2006/137-2006/version/cz/328-2006 (expression novelizovane predpisem 328/2006)
+            //TODO first expression should be without /version/cz/xx
+             //TODO version/cz/number of expression novelizing it (not date)
+            uriFormat = new StringBuilder(Configuration.getPrefixMap().get("expression") + "{0}/expression/{2,number,#}/{3}-{2,number,#}/version/{4}/{5}");
+        } 
+       
         
-        StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("expression") + "{0}/{1}/{2,number,#}/{3}/version/{4}/{5}");
+        //StringBuilder uriFormat = new StringBuilder(Configuration.getPrefixMap().get("expression") + "{0}/{1}/{2,number,#}/{3}/version/{4}/{5}");
         if (countryOfIssue == null || typeOfWork == null || year == null || number == null) {
             Logger.getLogger("IntLib").log(Level.INFO, "Nedostatecne udaje pro vytvoreni odkazu: '" + source + "'");
             Work.nedostatecne++;

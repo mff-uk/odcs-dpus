@@ -172,7 +172,7 @@ log.info("URI generator successfully executed, creating output");
                DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
                
-               log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+               //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
                log.info("Output successfully created");
 
@@ -198,7 +198,7 @@ log.info("URI generator successfully executed, creating output");
     }
 
       private void runURIGenerator(String file, String output, String configURiGen, DPUContext context) {
-                    log.info("About to run URI generator for {}", file);
+                    //log.info("About to run URI generator for {}", file);
                     IntLibLink.processFiles(file, output, configURiGen,context);
 
 
