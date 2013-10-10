@@ -1158,7 +1158,8 @@ public class Work implements Comparable<Work> {
         }
         else
         {
-            Logger.getLogger("intlib").log(Level.INFO, "Expression \"{0}\" not recognized, trying as shortcut", expression);
+            log.warn("Expression \"{0}\" not recognized, trying as shortcut", expression);
+            //Logger.getLogger("intlib").log(Level.INFO, "Expression \"{0}\" not recognized, trying as shortcut", expression);
             shortcut = expression;
             result.add(parseSingle(expression, type, law, referedId, country, year, number, section, subsection, para, subpara, shortcut));
             lastFoundShortcut = shortcut;

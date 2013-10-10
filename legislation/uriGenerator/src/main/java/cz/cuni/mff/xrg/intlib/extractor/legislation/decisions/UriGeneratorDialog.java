@@ -48,8 +48,7 @@ public class UriGeneratorDialog extends BaseConfigDialog<UriGeneratorConfig> {
     
     private Label lFileName;
     
-    
-    
+
     private TextArea taFileConf;
     
     private UploadInfoWindow uploadInfoWindow;
@@ -60,7 +59,7 @@ public class UriGeneratorDialog extends BaseConfigDialog<UriGeneratorConfig> {
       public UriGeneratorDialog() {
         super(UriGeneratorConfig.class);
         buildMainLayout();
-        //setCompositionRoot(mainLayout);
+        setCompositionRoot(mainLayout);
     }
       
       
@@ -124,7 +123,7 @@ public class UriGeneratorDialog extends BaseConfigDialog<UriGeneratorConfig> {
          final FileUploadReceiver fileUploadReceiver = new FileUploadReceiver();
 
         //Upload component
-        Upload fileUpload = new Upload("XSLT Template: ", fileUploadReceiver);
+        Upload fileUpload = new Upload("Config for URI Gen: ", fileUploadReceiver);
         fileUpload.setImmediate(true);
         fileUpload.setButtonCaption("Upload");
         //Upload started event listener
@@ -187,6 +186,20 @@ public class UriGeneratorDialog extends BaseConfigDialog<UriGeneratorConfig> {
 //label for xslt filename
          lFileName = new Label("File not uploaded");
          mainLayout.addComponent(lFileName);
+         
+            taFileConf = new TextArea();
+
+//	
+
+        taFileConf.setNullRepresentation("");
+        taFileConf.setImmediate(false);
+        taFileConf.setWidth("100%");
+        taFileConf.setHeight("300px");
+       taFileConf.setVisible(true);
+//		silkConfigTextArea.setInputPrompt(
+//				"PREFIX br:<http://purl.org/business-register#>\nMODIFY\nDELETE { ?s pc:contact ?o}\nINSERT { ?s br:contact ?o}\nWHERE {\n\t     ?s a gr:BusinessEntity .\n\t      ?s pc:contact ?o\n}");
+
+        mainLayout.addComponent(taFileConf);
     
     }
 }

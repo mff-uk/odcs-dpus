@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,14 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             log.error("DateFrom must be filled");
             context.sendMessage(MessageType.ERROR, "DateFrom must be filled");
             return;
+        } 
+        
+        if (urlWithZip.isEmpty()) {
+            //nothing to do
+            log.info("No new files to be extracted");
+            return;
         }
+        
 
 
         if (!new File(tmpCourtFilesZipFile).exists()) {
@@ -211,10 +219,18 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
             String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
             DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-            rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+            
+            try {
+                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
 
-            log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+            } catch(cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException e) {
+                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
+                log.info("Continues with the next file");
+            }
 
+            
+         
 
 
 
@@ -237,7 +253,37 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         String dateFrom = config.getDateFrom();
         String dateTo = config.getDateTO();
 
-        if (config.isCurrentDay()) {
+        if (config.isFromLastSuccess()) {
+            DateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY");
+            
+            Date dateToday = new Date();
+             String today = dateFormat.format(dateToday);
+            
+            if (lastExecutionTime == null) {
+                log.warn("No Last execution, processing decisions for today");
+                dateFrom = today;
+            }
+            else  {
+                
+                Calendar c = Calendar.getInstance(); 
+                c.setTime(lastExecutionTime); 
+                c.add(Calendar.DATE, 1); //add one day
+                Date startDate = c.getTime();
+                
+                if (startDate.after(dateToday)) {
+                    log.info("Nothing to do, data for today was already processed");
+                    return ""; //no new files to be extracted
+                }
+               
+                 String last = dateFormat.format(startDate);
+                 dateFrom = last;
+            }
+             dateTo = today;
+           
+
+            log.info("Getting decisions for the dates from {} to {}", dateFrom, dateTo);
+        }
+        else if (config.isCurrentDay()) {
 
             DateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY");
             Date date = new Date();
@@ -249,7 +295,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             log.info("Getting decisions for the date {}", today);
 
         }
-        //TODO isCurrentDayAndAllPreviousNonSuccess
+       
        
 
 

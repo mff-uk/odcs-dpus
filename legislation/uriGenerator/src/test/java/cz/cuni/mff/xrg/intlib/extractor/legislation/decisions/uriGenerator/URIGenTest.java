@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class URIGenTest {
 
-	@Test
+	
 	public void testActsURICreation() throws Exception {
 		// prepare dpu
 		

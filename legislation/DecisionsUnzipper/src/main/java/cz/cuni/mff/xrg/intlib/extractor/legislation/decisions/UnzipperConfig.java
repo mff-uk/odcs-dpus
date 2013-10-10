@@ -16,6 +16,11 @@ public class UnzipperConfig extends DPUConfigObjectBase {
      private String dateFrom = "18/09/2013";
     private String dateTo = "18/09/2013";
     private boolean currentDay = true;
+  private boolean fromLastSuccess = true;
+
+    public boolean isFromLastSuccess() {
+        return fromLastSuccess;
+    }
 
  
     
@@ -44,12 +49,13 @@ public class UnzipperConfig extends DPUConfigObjectBase {
      * @param dateTo
      * @param dateFrom
      */
-    public UnzipperConfig(String dateFrom, String dateTo, int maxNumberOfDecisions, boolean currentDay) {
+    public UnzipperConfig(String dateFrom, String dateTo, int maxNumberOfDecisions, boolean currentDay, boolean fromLastSuccessful) {
         this.outputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
         this.dateTo = dateTo;
         this.dateFrom = dateFrom;
         this.maxExtractedDecisions = maxNumberOfDecisions;
         this.currentDay = currentDay;
+        this.fromLastSuccess = fromLastSuccessful;
     }
     
     /**

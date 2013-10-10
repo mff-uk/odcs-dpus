@@ -43,6 +43,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
     private TextField dateFrom; //Path
     private TextField maxNumOfExtractedDecisions; //Path
     private CheckBox cbCurrentDay;
+    private CheckBox cbSinceLastSuccess;
     
     
       public UnzipperDialog() {
@@ -120,7 +121,9 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
         mainLayout.addComponent(maxNumOfExtractedDecisions) ;
 
         cbCurrentDay =  new CheckBox("Process the current day");
+        cbSinceLastSuccess =  new CheckBox("Process the days from last successful run");
         mainLayout.addComponent(cbCurrentDay);
+         mainLayout.addComponent(cbSinceLastSuccess);
 
 
         return mainLayout;
@@ -140,6 +143,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
        
         
        cbCurrentDay.setValue(conf.isCurrentDay());
+         cbSinceLastSuccess.setValue(conf.isFromLastSuccess());
         
          
          
@@ -167,7 +171,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
         }
         
         
-        UnzipperConfig conf = new UnzipperConfig(dateFrom.getValue().trim(), dateTo.getValue().trim(), maxNumOfDec, cbCurrentDay.getValue());
+        UnzipperConfig conf = new UnzipperConfig(dateFrom.getValue().trim(), dateTo.getValue().trim(), maxNumOfDec, cbCurrentDay.getValue(), cbSinceLastSuccess.getValue());
         return conf;
                 
        

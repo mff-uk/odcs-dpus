@@ -197,7 +197,7 @@ public class LawDocument extends Work {
                    ((Element)links.item(i)).setAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#","rdf:about", concat.toString());
                 } else {
                     Work.unrecognized ++;
-                   logger.error("Link {} not recognized", link );
+                   logger.warn("Link {} not recognized", link );
                 }
             }
         }

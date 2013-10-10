@@ -538,13 +538,13 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             }
             else {
                 //no dotcene predpisy
-                 log.warn("Not found label: Dotčené předpisy : ");
+                 log.info("Not found label: Dotčené předpisy : ");
                 res.append(metadata.substring(metadata.indexOf("Spisová značka :"))); //append all and end
                 return res.toString();
             }
      
          } else {
-             log.warn("Not found label: Důvod dovolání : ");
+             log.info("Not found label: Důvod dovolání : ");
              if ((metadata.indexOf("Dotčené předpisy :") > -1)) {
                  //dotcene predpisy is present
                 res.append(metadata.substring(0,metadata.indexOf("Dotčené předpisy :"))); //append everything till dotcene predpisy
@@ -552,8 +552,8 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 
              }
              else {
-                  log.warn("Not found label: Dotčené předpisy : ");
-                log.warn("No elems in metadata section");
+                  log.info("Not found label: Dotčené předpisy : ");
+               
                 return metadata;
              }
          }
