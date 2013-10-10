@@ -829,10 +829,10 @@ public class Work implements Comparable<Work> {
             } while (lastParaIndex > -1);
             
         }
-        else if (expression.contains("sp. zn."))
+        else if (expression.contains("sp. zn"))
         {
             //Logger.getLogger("intlib").log(Level.INFO, "\"{0}\" identified as \"spisová značka\": contains \"sp. zn.\"", expression);
-            String spzn = originalExpression.replaceAll(".*[Ss][Pp]\\. ?[Zz][Nn]\\.(.*)", "$1").trim();
+            String spzn = originalExpression.replaceAll(".*[Ss][Pp]\\. ?[Zz][Nn]\\.?(.*)", "$1").trim();
             //Logger.getLogger("intlib").log(Level.INFO, "Parsing \"spisová značka\" {0}", spzn);
             String first = spzn.replaceAll("([^ ]+) [^ ]+ [^ ]+", "$1");//.toLowerCase();
             String second = spzn.replaceAll("[^ ]+ ([^ ]+) [^ ]+", "$1");//.toLowerCase();
