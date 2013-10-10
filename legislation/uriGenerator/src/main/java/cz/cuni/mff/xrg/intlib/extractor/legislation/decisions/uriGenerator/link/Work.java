@@ -1094,13 +1094,13 @@ public class Work implements Comparable<Work> {
                 //Logger.getLogger("intlib").log(Level.WARNING, "Článek (ústavy/listiny) not supported yet", expression);
             } while (clindex > -1);
         }
-        else if (expression.trim().matches("č\\.? ?j\\..*"))
+        else if (expression.trim().matches("[Čč]\\.? ?[Jj]\\..*"))
         {
             //Logger.getLogger("intlib").log(Level.WARNING, "Číslo jednací not supported yet", expression);
-            String spzn = expression.replaceAll(".*č\\. ?j\\.(.*)", "$1").trim();
+            String spzn = originalExpression.replaceAll(".*[Čč]\\. ?[Jj]\\.(.*)", "$1").trim();
             //Logger.getLogger("intlib").log(Level.INFO, "Parsing \"spisová značka\" {0}", spzn);
-            String first = spzn.replaceAll("([^ ]+) [^ ]+ [^ ]+", "$1").toLowerCase();
-            String second = spzn.replaceAll("[^ ]+ ([^ ]+) [^ ]+", "$1").toLowerCase();
+            String first = spzn.replaceAll("([^ ]+) [^ ]+ [^ ]+", "$1");
+            String second = spzn.replaceAll("[^ ]+ ([^ ]+) [^ ]+", "$1");
             String third = spzn.replaceAll("[^ ]+ [^ ]+ ([^ ]+)", "$1");
             String yearstr = null;
             if (third.contains("/")) yearstr = third.replaceAll("[^/]+/([0-9]+).*", "$1");
