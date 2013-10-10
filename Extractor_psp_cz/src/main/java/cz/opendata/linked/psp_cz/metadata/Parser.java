@@ -293,8 +293,12 @@ public class Parser extends ScrapingTemplate{
     protected void parse(org.jsoup.nodes.Document doc, String docType) {
         if (docType == "detail") {
                 /* Na detailu si najdu nazev a ic a vyhodim jako nejaky element */
-                
-                String identifier = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(0) td:eq(1)").getValue();
+                String identifier;    
+                try {
+                    identifier = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(0) td:eq(1)").getValue();
+                } catch (NullPointerException e) {
+                    return;
+                }
                 if (identifier == null) return;
                 currentId = identifier;
                 identifier = identifier.replaceAll("([^ ]*) Sb." , "$1");
