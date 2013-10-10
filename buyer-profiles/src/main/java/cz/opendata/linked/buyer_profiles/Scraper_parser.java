@@ -1640,11 +1640,16 @@ public class Scraper_parser extends ScrapingTemplate{
 		            		for (Element subdodavatel: dodavatel.select("subdodavatel"))
 		            		{
 		            			numsub++;
-		            			String icSub = getStringFromElements(subdodavatel.select("ico_sub")).replace(" ", "").replace("/", "");
-		            			String nazevSub = getStringFromElements(subdodavatel.select("nazev_sub"));
-		            			String zemeSidlaSub = getStringFromElements(subdodavatel.select("zeme_sidla_sub"));
-		            			String mistoPodnikaniSub = getStringFromElements(subdodavatel.select("misto_podnikani_sub"));
-		            			String bydlisteSub = getStringFromElements(subdodavatel.select("bydliste_sub"));
+		            			String icSub = null;
+		            			if (subdodavatel.select("ico_sub") != null) icSub = fixIC(getStringFromElements(subdodavatel.select("ico_sub")));
+		            			String nazevSub = null; 
+		            			if (subdodavatel.select("nazev_sub") != null) nazevSub = getStringFromElements(subdodavatel.select("nazev_sub"));
+		            			String zemeSidlaSub = null;
+		            			if (subdodavatel.select("zeme_sidla_sub") != null) zemeSidlaSub = getStringFromElements(subdodavatel.select("zeme_sidla_sub"));
+		            			String mistoPodnikaniSub = null;
+		            			if (subdodavatel.select("misto_podnikani_sub") != null) mistoPodnikaniSub = getStringFromElements(subdodavatel.select("misto_podnikani_sub"));
+		            			String bydlisteSub = null;
+		            			if (subdodavatel.select("bydliste_sub") != null) bydlisteSub = getStringFromElements(subdodavatel.select("bydliste_sub"));
 
 		            			if (icSub != null && !icSub.isEmpty())
 	            				{
