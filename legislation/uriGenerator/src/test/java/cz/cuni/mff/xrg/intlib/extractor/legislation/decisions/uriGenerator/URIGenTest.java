@@ -17,20 +17,19 @@ import java.util.UUID;
 
 public class URIGenTest {
 
-	
+	@Test
 	public void testActsURICreation() throws Exception {
 		// prepare dpu
 		
-                File conf = new File("config/uriGenConfig.xml");
+                File conf = new File("src/test/resources/config/uriGenConfig.xml");
                 
-               
-                
-                //copy to temp folder, so that it is easily accessible by the URI Generator called from the DPU
-                File tempConf =  new File(System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID.randomUUID().toString());
-                Files.copy(conf, tempConf);
-            
+//  
+//                //copy to temp folder, so that it is easily accessible by the URI Generator called from the DPU
+//                File tempConf =  new File(System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID.randomUUID().toString());
+//                Files.copy(conf, tempConf);
+//            
                 UriGenerator trans = new UriGenerator();
-		UriGeneratorConfig config = new UriGeneratorConfig("",tempConf.getCanonicalPath());
+		UriGeneratorConfig config = new UriGeneratorConfig("",conf.getCanonicalPath());
             
 		
 		trans.configureDirectly(config);
