@@ -77,7 +77,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
         log.debug("Query for getting input files: {}", query);
         //get the return values
         TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-
+      
         int i = 0;
         try {
 
@@ -128,7 +128,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
                  try {
             //logger.debug(perlIntro + "jtagger/txt2vxml.pl /tmp/jtagger/txt /tmp/jtagger/txt_source/judikatura.zakon.txt");
 //            Process p = Runtime.getRuntime().exec("java -DconfigFile=/Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/tmp/be-sameAs.xml -jar /Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/tmp/silk_2.5.2/silk.jar");
-            log.debug("About to execute: java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
+            //log.debug("About to execute: java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
             
             //Process p = Runtime.getRuntime().exec("java -jar /Users/tomasknap/NetBeansProjects/RDFaDistiller/target/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
             Process p = Runtime.getRuntime().exec("java -jar /data/odcs/libs/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" +outputFilePath);
@@ -165,11 +165,17 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
 
 
                 try {
+                    log.info("Output file name is: {}", outputFilePath);
                     rdfOutput.addFromTurtleFile(new File(outputFilePath));
                 } catch (RDFException ex) {
                     log.error(ex.getLocalizedMessage());
                     context.sendMessage(MessageType.ERROR, "RDFException: "
                             + ex.getMessage());
+                }
+                
+                if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
                 }
 
 

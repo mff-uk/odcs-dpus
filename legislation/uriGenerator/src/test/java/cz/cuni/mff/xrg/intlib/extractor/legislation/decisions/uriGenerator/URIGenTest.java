@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class URIGenTest {
 
-	@Test
+	
 	public void testActsURICreation() throws Exception {
 		// prepare dpu
 		
@@ -37,11 +37,12 @@ public class URIGenTest {
 		// TODO prepare test environment (specify the directory for working dir, you can leave empty for temp dir )
 		TestEnvironment env = TestEnvironment.create(new File("/Users/tomasknap/Documents/tmp/test"));
 		// prepare data units
-		RDFDataUnit input = env.createRdfInputFromResource("input",
-				"input/1.ttl", RDFFormat.TURTLE);
-		RDFDataUnit output = env.createRdfOutput("output");
+		RDFDataUnit input = env.createRdfInputFromResource("input", false,
+				"input/2_1.ttl", RDFFormat.TURTLE);
+		RDFDataUnit output = env.createRdfOutput("output", false);
             
                
+                
                 
                 
 		// some triples has been loaded 

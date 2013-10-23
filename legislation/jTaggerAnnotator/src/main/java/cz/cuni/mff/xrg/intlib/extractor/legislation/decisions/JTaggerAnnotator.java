@@ -227,7 +227,10 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                log.info("Output created successfully");
                 
      
-
+                if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
+                }
 
 
 

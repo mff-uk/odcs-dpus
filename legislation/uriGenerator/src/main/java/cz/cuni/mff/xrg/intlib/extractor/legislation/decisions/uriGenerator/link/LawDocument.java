@@ -286,13 +286,16 @@ public class LawDocument extends Work {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setValidating(false);
                 DocumentBuilder builder = dbf.newDocumentBuilder();
-                doc = builder.parse(input);
+                logger.info("About to parse input");
+                doc = builder.parse("file:///" + input);
                 this.inputDocument = doc;
                 
+                logger.info("About to transform parsed input");
                 transform(doc);
                 TransformerFactory tf = TransformerFactory.newInstance();
                 Transformer writer = tf.newTransformer();
                 writer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
+                logger.info("About to write outputß");
                 writer.transform(new DOMSource(doc), new StreamResult(new File(output)));
         } catch (TransformerException ex) {
             logger.error(ex.getLocalizedMessage());

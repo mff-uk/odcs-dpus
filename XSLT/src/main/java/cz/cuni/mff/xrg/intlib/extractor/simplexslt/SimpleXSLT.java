@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.XdmNode;
@@ -115,15 +116,6 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     + ex.getLocalizedMessage());
         }
 
-//rdfOutput.getDataGraph();
-
-        //store xslt
-//        File xslTemplate = DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToWorkingDir + File.separator + "template.xslt");
-//        if (xslTemplate == null) {
-//            log.error("No xslt file specified");
-//            context.sendMessage(MessageType.ERROR, "No xslt file specifed ");
-//            return;
-//        }
 
         //prepare xslt template
         if (config.getStoredXsltFilePath().isEmpty()) {
@@ -133,7 +125,23 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         }
         File xslTemplate = new File(config.getStoredXsltFilePath());
 
-
+           Processor proc = new Processor(false);
+          XsltCompiler compiler = proc.newXsltCompiler();
+        try {
+            XsltExecutable exp = compiler.compile(new StreamSource(xslTemplate));
+            String xslt = DataUnitUtils.readFile(config.getStoredXsltFilePath());
+            log.info("Stylesheet was successfully loaded: {}", xslt);
+        } catch (SaxonApiException ex) {
+            log.error(ex.getLocalizedMessage());
+              context.sendMessage(MessageType.ERROR, "Cannot compile XSLT "
+                    + ex.getLocalizedMessage());
+              return;
+            
+        }
+        
+       
+        
+        
         //prepare inputs, call xslt for each input
         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
         log.debug("Query for getting input files: {}", query);
@@ -157,9 +165,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         try {
 
             while (executeSelectQueryAsTuples.hasNext()) {
-
+                
                 i++;
 
+                log.info("Processing file: {}/{} ", i,resSize);
 
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
@@ -167,7 +176,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 String fileContent = b.getValue().toString();
                 String subject = solution.getBinding("s").getValue().toString();
 
-                log.info("Processing file: {}/{} for the subject {}", i, resSize, subject);
+                log.info("The subject is {}", subject);
                 //log.debug("Processing file {}", fileContent);
 
 
@@ -386,6 +395,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
             trans.setInitialContextNode(source);
             trans.setDestination(out);
+            //trans.setParameter(QName.XS_ID, source);
             trans.transform();
             return sw.toString();
 

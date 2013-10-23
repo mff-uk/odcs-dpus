@@ -231,7 +231,10 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
             
          
-
+                if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
+                }
 
 
         }

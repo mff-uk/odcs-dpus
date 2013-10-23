@@ -291,6 +291,11 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         // TEXT AREA
         //***************
 
+           //empty line
+         Label emptyLabel5 = new Label("");
+        emptyLabel4.setHeight("1em");
+        mainLayout.addComponent(emptyLabel5);
+         
          taXSLTemplate = new TextArea();
 
 //	
@@ -299,7 +304,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         taXSLTemplate.setImmediate(false);
         taXSLTemplate.setWidth("100%");
         taXSLTemplate.setHeight("300px");
-        taXSLTemplate.setVisible(false);
+        taXSLTemplate.setVisible(true);
 //		silkConfigTextArea.setInputPrompt(
 //				"PREFIX br:<http://purl.org/business-register#>\nMODIFY\nDELETE { ?s pc:contact ?o}\nINSERT { ?s br:contact ?o}\nWHERE {\n\t     ?s a gr:BusinessEntity .\n\t      ?s pc:contact ?o\n}");
 

@@ -305,6 +305,7 @@ public class IntLibLink {
 
 		// zpracujeme jeden soubor
 		if (!inputFile.isEmpty()) {
+                        logger.info("About to transform the documentß");
 			LawDocument doc = new LawDocument(logger);
 			doc.transform(inputFile, outputFile);
 		}

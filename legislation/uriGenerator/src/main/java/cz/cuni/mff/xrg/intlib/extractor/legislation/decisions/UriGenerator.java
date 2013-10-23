@@ -67,6 +67,11 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         } catch (IOException ex) {
             log.error(ex.getLocalizedMessage());
         }
+        
+        if (config.getStoredXsltFilePath().isEmpty()) {
+                     log.error("Configuration file is missing, the processing will NOT continue");
+                     context.sendMessage(MessageType.ERROR, "Configuration file is missing, the processing will NOT continue");
+        }
 
 //        //prepare access to resources of the jar file
 //        //get path JAR file, so that resources (such as perl script can be read)
@@ -136,6 +141,8 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //                 //config for URI generator
 //                 String configURiGen = unzipedJarPathStringResources + File.separator + "uriGenConfig.xml";
                  
+                 
+                 
                  runURIGenerator(inputFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
             
                 //check output
@@ -175,6 +182,11 @@ log.info("URI generator successfully executed, creating output");
                //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
                log.info("Output successfully created");
+               
+               if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
+               }
 
             }
         } catch (QueryEvaluationException ex) {
