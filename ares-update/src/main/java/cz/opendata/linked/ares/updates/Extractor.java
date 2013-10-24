@@ -26,7 +26,6 @@ import org.openrdf.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -38,6 +37,8 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @AsExtractor
 public class Extractor 
@@ -103,7 +104,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			logger.info("Deleting " + path);
 			Files.deleteIfExists(path);
 			
-			s.parse(init, "init");
+			try {
+				s.parse(init, "init");
+			} catch (BannedException b) {
+				logger.warn("Seems like we are banned for today");
+			}
 			
 			s.ps.close();
 

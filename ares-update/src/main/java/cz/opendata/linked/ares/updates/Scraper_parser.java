@@ -13,8 +13,8 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.mff.cuni.scraper.lib.template.ParseEntry;
-import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
+import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
+import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 /**
  * Specificky scraper pro statni spravu.

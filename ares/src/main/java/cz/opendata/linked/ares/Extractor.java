@@ -20,7 +20,6 @@ import org.openrdf.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -31,6 +30,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @AsExtractor
 public class Extractor 
@@ -220,6 +221,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (!Cache.isCached(current) && !config.sendCache)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
 						if (doc != null)
 						{
 							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
@@ -246,6 +248,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					}
 				}
 				if (ctx.canceled()) logger.error("Interrupted");
+			} catch (BannedException e) {
+				logger.warn("Seems like we are banned for today");
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
