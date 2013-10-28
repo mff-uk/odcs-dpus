@@ -120,8 +120,28 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
 //        });
         mainLayout.addComponent(maxNumOfExtractedDecisions) ;
 
-        cbCurrentDay =  new CheckBox("Process the current day");
-        cbSinceLastSuccess =  new CheckBox("Process the days from last successful run");
+        cbCurrentDay =  new CheckBox("Process yesterday");
+        cbCurrentDay.addValueChangeListener(new ValueChangeListener() {
+             public void valueChange(ValueChangeEvent event) {
+                 // Copy the value to the other checkbox.
+                  boolean value = (Boolean) event.getProperty().getValue();
+                 dateFrom.setEnabled(!value);
+                 dateTo.setEnabled(!value);
+                 cbSinceLastSuccess.setEnabled(!value);
+        } });
+        cbCurrentDay.setValue(false);
+        
+        cbSinceLastSuccess =  new CheckBox("Process the days from last successful run up to yesterday");
+           cbSinceLastSuccess.addValueChangeListener(new ValueChangeListener() {
+             public void valueChange(ValueChangeEvent event) {
+                 // Copy the value to the other checkbox.
+                  boolean value = (Boolean) event.getProperty().getValue();
+                 dateFrom.setEnabled(!value);
+                 dateTo.setEnabled(!value);
+                 cbCurrentDay.setEnabled(!value);
+        } });
+           cbSinceLastSuccess.setValue(false);
+           
         mainLayout.addComponent(cbCurrentDay);
          mainLayout.addComponent(cbSinceLastSuccess);
 

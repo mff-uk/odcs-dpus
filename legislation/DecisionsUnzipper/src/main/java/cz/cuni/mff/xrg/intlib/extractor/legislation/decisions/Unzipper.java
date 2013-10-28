@@ -79,7 +79,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-        log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
+        //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 
 
         //get working dir
@@ -139,12 +139,12 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
         //*****************************
         //UNZIP files
-        log.debug("About to unzip {} ", tmpCourtFilesZipFile);
+        log.info("About to unzip {} ", tmpCourtFilesZipFile);
 
         try {
             if (!unzip(tmpCourtFilesZipFile, tmpCourtFiles)) {
-                log.error("Archive was not unzipped, dpu is ending.");
-                context.sendMessage(MessageType.ERROR, "Cannot unzip the file");
+                //log.warn("Archive was not unzipped, dpu is ending.");
+                context.sendMessage(MessageType.ERROR, "Cannot unzip the file, DPU is ending.");
                 return;
             }
 
@@ -259,29 +259,38 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         if (config.isFromLastSuccess()) {
             DateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY");
             
-            Date dateToday = new Date();
-             String today = dateFormat.format(dateToday);
+            //Date dateToday = new Date();
+             //String today = dateFormat.format(dateToday);
+             
+            //get yesterday's date
+                Calendar yesterdayCal = Calendar.getInstance(); 
+                yesterdayCal.setTime(new Date()); //today
+                yesterdayCal.add(Calendar.DATE, -1); //get the previous day
+                Date dateYesterday= yesterdayCal.getTime();
+                String yesterday = dateFormat.format(dateYesterday);
+            
+            //last exec 
+            Calendar lastExecCal = Calendar.getInstance(); 
+                lastExecCal.setTime(lastExecutionTime); 
+             
             
             if (lastExecutionTime == null) {
-                log.warn("No Last execution, processing decisions for today");
-                dateFrom = today;
+                log.warn("No Last execution, processing decisions for yesterday");
+                dateFrom = yesterday;
             }
             else  {
-                
-                Calendar c = Calendar.getInstance(); 
-                c.setTime(lastExecutionTime); 
-                c.add(Calendar.DATE, 1); //add one day
-                Date startDate = c.getTime();
-                
-                if (startDate.after(dateToday)) {
-                    log.info("Nothing to do, data for today was already processed");
-                    return ""; //no new files to be extracted
-                }
-               
-                 String last = dateFormat.format(startDate);
+                       
+                 String last = dateFormat.format(lastExecutionTime);
                  dateFrom = last;
             }
-             dateTo = today;
+             
+            dateTo = yesterday;
+             
+//            //TODO check that dataFrom is not > dateTo (in terms of days), if yes, end. 
+//              if (lastExecutionTime.after(dateYesterday)) { //ale after o den!!
+//                    log.info("Nothing to do, data up to yesterday was already processed");
+//                    return ""; //no new files to be extracted
+//                }
            
 
             log.info("Getting decisions for the dates from {} to {}", dateFrom, dateTo);
@@ -289,13 +298,21 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         else if (config.isCurrentDay()) {
 
             DateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY");
-            Date date = new Date();
-            String today = dateFormat.format(date);
+            
+             //get yesterday's date
+                Calendar c = Calendar.getInstance(); 
+                c.setTime(new Date()); //today
+                c.add(Calendar.DATE, -1); //get the previous day
+                Date dateYesterday= c.getTime();
+                String yesterday = dateFormat.format(dateYesterday);
+                
+//            Date date = new Date();
+//            String today = dateFormat.format(date);
 
-            dateFrom = today;
-            dateTo = today;
+            dateFrom = yesterday;
+            dateTo = yesterday;
 
-            log.info("Getting decisions for the date {}", today);
+            log.info("Getting decisions for the date {}", yesterday);
 
         }
        

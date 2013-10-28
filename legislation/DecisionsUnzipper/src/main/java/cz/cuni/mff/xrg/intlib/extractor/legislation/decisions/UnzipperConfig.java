@@ -15,8 +15,8 @@ public class UnzipperConfig extends DPUConfigObjectBase {
     
      private String dateFrom = "18/09/2013";
     private String dateTo = "18/09/2013";
-    private boolean currentDay = true;
-  private boolean fromLastSuccess = true;
+    private boolean currentDay = false;
+  private boolean fromLastSuccess = false;
 
     public boolean isFromLastSuccess() {
         return fromLastSuccess;
