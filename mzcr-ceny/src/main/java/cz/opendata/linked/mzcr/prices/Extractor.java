@@ -79,6 +79,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		{
 			List<Statement> statements = inputDataUnit.getTriples();
 			
+			int total = statements.size();
+			
 			URL notationPredicate = null;
 			try {
 				notationPredicate = new URL("http://www.w3.org/2004/02/skos/core#notation");
@@ -91,8 +93,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					}
 					if (stmt.getPredicate().toString().equals(notationPredicate.toString()))
 					{
-						s.parse(Cache.getDocument(new URL("http://mzcr.cz/LekyNehrazene.aspx?naz=" + stmt.getObject().stringValue()), 10000), "tab");
 						lines++;
+						logger.debug("Parsing " + lines + "/" + total);
+						s.parse(Cache.getDocument(new URL("http://mzcr.cz/LekyNehrazene.aspx?naz=" + stmt.getObject().stringValue()), 10000), "tab");
 					}
 				}
 			} catch (MalformedURLException e) {
