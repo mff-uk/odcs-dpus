@@ -143,6 +143,11 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 String inputFilePath = pathToWorkingDir + File.separator + "input" + File.separator + String.valueOf(i) + ".txt";
                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "input" + File.separator);
          
+                //TODO temp hack because there is a problem with perl scritp
+                if (subject.contains("5-Tdo-271-2013")) {
+                    log.warn("Skipping {}", subject);
+                    continue;
+                }
                 
                 //store the input content to file, inputs are xml files!
                 File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
@@ -327,17 +332,38 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         
         String label = "Kategorie rozhodnutí : ";
         if ((toBeProcessedTemp.indexOf(label) < 0)) {
-            log.warn("Label Kategorie rozhodnutí : was not found in the processed decision, creation of metadata section will not work properly");
-            throw new MetadataCreationException("Meta element not created");
+            log.info("Label \"Kategorie rozhodnutí : \" was not found in the processed decision.");
+            
+            label = "Kategorie rozhodnutí: "; //try without the space before colon
+            if ((toBeProcessedTemp.indexOf(label) < 0)) {
+                log.info("Label \"Kategorie rozhodnutí: \" was not found in the processed decision.");
+                
+                label = "Kategorie rozhodnutí :"; //try without the space after the colon
+                if ((toBeProcessedTemp.indexOf(label) < 0)) {
+                    log.info("Label \"Kategorie rozhodnutí :\" was not found in the processed decision.");
+                    
+                    label = "Kategorie rozhodnutí:"; //try without the space before and after the colon
+                    if ((toBeProcessedTemp.indexOf(label) < 0)) {
+                        log.info("Label \"Kategorie rozhodnutí:\" was not found in the processed decision.");
+                        
+                        log.warn("Label \"Kategorie rozhodnutí\" was not found in the processed decision, creation of metadata section will not work properly");
+                        throw new MetadataCreationException("Meta element not created");
+                    }
+
+                }
+                
+            }
+            
+            
         }
-        else {
+        
                     
             
-             String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label)+label.length()+2); //to accommodate label plus the category letter to metadata.
-            output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
-            content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label)+label.length()+2);
-        }
-                
+        String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label)+label.length()+2); //to accommodate label plus the category letter to metadata.
+        output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
+        content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label)+label.length()+2);
+
+
         
 //        if ((toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) && (toBeProcessedTemp.indexOf("ČESKÁ REPUBLIKA ROZSUDEKJMÉNEM REPUBLIKY") < 0))  {
 //            //try with small letters
