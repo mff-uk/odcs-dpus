@@ -746,6 +746,10 @@ public class Scraper_parser extends ScrapingTemplate{
     		
     	case "DNS cyklus":
     		return "pc:procedureType proctypes:DNSCycle";
+    	
+    	case "Výzva k podání nabídky":
+    	case "Výzva k podání nabídek":
+    		return "pc:procedureType proctypes:VyzvaKPodaniNabidek";
 
     	default:
     		
@@ -758,11 +762,80 @@ public class Scraper_parser extends ScrapingTemplate{
     {
 		if (oldIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
-		String newIC = oldIC.replace(" ", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
+		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
 		if (!oldIC.equals(newIC)) logger.info("Varování: IC/DIC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
     	return newIC; 
     }
     
+    private String getCurrency(String price)
+    {
+    	if (price == null) return null;
+    	if (price.contains("€") || price.contains("EUR")) return "EUR";
+    	else return "CZK";
+    }
+    
+    private String fixPrice(String oldPrice)
+    {
+		String newPrice = oldPrice;
+    	if (newPrice == null) return null;
+		newPrice.replace("DPH", "");
+		newPrice.replace("včetně", "");
+		newPrice.replace(" s ", "");
+    	if (newPrice.contains(" Kč")) {
+			newPrice = newPrice.substring(0, newPrice.indexOf(" Kč"));
+		}
+		if (newPrice.contains(".-")) {
+			newPrice = newPrice.substring(0, newPrice.indexOf(".-")).replace(".", "");
+		}
+		if (newPrice.contains(",-")) {
+			newPrice = newPrice.substring(0, newPrice.indexOf(",-")).replace(",","");
+		}
+		if (newPrice.contains("(")) newPrice = newPrice.substring(0, newPrice.indexOf("("));
+		if (newPrice.contains("/")) newPrice = newPrice.substring(0, newPrice.indexOf("/"));
+		if (newPrice.matches(".*[^0-9]{4,}.*")){
+			logger.info("Varování: Cena obsahuje text. Originál: " + oldPrice);
+			return null;
+		}
+		if (newPrice.contains(",") && newPrice.contains(".")) {
+			newPrice = newPrice.replace(".", "").replace(",",".");
+		}
+		if (newPrice.contains(",")) {
+			newPrice = newPrice.replace(",", ".");
+		}
+		if (newPrice.contains(".") && (newPrice.indexOf('.') != newPrice.lastIndexOf('.'))) {
+			if (newPrice.length() - newPrice.lastIndexOf('.') == 3) {
+				//na konci zřejmě haléře
+				newPrice = newPrice.substring(0, newPrice.lastIndexOf(".")).replace(".", "") + newPrice.substring(newPrice.lastIndexOf("."));
+			}
+			else {
+				newPrice = newPrice.replace(".", "");
+			}
+			logger.info("Varování: Cena obsahuje několik teček. Originál: " + oldPrice + " Aktuální: " + newPrice);
+		}
+		if (newPrice.contains(".") && newPrice.length() > 3 && (newPrice.length() - newPrice.indexOf('.') > 3)) {
+			if (newPrice.substring(0, newPrice.indexOf('.')).length() <= 3 && (newPrice.length() - newPrice.indexOf('.') == 4)) {
+				newPrice.replace(".", "");
+				logger.info("Varování: Cena obsahuje tečku a za ní 3 číslice - asi to nejsou haléře, odstraňuji. Originál: " + oldPrice + " Aktuální: " + newPrice);
+			}
+			else {
+				logger.info("Varování: Cena obsahuje tečku a za ní více jak 3 číslice - špatný formát, ale haláře? Nechávám. Originál: " + oldPrice + " Aktuální: " + newPrice);
+			}
+		}
+		if (newPrice.contains(" ")) {
+			newPrice = newPrice.replace(" ", "");
+		}
+		newPrice = newPrice.replaceAll("[^0-9\\.]", "");
+		if (newPrice.endsWith(".")) newPrice = newPrice.substring(0, newPrice.lastIndexOf('.'));
+		if (newPrice.equals(".")) {
+			logger.info("Varování: Cena zdegenerovala. Originál: " + oldPrice + " Aktulní: " + newPrice);
+			newPrice = null;
+		}
+		if (!oldPrice.equals(newPrice)) {
+			logger.info("Varování: Cena obsahuje chyby: " + oldPrice + " Oprava: " + newPrice);
+		}
+		return newPrice;
+    }
+
     @Override
     protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) {
         if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
@@ -1476,8 +1549,18 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			String mistoPodnikani = null;
 	            			if (uchazec.select("misto_podnikani") != null) mistoPodnikani = getStringFromElements(uchazec.select("misto_podnikani"));
 	            			String cena_s_dph = null;
-	            			if (uchazec.select("cena_s_dph") != null) cena_s_dph = getStringFromElements(uchazec.select("cena_s_dph"));
-	            			else if (uchazec.select("cena_s_DPH") != null) cena_s_dph = getStringFromElements(uchazec.select("cena_s_DPH"));
+	            			String currency = null;
+	            			if (uchazec.select("cena_s_dph") != null) {
+	            				String orig = getStringFromElements(uchazec.select("cena_s_dph"));
+	            				cena_s_dph = fixPrice(orig);
+	            				currency = getCurrency(orig);
+	            			}
+	            			else if (uchazec.select("cena_s_DPH") != null) {
+	            				String orig = getStringFromElements(uchazec.select("cena_s_DPH"));
+	            				cena_s_dph = fixPrice(orig);
+	            				cena_s_dph = fixPrice(orig);
+	            				currency = getCurrency(orig);
+	            			}
 	            			String bydliste = null;
 	            			if (uchazec.select("bydliste") != null) bydliste = getStringFromElements(uchazec.select("bydliste"));
 	            			
@@ -1506,7 +1589,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		            			
 	            				zak_ps.println("<" + uriPriceSpec + "> a gr:PriceSpecification ;");	
 	            				zak_ps.println("\tgr:hasCurrencyValue \"" + cena_s_dph + "\"^^xsd:decimal ;");
-	            				zak_ps.println("\tgr:hasCurrency \"CZK\" ;");
+	            				zak_ps.println("\tgr:hasCurrency \"" + currency + "\" ;");
 	            				zak_ps.println("\tgr:valueAddedTaxIncluded true ;");
 	            				zak_ps.println("\t.\n");
             				}
@@ -1555,13 +1638,31 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			String mistoPodnikani = null;
 	            			if (dodavatel.select("misto_podnikani_dodavatele") != null) mistoPodnikani = getStringFromElements(dodavatel.select("misto_podnikani_dodavatele"));
 	            			String cena_s_dph = null;
-	            			if (dodavatel.select("cena_celkem_dle_smlouvy_dph") != null) cena_s_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_dph"));
-	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_DPH") != null) cena_s_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_DPH"));
+	            			String currency_s_dph = null;
+	            			if (dodavatel.select("cena_celkem_dle_smlouvy_dph") != null) {
+	            				String orig = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_dph"));
+	            				cena_s_dph = fixPrice(orig);
+	            				currency_s_dph = getCurrency(orig);
+	            			}
+	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_DPH") != null) {
+	            				String orig = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_DPH"));
+	            				cena_s_dph = fixPrice(orig);
+	            				currency_s_dph = getCurrency(orig);
+	            			}
 	            			String bydliste = null;
 	            			if (dodavatel.select("bydliste_dodavatele") != null) bydliste = getStringFromElements(dodavatel.select("bydliste_dodavatele"));
 	            			String cena_bez_dph = null;
-	            			if (dodavatel.select("cena_celkem_dle_smlouvy_bez_dph") != null) cena_bez_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_dph"));
-	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH") != null) cena_bez_dph = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH"));
+	            			String currency_bez_dph = null;
+	            			if (dodavatel.select("cena_celkem_dle_smlouvy_bez_dph") != null) {
+	            				String orig = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_dph"));
+	            				cena_bez_dph = fixPrice(orig);
+	            				currency_bez_dph = getCurrency(orig);
+	            			}
+	            			else if (dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH") != null) {
+	            				String orig = getStringFromElements(dodavatel.select("cena_celkem_dle_smlouvy_bez_DPH"));
+	            				cena_bez_dph = fixPrice(orig);
+	            				currency_bez_dph = getCurrency(orig);
+	            			}
 	            			String rozpad = null;
 	            			if (dodavatel.select("rozpad") != null) rozpad = getStringFromElements(dodavatel.select("rozpad"));
 
@@ -1603,7 +1704,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            				{
 	            				zak_ps.println("<" + uriDPHPriceSpec + "> a gr:PriceSpecification ;");	
 	            				zak_ps.println("\tgr:hasCurrencyValue \"" + cena_s_dph + "\"^^xsd:decimal ;");
-	            				zak_ps.println("\tgr:hasCurrency \"CZK\" ;");
+	            				zak_ps.println("\tgr:hasCurrency \"" + currency_s_dph + "\" ;");
 	            				zak_ps.println("\tgr:valueAddedTaxIncluded true ;");
 	            				zak_ps.println("\t.\n");
             				}
@@ -1611,7 +1712,7 @@ public class Scraper_parser extends ScrapingTemplate{
             				{
 	            				zak_ps.println("<" + urinoDPHPriceSpec + "> a gr:PriceSpecification ;");	
 	            				zak_ps.println("\tgr:hasCurrencyValue \"" + cena_bez_dph + "\"^^xsd:decimal ;");
-	            				zak_ps.println("\tgr:hasCurrency \"CZK\" ;");
+	            				zak_ps.println("\tgr:hasCurrency \"" + currency_bez_dph + "\" ;");
 	            				zak_ps.println("\tgr:valueAddedTaxIncluded false ;");
 	            				zak_ps.println("\t.\n");
             				}

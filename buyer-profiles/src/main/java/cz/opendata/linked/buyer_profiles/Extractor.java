@@ -123,7 +123,7 @@ public class Extractor
 		        }
 		        catch (RDFException e)
 		        {
-		        	logger.error("Cannot put TTL to repository.");
+		        	logger.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
 		        	throw new DPUException("Cannot put TTL to repository.", e);
 		        }
 	    	}
