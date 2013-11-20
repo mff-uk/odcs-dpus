@@ -11,10 +11,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
 
 /**
  * Abstract class of common scraper.
@@ -47,6 +46,8 @@ public abstract class ScrapingTemplate {
     protected abstract void parse(Document doc, String docType, URL uri);    
     
     public DPUContext ctx;
+    
+    public Logger logger;
 
     /**
      * Run scraping on given URL and given document type.
@@ -68,11 +69,17 @@ public abstract class ScrapingTemplate {
                     continue;
                 }
                 Document doc = Cache.getDocument(p.url, 10, p.datatype);
-                toParse.addAll(this.getLinks(doc, p.type));
-                this.parse(doc, p.type, p.url);
-                parsed.add(p);
+                if (doc != null)
+                {
+                	toParse.addAll(this.getLinks(doc, p.type));
+                	this.parse(doc, p.type, p.url);
+                	parsed.add(p);
+                }
+                else {
+                	logger.warn("Skipped: " + p.url);
+                }
             } catch (IOException ex) {
-                Logger.getLogger(ScrapingTemplate.class.getName()).log(Level.SEVERE, null, ex);
+            	logger.warn("Exception: " + ex.getLocalizedMessage());
             } 
         }
         
