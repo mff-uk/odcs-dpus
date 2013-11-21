@@ -76,7 +76,7 @@ public abstract class ScrapingTemplate {
                 	parsed.add(p);
                 }
                 else {
-                	logger.warn("Skipped: " + p.url);
+                	logger.warn("Skipped: " + p.url.toString());
                 }
             } catch (IOException ex) {
             	logger.warn("Exception: " + ex.getLocalizedMessage());

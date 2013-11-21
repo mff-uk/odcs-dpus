@@ -30,7 +30,6 @@ public class Scraper_parser extends ScrapingTemplate{
     public PrintStream zak_ps;
     public boolean AccessProfiles;
     public boolean CurrentYearOnly;
-    public Logger logger;
     
     public int numrows = 0;
     public int cancellednumrows = 0;
@@ -62,6 +61,7 @@ public class Scraper_parser extends ScrapingTemplate{
             if (doc == null) return out;
         	Elements e = doc.select("div#SearchGrid div.t-grid-pager.t-grid-bottom div.t-pager.t-reset div~a.t-link ");
             Elements rows = doc.select("table tr");
+            if (rows == null) return out;
             if (e.size() == 0)
             {
             	logger.warn("0 elements?? Clear cache and try again");
