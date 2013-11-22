@@ -23,6 +23,12 @@ public class ExtractorConfig implements DPUConfigObject {
     public int interval = 0;
     
     public boolean sendCache = false;
+    
+    public boolean or_stdadr = true; 
+    
+    public boolean bas_puvadr = true;
+    
+    public boolean bas_active = false;
 	
 	@Override
     public boolean isValid() {

@@ -184,7 +184,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			try {
 				while (li.hasNext() && !ctx.canceled() && (config.sendCache || (downloaded < (toCache - 1)))) {
 					String currentIC = li.next();
-					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC);
+					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.bas_active ? "" : "&aktivni=false") + (config.bas_puvadr ? "&adr_puv=true" : ""));
 					if (!Cache.isCached(current) && !config.sendCache)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
@@ -217,7 +217,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						
 					if (ctx.canceled()) break;
 					
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC);
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.or_stdadr? "&stdadr=true" : ""));
 					if (!Cache.isCached(current) && !config.sendCache)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
