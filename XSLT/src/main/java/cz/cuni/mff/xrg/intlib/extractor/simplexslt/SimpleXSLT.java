@@ -25,6 +25,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
@@ -35,6 +36,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -44,6 +46,7 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
@@ -93,6 +96,133 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     public AbstractConfigDialog<SimpleXSLTConfig> getConfigurationDialog() {
         return new SimpleXSLTDialog();
     }
+    
+    //get params (values of http://linked.opendata.cz/ontology/odcs/xsltParam) if available
+    private Map<String,String> collectXsltParams(File xslTemplate, String subject) throws InvalidQueryException {
+
+        Map<String,String> params = new HashMap();
+         //prepare inputs, call xslt for each input
+        String query = "SELECT ?pName ?pValue where {<"+ subject +"> <" + config.getParamsPredicate() + "> ?x . ?x <" + config.getParamsPredicateName()+ "> ?pName ; <" + config.getParamsPredicateValue() + "> ?pValue . ";
+        log.debug("Query for getting params for the given subject {} files: {}", subject, query);
+
+        //get the return values
+        MyTupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
+        int resSize = 0;
+        try {
+            resSize = executeSelectQueryAsTuplesCount.asList().size();
+            log.info("Number of resulting params to be processed: {}", resSize);
+        } catch (QueryEvaluationException ex) {
+            log.error("Cannot evaluate query for counting number of triples" + ex.getLocalizedMessage());
+            return null;
+        }
+
+        MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+
+
+
+        int i = 0;
+        try {
+
+            while (executeSelectQueryAsTuples.hasNext()) {
+                
+                i++;
+
+                log.info("Processing file: {}/{} ", i,resSize);
+
+                //process the inputs
+                BindingSet solution = executeSelectQueryAsTuples.next();
+                Binding b = solution.getBinding("pName");
+                String pName = b.getValue().toString();
+                String pValue = solution.getBinding("pValue").getValue().toString();
+
+                log.info("The param name/value is {}/{}", pName,pValue);
+                
+                //adjust the xslt 0
+                //in xslt: <xsl:param name="bodyTextSize">10pt</xsl:param>
+                params.put(pName, pValue);
+                
+                
+                
+            }
+        } catch (QueryEvaluationException ex) {
+            log.error("Problem evaluating the query to obtain params for the subject {} literals. Processing continues without params", subject);
+            log.debug(ex.getLocalizedMessage());
+        }
+
+        log.info("Processed {} params - values of predicate {}", i, config.getParamsPredicate());
+        return params;
+    
+    }
+    
+//     private void adjust(File xslTemplate, String pName, String pValue) {
+//
+//    try {
+//		String filepath = "c:\\file.xml";
+//		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+//		Document doc = docBuilder.parse(filepath);
+// 
+//		// Get the root element
+//		Node company = doc.getFirstChild();
+// 
+//		// Get the staff element , it may not working if tag has spaces, or
+//		// whatever weird characters in front...it's better to use
+//		// getElementsByTagName() to get it directly.
+//		// Node staff = company.getFirstChild();
+// 
+//		// Get the staff element by tag name directly
+//		Node staff = doc.getElementsByTagName("staff").item(0);
+// 
+//		// update staff attribute
+//		NamedNodeMap attr = staff.getAttributes();
+//		Node nodeAttr = attr.getNamedItem("id");
+//		nodeAttr.setTextContent("2");
+// 
+//		// append a new node to staff
+//		Element age = doc.createElement("age");
+//		age.appendChild(doc.createTextNode("28"));
+//		staff.appendChild(age);
+// 
+//		// loop the staff child node
+//		NodeList list = staff.getChildNodes();
+// 
+//		for (int i = 0; i < list.getLength(); i++) {
+// 
+//                   Node node = list.item(i);
+// 
+//		   // get the salary element, and update the value
+//		   if ("salary".equals(node.getNodeName())) {
+//			node.setTextContent("2000000");
+//		   }
+// 
+//                   //remove firstname
+//		   if ("firstname".equals(node.getNodeName())) {
+//			staff.removeChild(node);
+//		   }
+// 
+//		}
+// 
+//		// write the content into xml file
+//		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+//		Transformer transformer = transformerFactory.newTransformer();
+//		DOMSource source = new DOMSource(doc);
+//		StreamResult result = new StreamResult(new File(filepath));
+//		transformer.transform(source, result);
+// 
+//		System.out.println("Done");
+// 
+//	   } catch (ParserConfigurationException pce) {
+//		pce.printStackTrace();
+//	   } catch (TransformerException tfe) {
+//		tfe.printStackTrace();
+//	   } catch (IOException ioe) {
+//		ioe.printStackTrace();
+//	   } catch (SAXException sae) {
+//		sae.printStackTrace();
+//	   }
+//        
+//    }
+    
 
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
@@ -177,8 +307,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 String subject = solution.getBinding("s").getValue().toString();
 
                 log.info("The subject is {}", subject);
-                //log.debug("Processing file {}", fileContent);
-
+                
+                //get params for the XSLT template if available:
+               Map<String, String> xsltParams = collectXsltParams(xslTemplate,subject);
+                
 
                 //store the input content to file, inputs are xml files!
                 String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
@@ -189,7 +321,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 }
 
                 //call xslt, obtain result in a string
-                String outputString = executeXSLT(xslTemplate, file);
+                String outputString = executeXSLT(xslTemplate, file, xsltParams);
                 if (outputString == null) {
                     log.warn("Problem generating output of xslt transformation for subject {}", subject);
                     continue;
@@ -346,6 +478,8 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 
     }
+    
+       
 
     private static String encode(String literalValue, String escapedMappings) {
 
@@ -368,7 +502,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
     }
 
-    private String executeXSLT(File xslTemplate, File file) {
+    private String executeXSLT(File xslTemplate, File file, Map<String, String> xsltParams) {
 
         if (xslTemplate == null || file == null) {
             log.error("Invalid inputs to executeXSLT method");
@@ -392,10 +526,17 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             //out.setOutputFile(outputFile);
 
             XsltTransformer trans = exp.load();
-
+            
             trans.setInitialContextNode(source);
             trans.setDestination(out);
-            //trans.setParameter(QName.XS_ID, source);
+            
+            //set params for the template!
+            for (String s : xsltParams.keySet()) {
+                QName langParam = new QName(s);
+                trans.setParameter(langParam, new XdmAtomicValue(xsltParams.get(s)));
+            }
+            
+            
             trans.transform();
             return sw.toString();
 
@@ -417,4 +558,6 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         }
         return fileContent;
     }
+
+   
 }

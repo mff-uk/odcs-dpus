@@ -11,7 +11,7 @@ import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
  */
 public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
     
- 
+    
      
       private String inputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
      

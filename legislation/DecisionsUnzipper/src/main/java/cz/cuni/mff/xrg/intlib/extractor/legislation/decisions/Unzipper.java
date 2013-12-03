@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.UnzipException;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.configuration.Configurable;
 
@@ -64,6 +65,9 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
             Unzipper.class);
+    
+    private String dateFrom;
+    private String dateTo;
 
     public Unzipper() {
         super(UnzipperConfig.class);
@@ -102,9 +106,10 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         String urlWithZip = null;
         try {
             urlWithZip = buildURL(config,context.getLastExecutionTime());
+            context.sendMessage(MessageType.INFO, "Running for dates: " + dateFrom + " - " + dateTo);
         } catch (ConfigException ex) {
-            log.error("DateFrom must be filled");
-            context.sendMessage(MessageType.ERROR, "DateFrom must be filled");
+            //log.error("Problem when building URL to be downloaded: " + ex.getLocalizedMessage());
+            context.sendMessage(MessageType.ERROR, "Problem when building URL to be downloaded: " + ex.getLocalizedMessage());
             return;
         } 
         
@@ -137,22 +142,28 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
         }
 
+//        //Check that the file exists
+//        if (!Files.exists(new File(tmpCourtFilesZipFile).toPath())) {
+//             //TODO check whether there are only Saturdays and Sundays. If yes, it is ok that nothing was downloaded
+//             context.sendMessage(MessageType.WARNING, "No data to be unzipped. Extractor is ending.", "Possible reason: No data available for the chosen dates: " + dateFrom + " - " + dateTo);
+//             return;
+//        }
+        
         //*****************************
         //UNZIP files
         log.info("About to unzip {} ", tmpCourtFilesZipFile);
 
         try {
-            if (!unzip(tmpCourtFilesZipFile, tmpCourtFiles)) {
-                //log.warn("Archive was not unzipped, dpu is ending.");
-                context.sendMessage(MessageType.ERROR, "Cannot unzip the file, DPU is ending.");
-                return;
-            }
+            unzip(tmpCourtFilesZipFile, tmpCourtFiles);              
+ 
 
-        } catch (ZipException ex) {
-            log.error("Unzip error, {}", ex.getLocalizedMessage());
-        } catch (IOException ex) {
-            log.error(ex.getLocalizedMessage());
+        } catch (UnzipException ex) {
+            
+             //log.warn("Archive was not unzipped, dpu is ending.");
+             context.sendMessage(MessageType.WARNING, "No data to be unzipped, DPU is ending.", "It was run for dates: " + dateFrom + " - " + dateTo + ". The original problem was: " + ex.getLocalizedMessage() + ". Possible reason: No data available for the chosen dates");
+             return;
         }
+      
 
 
 
@@ -253,8 +264,8 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 
         String urlWithZip = "http://www.nsoud.cz/Judikatura/judikatura_ns.nsf/zip?openAgent&query=%5Bdatum_predani_na_web%5D%3E%3D";
 
-        String dateFrom = config.getDateFrom();
-        String dateTo = config.getDateTO();
+       dateFrom = config.getDateFrom();
+       dateTo = config.getDateTO();
 
         if (config.isFromLastSuccess()) {
             DateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY");
@@ -332,24 +343,25 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         urlWithZip += "&start=1&count=" + config.getMaxExtractedDecisions() + "&pohled=";
 
         log.debug(urlWithZip);
+       
         return urlWithZip;
 
 
     }
 
-    private static boolean unzip(String source, String destination) throws IOException, ZipException {
+    private static void unzip(String source, String destination) throws UnzipException {
 
         try {
             ZipFile zipFile = new ZipFile(source);
             if (zipFile.isEncrypted()) {
-                log.error("Zip encrypted");
-                return false;
+        
+                throw new UnzipException("Zip encrypted");
             }
             zipFile.extractAll(destination);
-            return true;
+           
         } catch (ZipException e) {
-            log.error("Error {}", e.getLocalizedMessage());
-            return false;
+          
+            throw new UnzipException(e.getLocalizedMessage());
         }
     }
 

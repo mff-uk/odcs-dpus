@@ -19,6 +19,23 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private String xslTemplate = "";
     private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;  //input is always XML
     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+    private final String paramsPredicate = "http://linked.opendata.cz/ontology/odcs/xsltParam";
+    private final String paramsPredicateName = "http://purl.org/dc/terms/title";
+    private final String paramsPredicateValue = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value"; //rdf:value
+
+    public String getParamsPredicate() {
+        return paramsPredicate;
+    }
+
+    public String getParamsPredicateName() {
+        return paramsPredicateName;
+    }
+
+    public String getParamsPredicateValue() {
+        return paramsPredicateValue;
+    }
+    
+    
     private String xslTemplateFileNameShownInDialog = "";
     private String escapedString =  "\"\"\":&quote;&quote;&quote; "; // "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
     private int numberOfTriesToConnect = -1;
