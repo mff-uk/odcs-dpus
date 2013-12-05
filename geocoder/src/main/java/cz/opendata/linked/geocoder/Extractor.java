@@ -149,9 +149,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
        	logger.info("Geocoding done.");
 
-       	logger.debug("Saving geo cache");
-		Geocoder.saveCache(geoCache);
-       	logger.debug("Geo cache saved.");
+       	if (config.rewriteCache) {
+		   	logger.debug("Saving geo cache");
+			Geocoder.saveCache(geoCache);
+		   	logger.debug("Geo cache saved.");
+       	}
 			
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
