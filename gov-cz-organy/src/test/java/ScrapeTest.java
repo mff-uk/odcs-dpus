@@ -1,9 +1,4 @@
-import static org.junit.Assert.*;
-
-import java.io.File;
-
 import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
@@ -19,8 +14,9 @@ public class ScrapeTest {
 		Extractor extractor = new Extractor();
 		ExtractorConfig config = new ExtractorConfig();
 		
-		config.interval = 2000;
+		config.interval = 0;
 		config.timeout = 10000;
+		config.rewriteCache = false;
 		
 		extractor.configureDirectly(config);
 		

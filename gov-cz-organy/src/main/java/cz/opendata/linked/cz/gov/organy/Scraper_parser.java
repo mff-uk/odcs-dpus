@@ -1,6 +1,5 @@
 package cz.opendata.linked.cz.gov.organy;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.LinkedList;
@@ -9,12 +8,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.slf4j.Logger;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
@@ -27,9 +24,6 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-	public Logger logger ;
-	public PrintStream ps;
-	public DPUContext ctx;
 	public RDFDataUnit list, details;
 	private int numDetails;
 	private int current;
@@ -49,11 +43,9 @@ public class Scraper_parser extends ScrapingTemplate{
 			    OrganyListParser handler = new OrganyListParser(out);
 			    xr.setContentHandler(handler);				
 			} catch (SAXException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getLocalizedMessage());
 			} catch (ParserConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getLocalizedMessage());
 			}
 			
 			try {
@@ -63,11 +55,9 @@ public class Scraper_parser extends ScrapingTemplate{
 				current = 0;
 				
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.error(e1.getLocalizedMessage());
 			} catch (SAXException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.error(e1.getLocalizedMessage());
 			}
 
         }
@@ -76,7 +66,7 @@ public class Scraper_parser extends ScrapingTemplate{
     
     @Override
     protected void parse(String doc, String docType, URL url) {
-    	if (docType.equals("list"))
+    	if (docType.equals("init"))
     	{
 			list.addTriple(list.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), list.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),list.createLiteral(doc));
     	}

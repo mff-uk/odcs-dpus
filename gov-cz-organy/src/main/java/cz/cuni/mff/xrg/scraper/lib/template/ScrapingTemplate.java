@@ -4,6 +4,7 @@
  */
 package cz.cuni.mff.xrg.scraper.lib.template;
 
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -11,8 +12,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
 
 /**
  * Abstract class of common scraper.
@@ -27,7 +28,10 @@ import java.util.logging.Logger;
  */
 public abstract class ScrapingTemplate {
     
-    /** 
+    public DPUContext ctx;
+    public Logger logger;
+	
+	/** 
      * This method looks for links in actual document and create entries with URL and document type.
      * 
      * @param doc Input JSoup document.
@@ -56,7 +60,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type, "xml"));
         
-        while (!toParse.isEmpty()) {
+        while (!toParse.isEmpty() && !ctx.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
@@ -71,9 +75,10 @@ public abstract class ScrapingTemplate {
                 if (Cache.errorsFetchingURL > 10) throw new BannedException();
                 parsed.add(p);
             } catch (IOException ex) {
-                Logger.getLogger(ScrapingTemplate.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getLocalizedMessage());
             } 
         }
+        if (ctx.canceled()) logger.info("Cancelled");
         
     }
     

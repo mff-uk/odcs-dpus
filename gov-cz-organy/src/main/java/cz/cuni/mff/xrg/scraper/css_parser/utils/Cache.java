@@ -1,30 +1,16 @@
 package cz.cuni.mff.xrg.scraper.css_parser.utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Entities.EscapeMode;
-import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 /**
  *  Document cache. It stores downloaded files to hard drive.
  * 
@@ -234,6 +220,8 @@ public class Cache {
 			FileInputStream fisTargetFile = new FileInputStream(hFile);
 
 			out = IOUtils.toString(fisTargetFile, "UTF-8");
+			
+			fisTargetFile.close();
 
 		}
 		return out;

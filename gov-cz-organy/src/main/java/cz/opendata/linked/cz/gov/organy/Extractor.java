@@ -68,9 +68,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		try {
 			URL init = new URL("http://seznam.gov.cz/ovm/datafile.do?format=xml&service=seznamovm");
 			
-			Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
-			logger.info("Deleting " + path);
-			Files.deleteIfExists(path);
+			if (config.rewriteCache)
+			{
+				Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
+				logger.info("Deleting " + path);
+				Files.deleteIfExists(path);
+			}
 			
 			try {
 				s.parse(init, "init");
@@ -81,12 +84,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
         	logger.info("Download done.");
 		
 		} catch (IOException e) {
+			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			logger.error("Interrupted");
-			s.ps.close();
 		}
-
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
