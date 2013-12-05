@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>    
     <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
-    <artifactId>Transformer_geocoder</artifactId>
+    <artifactId>Geocoder</artifactId>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
     

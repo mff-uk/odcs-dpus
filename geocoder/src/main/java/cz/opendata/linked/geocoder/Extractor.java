@@ -3,6 +3,7 @@ package cz.opendata.linked.geocoder;
 import java.io.File;
 
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -105,9 +106,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				for (String currentBinding : props)
 				{
-					if (s.hasBinding(currentBinding))
+					Value currentValue = s.getValue(currentBinding);
+					if (s.hasBinding(currentBinding) && currentValue != null)
 					{
-						addressToGeoCode.append(s.getValue(currentBinding).stringValue());
+						logger.trace("Currently " + currentBinding);
+						String currentValueString = currentValue.stringValue();
+						logger.trace("Value " + currentValueString);
+						addressToGeoCode.append(currentValueString);
 						addressToGeoCode.append(" ");
 					}
 				}
