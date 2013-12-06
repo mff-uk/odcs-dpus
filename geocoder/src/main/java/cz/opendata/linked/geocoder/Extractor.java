@@ -98,7 +98,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			logger.debug("Starting geocoding.");
 			
 			String[] props = new String [] {"street", "locality", "region", "postal", "country"};
-			while (res.hasNext())
+			while (res.hasNext() && !ctx.canceled())
 			{
 				count++;
 				BindingSet s = res.next();
@@ -145,6 +145,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					logger.warn("Failed to locate: " + address);
 				}
 			}
+			if (ctx.canceled()) logger.info("Cancelled");
 			
 		} catch (InvalidQueryException e) {
 			logger.error(e.getLocalizedMessage());
