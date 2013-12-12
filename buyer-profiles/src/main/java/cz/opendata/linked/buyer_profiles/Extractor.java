@@ -60,8 +60,7 @@ public class Extractor
 		try {
 			Cache.setTrustAllCerts();
 		} catch (Exception e1) {
-			logger.error("Unexpected error when setting trust to all certificates");
-			e1.printStackTrace();
+			logger.error("Unexpected error when setting trust to all certificates: " + e1.getLocalizedMessage());
 		}
 		
         Scraper_parser s = new Scraper_parser();

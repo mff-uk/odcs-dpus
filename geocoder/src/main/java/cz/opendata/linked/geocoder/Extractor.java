@@ -72,6 +72,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		URI addressCountryURI = sAddresses.createURI("http://schema.org/addressCountry");
 		URI postalCodeURI = sAddresses.createURI("http://schema.org/postalCode");
 		URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
+		URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
 		URI longURI = outGeo.createURI("http://schema.org/longitude");
 		URI latURI = outGeo.createURI("http://schema.org/latitude");
 		String geoCache = new File(ctx.getGlobalDirectory(), "cache/geocoder.cache").getAbsolutePath();
@@ -201,8 +202,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					
 					outGeo.addTriple(addressURI, geoURI , coordURI);
 					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
-					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString(), xsdDouble));
-					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString(), xsdDouble));
+					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
+					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 				}
 				else {
 					failed++;
