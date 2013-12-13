@@ -53,7 +53,7 @@ public class Parser extends ScrapingTemplate{
     }
     private String uriSlug(String input)
     {
-    	return input.toLowerCase().replace(" ", "-").replace(".", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
+    	return input.toLowerCase().replace(" ", "-").replace(".", "-").replace("–", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
     }
 
     private void printIfNotNullOrEmpty(String before, String what, String after)

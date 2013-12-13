@@ -113,7 +113,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				logger.info("Processed in " + (end-start) + "ms");
 			}
 			catch (IOException e) {
-				logger.error(e.getLocalizedMessage());
+				e.printStackTrace();
+				logger.error(e.getLocalizedMessage() + " ");
 			}
         	
 			logger.info("Parsing done. Passing RDF to ODCS");
@@ -123,7 +124,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
 			catch (RDFException e)
 			{
-				logger.error("Cannot put TTL to repository.");
+				logger.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
 				throw new DPUException("Cannot put TTL to repository.");
 			}
 		} catch (InterruptedException intex) {
