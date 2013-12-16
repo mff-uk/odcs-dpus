@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.odcs</groupId>
+        <artifactId>module-core</artifactId>
+        <version>1.0.0</version>
+    </parent>    
+    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
+    <artifactId>GeocoderGoogle</artifactId>
+    <packaging>bundle</packaging>
+    <version>1.0.0</version>
+    <description>This extractor geocodes input Schema.org addresses using Google Geolocation API</description>
+    
+    <properties>    
+        <!-- TODO 4: fill the name of root package -->
+        <dpu.package>cz.opendata.linked.geocoder.google</dpu.package>
+        <!-- TODO 5: fill DPU main class name here -->
+        <dpu.mainClass>Extractor</dpu.mainClass>    
+    </properties>
+ 	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.geocoder-java</groupId>
+			<artifactId>geocoder-java</artifactId>
+			<version>0.15</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.8</version>
+		</dependency>
+     </dependencies>
+</project>
