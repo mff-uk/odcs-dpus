@@ -80,8 +80,8 @@ public class Parser extends ScrapingTemplate{
                 
                 logger.debug("Kod agendy " + kodAgendy);
 
-                String ohlasovatelAgendy = parts[6].replaceAll(" (.*) Identifikace OVM", "$1");
-                if (ohlasovatelAgendy.equals(" Identifikace OVM")) ohlasovatelAgendy = null;
+                //String ohlasovatelAgendy = parts[6].replaceAll(" (.*) Identifikace OVM", "$1");
+                //if (ohlasovatelAgendy.equals(" Identifikace OVM")) ohlasovatelAgendy = null;
                 String identifikaceOVM = parts[7].replaceAll(" (.*) Název OVM", "$1");
                 String nazevOVM = parts[8].replaceAll(" (.*) A\\) Právní předpisy, na jejichž základě je agenda vykonávána", "$1");
                 
@@ -94,9 +94,9 @@ public class Parser extends ScrapingTemplate{
                 printIfNotNullOrEmpty("\tovm-a:datumRegistrace \"", datumRegistrace, "\"^^xsd:date ;");
                 printIfNotNullOrEmpty("\tovm-a:platnostOd \"", platnostOd, "\"^^xsd:date ;");
                 printIfNotNullOrEmpty("\tovm-a:platnostDo \"", platnostDo, "\"^^xsd:date ;");
-                printIfNotNullOrEmpty("\tovm-a:ohlasovatelAgendy \"", ohlasovatelAgendy, "\" ;");
-                printIfNotNullOrEmpty("\tovm-a:identifikaceOVM \"", identifikaceOVM, "\" ;");
-                printIfNotNullOrEmpty("\tovm-a:ovm <http://linked.opendata.cz/resource/business-entity/CZ", identifikaceOVM, "> ;");
+                //printIfNotNullOrEmpty("\tovm-a:ohlasovatelAgendy \"", ohlasovatelAgendy, "\" ;");
+                //printIfNotNullOrEmpty("\tovm-a:identifikaceOVM \"", identifikaceOVM, "\" ;");
+                printIfNotNullOrEmpty("\tovm-a:ohlasovatelAgendy <http://linked.opendata.cz/resource/business-entity/CZ", identifikaceOVM, "> ;");
                 printIfNotNullOrEmpty("\tovm-a:nazevOVM \"", nazevOVM, "\" ;");
                 
                 Elements tables = doc.select("body table");
@@ -257,6 +257,24 @@ public class Parser extends ScrapingTemplate{
                 }
                 
                 ps.println("\t.\n");
+                
+                //ohlašovatel činnosti gr:BE
+                String currentBEURI = "http://linked.opendata.cz/resource/business-entity/CZ" + identifikaceOVM;
+            	
+                ps.println("<" + currentBEURI + "> a gr:BusinessEntity ;");
+                printIfNotNullOrEmpty("\tgr:legalName \"", nazevOVM, "\" ;");
+                printIfNotNullOrEmpty("\tdcterms:title \"", nazevOVM, "\" ;");
+                
+            	String beidUri = currentBEURI + "/identifier/" + identifikaceOVM;
+                printIfNotNullOrEmpty("\tadms:identifier <", beidUri ,"> ;");
+                ps.println("\t.\n");
+
+                printIfNotNullOrEmpty("<",beidUri,"> a adms:Identifier ;");
+            	printIfNotNullOrEmpty("\tskos:notation \"",identifikaceOVM,"\" ;");
+            	printIfNotNullOrEmpty("\tskos:prefLabel \"",identifikaceOVM,"\" ;");
+            	ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
+                ps.println("\t.\n");
+                //konec ohlašovatele agendy
                 
                 //Parse table B
                 //CssSelector tableB = new CssSelector(doc, "body table:has(caption:contains(B) Výčet činností vykonávaných v agendě:)");
