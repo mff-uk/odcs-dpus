@@ -242,9 +242,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				{
 					geocoderRequest = new GeocoderRequestBuilder().setAddress(address).setLanguage("en").getGeocoderRequest();
 					geocoderResponse = geocoder.geocode(geocoderRequest);
+					lastDownload = date.getTime();
 					
 					geocodes++;
-					if (geocoderResponse.getStatus() == GeocoderStatus.OK) {
+					GeocoderStatus s = geocoderResponse.getStatus();
+					if (s == GeocoderStatus.OK) {
 						logger.debug("Googled (" + geocodes + "): " + address);
 						
 						try {
@@ -255,6 +257,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 							logger.error(e.getLocalizedMessage());
 						}
 						//CACHED
+					}
+					else if (s == GeocoderStatus.ZERO_RESULTS) {
+						logger.warn("Zero results for: " + address);
+						continue;
 					}
 					else {
 						logger.error("Status: " + geocoderResponse.getStatus() + " " + address);
