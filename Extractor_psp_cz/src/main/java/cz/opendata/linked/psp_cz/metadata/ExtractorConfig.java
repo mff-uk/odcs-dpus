@@ -2,14 +2,14 @@ package cz.opendata.linked.psp_cz.metadata;
 
 import java.util.Calendar;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
+import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class ExtractorConfig implements DPUConfigObject {
+public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	/**
 	 * 

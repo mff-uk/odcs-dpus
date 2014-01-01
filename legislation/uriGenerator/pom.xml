@@ -1,47 +1,42 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-       <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
-        <version>1.0.0</version>
-    </parent>    
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
-    <artifactId>Legislation_decisions_uriGenerator</artifactId>
-    <packaging>bundle</packaging>
-    <dependencies>
-         <dependency>
-	<groupId>net.lingala.zip4j</groupId>
-	<artifactId>zip4j</artifactId>
-	<version>1.2.3</version>
-</dependency>
-    </dependencies>
-    <properties>    
-    	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>0.0.1</dpu.version>
-        <!-- TODO 3: fill module description, the description will be visible to the user -->
-        <dpu.description>Module which generates URI for the decisions annotated by jTagger annotator. The input is formed by triples "x ...xmlText y" where y is the annotated decision. 
-        The output is formed by triples "x ...xmlText y", where y is the annotated file with uris generated</dpu.description>
-        <!-- TODO 4: fill the name of root package -->
-        <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
-        <dpu.mainClass>UriGenerator</dpu.mainClass>    
-    </properties>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>    
+	<artifactId>Legislation_decisions_uriGenerator</artifactId>
+	<packaging>bundle</packaging>
+	<version>0.0.1</version>
+	<description>Module which generates URI for the decisions annotated by jTagger annotator. The input is formed by triples "x ...xmlText y" where y is the annotated decision. 
+		The output is formed by triples "x ...xmlText y", where y is the annotated file with uris generated</description>
+	<dependencies>
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+	</dependencies>
+	<properties>    
+		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
+		<dpu.mainClass>UriGenerator</dpu.mainClass>    
+	</properties>
     
-    <build>
+	<build>
         
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
-                <targetPath>src/main/resources</targetPath>
-                 <includes>
-                    <include>**/*</include>
+		<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
+				<targetPath>src/main/resources</targetPath>
+				<includes>
+					<include>**/*</include>
                    
-                </includes>
-            </resource>
+				</includes>
+			</resource>
  
-        </resources>
-    </build>
+		</resources>
+	</build>
  	
 </project>

@@ -7,16 +7,13 @@
         <artifactId>module-core</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>GeocoderGoogle</artifactId>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
     <description>This extractor geocodes input Schema.org addresses using Google Geolocation API</description>
     
     <properties>    
-        <!-- TODO 4: fill the name of root package -->
         <dpu.package>cz.opendata.linked.geocoder.google</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
  	<dependencies>

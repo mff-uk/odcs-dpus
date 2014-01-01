@@ -1,31 +1,26 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <modelVersion>4.0.0</modelVersion>
-     <parent>
-        <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
-        <version>1.0.0</version>
-    </parent>
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
-    <artifactId>Legislation_Decisions_Unzipper</artifactId>
-    <packaging>bundle</packaging>
-    <dependencies>
-         <dependency>
-	<groupId>net.lingala.zip4j</groupId>
-	<artifactId>zip4j</artifactId>
-	<version>1.2.3</version>
-</dependency>
-    </dependencies>
-    <properties>    
-    	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>0.0.1</dpu.version>
-        <!-- TODO 3: fill module description, the description will be visible to the user -->
-        <dpu.description>Module which is able to unzip decisions from nsoud. The output is formed by tripels "x ...hasTextContent y", where y is the unzipped file</dpu.description>
-        <!-- TODO 4: fill the name of root package -->
-        <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
-        <dpu.mainClass>Unzipper</dpu.mainClass>    
-    </properties>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>Legislation_Decisions_Unzipper</artifactId>
+	<packaging>bundle</packaging>
+	<description>Module which is able to unzip decisions from nsoud. The output is formed by tripels "x ...hasTextContent y", where y is the unzipped file</description>
+	<version>0.0.1</version>
+	<dependencies>
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+	</dependencies>
+	<properties>    
+		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
+		<dpu.mainClass>Unzipper</dpu.mainClass>    
+	</properties>
  	
 </project>

@@ -3,29 +3,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-       <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
+        <groupId>cz.cuni.mff.xrg.odcs</groupId>
+        <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>Legislation_Decisions_jTagger</artifactId>
     <packaging>bundle</packaging>
+	<version>0.0.1</version>
+	<description>Module which annotates extracted decisions. The input is formed by triples "x ...hasTextContent y" where y is the unzipped decision. 
+            The output is formed by triples "x ...hasXMLContent y", where y is the annotated file, with supplemented metadata/content elements and paragraphs</description>
     <dependencies>
-         <dependency>
-	<groupId>net.lingala.zip4j</groupId>
-	<artifactId>zip4j</artifactId>
-	<version>1.2.3</version>
-</dependency>
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>1.2.3</version>
+        </dependency>
     </dependencies>
     <properties>    
-    	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>0.0.1</dpu.version>
-        <!-- TODO 3: fill module description, the description will be visible to the user -->
-        <dpu.description>Module which annotates extracted decisions. The input is formed by triples "x ...hasTextContent y" where y is the unzipped decision. 
-        The output is formed by triples "x ...hasXMLContent y", where y is the annotated file, with supplemented metadata/content elements and paragraphs</dpu.description>
-        <!-- TODO 4: fill the name of root package -->
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>JTaggerAnnotator</dpu.mainClass>    
     </properties>
     
@@ -35,7 +30,7 @@
             <resource>
                 <directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
                 <targetPath>src/main/resources</targetPath>
-                 <includes>
+                <includes>
                     <include>**/*</include>
                    
                 </includes>

@@ -1,6 +1,5 @@
 package cz.opendata.linked.ares;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**

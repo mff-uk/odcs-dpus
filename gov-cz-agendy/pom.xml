@@ -4,20 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
+        <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>Extractor_gov_cz_agendy</artifactId>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
-	<!-- TODO 3: fill module description, the description will be visible to the user -->
 	<description>This extractor scrapes Agendy from https://rpp-ais.egon.gov.cz/gen/agendy-detail/</description>
-    
     <properties>    
-        <!-- TODO 4: fill the name of root package -->
         <dpu.package>cz.opendata.linked.cz.gov.agendy</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
  	<dependencies>

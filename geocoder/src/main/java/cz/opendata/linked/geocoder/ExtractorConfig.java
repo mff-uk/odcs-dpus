@@ -3,14 +3,14 @@ package cz.opendata.linked.geocoder;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
+import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class ExtractorConfig implements DPUConfigObject {
+public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	/**
 	 * 

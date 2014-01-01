@@ -3,13 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-      <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+        <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <!-- TODO 1: fill the DPU name, without special characters, use '_' instead of whitespaces -->
     <artifactId>Simple_XSLT</artifactId>
     <packaging>bundle</packaging>
+	<version>0.0.1</version>
+	<description>Module which is able to apply selected XSLT transformation to the XML file. The output of the XSLT must be RDF data.</description>
     <dependencies>
         <dependency>
             <groupId>net.sourceforge.saxon</groupId>
@@ -19,13 +20,7 @@
         </dependency>
     </dependencies>
     <properties>    
-    	<!-- TODO 2: specify module version, can be left unchanged -->
-        <dpu.version>0.0.1</dpu.version>
-        <!-- TODO 3: fill module description, the description will be visible to the user -->
-        <dpu.description>Module which is able to apply selected XSLT transformation to the XML file. The output of the XSLT must be RDF data. </dpu.description>
-        <!-- TODO 4: fill the name of root package -->
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.simplexslt</dpu.package>
-        <!-- TODO 5: fill DPU main class name here -->
         <dpu.mainClass>SimpleXSLT</dpu.mainClass>    
     </properties>
  	
