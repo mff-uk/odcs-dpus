@@ -18,6 +18,12 @@
             <version>9.2.1.5</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>ontology</artifactId>
+            <version>1.0.0</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.simplexslt</dpu.package>

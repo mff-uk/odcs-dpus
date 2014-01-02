@@ -3,7 +3,6 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
-
 /**
  *
  * Put your DPU's configuration here.

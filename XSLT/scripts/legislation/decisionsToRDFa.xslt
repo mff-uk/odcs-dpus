@@ -60,7 +60,7 @@
 	
 	<xsl:template match="content">
 		<!-- article holds the decision expression resource -->
-		<article typeof="frbr:Expression sdo:Publication" prefix="frbr:  http://purl.org/vocab/frbr/core# dcterms: http://purl.org/dc/terms/ sdo: http://salt.semanticauthoring.org/ontologies/sdo# sao: http://salt.semanticauthoring.org/ontologies/sao# lex: http://purl.org/lex#" xml:base="http://linked.opendata.cz/resource/">
+		<article typeof="frbr:Expression sdo:Publication" prefix="frbr: http://purl.org/vocab/frbr/core# dcterms: http://purl.org/dc/terms/ sdo: http://salt.semanticauthoring.org/ontologies/sdo# sao: http://salt.semanticauthoring.org/ontologies/sao# lex: http://purl.org/lex#" xml:base="http://linked.opendata.cz/resource/">
 			<!--<xsl:attribute name="vocab" select="$vocab" />-->
 			<xsl:attribute name="resource" select="$decisionExpressionURI" />
 			
@@ -149,12 +149,26 @@
 							<xsl:attribute name="resource" select="concat($decisionExpressionURI, '/textchunk/', $id, '/annotation/1')" />
 							
 							<xsl:if test="string-length($thingURI) &gt; 0">
-									<div property="sao:hasTopic" typeof="lex:Act">
-										<xsl:attribute name="resource" select="$thingURI" />
-										<span property="dcterms:title">
-											<xsl:value-of select="$title" />
-										</span>
-									</div>
+								    <xsl:choose>
+								    	<xsl:when test="contains($thingURI, 'section')">
+								    		<!-- is is part of the work-->
+									    		<div property="sao:hasTopic" typeof="frbr:Work">
+									    			<xsl:attribute name="resource" select="$thingURI" />
+									    			<span property="dcterms:title">
+									    				<xsl:value-of select="$title" />
+									    			</span>
+									    		</div>
+								    	</xsl:when>
+								    	<xsl:otherwise>
+								    		<div property="sao:hasTopic" typeof="lex:Act">
+								    			<xsl:attribute name="resource" select="$thingURI" />
+								    			<span property="dcterms:title">
+								    				<xsl:value-of select="$title" />
+								    			</span>
+								    		</div>
+								    	</xsl:otherwise>
+								    </xsl:choose>
+								
 							</xsl:if>
 						</div>
 					</xsl:when>
@@ -191,12 +205,36 @@
 						<div property="sdo:hasAnnotation" typeof="sao:Annotation">
 							<xsl:attribute name="resource" select="concat($decisionExpressionURI, '/textchunk/', $id, '/annotation/1')" />
 							<xsl:if test="string-length($thingURI) &gt; 0">
+								
+								<xsl:choose>
+									<xsl:when test="contains($thingURI, 'section')">
+										<!-- is is part of the work-->
+										<div property="sao:hasTopic" typeof="frbr:Work">
+											<xsl:attribute name="resource" select="$thingURI" />
+											<span property="dcterms:title">
+												<xsl:value-of select="$title" />
+											</span>
+										</div>
+									</xsl:when>
+									<xsl:otherwise>
+										<div property="sao:hasTopic" typeof="lex:Act">
+											<xsl:attribute name="resource" select="$thingURI" />
+											<span property="dcterms:title">
+												<xsl:value-of select="$title" />
+											</span>
+										</div>
+									</xsl:otherwise>
+								</xsl:choose>
+								
+								
+								<!--
 								<div property="sao:hasTopic" typeof="lex:Act">
 									<xsl:attribute name="resource" select="$thingURI" />
 									<span property="dcterms:title">
 										<xsl:value-of select="$title" />
 									</span>
 								</div>
+								-->
 							</xsl:if>
 						</div>
 						

@@ -102,7 +102,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
         Map<String,String> params = new HashMap();
          //prepare inputs, call xslt for each input
-        String query = "SELECT ?pName ?pValue where {<"+ subject +"> <" + config.getParamsPredicate() + "> ?x . ?x <" + config.getParamsPredicateName()+ "> ?pName ; <" + config.getParamsPredicateValue() + "> ?pValue . ";
+        String query = "SELECT ?pName ?pValue where {<"+ subject +"> <" + config.getParamsPredicate() + "> ?x . ?x <" + config.getParamsPredicateName()+ "> ?pName ; <" + config.getParamsPredicateValue() + "> ?pValue . } ";
         log.debug("Query for getting params for the given subject {} files: {}", subject, query);
 
         //get the return values
@@ -248,19 +248,33 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 
         //prepare xslt template
-        if (config.getStoredXsltFilePath().isEmpty()) {
+        if (config.getXslTemplate().isEmpty()) {
             log.error("No XSLT available, execution interrupted.");
             //context.sendMessage(MessageType.ERROR, "No XSLT available, execution interrupted");
             throw new DPUException("No XSLT available, execution interrupted");
         }
-        File xslTemplate = new File(config.getStoredXsltFilePath());
+        
+        String pathToXslTemplate = pathToWorkingDir + "\template.xslt";
+        log.debug("Path to xslTemplate: {}", pathToXslTemplate );
+        
+        //create new file with the xslTemplate content
+        DataUnitUtils.storeStringToTempFile(config.getXslTemplate(), pathToXslTemplate );
+        //create new file handler
+        File xslTemplate = new File(pathToXslTemplate);
+        
+//        if (config.getStoredXsltFilePath().isEmpty()) {
+//            log.error("No XSLT available, execution interrupted.");
+//            //context.sendMessage(MessageType.ERROR, "No XSLT available, execution interrupted");
+//            throw new DPUException("No XSLT available, execution interrupted");
+//        }
+//        File xslTemplate = new File(config.getStoredXsltFilePath());
 
            Processor proc = new Processor(false);
           XsltCompiler compiler = proc.newXsltCompiler();
         try {
             XsltExecutable exp = compiler.compile(new StreamSource(xslTemplate));
-            String xslt = DataUnitUtils.readFile(config.getStoredXsltFilePath());
-            log.info("Stylesheet was successfully loaded: {}", xslt);
+            log.info("Stylesheet was compiled successully");
+            log.info("Stylesheet is: {}", DataUnitUtils.readFile(pathToXslTemplate));
         } catch (SaxonApiException ex) {
             log.error(ex.getLocalizedMessage());
               context.sendMessage(MessageType.ERROR, "Cannot compile XSLT "
@@ -308,8 +322,8 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
                 log.info("The subject is {}", subject);
                 
-                //get params for the XSLT template if available:
-               Map<String, String> xsltParams = collectXsltParams(xslTemplate,subject);
+                //TODO check - get params for the XSLT template if available:
+                //Map<String, String> xsltParams = collectXsltParams(xslTemplate,subject);
                 
 
                 //store the input content to file, inputs are xml files!
@@ -320,8 +334,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     continue;
                 }
 
-                //call xslt, obtain result in a string
-                String outputString = executeXSLT(xslTemplate, file, xsltParams);
+                //TODO params call xslt, obtain result in a string
+                //String outputString = executeXSLT(xslTemplate, file, xsltParams);
+                String outputString = executeXSLT(xslTemplate, file, new HashMap<String,String>());
                 if (outputString == null) {
                     log.warn("Problem generating output of xslt transformation for subject {}", subject);
                     continue;
@@ -509,6 +524,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             return null;
         }
 
+        log.debug("XSLT is being prepared to be executed");
         //xslt
         Processor proc = new Processor(false);
         XsltCompiler compiler = proc.newXsltCompiler();
@@ -536,7 +552,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 trans.setParameter(langParam, new XdmAtomicValue(xsltParams.get(s)));
             }
             
-            
+            log.debug("XSLT is about to be executed");
             trans.transform();
             return sw.toString();
 

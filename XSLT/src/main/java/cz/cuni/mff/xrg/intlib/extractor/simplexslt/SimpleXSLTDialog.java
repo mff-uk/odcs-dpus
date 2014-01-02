@@ -319,15 +319,22 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
     @Override
     public void setConfiguration(SimpleXSLTConfig conf) throws ConfigException {
+        //get configuration from the CONFIG object to dialog
         
+        if (!conf.getXslTemplate().isEmpty()) {
+             taXSLTemplate.setValue(conf.getXslTemplate());
+             lFileName.setValue(conf.getXslTemplateFileName());
+        }
         //taXSLTemplate.setValue(conf.getXslTemplate());
-        //load XSLT from the file
-        if (!conf.getStoredXsltFilePath().isEmpty()) {
-            String fileContent = DataUnitUtils.readFile(conf.getStoredXsltFilePath());
-            taXSLTemplate.setValue(fileContent);
-            lFileName.setValue(conf.getXslTemplateFileName());
-            log.debug("XSLT loaded from {}", conf.getStoredXsltFilePath());
-        } 
+        
+        
+//        //load XSLT from the file
+//        if (!conf.getStoredXsltFilePath().isEmpty()) {
+//            String fileContent = DataUnitUtils.readFile(conf.getStoredXsltFilePath());
+//            taXSLTemplate.setValue(fileContent);
+//            lFileName.setValue(conf.getXslTemplateFileName());
+//            log.debug("XSLT loaded from {}", conf.getStoredXsltFilePath());
+//        } 
         
          //tfInputPredicate.setValue(conf.getInputPredicate());
          tfOutputPredicate.setValue(conf.getOutputPredicate());
@@ -368,13 +375,6 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
           if (tfOutputXSLTMethod.getValue().trim().isEmpty()) {
               throw new ConfigException("No xslt output");
          }
-         
-        //store the file with XSL template 
-        //TODO take the dpu's space
-        String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID.randomUUID().toString();     
-        //save the config from textarea to the file 
-        DataUnitUtils.storeStringToTempFile(taXSLTemplate.getValue(), fileWithXSLT);
-        log.debug("XSLT stored to {}", fileWithXSLT);
           
         int parsedNumberOfTries;
         try {
@@ -391,15 +391,15 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
        switch((String)ogOutputFormat.getValue()) {
              case OUTPUT_RDFXML:  
                     ot = OutputType.RDFXML;  
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries );
                     break;
               case OUTPUT_TTL:  
                     ot = OutputType.TTL; 
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries);
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(),  ot, tfOutputXSLTMethod.getValue().trim(), tfEscaped.getValue().trim(), parsedNumberOfTries);
                     break;  
                   case OUTPUT_WRAP:  
                     ot = OutputType.Literal;
-                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(), fileWithXSLT, /*tfInputPredicate.getValue().trim()*/ ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim(), parsedNumberOfTries );
+                    conf = new SimpleXSLTConfig(taXSLTemplate.getValue().trim(), lFileName.getValue().trim(),  ot, tfOutputPredicate.getValue().trim(), tfOutputXSLTMethod.getValue().trim() , tfEscaped.getValue().trim(), parsedNumberOfTries );
                     break;
                   default:  throw new ConfigException("One option for the output must be selected");  
          }
