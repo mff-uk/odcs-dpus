@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.cuni.mff.scraper.lib.template;
+package cz.cuni.mff.xrg.scraper.lib.template;
 
-import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 import java.io.IOException;

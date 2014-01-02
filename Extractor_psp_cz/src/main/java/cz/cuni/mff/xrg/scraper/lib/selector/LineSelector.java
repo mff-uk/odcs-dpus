@@ -1,4 +1,4 @@
-package cz.cuni.mff.scraper.lib.selector;
+package cz.cuni.mff.xrg.scraper.lib.selector;
 
 import java.util.LinkedList;
 import java.util.regex.Pattern;

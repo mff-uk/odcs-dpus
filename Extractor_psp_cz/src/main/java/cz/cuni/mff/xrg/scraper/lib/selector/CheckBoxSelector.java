@@ -1,4 +1,4 @@
-package cz.cuni.mff.scraper.lib.selector;
+package cz.cuni.mff.xrg.scraper.lib.selector;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;

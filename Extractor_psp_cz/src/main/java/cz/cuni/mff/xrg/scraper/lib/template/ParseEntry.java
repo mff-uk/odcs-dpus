@@ -1,4 +1,4 @@
-package cz.cuni.mff.scraper.lib.template;
+package cz.cuni.mff.xrg.scraper.lib.template;
 
 import java.net.URL;
 

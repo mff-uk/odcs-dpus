@@ -1,4 +1,4 @@
-package cz.cuni.mff.css_parser.utils;
+package cz.cuni.mff.xrg.css_parser.utils;
 
 import java.io.*;
 import java.net.SocketTimeoutException;

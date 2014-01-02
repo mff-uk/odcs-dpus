@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_psp_cz_metadata</artifactId>
     <packaging>bundle</packaging>
-    <version>0.0.3</version>
+    <version>1.0.0</version>
 	<description>This extractor scrapes law metadata from psp.cz and creates a Turtle file</description>
     <properties>    
         <dpu.package>cz.opendata.linked.psp_cz.metadata</dpu.package>
