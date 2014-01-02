@@ -32,6 +32,7 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
@@ -133,7 +134,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
-		logger.info("Processed in " + (end-start) + "ms");
+		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
 
 	}
 

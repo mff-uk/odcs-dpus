@@ -13,12 +13,13 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
@@ -85,7 +86,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		// a spustim na vychozi stranku
 
-		logger.info("Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
+		ctx.sendMessage(MessageType.INFO, "Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
 		
 		try {
 			for (int i = config.Start_year; i <= config.End_year; i++)
@@ -108,7 +109,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					java.util.Date date2 = new java.util.Date();
 					long end = date2.getTime();
 					
-					logger.info("Processed " + i + " in " + (end-start) + "ms");
+					ctx.sendMessage(MessageType.INFO, "Processed " + i + " in " + (end-start) + " ms");
 				}
 				catch (IOException e) {
 					logger.error(e.getLocalizedMessage());

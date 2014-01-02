@@ -14,3 +14,9 @@ nb-configuration.xml
 target/
 bin/
 
+# working dirs #
+
+user/
+working/
+global/
+

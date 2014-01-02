@@ -9,17 +9,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
+import org.jsoup.nodes.Attributes;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 
-import cz.cuni.mff.scraper.lib.selector.CssSelector;
-import cz.cuni.mff.scraper.lib.template.ParseEntry;
-import cz.cuni.mff.scraper.lib.template.ScrapingTemplate;
+import cz.cuni.mff.xrg.scraper.lib.selector.CssSelector;
+import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
+import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 /**
  * Specificky scraper pro statni spravu.
  * 
- * @author Jakub Starka
+ * @author Jakub Klímek
  */
 
 public class Parser extends ScrapingTemplate{
@@ -292,18 +294,18 @@ public class Parser extends ScrapingTemplate{
     @Override
     protected void parse(org.jsoup.nodes.Document doc, String docType) {
         if (docType == "detail") {
-                /* Na detailu si najdu nazev a ic a vyhodim jako nejaky element */
+            	Elements t1rows = doc.select("div#main-content div.section table tbody tr");
                 String identifier;    
                 try {
-                    identifier = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(0) td:eq(1)").getValue();
+                    identifier = t1rows.get(0).getElementsByTag("td").get(1).text();
                 } catch (NullPointerException e) {
                     return;
                 }
                 if (identifier == null) return;
                 currentId = identifier;
                 identifier = identifier.replaceAll("([^ ]*) Sb." , "$1");
-                String title = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(1) td:eq(1)").getValue().replace("\"", "\\\"");
-                String castka = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(2) td:eq(1)").getValue();
+                String title = t1rows.get(1).getElementsByTag("td").get(1).text();
+                String castka = t1rows.get(2).getElementsByTag("td").get(1).text();
                 String castka_cislo = castka.replaceAll("([0-9]*) \\((.*)\\)","$1");
                 //WARNING: space in replace is not a regular space but &nbsp;
                 String castka_datum_old = castka.replace(". ", ".").replaceAll("([0-9]*) \\((.*)\\)","$2");
@@ -324,7 +326,7 @@ public class Parser extends ScrapingTemplate{
                 
                 String validFromNew;
                 //WARNING: space in replace is not a regular space but &nbsp;
-                String validFromOld = new CssSelector(doc, "div#main-content div.section table tbody tr:eq(3) td:eq(1)").getValue().replace(". ", ".").replaceAll("[od][od] ([^,]*),?.*", "$1");
+                String validFromOld = t1rows.get(3).getElementsByTag("td").get(1).text().replace(". ", ".").replaceAll("[od][od] ([^,]*),?.*", "$1");
                 Date validFromDate;
                 try {
                     validFromDate = new SimpleDateFormat("dd.MM.yyyy").parse(validFromOld);
@@ -346,7 +348,7 @@ public class Parser extends ScrapingTemplate{
                 ps.println("\t.");
                 ps.println("");
                 
-                String expressionUri = "http://linked.opendata.cz/resource/legislation/cz/expression/" + year + "/" + cislo + "-" + year;
+                String expressionUri = actUri + "/expression/cz/" + year + "/" + cislo + "-" + year + "/cs";
                 /*if ("other".equals(validFromNew))
                 {
                     if (!"other".equals(castka_datum_new))
@@ -372,62 +374,65 @@ public class Parser extends ScrapingTemplate{
                 ps.println("\todcs:castka-cislo \"" + castka_cislo + "\" ;");
                 if (!"other".equals(castka_datum_new)) ps.println("\todcs:castka-datum \"" + castka_datum_new + "\"^^xsd:date ;");
                 
-                int i = 0;
-                String derogace = null;
-                while ((derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr) td:eq(1)", i).getValue())!=null)
+                Elements derogace_aktivni = doc.select("div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr)");
+                for (Element da : derogace_aktivni)
                 {
-                    String typ_derogace = getTypDerogace(new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr) td:eq(1)", i).getValue());
-                    String nazev_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr) td:eq(2)", i).getValue();
-                    String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:not(tr:contains(Derogace pasivní)~tr) td:eq(0) a", i).getValue();
-                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
-                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
-
-                    ps.println("\todcs:aktivni-" + typ_derogace + " <" + uri_derogace + "> ;");
-                    i++;
+                    Elements cols = da.getElementsByTag("td");
+                    if (cols.size() > 2) {
+	                	String typ_derogace = getTypDerogace(cols.get(1).text());
+	                    String nazev_derogace = cols.get(2).text();
+	                    String cil_derogace = cols.get(0).getElementsByTag("a").get(0).text();
+	                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
+	                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
+	                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
+	
+	                    ps.println("\todcs:aktivni-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    }
                 }
 
-                i = 0;
-                while ((derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr) td:eq(1)", i).getValue())!=null)
+                Elements derogace_pasivni = doc.select("div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr)");
+                for (Element dp : derogace_pasivni)
                 {
-                    String typ_derogace = getTypDerogace(new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr) td:eq(1)", i).getValue());
-                    String nazev_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr) td:eq(2)", i).getValue();
-                    String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Derogace pasivní)~tr:not(tr:contains(Vztahováno k)~tr) td:eq(0) a", i).getValue();
-                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
-                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
-
-                    ps.println("\todcs:pasivni-" + typ_derogace + " <" + uri_derogace + "> ;");
-                    i++;
+                    Elements cols = dp.getElementsByTag("td");
+                    if (cols.size() > 2) {
+	                	String typ_derogace = getTypDerogace(cols.get(1).text());
+	                    String nazev_derogace = cols.get(2).text();
+	                    String cil_derogace = cols.get(0).getElementsByTag("a").get(0).text();
+	                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
+	                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
+	                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
+	
+	                    ps.println("\todcs:pasivni-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    }
                 }
 
-                i = 0;
-                while ((derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr td:eq(1)", i).getValue())!=null)
+                Elements vztahy_k = doc.select("div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr");
+                for (Element vk : vztahy_k)
                 {
-                    String typ_derogace = getTypDerogace(new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr td:eq(1)", i).getValue());
-                    String nazev_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr td:eq(2)", i).getValue();
-                    String cil_derogace = new CssSelector(doc, "div#main-content div.section table:eq(3) tbody tr:contains(Vztahováno k)~tr td:eq(0) a", i).getValue();
-                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
-                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
-                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
-
-                    ps.println("\todcs:vztahovano-k-" + typ_derogace + " <" + uri_derogace + "> ;");
-                    i++;
+                    Elements cols = vk.getElementsByTag("td");
+                    if (cols.size() > 2) {
+	                	String typ_derogace = getTypDerogace(cols.get(1).text());
+	                    String nazev_derogace = cols.get(2).text();
+	                    String cil_derogace = cols.get(0).getElementsByTag("a").get(0).text();
+	                    String year_derogace = cil_derogace.replaceAll("[^/]*/([0-9]{4}).*", "$1");
+	                    String cislo_derogace = cil_derogace.replaceAll("([^/]*)/[0-9]{4}.*", "$1");
+	                    String uri_derogace = "http://linked.opendata.cz/resource/legislation/cz/" + getTypeFromTitle(nazev_derogace) + "/" + year_derogace + "/" + cislo_derogace + "-" + year_derogace;
+	
+	                    ps.println("\todcs:vztahovano-k-" + typ_derogace + " <" + uri_derogace + "> ;");
+                    }
                 }
                 
                 ps.println("\tfrbr:realizationOf <" + actUri + ">");
                 ps.println("\t.");
                 ps.println("");
 
-                i = 0;
-                String embodyment;
-                while ((embodyment = new CssSelector(doc, "div#main-content div.section ul li a @href", i).getValue())!=null)
+                Elements embodyments = doc.select("div#main-content div.section ul li a");
+                for (Element e:embodyments)
                 {
-                    ps.println("<" + embodyment + ">\n\ta frbr:Manifestation ;");
+                    ps.println("<" + e.attr("href") + ">\n\ta frbr:Manifestation ;");
                     ps.println("\tfrbr:embodymentOf <" + expressionUri + ">");
                     ps.println("\t.");
                     ps.println("");
-                    i++;
                 }
         }
     }

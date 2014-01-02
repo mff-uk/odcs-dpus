@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_gov_cz_organy</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 	<description>This extractor scrapes Organy from portal.gov.cz</description>
     <properties>    
         <dpu.package>cz.opendata.linked.cz.gov.organy</dpu.package>

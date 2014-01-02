@@ -16,6 +16,7 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
@@ -139,20 +140,21 @@ public class Extractor
         
         java.util.Date date2 = new java.util.Date();
 	    long end = date2.getTime();
-	    logger.info("Processed in " + (end-start) + "ms");
-	    logger.info("Rows: " + s.numrows);
-	    logger.info("Cancelled rows: " + s.totalcancellednumrows);
-	    logger.info("Warnings: " + s.numwarnings);
-	    logger.info("Errors: " + s.numerrors);
-	    logger.info("Missing ICOs on profile details: " + s.missingIco);
-	    logger.info("Missing ICOs in profile XML: " + s.missingIcoInProfile);
-	    logger.info("Invalid XML: " + s.invalidXML + " (" + Math.round((double)s.invalidXML*100/(double)s.numprofiles) + "%)");
-	    logger.info("Profiles: " + s.numprofiles);
-	    logger.info("Zakázky: " + s.numzakazky);
-	    logger.info("Uchazeči: " + s.numuchazeci);
-	    logger.info("Dodavatelé: " + s.numdodavatele);
-	    logger.info("Subdodavatelé: " + s.numsub);
-	    logger.info("Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
+	    ctx.sendMessage(MessageType.INFO, "");
+	    ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
+	    ctx.sendMessage(MessageType.INFO, "Rows: " + s.numrows);
+	    ctx.sendMessage(MessageType.INFO, "Cancelled rows: " + s.totalcancellednumrows);
+	    ctx.sendMessage(MessageType.INFO, "Warnings: " + s.numwarnings);
+	    ctx.sendMessage(MessageType.INFO, "Errors: " + s.numerrors);
+	    ctx.sendMessage(MessageType.INFO, "Missing ICOs on profile details: " + s.missingIco);
+	    ctx.sendMessage(MessageType.INFO, "Missing ICOs in profile XML: " + s.missingIcoInProfile);
+	    ctx.sendMessage(MessageType.INFO, "Invalid XML: " + s.invalidXML + " (" + Math.round((double)s.invalidXML*100/(double)s.numprofiles) + "%)");
+	    ctx.sendMessage(MessageType.INFO, "Profiles: " + s.numprofiles);
+	    ctx.sendMessage(MessageType.INFO, "Zakázky: " + s.numzakazky);
+	    ctx.sendMessage(MessageType.INFO, "Uchazeči: " + s.numuchazeci);
+	    ctx.sendMessage(MessageType.INFO, "Dodavatelé: " + s.numdodavatele);
+	    ctx.sendMessage(MessageType.INFO, "Subdodavatelé: " + s.numsub);
+	    ctx.sendMessage(MessageType.INFO, "Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
         
     }
 
