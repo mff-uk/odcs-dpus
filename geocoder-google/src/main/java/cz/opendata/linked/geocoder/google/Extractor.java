@@ -168,7 +168,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
-			logger.info("Found " + total + " addresses, " + ngc + " not geocoded yet.");
+			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses, " + ngc + " not geocoded yet.");
 		} catch (InvalidQueryException e1) {
 			logger.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {

@@ -26,6 +26,7 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
@@ -85,7 +86,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (diff < (config.hoursToCheck * 60 * 60)) count++;
 			}
 		}
-		logger.info("Total of " + count + " files cached in last " + config.hoursToCheck + " hours. " + (config.PerDay - count) + " remaining.");
+		ctx.sendMessage(MessageType.INFO, "Total of " + count + " files cached in last " + config.hoursToCheck + " hours. " + (config.PerDay - count) + " remaining.");
 		return count;
 	}
 
@@ -160,7 +161,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			e.printStackTrace();
 		}
 
-		logger.info("I see " + ICs.size() + " ICs before deduplication.");
+		ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs before deduplication.");
 
 		//Remove duplicate ICs
 		List<String> dedupICs = new LinkedList<String>();    
@@ -179,7 +180,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			//Download
 			int toCache = (config.PerDay - cachedToday);
 			Iterator<String> li = ICs.iterator();
-			logger.info("I see " + ICs.size() + " ICs after deduplication.");
+			ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 	
 			try {
 				while (li.hasNext() && !ctx.canceled() && (config.sendCache || (downloaded < (toCache - 1)))) {
@@ -260,7 +261,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
-		logger.info("Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
+		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
 
 	}
 

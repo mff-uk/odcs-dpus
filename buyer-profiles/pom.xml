@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_buyer_profiles_cz</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 	<description>This extractor scrapes buyer profiles and public contracts published on them and creates Turtle files</description>
     <properties>    
         <dpu.package>cz.opendata.linked.buyer_profiles</dpu.package>

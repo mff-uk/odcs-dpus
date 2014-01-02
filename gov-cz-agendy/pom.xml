@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_gov_cz_agendy</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 	<description>This extractor scrapes Agendy from https://rpp-ais.egon.gov.cz/gen/agendy-detail/</description>
     <properties>    
         <dpu.package>cz.opendata.linked.cz.gov.agendy</dpu.package>
