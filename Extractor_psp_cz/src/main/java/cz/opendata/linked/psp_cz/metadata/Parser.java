@@ -348,7 +348,7 @@ public class Parser extends ScrapingTemplate{
                 ps.println("\t.");
                 ps.println("");
                 
-                String expressionUri = actUri + "/expression/cz/" + year + "/" + cislo + "-" + year + "/cs";
+                String expressionUri = actUri + "/expression/cz/" + getTypeFromTitle(title).toLowerCase() + "/" + year + "/" + cislo + "-" + year + "/cs";
                 /*if ("other".equals(validFromNew))
                 {
                     if (!"other".equals(castka_datum_new))
