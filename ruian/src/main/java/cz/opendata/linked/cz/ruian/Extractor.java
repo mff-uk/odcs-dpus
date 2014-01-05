@@ -36,6 +36,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@OutputDataUnit(name = "XMLObce")
 	public RDFDataUnit outObce;	
 	
+	@OutputDataUnit(name = "XMLZsj")
+	public RDFDataUnit outZsj;	
+
 	public Extractor(){
 		super(ExtractorConfig.class);
 	}
@@ -56,6 +59,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.logger = logger;
 		s.ctx = ctx;
 		s.obce = outObce;
+		s.zsj = outZsj;
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
@@ -64,16 +68,20 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		try {
 			URL init = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
-			
+			URL initStat = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
 			if (config.rewriteCache)
 			{
 				Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
+				Path pathStat = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
 				logger.info("Deleting " + path);
 				Files.deleteIfExists(path);
+				logger.info("Deleting " + pathStat);
+				Files.deleteIfExists(pathStat);				
 			}
 			
 			try {
 				s.parse(init, "init");
+				s.parse(initStat, "initStat");
 			} catch (BannedException b) {
 				logger.warn("Seems like we are banned for today");
 			}

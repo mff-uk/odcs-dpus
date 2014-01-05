@@ -8,6 +8,8 @@ import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
+import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
+
 /**
  * Scraper pro RUIAN
  * 
@@ -16,7 +18,7 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-	public RDFDataUnit obce;
+	public RDFDataUnit obce, zsj;
 	private int numDetails;
 	private int current;
 	
@@ -24,7 +26,7 @@ public class Scraper_parser extends ScrapingTemplate{
     protected LinkedList<ParseEntry> getLinks(String doc, String docType) {
         final LinkedList<ParseEntry> out = new LinkedList<>();
         
-        if (docType.equals("init"))
+        if (docType.equals("init") || docType.equals("initStat"))
         {
         	String[] lines = doc.split("\\r\\n");
         	numDetails = lines.length;
@@ -32,7 +34,8 @@ public class Scraper_parser extends ScrapingTemplate{
         	for (String line : lines)
         	{
         		try {
-					out.add(new ParseEntry(new URL(line),"obec","gz"));
+					if (docType.equals("init")) out.add(new ParseEntry(new URL(line),"obec","gz"));
+					else if (docType.equals("initStat")) out.add(new ParseEntry(new URL(line),"zsj","gz"));
 				} catch (MalformedURLException e) {
 					logger.warn(e.getLocalizedMessage());
 				}
@@ -43,14 +46,15 @@ public class Scraper_parser extends ScrapingTemplate{
     
     @Override
     protected void parse(String doc, String docType, URL url) {
-    	if (docType.equals("init"))
+    	if (docType.equals("obec"))
     	{
-			
+    		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString()); 
+    		obce.addTriple(obce.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), obce.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),obce.createLiteral(doc));
     	}
-    	else if (docType.equals("obec"))
+    	else if (docType.equals("zsj"))
     	{
     		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
-    		obce.addTriple(obce.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), obce.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),obce.createLiteral(doc));
+    		zsj.addTriple(zsj.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), zsj.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),zsj.createLiteral(doc));
     	}
     }
 }

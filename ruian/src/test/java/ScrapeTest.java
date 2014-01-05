@@ -25,6 +25,7 @@ public class ScrapeTest {
 		// prepare input and output data units
 		
 		RDFDataUnit obce = env.createRdfOutput("XMLObce", false);
+		RDFDataUnit zsj = env.createRdfOutput("XMLZsj", false);
 
 		// here we can simply pre-fill input data unit with content from 
 		// resource file
@@ -33,7 +34,8 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			obce.loadToFile("C:\\temp\\details.ttl", RDFFormatType.TTL);
+			obce.loadToFile("C:\\temp\\obce.ttl", RDFFormatType.TTL);
+			zsj.loadToFile("C:\\temp\\zsj.ttl", RDFFormatType.TTL);
 			
 			// verify result
 		}
