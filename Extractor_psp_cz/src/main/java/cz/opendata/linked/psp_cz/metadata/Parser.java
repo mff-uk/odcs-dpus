@@ -304,7 +304,7 @@ public class Parser extends ScrapingTemplate{
                 if (identifier == null) return;
                 currentId = identifier;
                 identifier = identifier.replaceAll("([^ ]*) Sb." , "$1");
-                String title = t1rows.get(1).getElementsByTag("td").get(1).text();
+                String title = t1rows.get(1).getElementsByTag("td").get(1).text().replace("\"", "\\\"");
                 String castka = t1rows.get(2).getElementsByTag("td").get(1).text();
                 String castka_cislo = castka.replaceAll("([0-9]*) \\((.*)\\)","$1");
                 //WARNING: space in replace is not a regular space but &nbsp;
