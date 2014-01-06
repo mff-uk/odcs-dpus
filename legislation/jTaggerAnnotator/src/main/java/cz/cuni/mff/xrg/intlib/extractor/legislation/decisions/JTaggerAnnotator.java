@@ -38,6 +38,7 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
+import cz.cuni.mff.xrg.odcs.rdf.impl.OrderTupleQueryResult;
 /**
  * Simple XSLT Extractor
  *
@@ -115,11 +116,13 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         }
 
         //prepare inputs, call xslt for each input
-        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
+        //String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
+         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
         log.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
-        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
 
         int i = 0;
         try {

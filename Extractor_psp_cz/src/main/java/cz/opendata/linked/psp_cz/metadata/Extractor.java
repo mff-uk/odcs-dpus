@@ -123,7 +123,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
 			catch (RDFException e)
 			{
-				logger.error("Cannot put TTL to repository.");
+				logger.error("Cannot put TTL to repository. Error: {}", e.getLocalizedMessage());
 				throw new DPUException("Cannot put TTL to repository.");
 			}
 		} catch (InterruptedException intex) {

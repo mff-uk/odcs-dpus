@@ -217,7 +217,10 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
           
             String year = decisionID.substring(decisionID.lastIndexOf("-") + 1);
             String newSubject = newSubjectPrefix + "/" + year + "/" + decisionID + "/expression";
-
+            
+            //adjust the subject based on the latest adjustment:\
+            // add /cz/decision/2010/22-Cdo-4430-2010/cs
+            newSubject = newSubject + "/cz/decision/" + year + "/" + decisionID + "/cs";
 
             Resource subj = rdfOutput.createURI(newSubject);
             URI pred = rdfOutput.createURI(config.getOutputPredicate());

@@ -684,15 +684,22 @@ public class Work implements Comparable<Work> {
             do
             {
                 subsection = null;
-                para = null;
+                
                 int paraIndex = sectionsSubstring.indexOf('§', lastParaIndex);
                 int nextParaIndex = sectionsSubstring.indexOf('§', paraIndex + 1);
                 int paraEndIndex;
                 String currentSectionSubstring;
                 if (nextParaIndex == -1)
                 {
+                    //TODO strange code, paraEndIndex not used
                     paraEndIndex = sectionsSubstring.length() - 1;
-                    currentSectionSubstring = sectionsSubstring.substring(paraIndex);
+                    if (paraIndex > -1) {
+                        currentSectionSubstring = sectionsSubstring.substring(paraIndex);
+                    }
+                    else {
+                        log.warn("ParaIndex was {} for {}", paraIndex, sectionsSubstring );
+                        currentSectionSubstring = sectionsSubstring;
+                    }
                 }
                 else
                 {

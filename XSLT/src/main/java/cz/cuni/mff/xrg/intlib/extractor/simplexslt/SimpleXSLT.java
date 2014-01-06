@@ -28,6 +28,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
+import cz.cuni.mff.xrg.odcs.rdf.impl.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -288,7 +289,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         
         //prepare inputs, call xslt for each input
         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
-        log.debug("Query for getting input files: {}", query);
+        log.debug("Query for counting number of input files: {}", query);
 
         //get the return values
         MyTupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
@@ -301,8 +302,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             return;
         }
 
-        MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        //MyTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 
+        query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o } ORDER BY ?s ?o";
+        log.debug("Query for getting input files: {}", query);
+        OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
 
 
         int i = 0;
@@ -342,14 +346,26 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     continue;
                 }
 
-                if (outputString.isEmpty()) {
-                    log.warn("Template applied to the subject {} generated empty output. Input was: ", subject, fileContent);
+                if (outputString.trim().isEmpty()) {
+                    log.warn("Template applied to the subject {} generated empty output. This output is skippedInput was: ", subject, fileContent);
                     continue;
                 }
+                
+                if (outputString.trim().equals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
+                    log.warn("Template applied to the subject {} generated output containing only: <?xml version=\"1.0\" encoding=\"UTF-8\"?> . This output is skipped. Input was: ", subject, fileContent);
+                    continue;
+                }
+                
+                if (outputString.trim().matches("<?xml[^>]*?>")) {
+                    log.warn("Template applied to the subject {} generated output containing only: <?xml ... ?> . This output is skipped. Input was: ", subject, fileContent);
+                    continue;
+                }
+               
+                
                 log.info("XSLT executed successfully, about to create output");
                 //log.debug("Output of the transformation: {}", outputString);
 
-
+                
 
                 String outputPath = null;
                 RDFLoaderWrapper loaderWrapper = null;
@@ -440,8 +456,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     } catch (RDFException e) {
 
                         log.warn("Error when adding file {}/{} to the RDF data unit", i, resSize);
-                        log.debug(e.getLocalizedMessage());
-
+                        log.debug("Error: {}", e.getLocalizedMessage());
+                        
+                        if (e.getCause() != null) {
+                            log.debug("Cause: {}", e.getCause().getLocalizedMessage());
+                        }
 
 
                         if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {

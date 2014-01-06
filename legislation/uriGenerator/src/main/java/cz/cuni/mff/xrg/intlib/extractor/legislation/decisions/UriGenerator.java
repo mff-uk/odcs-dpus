@@ -14,6 +14,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.impl.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 import java.io.IOException;
@@ -99,11 +100,13 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 
 
         //prepare inputs, call xslt for each input
-        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
+//        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
+        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
         log.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
-        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+         //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
 
         //log.info(executeSelectQueryAsTuples.asList().)
         int i = 0;

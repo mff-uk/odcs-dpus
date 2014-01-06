@@ -9,7 +9,6 @@
 	<xsl:variable name="soudDruhyStupen">&lt;<xsl:value-of select="//paragraph[institution[ contains(@rdf:about,'vrchni') or contains(@rdf:about,'krajsky') or contains(@rdf:about,'mestsky') ]][1]/institution[ contains(@rdf:about,'vrchni') or contains(@rdf:about,'krajsky') or contains(@rdf:about,'mestsky') ][1]/@rdf:about"></xsl:value-of>&gt;</xsl:variable>
 	
 
-<!-- žluťoučký kůň, schéma -->
 <xsl:template match="/">
 
 @prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;.
@@ -38,24 +37,24 @@
             
        
 	<!-- Decision metadata (taken from meta elem section) -->
-	<!-- Spisova znacka -->
 	
+	
+	<!-- Spisova znacka (with spaces and '/'-->
 	<xsl:variable name="metadataText"><xsl:value-of select='/document/body/meta/text()'/></xsl:variable>
-	
-	
 	<xsl:variable name="spisovaZnackaTemp"><xsl:value-of select='substring-after($metadataText,"Spisová značka :")'/></xsl:variable>
-	<xsl:variable name="spisovaZnackaBase"><xsl:value-of select='normalize-space(substring-before($spisovaZnackaTemp,"Datum"))'/></xsl:variable> <!-- Contains spisovou znacku as in the meta section, normalized spaces-->
+	<xsl:variable name="spisovaZnacka"><xsl:value-of select='normalize-space(substring-before($spisovaZnackaTemp,"Datum"))'/></xsl:variable> <!-- Contains spisovou znacku as in the meta section, normalized spaces-->
 	
-	<xsl:variable name="spisovaZnackaBaseWithDashTemp"><xsl:value-of select='replace($spisovaZnackaBase," ","-")'/></xsl:variable>
-	<xsl:variable name="spisovaZnackaBaseWithDash"><xsl:value-of select='replace($spisovaZnackaBaseWithDashTemp,"/","-")'/></xsl:variable>	
 	<!-- Spisova znacka for use in URI -->
-	<xsl:variable name="spisovaZnackainURI"><xsl:value-of select='$spisovaZnackaBaseWithDash'/></xsl:variable>
+	<xsl:variable name="spisovaZnackaBaseWithDashTemp"><xsl:value-of select='replace($spisovaZnacka," ","-")'/></xsl:variable>
+	<xsl:variable name="spisovaZnackaBaseWithDash"><xsl:value-of select='replace($spisovaZnackaBaseWithDashTemp,"/","-")'/></xsl:variable>	
+	<xsl:variable name="spisovaZnackaInURI"><xsl:value-of select='$spisovaZnackaBaseWithDash'/></xsl:variable>
+	
+	<!-- Cislo jednaci neni k dispozici -->
 	
 	<!-- Year for use in URI -->
-	<xsl:variable name="yearSpisZnacka"><xsl:value-of select='substring($spisovaZnackainURI,string-length($spisovaZnackainURI)-3)'/></xsl:variable>
+	<xsl:variable name="yearSpisZnacka"><xsl:value-of select='substring($spisovaZnackaInURI,string-length($spisovaZnackaInURI)-3)'/></xsl:variable>
 	
 	<!-- Date when issued -->
-	
 	<xsl:variable name="decDate"><xsl:value-of select='substring(normalize-space(substring-after($metadataText,"Datum rozhodnutí :")),1,10)'/></xsl:variable>
 	
 	<xsl:variable name="monthTemp"><xsl:value-of select='substring-before(substring-after($decDate,"."),".")'/></xsl:variable>
@@ -103,156 +102,165 @@
 	<!-- Variables Decision (Work, Expre, Mani) & File-->
 	
 	<!--<xsl:variable name="decCore"><xsl:value-of select="lower-case($spisovaZnacka)"/></xsl:variable>-->
-	<xsl:variable name="decPrefix">http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnackainURI"/></xsl:variable>
+	<xsl:variable name="decPrefix">http://linked.opendata.cz/resource/legislation/cz/decision/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnackaInURI"/></xsl:variable>
 	
 	<xsl:variable name="decision">&lt;<xsl:value-of select="$decPrefix"/>&gt;</xsl:variable>
-	<xsl:variable name="decExpr">&lt;<xsl:value-of select="$decPrefix"/>/expression&gt;</xsl:variable>
-	<xsl:variable name="decExprSection">&lt;<xsl:value-of select="$decPrefix"/>/expression/section&gt;</xsl:variable>
-	<xsl:variable name="decExprParaCore">&lt;<xsl:value-of select="$decPrefix"/>/expression/section/para/</xsl:variable> <!-- para number should be add -->
+	<xsl:variable name="decExprCore"><xsl:value-of select="$decPrefix"/>/expression/<xsl:value-of select='substring-after($decPrefix,"http://linked.opendata.cz/resource/legislation/")'></xsl:value-of>/cs</xsl:variable>
+	<xsl:variable name="decExpr">&lt;<xsl:value-of select="$decExprCore"></xsl:value-of>&gt;</xsl:variable>
+	<!--<xsl:variable name="decExprParaCore">&lt;<xsl:value-of select="$decExprCore"/>/section/para/</xsl:variable>--> <!-- para number should be add later-->
 	
 	<!--<xsl:variable name="filename"><xsl:value-of select='substring($path,string-length(substring-before($path, "rozhodnuti"))+1)'/></xsl:variable>-->
-	<xsl:variable name="decMani">&lt;<xsl:value-of select="$decPrefix"/>/manifestation&gt;</xsl:variable>
-
-
-
-
-
-	<!-- OBJECTS FOR THE PROCESSED DECISION -->
-
-<xsl:if test="string-length($metadataText) > 0">  <!-- metadata should be available -->
+	<xsl:variable name="decMani">&lt;<xsl:value-of select="$decExprCore"/>/manifestation&gt;</xsl:variable>
 
 	<!-- create file for the processed decision -->
-	<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnackainURI"/>&gt;</xsl:variable>
+	<!-- in case there is also decision number, e.g. 56-Co-97-2011-29, remove the last number (-29)-->
+	<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$yearSpisZnacka"/>/<xsl:value-of select="$spisovaZnackaInURI"/>&gt;</xsl:variable>
 	
-	
-	<!-- Check that spisova znacka has reasonable format. If not, skip the generation of metadata-->
-	<xsl:if test="matches($yearSpisZnacka,'[0-9]{4}') and matches($spisovaZnackainURI,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that spisova znacka has reasonable format-->
-		
-		
-		
-		    <!-- Create basic decision and file record -->	
-		<xsl:call-template name="createDecisionAndFileBasicRecord">
-			<xsl:with-param name="spisovaZnacka"><xsl:value-of select="$spisovaZnackainURI"/></xsl:with-param>
-			<xsl:with-param name="year"><xsl:value-of select="$yearSpisZnacka"/></xsl:with-param>
-			<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
-			<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
-			<xsl:with-param name="yearIssued"><xsl:value-of select="$yearIssued"/></xsl:with-param>
-		</xsl:call-template>
-		
-		<!-- more info about decision -->
-		<xsl:if test="matches($yearIssued,'^[0-9]{4}$') and matches($month,'[0-1][0-9]') and matches($day,'[0-3][0-9]')"> <!-- test that the date was extracted -->
-			<xsl:value-of select="$decision"/> dcterms:issued "<xsl:value-of select="$normDecDate"/>"^^xsd:date .
-		</xsl:if>
-		
-		<xsl:if test="string-length($usneseni) > 0"> <!-- If something was parsed -->
-			<xsl:value-of select="$decision"/> lex:decisionKind &lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; .
-			&lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$usneseni"/>" . 
-		</xsl:if>
-		
-		<xsl:if test="string-length($category) = 1"> <!-- It must be one single letter -->
-			<xsl:value-of select="$decision"/> lex:decisionCategory &lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="lower-case($category)"/>&gt; .  
-			&lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="lower-case($category)"/>&gt; skos:prefLabel "<xsl:value-of select="$category"/>" . 
-	    </xsl:if>
-		
-		
-		<xsl:variable name="subjectTemp"><xsl:value-of select='substring-after($metadataText,"Heslo :")'/></xsl:variable>
-		
-		
-		<xsl:choose>
-			<xsl:when test="string-length(substring-before($subjectTemp,'Dotčené předpisy :')) > 0">
-				<xsl:call-template name="parseSubjects">
-					<xsl:with-param name="pText"><xsl:value-of select='substring-before($subjectTemp,"Dotčené předpisy :")'/></xsl:with-param>
-					<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
-				</xsl:call-template>	
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:call-template name="parseSubjects">
-					<xsl:with-param name="pText"><xsl:value-of select='substring-before($subjectTemp,"Kategorie rozhodnutí :")'/></xsl:with-param>
-					<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
-				</xsl:call-template>
-				
-			</xsl:otherwise>
-		</xsl:choose>
-	
-		
-		<!-- duvod dovolani lex reasonsToAppeal -->
-		
-		
-		<xsl:for-each select="document/body/meta/reasons/*">
+
+	<!-- CREATING TRIPLES FOR THE PROCESSED DECISION -->
+
+	<xsl:if test="string-length($metadataText) > 0">  <!-- metadata should be available -->
+
+		<!-- Check that spisova znacka has reasonable format. If not, skip the generation of metadata-->
+		<xsl:if test="matches($yearSpisZnacka,'^[0-9]{4}$') and matches($spisovaZnackaInURI,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that spisova znacka has reasonable format-->
 			
-			<!-- every individual act may contain two or more URIs in @rdf:about -->
-			<xsl:for-each select="tokenize(@rdf:about, ' ')">
+			<!-- Create basic decision and file record -->	
+			<xsl:call-template name="createDecisionAndFileBasicRecord">
+				<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
+				<xsl:with-param name="decisionIdentifierInURI"><xsl:value-of select="$spisovaZnackaInURI"/></xsl:with-param> <!-- there is only spisova znacka, neni cislo jednaci -->
+				<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
+				<xsl:with-param name="fileIdentifierInURI"><xsl:value-of select="$spisovaZnackaInURI"/></xsl:with-param>  <!-- there is only spisova znacka, neni cislo jednaci -->
+				<xsl:with-param name="yearInURI"><xsl:value-of select="$yearSpisZnacka"/></xsl:with-param>
+				<xsl:with-param name="yearDecisionIssued"><xsl:value-of select="$yearIssued"/></xsl:with-param>
+			</xsl:call-template>
 			
-				<xsl:variable name="reason"><xsl:value-of select='.'/></xsl:variable>
-				<xsl:if test="contains($reason, 'http://')">
-				
-				<xsl:value-of select="$decision"/> lex:reasonToAppeal &lt;<xsl:value-of select='$reason'/>&gt;  .
+			
+			
+			
+			<!-- more info about decision -->
+			<xsl:if test="matches($yearIssued,'^[0-9]{4}$') and matches($month,'[0-1][0-9]') and matches($day,'[0-3][0-9]')"> <!-- test that the date was extracted -->
+				<xsl:value-of select="$decision"/> dcterms:issued "<xsl:value-of select="$normDecDate"/>"^^xsd:date .
+			</xsl:if>
+			
+			<xsl:if test="string-length($usneseni) > 0"> <!-- If something was parsed -->
+				<xsl:value-of select="$decision"/> lex:decisionKind &lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; .
+				&lt;http://linked.opendata.cz/resource/legislation/cz/decision-kind/supreme-court/<xsl:value-of select="replace(lower-case($usneseni),' ','-')"/>&gt; skos:prefLabel "<xsl:value-of select="$usneseni"/>" . 
+			</xsl:if>
+			
+			<xsl:if test="string-length($category) = 1"> <!-- It must be one single letter -->
+				<xsl:value-of select="$decision"/> lex:decisionCategory &lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="lower-case($category)"/>&gt; .  
+				&lt;http://linked.opendata.cz/resource/legislation/cz/decision-category/supreme-court/<xsl:value-of select="lower-case($category)"/>&gt; skos:prefLabel "<xsl:value-of select="$category"/>" . 
+		    </xsl:if>
+			
+			
+			<xsl:variable name="subjectTemp"><xsl:value-of select='substring-after($metadataText,"Heslo :")'/></xsl:variable>
+			
+			
+			<xsl:choose>
+				<xsl:when test="string-length(substring-before($subjectTemp,'Dotčené předpisy :')) > 0">
+					<xsl:call-template name="parseSubjects">
+						<xsl:with-param name="pText"><xsl:value-of select='substring-before($subjectTemp,"Dotčené předpisy :")'/></xsl:with-param>
+						<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
+					</xsl:call-template>	
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:call-template name="parseSubjects">
+						<xsl:with-param name="pText"><xsl:value-of select='substring-before($subjectTemp,"Kategorie rozhodnutí :")'/></xsl:with-param>
+						<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
+					</xsl:call-template>
 					
-				</xsl:if>
-			
-			</xsl:for-each>
-			
-		</xsl:for-each>
+				</xsl:otherwise>
+			</xsl:choose>
 		
-		
-		<!-- dotcene predpisy lex concernedSourcesOfLaw -->
-		
-		<xsl:for-each select="document/body/meta/concernedSources/*">
 			
-			<!-- every individual act may contain two or more URIs in @rdf:about -->
-			<xsl:for-each select="tokenize(@rdf:about, ' ')">
+			<!-- duvod dovolani lex reasonsToAppeal -->
 			
-				<xsl:variable name="source"><xsl:value-of select='.'/></xsl:variable>
+			
+			<xsl:for-each select="document/body/meta/reasons/*">
 				
-				<xsl:if test="contains($source, 'http://')">
-				<xsl:value-of select="$decision"/> lex:concernedSourceOfLaw &lt;<xsl:value-of select='$source'/>&gt;  .
-				</xsl:if>
-			
+				<!-- every individual act may contain two or more URIs in @rdf:about -->
+				<xsl:for-each select="tokenize(@rdf:about, ' ')">
+				
+					<xsl:variable name="reason"><xsl:value-of select='.'/></xsl:variable>
+					<xsl:if test="contains($reason, 'http://')">
+					
+					<xsl:value-of select="$decision"/> lex:reasonToAppeal &lt;<xsl:value-of select='$reason'/>&gt;  .
+						
+					</xsl:if>
+				
+				</xsl:for-each>
+				
 			</xsl:for-each>
 			
-		</xsl:for-each>
-		
-		
-		
-		<!-- Create new decision expression and manifestation -->
-		<xsl:value-of select="$decExpr"/> a  frbr:Expression .
-		<xsl:value-of select="$decExpr"/> frbr:realizationOf <xsl:value-of select="$decision"/> .
-		
-		<xsl:value-of select="$decMani"/> a  frbr:Manifestation .
-		<xsl:value-of select="$decMani"/> frbr:embodimentOf <xsl:value-of select="$decExpr"/> .
-	
-	    <!--<xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" .-->
-	
-	    <!-- Create new court  -->
-	
-		<!-- Court -selects the first institution, which is always the institution responsible for the processed decision-->
-		
-		<xsl:variable name="court">&lt;<xsl:value-of select="/document/body/meta/institution[position()=1]/@rdf:about"/>&gt;</xsl:variable>
-		
-		<xsl:call-template name="createCourt">
-			<xsl:with-param name="court"><xsl:value-of select="$court"/></xsl:with-param>
-			<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
-			<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
 			
-		</xsl:call-template>
+			<!-- dotcene predpisy lex concernedSourcesOfLaw -->
+			
+			<xsl:for-each select="document/body/meta/concernedSources/*">
+				
+				<!-- every individual act may contain two or more URIs in @rdf:about -->
+				<xsl:for-each select="tokenize(@rdf:about, ' ')">
+				
+					<xsl:variable name="source"><xsl:value-of select='.'/></xsl:variable>
+					
+					<xsl:if test="contains($source, 'http://')">
+					<xsl:value-of select="$decision"/> lex:concernedSourceOfLaw &lt;<xsl:value-of select='$source'/>&gt;  .
+					</xsl:if>
+				
+				</xsl:for-each>
+				
+			</xsl:for-each>
+			
+			
+			
+			<!-- Create new decision expression and manifestation -->
+			<xsl:value-of select="$decExpr"/> a  frbr:Expression .
+			<xsl:value-of select="$decExpr"/> frbr:realizationOf <xsl:value-of select="$decision"/> .
+			
+			<xsl:value-of select="$decMani"/> a  frbr:Manifestation .
+			<xsl:value-of select="$decMani"/> frbr:embodimentOf <xsl:value-of select="$decExpr"/> .
 		
+		    <!--<xsl:value-of select="$decMani"/> dcterms:source """<xsl:value-of select="$filename"/>""" .-->
+		
+		    <!-- Create new court  -->
+		
+			<!-- Court -selects the first institution, which is typically the institution responsible for the processed decision. NO, because there could be e.g. "pravni veta" before "soud"-->
+			<!-- It is set to be http://linked.opendata.cz/resource/court/cz/nejvyssi-soud by default. Which still does not solve the strange decision below: 
+				PROBLEM: 4 Cmo 386/2012
+				
+				<body><meta>
+    Právní věta : Proti usnesení, jímž <institution id="1" label="B1" name="soud prvního stupně" rdf:about="http://linked.opendata.cz/resource/court/cz/soud-prvni-stupne" refers_to="0">soud prvního stupně</institution> podle ustanovení § 76h <act id="2" label="A1" name="" rdf:about="http://linked.opendata.cz/resource/legislation/cz/act/1963/99-1963" refers_to="0">o. s. ř.</act> vyzve navrhovatele ke složení doplatku jistoty ( <act id="3" label="A2" name="" rdf:about="http://linked.opendata.cz/resource/legislation/cz/act/1963/99-1963/section/75/1" refers_to="0">§ 75 odst. 1, věta druhá, o. s. ř.</act> ), je odvolání přípustné.
+    
+    Soud : <institution id="4" label="B2" name="Vrchní soud v Olomouci" rdf:about="http://linked.opendata.cz/resource/court/cz/vrchni-soud-v-olomouci" refers_to="0">Vrchní soud v Olomouci</institution>
+    
+				-->
+			
+			<!--<xsl:variable name="court">&lt;<xsl:value-of select="/document/body/meta/institution[position()=1]/@rdf:about"/>&gt;</xsl:variable>-->
+			<xsl:variable name="court">&lt;http://linked.opendata.cz/resource/court/cz/nejvyssi-soud&gt;</xsl:variable>
+			
+			<xsl:call-template name="createCourt">
+				<xsl:with-param name="court"><xsl:value-of select="$court"/></xsl:with-param>
+				<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
+				<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
+				
+			</xsl:call-template>
+			
 	
+		</xsl:if>
 	</xsl:if>	
-</xsl:if>
 		
 	    <!-- Following should be called for individual paragraphs -->
        <xsl:for-each select="//paragraph">		
 	    	
-					<xsl:variable name="decExprPara"><xsl:value-of select="$decExprParaCore"/><xsl:number></xsl:number>&gt;</xsl:variable>
+					<!--<xsl:variable name="decExprPara"><xsl:value-of select="$decExprParaCore"/><xsl:number></xsl:number>&gt;</xsl:variable>-->
 		   
        	
 					<xsl:call-template name="extractActsCitations">
-						<xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>
+						<!--<xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>-->
 						<xsl:with-param name="paragraph"><xsl:copy-of select="."/></xsl:with-param>
 					</xsl:call-template>
 					
 					<xsl:call-template name="extractJudgmentsCitations">
-						<xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>
+						<!-- <xsl:with-param name="paragraphURI"><xsl:value-of select="$decExprPara"/></xsl:with-param>-->
 						<xsl:with-param name="paragraph"><xsl:copy-of select="."/></xsl:with-param>
 					</xsl:call-template>
 			
@@ -344,54 +352,59 @@
 	  
 	  
 	<xsl:template name="createDecisionAndFileBasicRecord">
-		<xsl:param name="spisovaZnacka"/>
-		<xsl:param name="year"/>
-		<xsl:param name="file"> </xsl:param>
 		<xsl:param name="decision"> </xsl:param>
-		<xsl:param name="yearIssued"></xsl:param>
+		<xsl:param name="decisionIdentifierInURI"/> <!-- Typically it is spisova znacka (with dashes), but it could be also cislo jednaci -->
+		<xsl:param name="file"> </xsl:param> 
+		<xsl:param name="fileIdentifierInURI"/> <!-- Spisova znacka (with dashes) -->
+		<xsl:param name="yearInURI"/> 
+		<xsl:param name="yearDecisionIssued"></xsl:param>
 		
-		<!-- Metadata -->
-		<xsl:variable name="senat"><xsl:value-of select='substring-before($spisovaZnacka,"-")'/></xsl:variable>
-		<xsl:variable name="fileKind"><xsl:value-of select='substring-before(substring-after($spisovaZnacka,"-"),"-")'/></xsl:variable>
-		<xsl:variable name="fileNumber"><xsl:value-of select='substring-before(substring-after(substring-after($spisovaZnacka,"-"),"-"),"-")'/></xsl:variable>
 		
-		<!-- if available, the last number in: 56-Co-97-2011-29 -->
-		<xsl:if test="matches($spisovaZnacka,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> 
-			<!-- there is also number for decision -->
-			<xsl:variable name="decisionNumber"><xsl:value-of select='substring-before(substring-after(substring-after(substring-after($spisovaZnacka,"-"),"-"),"-"),"-")'/></xsl:variable>
-			
-		</xsl:if>	
-	
+		<!-- Metadata for decision/file-->
+		<xsl:variable name="senat"><xsl:value-of select='substring-before($decisionIdentifierInURI,"-")'/></xsl:variable>
+		<xsl:variable name="fileKind"><xsl:value-of select='substring-before(substring-after($decisionIdentifierInURI,"-"),"-")'/></xsl:variable>
+		<xsl:variable name="fileNumber"><xsl:value-of select='substring-before(substring-after(substring-after($decisionIdentifierInURI,"-"),"-"),"-")'/></xsl:variable>
+		<!-- year is already available -->
 		
-		<xsl:variable name="identifier"><xsl:value-of select='concat($senat," ",$fileKind," ",$fileNumber,"/",$year)'/></xsl:variable>
-	
-
 		<!-- Create new decision object -->
 		<xsl:value-of select="$decision"/> a lex:Decision .
 		
+		<!-- is the decision identifier cislo jednaci? if yes, take the last number (decisionNumber) in: 56-Co-97-2011-29 -->
+		<xsl:variable name="decisionNumber"><xsl:value-of select='substring-after(substring-after(substring-after(substring-after($decisionIdentifierInURI,"-"),"-"),"-"),"-")'/></xsl:variable>
 		
-		<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$identifier"/>" . 
-		<xsl:value-of select="$decision"/> dcterms:title "<xsl:value-of select="$identifier"/>" . 
-		
+		<xsl:choose>
+			<xsl:when test="string-length($decisionNumber) > 0"> <!-- cislo jednaci is available -->
+				<xsl:variable name="decisionIdentifierText"><xsl:value-of select='concat($senat," ",$fileKind," ",$fileNumber,"/",$yearInURI, "-", $decisionNumber)'/></xsl:variable>
+				<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$decisionIdentifierText"/>" . 
+				<xsl:value-of select="$decision"/> dcterms:title "<xsl:value-of select="$decisionIdentifierText"/>" .
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:variable name="decisionIdentifierText"><xsl:value-of select='concat($senat," ",$fileKind," ",$fileNumber,"/",$yearInURI)'/></xsl:variable>
+				<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$decisionIdentifierText"/>" . 
+				<xsl:value-of select="$decision"/> dcterms:title "<xsl:value-of select="$decisionIdentifierText"/>" . 
+			</xsl:otherwise>
+		</xsl:choose>
 		
 		<!-- ECLI -->
-		<xsl:if test="string-length($yearIssued) > 0"> <!-- we have the year when it was issued -->
-			<xsl:if test="matches($yearIssued,'^[0-9]{4}$')"> <!-- year is in the right format -->
-				<xsl:variable name="spisovaZnackaECLITemp"><xsl:value-of select='upper-case(replace($spisovaZnacka,"-","."))'/></xsl:variable>
-				<xsl:variable name="spisovaZnackaECLI">ECLI:CZ:NS:<xsl:value-of select="$yearIssued"/>:<xsl:value-of select="$spisovaZnackaECLITemp"/>.1</xsl:variable>
+		<xsl:if test="string-length($yearDecisionIssued) > 0"> <!-- we have the year when it was issued -->
+			<xsl:if test="matches($yearDecisionIssued,'^[0-9]{4}$')"> <!-- year is in the right format -->
+				<xsl:variable name="spisovaZnackaECLITemp"><xsl:value-of select='upper-case(replace($decisionIdentifierInURI,"-","."))'/></xsl:variable>
+				<xsl:variable name="spisovaZnackaECLI">ECLI:CZ:NS:<xsl:value-of select="$yearDecisionIssued"/>:<xsl:value-of select="$spisovaZnackaECLITemp"/>.1</xsl:variable>
 				<xsl:value-of select="$decision"/> dcterms:identifier "<xsl:value-of select="$spisovaZnackaECLI"/>" . 
 			</xsl:if>
 		</xsl:if>
 		
+		
+		<xsl:variable name="fileIdentifierText"><xsl:value-of select='concat($senat," ",$fileKind," ",$fileNumber,"/",$yearInURI)'/></xsl:variable>
 
-			<!-- Create new file object -->
-			<xsl:value-of select="$file"/> a lex:File .
-			<xsl:value-of select="$file"/> dcterms:identifier "<xsl:value-of select="$identifier"/>" . 
-			<xsl:value-of select="$file"/> dcterms:title "<xsl:value-of select="$identifier"/>" . 
-			<xsl:value-of select="$file"/> lex:senateNumber "<xsl:value-of select="$senat"/>" .
-			<xsl:value-of select="$file"/> lex:fileKind "<xsl:value-of select="$fileKind"/>" . 
-			<xsl:value-of select="$file"/> lex:fileNumber "<xsl:value-of select="$fileNumber"/>"^^xsd:positiveInteger .
-			<xsl:value-of select="$file"/> lex:fileYear "<xsl:value-of select="$year"/>"^^xsd:gYear . 
+		<!-- Create new file object -->
+		<xsl:value-of select="$file"/> a lex:File .
+		<xsl:value-of select="$file"/> dcterms:identifier "<xsl:value-of select="$fileIdentifierText"/>" . 
+		<xsl:value-of select="$file"/> dcterms:title "<xsl:value-of select="$fileIdentifierText"/>" . 
+		<xsl:value-of select="$file"/> lex:senateNumber "<xsl:value-of select="$senat"/>" .
+		<xsl:value-of select="$file"/> lex:fileKind "<xsl:value-of select="$fileKind"/>" . 
+		<xsl:value-of select="$file"/> lex:fileNumber "<xsl:value-of select="$fileNumber"/>"^^xsd:positiveInteger .
+		<xsl:value-of select="$file"/> lex:fileYear "<xsl:value-of select="$yearInURI"/>" . <!-- ^^xsd:gYear . -->
 		
 		
 		<!-- ustavni soud! <judgment id="60" label="C38" name="" rdf:about="http://linked.opendata.cz/resource/legislation/cz/judgment/2003/ii-us-279-03" refers_to="33">sp. zn. II. ÚS 279/03</judgment>
@@ -404,7 +417,7 @@
 
 	  
 	<xsl:template name="extractActsCitations">
-		<xsl:param name="paragraphURI"></xsl:param>
+		<!--<xsl:param name="paragraphURI"></xsl:param>-->
 		<xsl:param name="paragraph"></xsl:param>
 		
 		<xsl:for-each select="act">	
@@ -438,7 +451,7 @@
 	
 	
 	<xsl:template name="extractJudgmentsCitations">
-		<xsl:param name="paragraphURI"></xsl:param>
+		<!--<xsl:param name="paragraphURI"></xsl:param>-->
 		<xsl:param name="paragraph"></xsl:param>
 		
 		<xsl:for-each select="judgment">
@@ -475,29 +488,42 @@
 	
 		<!-- prepare for creation of new objects for decision, expr, man, file -->
 		<xsl:variable name="decision">&lt;<xsl:value-of select="$decisionURI"/>&gt;</xsl:variable>
-		<xsl:variable name="decExpr">&lt;<xsl:value-of select="$decisionURI"/>/expression&gt;</xsl:variable>
-		<xsl:variable name="decMani">&lt;<xsl:value-of select="$decisionURI"/>/manifestation&gt;</xsl:variable>
+		<!-- <xsl:variable name="decExpr">&lt;<xsl:value-of select="$decisionURI"/>/expression&gt;</xsl:variable>-->
+		
+		<xsl:variable name="decExprCore"><xsl:value-of select="$decisionURI"/>/expression/<xsl:value-of select='substring-after($decisionURI,"http://linked.opendata.cz/resource/legislation/")'></xsl:value-of>/cs</xsl:variable>
+		<xsl:variable name="decExpr">&lt;<xsl:value-of select="$decExprCore"></xsl:value-of>&gt;</xsl:variable>
+		
+		<xsl:variable name="decMani">&lt;<xsl:value-of select="$decExprCore"/>/manifestation&gt;</xsl:variable>
+	
+		
+		
+		
+		
+	
 		
 		<!--parse URI to get identifier for decision and parse identifier for file -->
 		
 		<xsl:variable name="year"><xsl:value-of select="substring(substring-after($decisionURI,'decision/'),1,4)"/></xsl:variable> 
-		<xsl:variable name="spisovaZnacka"><xsl:value-of select="substring-after(substring-after($decisionURI,'decision/'), '/')" /></xsl:variable>
+		<xsl:variable name="IdentifierInURIForDecision"><xsl:value-of select="substring-after(substring-after($decisionURI,'decision/'), '/')" /></xsl:variable>
+		<!-- in case there is also decision number, e.g. 56-Co-97-2011-29, remove the last number (-29)-->
+		<xsl:variable name="IdentifierInURIForFile"><xsl:value-of select="replace($IdentifierInURIForDecision,'(^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4})(-[0-9]+){0,1}$', '$1')" /></xsl:variable>
+		
+		
+		<!-- Create new file-->
+		<!-- if available, the last number in: 56-Co-97-2011-29 -->
+		<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$year"/>/<xsl:value-of select="$IdentifierInURIForFile"/>&gt;</xsl:variable> 
 		
 		<!-- Check that spisova znacka has reasonable format. If not, skip the generation of metadata-->
-		<xsl:if test="matches($year,'[0-9]{4}') and matches($spisovaZnacka,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that the date was extracted -->
+		<xsl:if test="matches($year,'^[0-9]{4}$') and matches($IdentifierInURIForDecision,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that the date was extracted -->
 
-			<!-- Create new file-->
-			<xsl:variable name="file">&lt;http://linked.opendata.cz/resource/legislation/cz/file/<xsl:value-of select="$year"/>/<xsl:value-of select="$spisovaZnacka"/>&gt;</xsl:variable> 
-			
-			
 			
 			<xsl:call-template name="createDecisionAndFileBasicRecord">
-				<xsl:with-param name="spisovaZnacka"><xsl:value-of select="$spisovaZnacka"/></xsl:with-param>
-				
-				<xsl:with-param name="year"><xsl:value-of select="$year"/></xsl:with-param>
-				<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
 				<xsl:with-param name="decision"><xsl:value-of select="$decision"/></xsl:with-param>
-				<xsl:with-param name="yearIssued"></xsl:with-param> <!-- year issued is not known -->
+				<xsl:with-param name="decisionIdentifierInURI"><xsl:value-of select="$IdentifierInURIForDecision"/></xsl:with-param>
+				<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
+				<xsl:with-param name="fileIdentifierInURI"><xsl:value-of select="$IdentifierInURIForDecision"/></xsl:with-param>
+				<xsl:with-param name="yearInURI"><xsl:value-of select="$year"/></xsl:with-param>
+				<xsl:with-param name="yearDecisionIssued"></xsl:with-param> <!-- year issued is not known -->
 			</xsl:call-template>
 			
 		
@@ -538,37 +564,47 @@
 		<xsl:choose>
 			<xsl:when test="contains($court,'soud-dovolaci') or contains($court,'dovolaci-soud')">
 				<xsl:variable name="courtFinal">&lt;http://linked.opendata.cz/resource/court/cz/nejvyssi-soud&gt;</xsl:variable>
-				<xsl:value-of select="$courtFinal"/> a lex:Court .
 				
-				<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
-				<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
-		
+				<xsl:if test="string-length($courtFinal) > 2">
+					<xsl:value-of select="$courtFinal"/> a lex:Court .
+					
+					<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
+					<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				</xsl:if>
 			
 			</xsl:when>
 			<xsl:when test="contains($court,'soud-prvni-stupne-pro') or contains($court,'soud-prvni-stupne')">
 				<xsl:variable name="courtFinal"><xsl:value-of select="$soudPrvniStupen"></xsl:value-of></xsl:variable>
-				<xsl:value-of select="$courtFinal"/> a lex:Court .
 				
-				<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
-				<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				<xsl:if test="string-length($courtFinal) > 2">
+					<xsl:value-of select="$courtFinal"/> a lex:Court .
 				
+					<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
+					<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				</xsl:if>
 				
 			</xsl:when>
 			<xsl:when test="contains($court,'odvolaci-soud') or contains($court,'soud-druhy-stupne') or contains($court,'soud-druhy-stupne-pro')">
 				<xsl:variable name="courtFinal"><xsl:value-of select="$soudDruhyStupen"></xsl:value-of></xsl:variable>
-				<xsl:value-of select="$courtFinal"/> a lex:Court .
 				
-				<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
-				<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				<xsl:if test="string-length($courtFinal) > 2">
+					<xsl:value-of select="$courtFinal"/> a lex:Court .
+					
+					<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
+					<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				</xsl:if>
 				
 				
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:variable name="courtFinal"><xsl:value-of select="$court"/></xsl:variable>
-				<xsl:value-of select="$courtFinal"/> a lex:Court .
 				
-				<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
-				<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				<xsl:if test="string-length($courtFinal) > 2">
+					<xsl:value-of select="$courtFinal"/> a lex:Court .
+					
+					<xsl:value-of select="$file"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .		
+					<xsl:value-of select="$decision"/>  dcterms:creator <xsl:value-of select="$courtFinal"/> .
+				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
 	
