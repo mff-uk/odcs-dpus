@@ -219,18 +219,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				String address = addressToGeoCode.toString();
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
-				
-				long curTS = date.getTime();
-				if (lastDownload + config.interval > curTS)
-				{
-					logger.debug("Sleeping: " + (lastDownload + config.interval - curTS));
-					try {
-						Thread.sleep(lastDownload + config.interval - curTS);
-					} catch (InterruptedException e) {
-						logger.info("Interrupted while sleeping");
-					}
-				}
-				
+								
 				//CACHE
 				String file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");
 				File hPath = ctx.getGlobalDirectory();
@@ -240,6 +229,17 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				if (!hFile.exists())
 				{
+					long curTS = date.getTime();
+					if (lastDownload + config.interval > curTS)
+					{
+						logger.debug("Sleeping: " + (lastDownload + config.interval - curTS));
+						try {
+							Thread.sleep(lastDownload + config.interval - curTS);
+						} catch (InterruptedException e) {
+							logger.info("Interrupted while sleeping");
+						}
+					}
+					
 					geocoderRequest = new GeocoderRequestBuilder().setAddress(address).setLanguage("en").getGeocoderRequest();
 					geocoderResponse = geocoder.geocode(geocoderRequest);
 					lastDownload = date.getTime();
