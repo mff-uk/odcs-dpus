@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_ruian</artifactId>
     <packaging>bundle</packaging>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
 	<description>This extractor scrapes RUIAN from http://vdp.cuzk.cz/vdp/ruian/vymennyformat/vyhledej</description>
     <properties>    
         <dpu.package>cz.opendata.linked.cz.ruian</dpu.package>

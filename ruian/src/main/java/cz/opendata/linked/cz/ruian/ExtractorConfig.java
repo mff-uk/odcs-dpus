@@ -19,6 +19,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	public int timeout = 40000;
     
     public int interval = 0;
+    
+    public boolean passToOutput = false;
 	
 	@Override
     public boolean isValid() {

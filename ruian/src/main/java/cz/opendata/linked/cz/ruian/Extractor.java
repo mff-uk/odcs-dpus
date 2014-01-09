@@ -60,6 +60,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.ctx = ctx;
 		s.obce = outObce;
 		s.zsj = outZsj;
+		s.outputFiles = config.passToOutput;
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
