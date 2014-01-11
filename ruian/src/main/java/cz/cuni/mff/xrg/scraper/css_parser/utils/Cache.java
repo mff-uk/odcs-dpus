@@ -47,13 +47,8 @@ public class Cache {
 
         oURL = new URL(p_sURL);
         oURL.openConnection();
-        try	{
-        	sResponse = IOUtils.toByteArray(oURL);
-        }
-        catch (Exception e)
-        {
-        	e.printStackTrace();
-        }
+       	
+        sResponse = IOUtils.toByteArray(oURL);
 
 	    return sResponse;
 	}
@@ -62,12 +57,10 @@ public class Cache {
 	{
 		byte[] bytes = getURLContentAsByteArray(p_sURL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try{
-            IOUtils.copy(new GZIPInputStream(new ByteArrayInputStream(bytes)), out);
-        } catch(IOException e){
-            throw new RuntimeException(e);
-        }
-        return new String(out.toByteArray(), "UTF-8");		
+		
+		IOUtils.copy(new GZIPInputStream(new ByteArrayInputStream(bytes)), out);
+        
+		return new String(out.toByteArray(), "UTF-8");		
 	}
 
 	public static int errorsFetchingURL = 0;
