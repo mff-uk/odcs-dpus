@@ -28,6 +28,9 @@ import java.io.File;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.slf4j.Logger;
@@ -137,7 +140,12 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
                     }
                     
                     taXSLTemplate.setValue(configText);
-                    lFileName.setValue("File " + fileUploadReceiver.getFileName() + " was successfully uploaded.");
+                    
+                    //to get the current date: 
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    Date date = new Date();
+                                        
+                    lFileName.setValue("File " + fileUploadReceiver.getFileName() + " was successfully uploaded on: " + dateFormat.format(date));
 
 //                 
                 }

@@ -255,7 +255,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             throw new DPUException("No XSLT available, execution interrupted");
         }
         
-        String pathToXslTemplate = pathToWorkingDir + "\template.xslt";
+        String pathToXslTemplate = pathToWorkingDir + File.separator + "template.xslt";
         log.debug("Path to xslTemplate: {}", pathToXslTemplate );
         
         //create new file with the xslTemplate content
