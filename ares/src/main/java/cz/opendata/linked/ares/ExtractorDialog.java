@@ -19,9 +19,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 	private GridLayout mainLayout;
-	private CheckBox chkSendCache;
+	private CheckBox chkUseCacheOnly;
 	private CheckBox chkStdAdr;
 	private CheckBox chkActive;
+	private CheckBox chkGenerateOutput;
 	private CheckBox chkPuvAdr;
     private TextField numDownloads;
     private TextField hoursToCheck;
@@ -47,11 +48,17 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
-        chkSendCache = new CheckBox("Only send what is cached:");
-        chkSendCache.setDescription("When selected, DPU goes through cache and sends whats in it regardless of download limits.");
-        chkSendCache.setWidth("100%");
+        chkGenerateOutput = new CheckBox("Generate output:");
+        chkGenerateOutput.setDescription("When selected, the cached or downloaded files will be passed as RDF literals to output.");
+        chkGenerateOutput.setWidth("100%");
         
-        mainLayout.addComponent(chkSendCache);
+        mainLayout.addComponent(chkGenerateOutput);
+
+        chkUseCacheOnly = new CheckBox("Use only cache:");
+        chkUseCacheOnly.setDescription("When selected, DPU only goes through cache, does not download and ignores download limits.");
+        chkUseCacheOnly.setWidth("100%");
+        
+        mainLayout.addComponent(chkUseCacheOnly);
         
         chkStdAdr = new CheckBox("Include OR stdadr:");
         chkStdAdr.setDescription("When selected, downloads will include standardized address.");
@@ -93,7 +100,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkSendCache.setValue(conf.sendCache);
+		chkUseCacheOnly.setValue(conf.useCacheOnly);
+		chkGenerateOutput.setValue(conf.generateOutput);
 		chkPuvAdr.setValue(conf.bas_puvadr);
 		chkActive.setValue(conf.bas_active);
 		chkStdAdr.setValue(conf.or_stdadr);
@@ -110,7 +118,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.bas_puvadr = chkPuvAdr.getValue();
 		conf.or_stdadr = chkStdAdr.getValue();
 		conf.bas_active = chkActive.getValue();
-		conf.sendCache = chkSendCache.getValue();
+		conf.useCacheOnly = chkUseCacheOnly.getValue();
+		conf.generateOutput = chkGenerateOutput.getValue();
 		try { Integer.parseInt(numDownloads.getValue()); } catch (InvalidValueException e) { return conf;}
 		conf.PerDay = Integer.parseInt(numDownloads.getValue());
 		try { Integer.parseInt(hoursToCheck.getValue()); } catch (InvalidValueException e) { return conf;}

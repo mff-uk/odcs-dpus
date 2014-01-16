@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.jsoup.nodes.Document;
 import org.openrdf.model.Resource;
@@ -108,10 +110,21 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		List<String> ICs = new LinkedList<String>();
+		Set<String> ICs = new TreeSet<String>();
 
 		//Load ICs from input DataUnit
 		
+		ctx.sendMessage(MessageType.INFO, "Interval: " + config.interval);
+		ctx.sendMessage(MessageType.INFO, "Timeout: " + config.timeout);
+		ctx.sendMessage(MessageType.INFO, "Hours to check: " + config.hoursToCheck);
+		ctx.sendMessage(MessageType.INFO, "Dowload per time frame: " + config.PerDay);
+		ctx.sendMessage(MessageType.INFO, "Cache base dir: " + Cache.basePath);
+		ctx.sendMessage(MessageType.INFO, "Cache only: " + config.useCacheOnly);
+		ctx.sendMessage(MessageType.INFO, "Generating output: " + config.generateOutput);
+		ctx.sendMessage(MessageType.INFO, "BAS Active only: " + config.bas_active);
+		ctx.sendMessage(MessageType.INFO, "Puvadr in BAS: " + config.bas_puvadr);
+		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.or_stdadr);
+
 		int lines = 0;
 		if (duICs.getTripleCount() > 0)
 		{
@@ -161,9 +174,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			e.printStackTrace();
 		}
 
-		ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs before deduplication.");
+		ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs.");
 
-		//Remove duplicate ICs
+		/*//Remove duplicate ICs
 		List<String> dedupICs = new LinkedList<String>();    
 		for (String currentIC: ICs)
 		{
@@ -173,26 +186,26 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		  }
 		 }
 		
-		ICs = dedupICs;
+		ICs = dedupICs;*/
 		
 		if (!ctx.canceled())
 		{
 			//Download
 			int toCache = (config.PerDay - cachedToday);
 			Iterator<String> li = ICs.iterator();
-			ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
+			//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 	
 			try {
-				while (li.hasNext() && !ctx.canceled() && (config.sendCache || (downloaded < (toCache - 1)))) {
+				while (li.hasNext() && !ctx.canceled() && (config.useCacheOnly || (downloaded < (toCache - 1)))) {
 					String currentIC = li.next();
 					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.bas_active ? "" : "&aktivni=false") + (config.bas_puvadr ? "&adr_puv=true" : ""));
-					if (!Cache.isCached(current) && !config.sendCache)
+					if (!Cache.isCached(current) && !config.useCacheOnly)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						if (doc != null)
 						{
 							//logger.trace(doc.outerHtml());
-							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+							if (config.generateOutput) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
 							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
 						}
 						else
@@ -207,7 +220,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						if (doc != null)
 						{
 							//logger.trace(doc.outerHtml());
-							outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+							if (config.generateOutput) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
 							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
 						}
 						else
@@ -219,13 +232,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (ctx.canceled()) break;
 					
 					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.or_stdadr? "&stdadr=true" : ""));
-					if (!Cache.isCached(current) && !config.sendCache)
+					if (!Cache.isCached(current) && !config.useCacheOnly)
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						cachedEarlier++;
 						if (doc != null)
 						{
-							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							if (config.generateOutput) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
 							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run: " + current);
 						}
 						else
@@ -239,7 +252,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						cachedEarlier++;
 						if (doc != null)
 						{
-							outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							if (config.generateOutput) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
 							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
 						}
 						else

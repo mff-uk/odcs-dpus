@@ -22,8 +22,10 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     
     public int interval = 0;
     
-    public boolean sendCache = false;
+    public boolean useCacheOnly = false;
     
+    public boolean generateOutput = true;
+
     public boolean or_stdadr = true; 
     
     public boolean bas_puvadr = true;

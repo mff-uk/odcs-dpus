@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -80,8 +83,17 @@ public class Cache {
 		//File hHost = new File(Cache.basePath, host);
 		File hPath = new File(Cache.basePath, host + File.separatorChar + path);
 		File hFile = new File(hPath, file);
-
-		return (hFile.exists() && (hFile.length() > 0));
+		
+		logger.trace("Checking " + hFile.getAbsolutePath() + " Exists: " + hFile.exists() + " Longer than 0: " + (hFile.length() > 0) );
+		
+		if (hFile.exists() && (hFile.length() > 0))
+		{
+			Date date = new Date (hFile.lastModified());
+			Format format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+			logger.trace("File found. Modififed: " + format.format(date).toString());
+			return true;
+		}
+		else return false;
 	}
 
 	public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException {   
