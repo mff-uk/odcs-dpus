@@ -76,7 +76,8 @@
 		<!-- Check that spisova znacka has reasonable format. If not, skip the generation of the xslt-->
 		<xsl:if test="matches($yearSpisZnacka,'[0-9]{4}') and matches($spisovaZnackainURI,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that spisova znacka has reasonable format-->
 			
-		
+			<xsl:value-of select="$yearSpisZnacka"></xsl:value-of>
+			<xsl:value-of select="$spisovaZnackainURI"></xsl:value-of>
 			<!-- article holds the decision expression resource -->
 			<article typeof="frbr:Expression sdo:Publication" prefix="frbr: http://purl.org/vocab/frbr/core# dcterms: http://purl.org/dc/terms/ sdo: http://salt.semanticauthoring.org/ontologies/sdo# sao: http://salt.semanticauthoring.org/ontologies/sao# lex: http://purl.org/lex#" xml:base="http://linked.opendata.cz/resource/">
 				<!--<xsl:attribute name="vocab" select="$vocab" />-->
@@ -109,7 +110,7 @@
 		</xsl:variable>
 		
 		<span rel="sdo:hasParagraph">
-		<paragraph typeof="sdo:Paragraph" property="dcterms:title">
+		<paragraph typeof="sdo:Paragraph" property="dcterms:description">
 			    <xsl:attribute name="about" select="concat($decisionExpressionParagraph-prefix, $id)" />
 			    
 				<xsl:apply-templates mode="section" />
