@@ -18,6 +18,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	public int interval = 1000;
 	
+	public String sessionId = "c34mab45sjcdjf235dxrvarb";
+
 	@Override
     public boolean isValid() {
 		return true;

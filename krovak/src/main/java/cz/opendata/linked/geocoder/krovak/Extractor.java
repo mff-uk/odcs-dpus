@@ -194,7 +194,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				String file = lines.toString();
 				
-				String url = "http://geoportal.cuzk.cz/(S(c34mab45sjcdjf235dxrvarb))/WCTSHandlerhld.ashx";
+				String url = "http://geoportal.cuzk.cz/(S(" + config.sessionId + "))/WCTSHandlerhld.ashx";
 				
 				HttpClient httpclient = HttpClientBuilder.create().build();
 				HttpPost httppost = new HttpPost(url);

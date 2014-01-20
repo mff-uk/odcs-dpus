@@ -23,6 +23,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	private GridLayout mainLayout;
     private TextField interval;
     private TextField tfNumOfRecords;
+    private TextField tfSessionId;
 
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -52,6 +53,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         tfNumOfRecords.setCaption("Number of records in one block:");
         mainLayout.addComponent(tfNumOfRecords);
 
+        tfSessionId = new TextField();
+        tfSessionId.setCaption("Session ID:");
+        mainLayout.addComponent(tfSessionId);
+
         return mainLayout;
     }	
      
@@ -59,7 +64,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		interval.setValue(Integer.toString(conf.interval));
 		tfNumOfRecords.setValue(Integer.toString(conf.numofrecords));
-
+		tfSessionId.setValue(conf.sessionId);
 	}
 
 	@Override
@@ -67,6 +72,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.interval = Integer.parseInt(interval.getValue());
 		conf.numofrecords = Integer.parseInt(tfNumOfRecords.getValue());
+		conf.sessionId = tfSessionId.getValue();
 		return conf;
 	}
 	
