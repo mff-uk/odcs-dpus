@@ -112,6 +112,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
+		URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
+		URI googleURI = outGeo.createURI("https://developers.google.com/maps/documentation/javascript/geocoding");
 		URI geoURI = outGeo.createURI("http://schema.org/geo");
 		URI geocoordsURI = outGeo.createURI("http://schema.org/GeoCoordinates");
 		URI postalAddressURI = sAddresses.createURI("http://schema.org/PostalAddress");
@@ -130,20 +132,20 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				+ "{"
 					+ "?address a s:PostalAddress . "
 				+  "}"; 
-		String notGCcountQuery = "PREFIX s: <http://schema.org/> "
+		/*String notGCcountQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
 				+ "{"
 					+ "?address a s:PostalAddress . "
 					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
-				+  "}"; 
+				+  "}";*/ 
 		String sOrgConstructQuery = "PREFIX s: <http://schema.org/> "
 				+ "CONSTRUCT {?address ?p ?o}"
 				+ "WHERE "
 				+ "{"
 					+ "?address a s:PostalAddress ;"
 					+ "			?p ?o . "
-					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
+//					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
 				+  "}"; 
 		/*String sOrgQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT DISTINCT * "
@@ -165,10 +167,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		int failed = 0;
 		try {
 			MyTupleQueryResult countres = sAddresses.executeSelectQueryAsTuples(countQuery);
-			MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
+			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
-			ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
-			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses, " + ngc + " not geocoded yet.");
+			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
+			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses"/* + ngc + " not geocoded yet."*/);
 		} catch (InvalidQueryException e1) {
 			logger.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {
@@ -290,12 +292,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				String uri = currentAddressURI.stringValue();
 				URI addressURI = outGeo.createURI(uri);
-				URI coordURI = outGeo.createURI(uri+"/geocoordinates");
+				URI coordURI = outGeo.createURI(uri+"/geocoordinates/google");
 				
 				outGeo.addTriple(addressURI, geoURI , coordURI);
 				outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
 				outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
+				outGeo.addTriple(coordURI, dcsource, googleURI);
 			}
 			if (ctx.canceled()) logger.info("Cancelled");
 			
