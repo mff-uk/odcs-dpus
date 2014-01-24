@@ -23,7 +23,17 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     public boolean structured = false;
 	
     public boolean stripNumFromLocality = true;
-
+    
+    public String country = "";
+    
+    public boolean useStreet = true;
+    
+    public boolean useRegion = false;
+    
+    public boolean useLocality = true;
+    
+    public boolean usePostalCode = false;
+    
     @Override
     public boolean isValid() {
 		return true;

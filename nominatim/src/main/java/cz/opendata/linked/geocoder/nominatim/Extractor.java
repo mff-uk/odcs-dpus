@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.text.ParseException;
@@ -40,6 +41,8 @@ import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import org.apache.commons.io.*;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
 import com.google.gson.JsonParser;
 
 @AsExtractor
@@ -70,16 +73,24 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
-	private class Response {
+	public class Response {
 	  public Map<String, Geo> descriptor;
 	  //getters&setters
+	  public Response () {  }
 	}
 	
-	private class Geo {
+	public class Geo {
 	  public String lat;
 	  public String lon;
 	  //getters&setters
+	  public Geo () {  }
 	}
+	
+	public class GeoInstanceCreator implements InstanceCreator<Geo> {
+	   public Geo createInstance(Type type) {
+	     return new Geo();
+	   }
+	 }	
 	
 	private int countTodaysCacheFiles(DPUContext ctx)
 	{
@@ -152,6 +163,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
+	    Gson gson = new GsonBuilder().registerTypeAdapter(Geo.class, new GeoInstanceCreator()).create();
 
 		URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
 		URI nominatimURI = outGeo.createURI("http://nominatim.openstreetmap.org");
@@ -235,9 +247,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				addressLocality = getAddressPart(currentAddressURI, addressLocalityURI, resGraph);
 				addressRegion = getAddressPart(currentAddressURI, addressRegionURI, resGraph);
 				postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
-				addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
+				//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
+				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
 				
-				String address = (addressCountry == null? "" : addressCountry) /*+ " " + (postalCode == null? "" : postalCode)  + " " + (addressRegion == null? "" : addressRegion) + " "*/ + (streetAddress == null? "" : streetAddress) + " " +  (addressLocality == null? "" : addressLocality) ;
+				String address = (config.country.isEmpty() ? "" : config.country) + " " 
+				+ ((config.usePostalCode && postalCode != null) ? "" : postalCode)  + " " 
+				+ ((config.useRegion && addressRegion != null) ? "" : addressRegion) + " " 
+				+ ((config.useStreet && streetAddress != null) ? "" : streetAddress) + " " 
+				+ ((config.useLocality && addressLocality != null) ? "" : addressLocality) ;
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
 				String file;
@@ -270,11 +287,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					String url;
 					if (config.structured) {
 						url = "http://nominatim.openstreetmap.org/search?format=json" 
-								+ "&street=" + streetAddress 
-								+ "&city=" + (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "") : addressLocality) 
-								+ "&state=" + addressCountry 
-								+ "&postalcode=" + postalCode 
-								+ "&county=" + addressRegion;
+								+ (config.useStreet ? "&street=" + streetAddress : "") 
+								+ (config.useLocality ? "&city=" + (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
+								+ (config.country.isEmpty() ? "" : "&state=" + config.country) 
+								+ (config.usePostalCode ? "&postalcode=" + postalCode : "")
+								+ (config.useRegion ? "&county=" + addressRegion : "");
 						//url = url.replace(" ", "+");
 					}
 					else {
@@ -315,7 +332,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					logger.error(e.getLocalizedMessage());
 				}
 				
-			    Gson gson = new Gson();
 				try {
 					Geo[] gs = gson.fromJson(cachedFile, Geo[].class);
 					if (gs == null || gs.length == 0) {
@@ -327,7 +343,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					BigDecimal latitude = new BigDecimal(gs[0].lat);
 					BigDecimal longitude = new BigDecimal(gs[0].lon);
 					
-					logger.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
+					logger.debug("Located: " + address + " Possibilities: " + gs.length + " Latitude: " + latitude + " Longitude: " + longitude);
 					
 					String uri = currentAddressURI.stringValue();
 					URI addressURI = outGeo.createURI(uri);

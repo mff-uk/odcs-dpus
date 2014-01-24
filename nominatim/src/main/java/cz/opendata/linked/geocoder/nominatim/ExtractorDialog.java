@@ -2,10 +2,13 @@ package cz.opendata.linked.geocoder.nominatim;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
@@ -24,8 +27,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField interval;
     private TextField limit;
     private TextField hoursToCheck;
+    private TextField tfCountry;
     private CheckBox chkStructured;
     private CheckBox chkStripNumFromLocality;
+    private TwinColSelect tcsProperties;
+    private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode"};
     
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -59,6 +65,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkStripNumFromLocality);
 
+        tfCountry = new TextField();
+        tfCountry.setCaption("Country");
+        mainLayout.addComponent(tfCountry);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
@@ -71,6 +81,13 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         hoursToCheck.setCaption("Maximum amount interval:");
         mainLayout.addComponent(hoursToCheck);
 
+        tcsProperties = new TwinColSelect("Select properties to use");
+        tcsProperties.setLeftColumnCaption("Supported properties");
+        tcsProperties.setRightColumnCaption("Selected properties");
+        for (int p = 0; p < properties.length; p++) tcsProperties.addItem(properties[p]);
+        tcsProperties.setRows(properties.length);
+        mainLayout.addComponent(tcsProperties);
+        
         return mainLayout;
     }	
      
@@ -79,9 +96,16 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		interval.setValue(Integer.toString(conf.interval));
 		hoursToCheck.setValue(Integer.toString(conf.hoursToCheck));
 		limit.setValue(Integer.toString(conf.limit));
+		tfCountry.setValue(conf.country);
 		chkStructured.setValue(conf.structured);
 		chkStripNumFromLocality.setValue(conf.stripNumFromLocality);
 
+		LinkedList<String> values = new LinkedList<String>();
+		if (conf.useStreet) values.add(properties[0]);
+		if (conf.useRegion) values.add(properties[1]);
+		if (conf.useLocality) values.add(properties[2]);
+		if (conf.usePostalCode) values.add(properties[3]);
+		tcsProperties.setValue(values);
 	}
 
 	@Override
@@ -89,9 +113,17 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.interval = Integer.parseInt(interval.getValue());
 		conf.hoursToCheck = Integer.parseInt(hoursToCheck.getValue());
+		conf.country = tfCountry.getValue();
 		conf.limit = Integer.parseInt(limit.getValue());
 		conf.structured = chkStructured.getValue();
 		conf.stripNumFromLocality = chkStripNumFromLocality.getValue();
+		
+		Collection<String> values = (Collection<String>)tcsProperties.getValue();
+		if (values.contains(properties[0])) conf.useStreet = true;
+		if (values.contains(properties[1])) conf.useRegion = true;
+		if (values.contains(properties[2])) conf.useLocality = true;
+		if (values.contains(properties[3])) conf.usePostalCode = true;
+		
 		return conf;
 	}
 	
