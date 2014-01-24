@@ -251,10 +251,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
 				
 				String address = (config.country.isEmpty() ? "" : config.country) + " " 
-				+ ((config.usePostalCode && postalCode != null) ? "" : postalCode)  + " " 
-				+ ((config.useRegion && addressRegion != null) ? "" : addressRegion) + " " 
-				+ ((config.useStreet && streetAddress != null) ? "" : streetAddress) + " " 
-				+ ((config.useLocality && addressLocality != null) ? "" : addressLocality) ;
+				+ ((config.usePostalCode && postalCode != null) ? postalCode : "")  + " " 
+				+ ((config.useRegion && addressRegion != null) ? addressRegion : "") + " " 
+				+ ((config.useStreet && streetAddress != null) ? streetAddress : "") + " " 
+				+ ((config.useLocality && addressLocality != null) ? addressLocality : "");
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
 				String file;
