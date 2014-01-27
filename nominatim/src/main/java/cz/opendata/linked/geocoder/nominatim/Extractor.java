@@ -254,7 +254,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				+ ((config.usePostalCode && postalCode != null) ? postalCode : "")  + " " 
 				+ ((config.useRegion && addressRegion != null) ? addressRegion : "") + " " 
 				+ ((config.useStreet && streetAddress != null) ? streetAddress : "") + " " 
-				+ ((config.useLocality && addressLocality != null) ? addressLocality : "");
+				+ ((config.useLocality && addressLocality != null) ? (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
 				String file;
