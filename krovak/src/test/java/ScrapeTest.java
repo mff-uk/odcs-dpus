@@ -14,7 +14,7 @@ public class ScrapeTest {
 		// prepare dpu instance and configure it
 		Extractor extractor = new Extractor();
 		ExtractorConfig config = new ExtractorConfig();
-		
+		config.numofrecords = 100;
 		
 		extractor.configureDirectly(config);
 		

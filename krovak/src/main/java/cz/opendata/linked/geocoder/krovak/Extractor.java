@@ -216,12 +216,21 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				httppost.setEntity(multipartEntity.build());
 
 				HttpResponse response = null;
-				try {
+				while (response == null)
+				{
+					try {
 					response = httpclient.execute(httppost);
-				} catch (ClientProtocolException e) {
-					logger.error(e.getLocalizedMessage());
-				} catch (IOException e) {
-					logger.error(e.getLocalizedMessage());
+					} catch (ClientProtocolException e) {
+						logger.error(e.getLocalizedMessage());
+					} catch (IOException e) {
+						logger.error(e.getLocalizedMessage());
+					}
+					if (response == null) {
+						logger.warn("Response null, sleeping and trying again");
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) { }
+					}
 				}
 				HttpEntity resEntity = response.getEntity();				
 				logger.debug("Got response");
@@ -267,7 +276,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 					
 				}
-				
 			}
 			if (ctx.canceled()) logger.info("Cancelled");
 			

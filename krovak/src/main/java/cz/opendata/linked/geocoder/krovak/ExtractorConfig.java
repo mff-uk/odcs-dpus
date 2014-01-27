@@ -14,7 +14,7 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	 */
 	private static final long serialVersionUID = 8719241993054209502L;
 
-	public int numofrecords = 35000;
+	public int numofrecords = 500;
 	
 	public int interval = 1000;
 	
