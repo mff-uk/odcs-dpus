@@ -16,6 +16,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.openrdf.model.Graph;
@@ -142,9 +143,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			
 			int expectedNumOfBlocks = ngc/config.numofrecords + 1;
 			
-			logger.debug("Starting transformation, estimating " + expectedNumOfBlocks + "blocks. ");
+			logger.debug("Starting transformation, estimating " + expectedNumOfBlocks + " blocks. ");
 			
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, gmlPoint);
+			
+			String url = "http://geoportal.cuzk.cz/(S(" + config.sessionId + "))/WCTSHandlerhld.ashx";
+			HttpClient httpclient = HttpClientBuilder.create().build();
 			
 			int blocksDone = 0;
 			while (it.hasNext() && !ctx.canceled())
@@ -194,86 +198,151 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				String file = lines.toString();
 				
-				String url = "http://geoportal.cuzk.cz/(S(" + config.sessionId + "))/WCTSHandlerhld.ashx";
-				
-				HttpClient httpclient = HttpClientBuilder.create().build();
-				HttpPost httppost = new HttpPost(url);
-
-				MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();        
-				multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-				multipartEntity.setBoundary("----WebKitFormBoundaryCYQR5wAfAoAP7BrE");
-				
-				multipartEntity.addTextBody("source", "File");
-				multipartEntity.addTextBody("sourceSRS", "urn:ogc:def:crs,crs:EPSG::5514,crs:EPSG::5705");
-				multipartEntity.addTextBody("targetSRS", "urn:ogc:def:crs:EPSG::4937");
-				multipartEntity.addTextBody("sourceXYorder", "xy");
-				multipartEntity.addTextBody("targetXYorder", "xy");
-				multipartEntity.addTextBody("sourceSixtiethView", "false");
-				multipartEntity.addTextBody("targetSixtiethView", "true");
-				multipartEntity.addTextBody("wcts_fileType", "text");
-				multipartEntity.addBinaryBody("wcts_file1", new ByteArrayInputStream(file.getBytes()), ContentType.TEXT_PLAIN, "geo.txt");
-				    
-				httppost.setEntity(multipartEntity.build());
-
 				HttpResponse response = null;
-				while (response == null)
+				boolean goodresponse = false;
+				int tries = 0;
+				while ((response == null || !goodresponse) && !ctx.canceled())
 				{
+					tries++;
+					logger.debug("Try " + tries);
+					goodresponse = false;
 					try {
-					response = httpclient.execute(httppost);
+					
+						MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();        
+						multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+						multipartEntity.setBoundary("----WebKitFormBoundaryCYQR5wAfAoAP7BrE");
+						
+						multipartEntity.addTextBody("source", "File");
+						multipartEntity.addTextBody("sourceSRS", "urn:ogc:def:crs,crs:EPSG::5514,crs:EPSG::5705");
+						multipartEntity.addTextBody("targetSRS", "urn:ogc:def:crs:EPSG::4937");
+						multipartEntity.addTextBody("sourceXYorder", "xy");
+						multipartEntity.addTextBody("targetXYorder", "xy");
+						multipartEntity.addTextBody("sourceSixtiethView", "false");
+						multipartEntity.addTextBody("targetSixtiethView", "true");
+						multipartEntity.addTextBody("wcts_fileType", "text");
+						multipartEntity.addBinaryBody("wcts_file1", new ByteArrayInputStream(file.getBytes()), ContentType.TEXT_PLAIN, "geo.txt");
+						    
+						HttpEntity mpe = multipartEntity.build();
+						HttpPost httppost = new HttpPost(url);
+						httppost.setEntity(mpe);
+						response = httpclient.execute(httppost);
+					
 					} catch (ClientProtocolException e) {
 						logger.error(e.getLocalizedMessage());
+						try {
+							Thread.sleep(config.failInterval);
+						} catch (InterruptedException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					continue;
 					} catch (IOException e) {
 						logger.error(e.getLocalizedMessage());
+						try {
+							Thread.sleep(config.failInterval);
+						} catch (InterruptedException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						continue;
 					}
 					if (response == null) {
 						logger.warn("Response null, sleeping and trying again");
 						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) { }
+							Thread.sleep(config.failInterval);
+							continue;
+						} catch (InterruptedException e) { 
+							continue;
+						}
 					}
-				}
-				HttpEntity resEntity = response.getEntity();				
-				logger.debug("Got response");
+					
+					HttpEntity resEntity = response.getEntity();				
+					logger.debug("Got response");
 
-				String result = null;
+					String result = null;
 
-				if (resEntity != null) {
-				    InputStream inputStream = null;
-				    try {
-						inputStream = resEntity.getContent();
-					} catch (IllegalStateException e) {
-						logger.error(e.getLocalizedMessage());
-					} catch (IOException e) {
-						logger.error(e.getLocalizedMessage());
+					if (resEntity != null) {
+					    InputStream inputStream = null;
+					    try {
+							inputStream = resEntity.getContent();
+						} catch (IllegalStateException e) {
+							logger.error(e.getLocalizedMessage());
+							try {
+								Thread.sleep(config.failInterval);
+							} catch (InterruptedException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							continue;
+						} catch (IOException e) {
+							logger.error(e.getLocalizedMessage());
+							try {
+								Thread.sleep(config.failInterval);
+							} catch (InterruptedException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							continue;
+						}
+					    
+					    StringWriter writer = new StringWriter();
+					    try {
+							IOUtils.copy(inputStream, writer, "UTF-8");
+						} catch (IOException e) {
+							logger.error(e.getLocalizedMessage());
+							try {
+								Thread.sleep(config.failInterval);
+							} catch (InterruptedException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							continue;
+						}
+					    result = writer.toString();
 					}
-				    
-				    StringWriter writer = new StringWriter();
-				    try {
-						IOUtils.copy(inputStream, writer, "UTF-8");
-					} catch (IOException e) {
-						logger.error(e.getLocalizedMessage());
+					else continue;
+					
+					String[] resultLines = result.split("\\r\\n");
+					
+					boolean linesok = true;
+					for (String currentLine : resultLines)
+					{
+						String[] columns = currentLine.split("\\s");
+						
+						String currentPointUri = uriMap.get(columns[0]); 
+						BigDecimal latitude, longitude;
+						try {
+							latitude = new BigDecimal(Double.parseDouble(columns[1]) + (Double.parseDouble(columns[2])/60) + (Double.parseDouble(columns[3]) / 3600));
+							longitude = new BigDecimal(Double.parseDouble(columns[4]) + (Double.parseDouble(columns[5])/60) + (Double.parseDouble(columns[6]) / 3600));
+						}
+						catch (Exception e)
+						{
+							logger.warn(e.getLocalizedMessage(), e);
+							try {
+								Thread.sleep(config.failInterval);
+							} catch (InterruptedException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							linesok = false;
+							break;
+						}
+						goodresponse = true;
+						
+						URI origPoinURI = outGeo.createURI(currentPointUri);
+						URI coordURI = outGeo.createURI(currentPointUri+"/wgs84");
+						
+						outGeo.addTriple(origPoinURI, geoURI , coordURI);
+						outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
+						outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
+						outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
+						
 					}
-				    result = writer.toString();
-				}
-				else break;
-				
-				String[] resultLines = result.split("\\r\\n");
-				
-				for (String currentLine : resultLines)
-				{
-					String[] columns = currentLine.split("\\s");
-					
-					String currentPointUri = uriMap.get(columns[0]); 
-					BigDecimal latitude = new BigDecimal(Double.parseDouble(columns[1]) + (Double.parseDouble(columns[2])/60) + (Double.parseDouble(columns[3]) / 3600));
-					BigDecimal longitude = new BigDecimal(Double.parseDouble(columns[4]) + (Double.parseDouble(columns[5])/60) + (Double.parseDouble(columns[6]) / 3600));
-					
-					URI origPoinURI = outGeo.createURI(currentPointUri);
-					URI coordURI = outGeo.createURI(currentPointUri+"/wgs84");
-					
-					outGeo.addTriple(origPoinURI, geoURI , coordURI);
-					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
-					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
-					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
+					if (linesok)
+					{
+						goodresponse = true;
+						logger.info("Successfully got response for block: " + blocksDone);
+					}
 					
 				}
 			}

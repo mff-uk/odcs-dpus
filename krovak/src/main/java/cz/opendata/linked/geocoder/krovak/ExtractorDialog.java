@@ -21,7 +21,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 	private GridLayout mainLayout;
-    private TextField interval;
+    private TextField interval, failinterval;
     private TextField tfNumOfRecords;
     private TextField tfSessionId;
 
@@ -49,6 +49,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
 
+        failinterval = new TextField();
+        failinterval.setCaption("Interval between failed downloads:");
+        mainLayout.addComponent(failinterval);
+
         tfNumOfRecords = new TextField();
         tfNumOfRecords.setCaption("Number of records in one block:");
         mainLayout.addComponent(tfNumOfRecords);
@@ -63,6 +67,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		interval.setValue(Integer.toString(conf.interval));
+		failinterval.setValue(Integer.toString(conf.failInterval));
 		tfNumOfRecords.setValue(Integer.toString(conf.numofrecords));
 		tfSessionId.setValue(conf.sessionId);
 	}
@@ -71,6 +76,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.interval = Integer.parseInt(interval.getValue());
+		conf.failInterval = Integer.parseInt(failinterval.getValue());
 		conf.numofrecords = Integer.parseInt(tfNumOfRecords.getValue());
 		conf.sessionId = tfSessionId.getValue();
 		return conf;
