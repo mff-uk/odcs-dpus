@@ -7,19 +7,14 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_buyer_profiles_cz</artifactId>
+    <artifactId>Extractor_gov_cz_smlouvy</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
-	<description>This extractor scrapes buyer profiles and public contracts published on them and creates Turtle files</description>
+    <version>1.0.1</version>
+	<description>This extractor scrapes Smlouvy from portal.gov.cz</description>
     <properties>    
-        <dpu.package>cz.opendata.linked.buyer_profiles</dpu.package>
+        <dpu.package>cz.opendata.linked.cz.gov.smlouvy</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
  	<dependencies>
-		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.7.3</version>
-		</dependency> 		 		 
  	</dependencies>
 </project>

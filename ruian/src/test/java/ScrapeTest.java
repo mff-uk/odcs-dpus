@@ -17,6 +17,8 @@ public class ScrapeTest {
 		config.interval = 0;
 		config.timeout = 10000;
 		config.rewriteCache = false;
+		config.inclGeoData = true;
+		config.passToOutput = false;
 		
 		extractor.configureDirectly(config);
 		

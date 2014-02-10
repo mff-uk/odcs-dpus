@@ -1,8 +1,6 @@
-package cz.opendata.linked.geocoder.krovak;
+package cz.opendata.linked.cz.gov.smlouvy;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
@@ -21,15 +19,14 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 	private GridLayout mainLayout;
-    private TextField interval, failinterval;
-    private TextField tfNumOfRecords;
-    private TextField tfSessionId;
-
+	private CheckBox chkRewriteCache;
+    private TextField interval;
+    private TextField timeout;
+    
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);
-
+        setCompositionRoot(mainLayout);        
     }  
 	
     private GridLayout buildMainLayout() {
@@ -45,40 +42,40 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
+        chkRewriteCache = new CheckBox("Rewrite cache:");
+        chkRewriteCache.setDescription("When selected, cache will be ignored.");
+        chkRewriteCache.setWidth("100%");
+        
+        mainLayout.addComponent(chkRewriteCache);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
-
-        failinterval = new TextField();
-        failinterval.setCaption("Interval between failed downloads:");
-        mainLayout.addComponent(failinterval);
-
-        tfNumOfRecords = new TextField();
-        tfNumOfRecords.setCaption("Number of records in one block:");
-        mainLayout.addComponent(tfNumOfRecords);
-
-        tfSessionId = new TextField();
-        tfSessionId.setCaption("Session ID:");
-        mainLayout.addComponent(tfSessionId);
-
+        
+        timeout = new TextField();
+        timeout.setCaption("Timeout for download:");
+        
+        mainLayout.addComponent(timeout);
+        
         return mainLayout;
     }	
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+		chkRewriteCache.setValue(conf.rewriteCache);
 		interval.setValue(Integer.toString(conf.interval));
-		failinterval.setValue(Integer.toString(conf.failInterval));
-		tfNumOfRecords.setValue(Integer.toString(conf.numofrecords));
-		tfSessionId.setValue(conf.sessionId);
+		timeout.setValue(Integer.toString(conf.timeout));
+	
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
+		conf.rewriteCache = chkRewriteCache.getValue();
+		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
 		conf.interval = Integer.parseInt(interval.getValue());
-		conf.failInterval = Integer.parseInt(failinterval.getValue());
-		conf.numofrecords = Integer.parseInt(tfNumOfRecords.getValue());
-		conf.sessionId = tfSessionId.getValue();
+		try { Integer.parseInt(timeout.getValue()); } catch (InvalidValueException e) { return conf;}
+		conf.timeout = Integer.parseInt(timeout.getValue());
 		return conf;
 	}
 	

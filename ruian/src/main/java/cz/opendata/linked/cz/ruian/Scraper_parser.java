@@ -51,12 +51,12 @@ public class Scraper_parser extends ScrapingTemplate{
     	if (docType.equals("obec"))
     	{
     		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString()); 
-    		if (outputFiles) obce.addTriple(obce.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), obce.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),obce.createLiteral(doc));
+    		//if (outputFiles) obce.addTriple(obce.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), obce.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),obce.createLiteral(doc));
     	}
     	else if (docType.equals("zsj"))
     	{
     		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
-    		if (outputFiles) zsj.addTriple(zsj.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), zsj.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),zsj.createLiteral(doc));
+    		//if (outputFiles) zsj.addTriple(zsj.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), zsj.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE),zsj.createLiteral(doc));
     	}
     }
 }

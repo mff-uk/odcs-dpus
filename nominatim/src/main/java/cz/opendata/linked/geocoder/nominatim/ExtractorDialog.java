@@ -119,10 +119,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.stripNumFromLocality = chkStripNumFromLocality.getValue();
 		
 		Collection<String> values = (Collection<String>)tcsProperties.getValue();
-		if (values.contains(properties[0])) conf.useStreet = true;
-		if (values.contains(properties[1])) conf.useRegion = true;
-		if (values.contains(properties[2])) conf.useLocality = true;
-		if (values.contains(properties[3])) conf.usePostalCode = true;
+		conf.useStreet = values.contains(properties[0]); 
+		conf.useRegion = values.contains(properties[1]);
+		conf.useLocality = values.contains(properties[2]);
+		conf.usePostalCode = values.contains(properties[3]);
 		
 		return conf;
 	}

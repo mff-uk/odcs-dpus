@@ -489,7 +489,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		/* Transform profilZadavatele URL*/
 		try {
 			URL URIProfiluZadavatele = new URL("http://linked.opendata.cz/resource/domain/buyer-profiles/profile/cz/" 
-			+ external.getProtocol() + "/" + external.getHost() + external.getPath());
+			+ external.getProtocol() + "/" + external.getHost() + external.getFile());
 			return URIProfiluZadavatele;
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
