@@ -1,15 +1,18 @@
-package cz.opendata.linked.geocoder.google;
+package cz.opendata.linked.geocoder.nominatim;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.openrdf.model.Graph;
 import org.openrdf.model.Resource;
@@ -20,12 +23,6 @@ import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.code.geocoder.Geocoder;
-import com.google.code.geocoder.GeocoderRequestBuilder;
-import com.google.code.geocoder.model.GeocodeResponse;
-import com.google.code.geocoder.model.GeocoderRequest;
-import com.google.code.geocoder.model.GeocoderStatus;
 
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
@@ -43,6 +40,11 @@ import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import org.apache.commons.io.*;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
+import com.google.gson.JsonParser;
+
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
@@ -53,7 +55,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	 */
 
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
-	final Geocoder geocoder = new Geocoder();
 	private int geocodes = 0;
 	private int cacheHits = 0;
 	
@@ -72,6 +73,25 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	public class Response {
+	  public Map<String, Geo> descriptor;
+	  //getters&setters
+	  public Response () {  }
+	}
+	
+	public class Geo {
+	  public String lat;
+	  public String lon;
+	  //getters&setters
+	  public Geo () {  }
+	}
+	
+	public class GeoInstanceCreator implements InstanceCreator<Geo> {
+	   public Geo createInstance(Type type) {
+	     return new Geo();
+	   }
+	 }	
+	
 	private int countTodaysCacheFiles(DPUContext ctx)
 	{
 		int count = 0;
@@ -107,13 +127,46 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return count;
 	}
 	
+	private static String getURLContent(String p_sURL) throws IOException
+	{
+	    URL oURL;
+	    String sResponse = null;
+
+        oURL = new URL(p_sURL);
+        oURL.openConnection();
+        try	{
+        	sResponse = IOUtils.toString(oURL, "UTF-8");
+        }
+        catch (Exception e)
+        {
+        	e.printStackTrace();
+        }
+
+	    return sResponse;
+	}
+
+	private String getAddressPart(Resource currentAddressURI, URI currentPropertyURI, Graph resGraph) {
+		Iterator<Statement> it1 = resGraph.match(currentAddressURI, currentPropertyURI, null); 
+		String currentValueString = null;
+		if (it1.hasNext())
+		{
+			Value currentValue = it1.next().getObject();
+			if (currentValue != null)
+			{
+				currentValueString = currentValue.stringValue();
+			}
+		}
+		return currentValueString;
+	}
+	
 	public void execute(DPUContext ctx) throws DPUException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
+	    Gson gson = new GsonBuilder().registerTypeAdapter(Geo.class, new GeoInstanceCreator()).create();
 
 		URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
-		URI googleURI = outGeo.createURI("https://developers.google.com/maps/documentation/javascript/geocoding");
+		URI nominatimURI = outGeo.createURI("http://nominatim.openstreetmap.org");
 		URI geoURI = outGeo.createURI("http://schema.org/geo");
 		URI geocoordsURI = outGeo.createURI("http://schema.org/GeoCoordinates");
 		URI postalAddressURI = sAddresses.createURI("http://schema.org/PostalAddress");
@@ -147,17 +200,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "			?p ?o . "
 //					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
 				+  "}"; 
-		/*String sOrgQuery = "PREFIX s: <http://schema.org/> "
-				+ "SELECT DISTINCT * "
-				+ "WHERE "
-				+ "{"
-					+ "{?address a s:PostalAddress . } "
-					+ "UNION { ?address s:streetAddress ?street . } "
-					+ "UNION { ?address s:addressRegion ?region . } "
-					+ "UNION { ?address s:addressLocality ?locality . } "
-					+ "UNION { ?address s:postalCode ?postal . } "
-					+ "UNION { ?address s:addressCountry ?country . } "
-				+ " }";*/
 
 		logger.debug("Geocoder init");
 		
@@ -170,7 +212,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
-			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses"/* + ngc + " not geocoded yet."*/);
+			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses");
 		} catch (InvalidQueryException e1) {
 			logger.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {
@@ -188,7 +230,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			
 			logger.debug("Starting geocoding.");
 			
-			URI[] propURIs = new URI [] {streetAddressURI, addressLocalityURI, addressRegionURI, postalCodeURI, addressCountryURI};
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
 			
 			int cachedToday = countTodaysCacheFiles(ctx);
@@ -199,35 +240,36 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			{
 				count++;
 				Resource currentAddressURI = it.next().getSubject();
-				StringBuilder addressToGeoCode = new StringBuilder();
 				
-				for (URI currentPropURI : propURIs)
-				{
-					Iterator<Statement> it1 = resGraph.match(currentAddressURI, currentPropURI, null); 
-					
-					if (it1.hasNext())
-					{
-						Value currentValue = it1.next().getObject();
-						if (currentValue != null)
-						{
-							//logger.trace("Currently " + currentBinding);
-							String currentValueString = currentValue.stringValue();
-							//logger.trace("Value " + currentValueString);
-							addressToGeoCode.append(currentValueString);
-							addressToGeoCode.append(" ");
-						}
-					}
-				}				
+				String streetAddress, addressLocality, addressRegion, postalCode, addressCountry;
 				
-				String address = addressToGeoCode.toString();
+				streetAddress = getAddressPart(currentAddressURI, streetAddressURI, resGraph);
+				addressLocality = getAddressPart(currentAddressURI, addressLocalityURI, resGraph);
+				addressRegion = getAddressPart(currentAddressURI, addressRegionURI, resGraph);
+				postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
+				//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
+				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
+				
+				String address = (config.country.isEmpty() ? "" : config.country) + " " 
+				+ ((config.usePostalCode && postalCode != null) ? postalCode : "")  + " " 
+				+ ((config.useRegion && addressRegion != null) ? addressRegion : "") + " " 
+				+ ((config.useStreet && streetAddress != null) ? streetAddress : "") + " " 
+				+ ((config.useLocality && addressLocality != null) ? (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
+				String file;
+				if (config.structured)
+				{
+					file = "structured-" + address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
+				}
+				else
+				{
+					file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
+				}
 				//CACHE
-				String file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");
+				
 				File hPath = ctx.getGlobalDirectory();
 				File hFile = new File(hPath, file);
-				GeocoderRequest geocoderRequest = null;
-				GeocodeResponse geocoderResponse = null;
 				
 				if (!hFile.exists())
 				{
@@ -242,32 +284,40 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						}
 					}
 					
-					geocoderRequest = new GeocoderRequestBuilder().setAddress(address).setLanguage("en").getGeocoderRequest();
-					geocoderResponse = geocoder.geocode(geocoderRequest);
+					String url;
+					if (config.structured) {
+						url = "http://nominatim.openstreetmap.org/search?format=json" 
+								+ (config.useStreet ? "&street=" + streetAddress : "") 
+								+ (config.useLocality ? "&city=" + (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
+								+ (config.country.isEmpty() ? "" : "&state=" + config.country) 
+								+ (config.usePostalCode ? "&postalcode=" + postalCode : "")
+								+ (config.useRegion ? "&county=" + addressRegion : "");
+						//url = url.replace(" ", "+");
+					}
+					else {
+						url = "http://nominatim.openstreetmap.org/search?format=json&q=" + address.replace(" ", "+");
+					}
+					
+					String out = null;
+					try {
+						out = getURLContent(url.toString());
+					} catch (IOException e1) {
+						logger.error(e1.getLocalizedMessage() +" while geocoding " +  address);
+					}
 					lastDownload = date.getTime();
 					
 					geocodes++;
-					GeocoderStatus s = geocoderResponse.getStatus();
-					if (s == GeocoderStatus.OK) {
-						logger.debug("Googled (" + geocodes + "): " + address);
-						
-						try {
-							BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-							fw.append(geocoderResponse.toString());
-							fw.close();
-						} catch (Exception e) {
-							logger.error(e.getLocalizedMessage());
-						}
-						//CACHED
+					logger.debug("Queried Nominatim (" + geocodes + "): " + address);
+					
+					try {
+						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+						fw.append(out);
+						fw.close();
+					} catch (Exception e) {
+						logger.error(e.getLocalizedMessage());
+						e.printStackTrace();
 					}
-					else if (s == GeocoderStatus.ZERO_RESULTS) {
-						logger.warn("Zero results for: " + address);
-						continue;
-					}
-					else {
-						logger.error("Status: " + geocoderResponse.getStatus() + " " + address);
-						break;
-					}
+					//CACHED
 				}
 				else {
 					cacheHits++;
@@ -282,23 +332,33 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					logger.error(e.getLocalizedMessage());
 				}
 				
-				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
-				String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation)); 
+				try {
+					Geo[] gs = gson.fromJson(cachedFile, Geo[].class);
+					if (gs == null || gs.length == 0) {
+						failed++;
+						logger.debug("Failed to geolocate (" + failed + "): " + address);
+						continue;
+					}
+					
+					BigDecimal latitude = new BigDecimal(gs[0].lat);
+					BigDecimal longitude = new BigDecimal(gs[0].lon);
+					
+					logger.debug("Located: " + address + " Possibilities: " + gs.length + " Latitude: " + latitude + " Longitude: " + longitude);
+					
+					String uri = currentAddressURI.stringValue();
+					URI addressURI = outGeo.createURI(uri);
+					URI coordURI = outGeo.createURI(uri+"/geocoordinates/nominatim");
+					
+					outGeo.addTriple(addressURI, geoURI , coordURI);
+					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
+					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
+					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
+					outGeo.addTriple(coordURI, dcsource, nominatimURI);
+				} catch (Exception e) {
+					logger.warn(e.getLocalizedMessage());
+					e.printStackTrace();
+				}
 				
-				BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
-				BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
-				
-				logger.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
-				
-				String uri = currentAddressURI.stringValue();
-				URI addressURI = outGeo.createURI(uri);
-				URI coordURI = outGeo.createURI(uri+"/geocoordinates/google");
-				
-				outGeo.addTriple(addressURI, geoURI , coordURI);
-				outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
-				outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
-				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
-				outGeo.addTriple(coordURI, dcsource, googleURI);
 			}
 			if (ctx.canceled()) logger.info("Cancelled");
 			
@@ -311,7 +371,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
-		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Googled: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
+		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Nominatim: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
 
 	}
 

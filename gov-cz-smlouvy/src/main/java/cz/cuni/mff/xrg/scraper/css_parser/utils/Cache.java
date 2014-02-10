@@ -1,30 +1,24 @@
 package cz.cuni.mff.xrg.scraper.css_parser.utils;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
-
 /**
  *  Document cache. It stores downloaded files to hard drive.
  * 
- *  @author Jakub Klímek
+ *  @author Jakub Starka
  */
 public class Cache {
 
-	private static String getURLContentAsString(String p_sURL) throws IOException
+	private static String getURLContent(String p_sURL) throws IOException
 	{
 	    URL oURL;
 	    String sResponse = null;
@@ -42,39 +36,6 @@ public class Cache {
 	    return sResponse;
 	}
 	
-	private static byte[] getURLContentAsByteArray(String p_sURL) throws IOException
-	{
-	    URL oURL;
-	    byte[] sResponse = null;
-
-        oURL = new URL(p_sURL);
-        oURL.openConnection();
-       	
-        sResponse = IOUtils.toByteArray(oURL);
-
-	    return sResponse;
-	}
-	
-	private static void download_and_gunzip(String fromURL, File toFile) throws IOException
-	{
-	    URL oURL = new URL(fromURL);
-	    OutputStream fos = new FileOutputStream(toFile);
-        InputStream is = oURL.openStream();
-        GZIPInputStream gis = new GZIPInputStream(is);
-        
-        IOUtils.copy(gis, fos);
-	}
-	
-	private static String getURLContentAsUnGzippedString(String p_sURL) throws IOException
-	{
-		byte[] bytes = getURLContentAsByteArray(p_sURL);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		
-		IOUtils.copy(new GZIPInputStream(new ByteArrayInputStream(bytes)), out);
-        
-		return new String(out.toByteArray(), "UTF-8");		
-	}
-
 	public static int errorsFetchingURL = 0;
 
 	public static String basePath;
@@ -119,11 +80,19 @@ public class Cache {
 		}
 		else
 		{
+			//System.out.println();
+			//System.out.println(url);
+			//System.out.println(url.getPath());
 			path = url.getPath().substring(1, url.getPath().lastIndexOf("/")).replace("?", "_");
+			//System.out.println(path);
 			file = url.getFile().substring(path.length() + 2).replace("/", "@").replace("?", "@");
+			//System.out.println(url.getFile());
+			//System.out.println(file);
+			//System.out.println();
 			if (file.isEmpty()) return false;
 		}
 
+		//File hHost = new File(Cache.basePath, host);
 		File hPath = new File(Cache.basePath, host + File.separatorChar + path);
 		File hFile = new File(hPath, file);
 
@@ -146,19 +115,26 @@ public class Cache {
 		}
 		else
 		{
+			//System.out.println();
+			//System.out.println(url);
+			//System.out.println(url.getPath());
 			path = url.getPath().substring(1, url.getPath().lastIndexOf("/")).replace("?", "_");
+			//System.out.println(path);
 			file = url.getFile().substring(path.length() + 2).replace("/", "@").replace("?", "@");
+			//System.out.println(url.getFile());
+			//System.out.println(file);
+			//System.out.println();
 			if (file.isEmpty()) return null;
 		}
 
-		if (datatype.equals("gz")) file = file.substring(0, file.length() - 3);
-
+		//File hHost = new File(Cache.basePath, host);
 		File hPath = new File(Cache.basePath, host + File.separatorChar + path);
 		File hFile = new File(hPath, file);
 
 		String out = null;
 
 		if (!hFile.exists() || rewriteCache) {
+			//if (!s.contains(file)) {
 			hPath.mkdirs();
 			int attempt = 0;
 			while (attempt < maxAttempts) {
@@ -166,24 +142,19 @@ public class Cache {
 				long curTS = date.getTime();
 				logger.debug("Downloading URL (attempt " + attempt + "): " + url.getHost() + url.getFile());
 				if (lastDownload + interval > curTS ) {
+					/*                    System.out.println("LastDownload: " + lastDownload);
+                    System.out.println("CurTS: " + curTS);
+                    System.out.println("Interval: " + interval);*/
 					logger.debug("Sleeping: " + (lastDownload + interval - curTS));
 					Thread.sleep(lastDownload + interval - curTS);
 				}
 				try {
-					if (datatype.equals("gz"))
-					{
-						download_and_gunzip(url.toString(), hFile);
-						//out = getURLContentAsUnGzippedString(url.toString());
-					}
-					else 
-					{
-						out = getURLContentAsString(url.toString());
-					}
+					out = getURLContent(url.toString());
 
-					java.util.Date date2= new java.util.Date();
-					lastDownload = date2.getTime();
-					logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
-					break;
+				java.util.Date date2= new java.util.Date();
+				lastDownload = date2.getTime();
+				logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
+				break;
 				
 				}
 				catch (SocketTimeoutException ex) {
@@ -191,6 +162,17 @@ public class Cache {
 					long failed = date3.getTime();
 					logger.debug("Timeout (attempt " + attempt + ") in " + (failed - curTS)+ " : " + url.getHost() + url.getFile());
 
+					//Comment to retry when timeout
+					//if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+					//{
+					//    BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+					//   fw.close();
+					//    return null;
+					//}
+
+					//END comment
+
+					//Thread.sleep(interval);
 				} catch (java.io.IOException ex) {
 					logger.warn("Warning (retrying): " + ex.getMessage());
 					if (
@@ -204,6 +186,10 @@ public class Cache {
 							)
 					{
 						if (ex.getMessage().equals("HTTP error fetching URL")) errorsFetchingURL++;
+						//This makes sure that next run will see the errorneous page as cached. Does not have to be always desirable
+						//BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+						//fw.close();
+						//return null;
 					}
 					Thread.sleep(interval);
 				}
@@ -211,15 +197,14 @@ public class Cache {
 			}
 			if (attempt == maxAttempts) {
 				logger.warn("Warning. Max attempts reached. Skipping: " + url.getHost() + url.getPath());
+				/*throw new SocketTimeoutException();*/
 				return null;
 			}
 			try 
 			{
-				if (!datatype.equals("gz")) {
-					BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-					fw.append(out);
-					fw.close();
-				}
+				BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+				fw.append(out);
+				fw.close();
 			}
 			catch (Exception e)
 			{
@@ -230,13 +215,13 @@ public class Cache {
 				else logger.warn("ERROR caching: " + e.getLocalizedMessage());
 			}
 		} else {
-			if (!datatype.equals("gz")) {
-				FileInputStream fisTargetFile = new FileInputStream(hFile);
+			//System.out.println("Using cache for URL: " + url.getHost() + url.getFile());
 
-				out = IOUtils.toString(fisTargetFile, "UTF-8");
+			FileInputStream fisTargetFile = new FileInputStream(hFile);
+
+			out = IOUtils.toString(fisTargetFile, "UTF-8");
 			
-				fisTargetFile.close();
-			}
+			fisTargetFile.close();
 
 		}
 		return out;

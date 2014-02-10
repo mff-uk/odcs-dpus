@@ -21,6 +21,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	private GridLayout mainLayout;
 	private CheckBox chkRewriteCache;
 	private CheckBox chkPassOutput;
+	private CheckBox chkGeoData;
     private TextField interval;
     private TextField timeout;
     
@@ -55,6 +56,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkPassOutput);
 
+        chkGeoData = new CheckBox("Downloads include complete geodata:");
+        chkGeoData.setDescription("When selected, files with complete geodata will be downloaded.");
+        chkGeoData.setWidth("100%");
+        
+        mainLayout.addComponent(chkGeoData);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
@@ -71,6 +78,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		chkPassOutput.setValue(conf.passToOutput);
 		chkRewriteCache.setValue(conf.rewriteCache);
+		chkGeoData.setValue(conf.inclGeoData);
 		interval.setValue(Integer.toString(conf.interval));
 		timeout.setValue(Integer.toString(conf.timeout));
 	
@@ -80,6 +88,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.rewriteCache = chkRewriteCache.getValue();
+		conf.inclGeoData = chkGeoData.getValue();
 		conf.passToOutput = chkPassOutput.getValue();
 		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
 		conf.interval = Integer.parseInt(interval.getValue());

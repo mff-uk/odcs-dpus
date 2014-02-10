@@ -1,4 +1,4 @@
-package cz.opendata.linked.geocoder.krovak;
+package cz.opendata.linked.cz.gov.smlouvy;
 
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
@@ -14,17 +14,15 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	 */
 	private static final long serialVersionUID = 8719241993054209502L;
 
-	public int numofrecords = 100;
+    public boolean rewriteCache = true;
 	
-	public int interval = 1000;
+	public int timeout = 40000;
+    
+    public int interval = 0;
 	
-	public int failInterval = 10000;
-	
-	public String sessionId = "c34mab45sjcdjf235dxrvarb";
-
 	@Override
     public boolean isValid() {
-		return true;
+        return true;
     }
 
 }

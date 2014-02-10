@@ -21,6 +21,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     public int interval = 0;
     
     public boolean passToOutput = false;
+    
+    public boolean inclGeoData = false;
 	
 	@Override
     public boolean isValid() {

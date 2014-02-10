@@ -1,10 +1,11 @@
 import org.junit.Test;
+import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
-import cz.opendata.linked.cz.ruian.Extractor;
-import cz.opendata.linked.cz.ruian.ExtractorConfig;
+import cz.opendata.linked.geocoder.nominatim.Extractor;
+import cz.opendata.linked.geocoder.nominatim.ExtractorConfig;
 
 
 public class ScrapeTest {
@@ -13,12 +14,8 @@ public class ScrapeTest {
 		// prepare dpu instance and configure it
 		Extractor extractor = new Extractor();
 		ExtractorConfig config = new ExtractorConfig();
-		
-		config.interval = 0;
-		config.timeout = 10000;
-		config.rewriteCache = false;
-		config.inclGeoData = true;
-		config.passToOutput = false;
+		config.structured = false;
+		config.stripNumFromLocality = true;
 		
 		extractor.configureDirectly(config);
 		
@@ -26,8 +23,9 @@ public class ScrapeTest {
 		TestEnvironment env = TestEnvironment.create();
 		// prepare input and output data units
 		
-		RDFDataUnit obce = env.createRdfOutput("XMLObce", false);
-		RDFDataUnit zsj = env.createRdfOutput("XMLZsj", false);
+		RDFDataUnit sAddrs = env.createRdfInputFromResource("Schema.org addresses", false,
+				"addresses.ttl", RDFFormat.TURTLE);
+		RDFDataUnit geoCoord = env.createRdfOutput("Geocoordinates", false);
 
 		// here we can simply pre-fill input data unit with content from 
 		// resource file
@@ -36,8 +34,7 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			obce.loadToFile("C:\\temp\\obce.ttl", RDFFormatType.TTL);
-			zsj.loadToFile("C:\\temp\\zsj.ttl", RDFFormatType.TTL);
+			geoCoord.loadToFile("C:\\temp\\geo.ttl", RDFFormatType.TTL);
 			
 			// verify result
 		}
