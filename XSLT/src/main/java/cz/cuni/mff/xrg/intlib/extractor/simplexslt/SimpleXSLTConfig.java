@@ -13,6 +13,8 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(SimpleXSLTConfig.class);
     private String xslTemplate = "";
+    
+    //INPUT PREDICATE IN RDF DATA UNIT HOLDING the files to be processed
     private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;  //input is always XML
     private String outputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
     private final String paramsPredicate = "http://linked.opendata.cz/ontology/odcs/xsltParam";
@@ -22,8 +24,8 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private String escapedString = "\"\"\":&quote;&quote;&quote; "; // "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
     private int numberOfTriesToConnect = -1;
     
-    //not used, but needed for backward compatibility
-    private String storedXsltFilePath = "";
+//    //not used, but needed for backward compatibility
+//    private String storedXsltFilePath = "";
 
     //rdfa.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quote;").replaceAll("\\*", "&#42;").replaceAll("\\\\", "&#92;");
     public enum OutputType {
@@ -34,6 +36,22 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     }
     private OutputType outputType = OutputType.Literal;
     private String outputXSLTMethod = "text"; //text/xml/..
+    
+    //INPUT PREDICATE IN RDF DATA UNIT HOLDING URI which should be used as a subject for the given file 
+    //when OutputType.Literal is used
+    public static final String DATA_UNIT_RESULTING_SUBJECT_PREDICATE = "http://linked.opendata.cz/ontology/odcs/resultingSubject";
+    //predicate holding path to the file data unit. 
+    //Object is used to map subject with the particular file in file data unit. 
+    //Subject is an arbitrary URI, which may be used to define other properties of the file in the file data unit. 
+    public static final String FILE_DATAUNIT_PATH = "http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath";
+
+    public String getResultingSubjectPredicate() {
+        return DATA_UNIT_RESULTING_SUBJECT_PREDICATE;
+    }
+    
+    public String getFilePathPredicate() {
+        return FILE_DATAUNIT_PATH;
+    }
 
     public SimpleXSLTConfig() {
     }
@@ -52,11 +70,6 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
         this.outputXSLTMethod = outputXSLTMeth;
         this.escapedString = escaped;
         this.numberOfTriesToConnect = parsedNumberOfTries;
-
-
-
-
-
     }
 
     public int getNumberOfTriesToConnect() {

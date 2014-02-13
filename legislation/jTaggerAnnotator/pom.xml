@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Legislation_Decisions_jTagger</artifactId>
     <packaging>bundle</packaging>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 	<description>Module which annotates extracted decisions. The input is formed by triples "x ...hasTextContent y" where y is the unzipped decision. 
             The output is formed by triples "x ...hasXMLContent y", where y is the annotated file, with supplemented metadata/content elements and paragraphs</description>
     <dependencies>
@@ -24,6 +24,13 @@
             <version>1.0.0</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>dataunit-rdf-impl</artifactId>
+			<version>${odcs.version}</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>		
     </dependencies>
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>

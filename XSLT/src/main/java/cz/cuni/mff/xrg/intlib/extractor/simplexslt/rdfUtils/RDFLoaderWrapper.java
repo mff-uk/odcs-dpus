@@ -15,12 +15,18 @@ import java.io.File;
 public abstract class RDFLoaderWrapper {
 
     protected RDFDataUnit du;
+    protected String outputPath;
     
-    public RDFLoaderWrapper(RDFDataUnit _du) {
+    public RDFLoaderWrapper(RDFDataUnit _du, String outputPath) {
         this.du = _du;
+        this.outputPath = outputPath;
     }
     
     public abstract void addData(File f) throws RDFException;
+
+    public String getOutputPath() {
+        return outputPath;
+    }
     
     
     

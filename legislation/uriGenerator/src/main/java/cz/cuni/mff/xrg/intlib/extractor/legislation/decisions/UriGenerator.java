@@ -14,7 +14,11 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.impl.OrderTupleQueryResult;
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
+import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
+import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
+import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
+
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +30,6 @@ import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResult;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -45,8 +48,12 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
     }
     @InputDataUnit
     public RDFDataUnit rdfInput;
-    @OutputDataUnit
+    
+    @OutputDataUnit(name = "rdfOutput", optional = true)
     public RDFDataUnit rdfOutput;
+    
+    @OutputDataUnit(name = "fileOutput", optional = true)
+    public FileDataUnit fileOutput;
 
     @Override
     public AbstractConfigDialog<UriGeneratorConfig> getConfigurationDialog() {
@@ -73,31 +80,6 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                      log.error("Configuration file is missing, the processing will NOT continue");
                      context.sendMessage(MessageType.ERROR, "Configuration file is missing, the processing will NOT continue");
         }
-
-//        //prepare access to resources of the jar file
-//        //get path JAR file, so that resources (such as perl script can be read)
-//        //File jarPath = context.getJarPath();
-//        String jarPathString = null;
-//        try {
-//            jarPathString = context.getJarPath().getCanonicalPath();
-//        } catch (IOException ex) {
-//            log.error("Cannot get path to the jar file with jTagger resources");
-//            log.debug(ex.getLocalizedMessage());
-//        }
-//
-//        //to get unzipped version of JAR
-//        String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
-//        String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
-//        //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
-//        log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
-//        try {
-//            unzip(jarPathString, unzipedJarPathString);
-//        } catch (ZipException ex) {
-//            log.error("Unzip error, {}", ex.getLocalizedMessage());
-//        } catch (IOException ex) {
-//            log.error("Error:: " + ex.getLocalizedMessage());
-//        }
-
 
         //prepare inputs, call xslt for each input
 //        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
@@ -137,14 +119,6 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                  String outputURIGeneratorFilename = pathToWorkingDir + File.separator + "outURIGen" + File.separator + String.valueOf(i) + ".xml";
                  DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGen" + File.separator);
            
-              
-                 
-//                 //where the resources within unzipped jar files are located.
-//                 String unzipedJarPathStringResources = unzipedJarPathString + File.separator + pathToResources;
-//                 //config for URI generator
-//                 String configURiGen = unzipedJarPathStringResources + File.separator + "uriGenConfig.xml";
-                 
-                 
                  
                  runURIGenerator(inputFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
             
@@ -154,15 +128,9 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 }
                 
 
+               log.info("URI generator successfully executed, creating output");
               
-
-
-
-
-
-log.info("URI generator successfully executed, creating output");
-              
-                 //OUTPUT
+               //RDF DataUnit OUTPUT
                String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
                 
                Resource subj = rdfOutput.createURI(subject);
@@ -175,16 +143,21 @@ log.info("URI generator successfully executed, creating output");
                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
                String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
             
-               
-               //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-         
-                
                DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
                
                //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
                log.info("Output successfully created");
+               //End of output creation
+                //FILE DataUnit OUTPUT
+                DirectoryHandler rootDir = fileOutput.getRootDir();
+                rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(true));
+                        //add(new File(outputURIGeneratorFilename), false);
+     
+               log.info("Output successfully created");
+               //End of output creation
+               
                
                if (context.canceled()) {
                     log.info("DPU cancelled");

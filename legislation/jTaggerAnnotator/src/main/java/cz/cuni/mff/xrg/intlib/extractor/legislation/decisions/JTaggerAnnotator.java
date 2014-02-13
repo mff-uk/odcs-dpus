@@ -35,10 +35,11 @@ import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResult;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
-import cz.cuni.mff.xrg.odcs.rdf.impl.OrderTupleQueryResult;
+import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
+
+
 /**
  * Simple XSLT Extractor
  *
@@ -122,6 +123,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
         //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        //OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
         OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
 
         int i = 0;
@@ -151,8 +153,18 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                     continue;
                 }
                 
-                //store the input content to file, inputs are xml files!
-                File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
+                File file;
+                if (config.getMode().equals("nscr")) {
+                    //store the input content to file, inputs are xml files!
+                    file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
+                } else if (config.getMode().equals("uscr")){
+                    file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("UTF-8"));
+
+                }
+                else {
+                    throw new DPUException("Unsupported Mode " + config.getMode());
+                }
+                    
                 if (file == null) {
                     log.warn("Problem processing object for subject {}", subject);
                     continue;
@@ -177,7 +189,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outMetaElem" + File.separator);
                 
                 try {
-                    addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement);
+                    addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement,config.getMode());
                 } catch(MetadataCreationException me) {
                     log.error("Problem when adding meta section, skipping file {}", subject);
                     log.debug(me.getLocalizedMessage());
@@ -292,14 +304,15 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
     }
 
-    private void addMetaAndContentElements(String inputFilePath, String outputFileName) throws MetadataCreationException {
+    private void addMetaAndContentElements(String inputFilePath, String outputFileName, String mode) throws MetadataCreationException {
 
         String input_text = null;
         input_text = DataUnitUtils.readFile(inputFilePath, StandardCharsets.UTF_8);
 
 
 
-        String output = addMetaAndContentElementsWorker(input_text);
+        String output = addMetaAndContentElementsWorker(input_text, mode);
+        if (output == null) return; 
 
         PrintWriter out = null;
         try {
@@ -315,7 +328,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
     }
 
-    private String addMetaAndContentElementsWorker(String input_string) throws MetadataCreationException {
+    private String addMetaAndContentElementsWorker(String input_string, String mode) throws MetadataCreationException {
 
 
         if (input_string == null) {
@@ -323,106 +336,84 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             return "";
         }
 
-        //add metadata elem <body><metadata>... </metadata> USNESENI...
-        int indexBody = input_string.indexOf("<body>") + "<body>".length();
-        String before = input_string.substring(0, indexBody);
+        if (mode == "nsoud") {
+            //NSOUD:
+            //add metadata elem <body><metadata>... </metadata> USNESENI...
+            int indexBody = input_string.indexOf("<body>") + "<body>".length();
+            String before = input_string.substring(0, indexBody);
 
-        String toBeProcessedTemp = input_string.substring(indexBody);
-        
-        String output = "";
-        String content = toBeProcessedTemp;
-        
-        String label = "Kategorie rozhodnutí : ";
-        if ((toBeProcessedTemp.indexOf(label) < 0)) {
-            log.info("Label \"Kategorie rozhodnutí : \" was not found in the processed decision.");
-            
-            label = "Kategorie rozhodnutí: "; //try without the space before colon
+            String toBeProcessedTemp = input_string.substring(indexBody);
+
+            String output = "";
+            String content = toBeProcessedTemp;
+
+            String label = "Kategorie rozhodnutí : ";
             if ((toBeProcessedTemp.indexOf(label) < 0)) {
-                log.info("Label \"Kategorie rozhodnutí: \" was not found in the processed decision.");
-                
-                label = "Kategorie rozhodnutí :"; //try without the space after the colon
+                log.info("Label \"Kategorie rozhodnutí : \" was not found in the processed decision.");
+
+                label = "Kategorie rozhodnutí: "; //try without the space before colon
                 if ((toBeProcessedTemp.indexOf(label) < 0)) {
-                    log.info("Label \"Kategorie rozhodnutí :\" was not found in the processed decision.");
-                    
-                    label = "Kategorie rozhodnutí:"; //try without the space before and after the colon
+                    log.info("Label \"Kategorie rozhodnutí: \" was not found in the processed decision.");
+
+                    label = "Kategorie rozhodnutí :"; //try without the space after the colon
                     if ((toBeProcessedTemp.indexOf(label) < 0)) {
-                        log.info("Label \"Kategorie rozhodnutí:\" was not found in the processed decision.");
-                        
-                        log.warn("Label \"Kategorie rozhodnutí\" was not found in the processed decision, creation of metadata section will not work properly");
-                        throw new MetadataCreationException("Meta element not created");
+                        log.info("Label \"Kategorie rozhodnutí :\" was not found in the processed decision.");
+
+                        label = "Kategorie rozhodnutí:"; //try without the space before and after the colon
+                        if ((toBeProcessedTemp.indexOf(label) < 0)) {
+                            log.info("Label \"Kategorie rozhodnutí:\" was not found in the processed decision.");
+
+                            log.warn("Label \"Kategorie rozhodnutí\" was not found in the processed decision, creation of metadata section will not work properly");
+                            throw new MetadataCreationException("Meta element not created");
+                        }
+
                     }
 
                 }
-                
+
+
             }
-            
+
+
+
+            String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label)+label.length()+2); //to accommodate label plus the category letter to metadata.
+            output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
+            content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label)+label.length()+2);
+
+
+            //add content elem </metadata> <content>USNESENI... </content></body>
+            String toBeProcessed2 = content.substring(0, content.indexOf("</body>"));
+            String output2 = "<content>" + toBeProcessed2 + "</content>";
+
+            String after = content.substring(content.indexOf("</body>"));
+
+            return before + output + output2 + after;
             
         }
-        
-                    
-            
-        String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label)+label.length()+2); //to accommodate label plus the category letter to metadata.
-        output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
-        content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label)+label.length()+2);
-
-
-        
-//        if ((toBeProcessedTemp.indexOf("U S N E S E N Í") < 0) && (toBeProcessedTemp.indexOf("ČESKÁ REPUBLIKA ROZSUDEKJMÉNEM REPUBLIKY") < 0))  {
-//            //try with small letters
-////             if (toBeProcessedTemp.indexOf("u s n e s e n í") < 0) {
-////                 log.warn("Label U S N E S E N Í/u s n e s e n í was not found in the processed decision, creation of metadata section will not work properly");
-////                 throw new MetadataCreationException("Meta element not created");
-////             }
-////             else {
-////                String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf("u s n e s e n í"));
-////                output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
-////                content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf("u s n e s e n í"));
-////             }
-//            log.warn("Label U S N E S E N Í/ROZSUDEK was not found in the processed decision, creation of metadata section will not work properly");
-//            throw new MetadataCreationException("Meta element not created");
-//            
-//        }
-//        
-//        String label;
-//        if (toBeProcessedTemp.indexOf("U S N E S E N Í") > 0) {
-//            label = "U S N E S E N Í";
-//        }
-//        else {
-//            label = "ČESKÁ REPUBLIKA ROZSUDEKJMÉNEM REPUBLIKY";
-//        }
+        else if (mode == "usoud") {
+            //USOUD:
+            //metadata element already prepared, just add content element! 
             
             
-//        String metadata = toBeProcessedTemp.substring(0, toBeProcessedTemp.indexOf(label));
-//        output = "<meta>" + addElemsToMetadata(metadata) + "</meta>";
-//        content = toBeProcessedTemp.substring(toBeProcessedTemp.indexOf(label));
+            int indexMeta= input_string.indexOf("</metadata>") + "</metadata>".length();
+            String before = input_string.substring(0, indexMeta);
+
+            String content = input_string.substring(indexMeta);
+           
+            //TODO remove the text before the body starts (header from the original content file) 
+           
+            String toBeProcessed = content.substring(0, content.indexOf("</body>"));
+            String output2 = "<content>" + toBeProcessed + "</content>";
+
+            String after = content.substring(content.indexOf("</body>"));
+
+            return before + output2 +  after;
+        }
+        else {
+            log.error("Wrong unsupported mode!!");
+            return null;
+        }
         
-
-       
-
-
-
-
-        //add content elem </metadata> <content>USNESENI... </content></body>
-        String toBeProcessed2 = content.substring(0, content.indexOf("</body>"));
-        String output2 = "<content>" + toBeProcessed2 + "</content>";
-
-        String after = content.substring(content.indexOf("</body>"));
-
-
-
-
-        //log.debug("****Para before {}", before);
-        //log.debug("****Para output {}", output);
-        //log.debug("****Para output2 {}", output2);
-        //log.debug("*****Para after {}", after);
-
-
-        //to remove \n from lines which do not end with "." (line in the paragraph) and new line char (empty line between paragraphs)
-        //If they end with dots, \n is not removed if the new line character is followed by space, tab or next new line character, 
-        //because this denotes new paragraph and in this case new line char is ok.  
-        //output = output.replaceAll("([^.\n])\n([^\\s])", "$1$2");
-        //log.debug("Para NEW: " + before + output + output2 + after);
-        return before + output + output2 + after;
     }
 
     //add paragraph elements wrapping paragraphs within <body> section
@@ -498,7 +489,11 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
             log.debug("About to join Lines");
             // Opravim riadkovanie
-            input_text = LineJoiner.joinLines(input_text);
+            input_text = LineJoiner.joinLines(input_text, config.getMode());
+            if (input_text == null) {
+                log.error("Problem processing file. Skipping this file.");
+                return;
+            }
 
             log.debug("About to process files");
             // Volam JTagger

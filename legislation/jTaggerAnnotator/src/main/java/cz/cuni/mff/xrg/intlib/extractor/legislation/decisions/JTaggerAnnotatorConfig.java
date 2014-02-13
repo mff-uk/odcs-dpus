@@ -13,9 +13,22 @@ public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
     
     
      
-      private String inputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
+     private String inputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
      
      private String outputPredicate = "http://linked.opendata.cz/ontology/odcs/xmlValue"; //OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
+     
+     //mode in which jTaggerIsWorking
+     //nscr, uscr
+    private String mode = "nscr";
+
+    JTaggerAnnotatorConfig(String mode) {
+        this.mode = mode;
+    }
+
+    public JTaggerAnnotatorConfig() {
+    }
+    
+    
 
     public String getOutputPredicate() {
         return outputPredicate;
@@ -23,6 +36,10 @@ public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
 
     public String getInputPredicate() {
         return inputPredicate;
+    }
+
+    public String getMode() {
+        return mode;
     }
      
     

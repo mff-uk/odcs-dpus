@@ -20,6 +20,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -238,7 +239,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
                 rdfOutput.addFromTurtleFile(new File(tempFileLoc));
                 log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
 
-            } catch(cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException e) {
+            } catch(RDFException e) {
                 log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
                 log.info("Continues with the next file");
             }

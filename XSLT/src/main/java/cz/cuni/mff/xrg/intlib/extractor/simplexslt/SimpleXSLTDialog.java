@@ -381,7 +381,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
          }
         
           if (tfOutputXSLTMethod.getValue().trim().isEmpty()) {
-              throw new ConfigException("No xslt output");
+              //throw new ConfigException("No xslt output");
          }
           
         int parsedNumberOfTries;

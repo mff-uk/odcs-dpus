@@ -14,8 +14,8 @@ import java.io.File;
  */
 public class DataRDFXML extends RDFLoaderWrapper {
 
-    public DataRDFXML(RDFDataUnit _du) {
-        super(_du);
+    public DataRDFXML(RDFDataUnit _du, String outputPath) {
+        super(_du, outputPath);
     }
 
     

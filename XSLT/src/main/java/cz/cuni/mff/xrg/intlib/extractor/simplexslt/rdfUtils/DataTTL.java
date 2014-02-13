@@ -14,8 +14,8 @@ import java.io.File;
  */
 public class DataTTL extends RDFLoaderWrapper {
 
-    public DataTTL(RDFDataUnit _du) {
-        super(_du);
+    public DataTTL(RDFDataUnit _du, String outputPath) {
+        super(_du, outputPath);
     }
 
     
