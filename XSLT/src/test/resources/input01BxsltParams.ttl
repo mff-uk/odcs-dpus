@@ -1,0 +1,7 @@
+<http://xxx> <http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath> "/input01.xml" .
+<http://xxx> <http://linked.opendata.cz/ontology/odcs/dpu/xslt/param> <http://yyy> .
+<http://yyy> <http://linked.opendata.cz/ontology/odcs/dpu/xslt/param/name> "test123".
+<http://yyy> <http://linked.opendata.cz/ontology/odcs/dpu/xslt/param/value> "val".			
+			
+			
+			

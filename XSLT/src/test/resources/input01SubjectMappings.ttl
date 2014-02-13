@@ -1,0 +1,9 @@
+<http://xxx> <http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath> "/input01.xml" .
+<http://xxx> <http://linked.opendata.cz/ontology/odcs/dataunit/file/fileURI> <http://linked.opendata.cz/resource/file/legislation/cz/decision/2013/8-Tdo-873-2013> .
+		
+		
+			
+			
+			
+			
+			
