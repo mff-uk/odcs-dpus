@@ -89,6 +89,20 @@ public class JTaggerAnnotatorDialog extends BaseConfigDialog<JTaggerAnnotatorCon
         mode.setWidth("100%");
         mode.setHeight("-1px");
         mode.setInputPrompt("");
+        mode.addValidator(new Validator() {
+			@Override
+			public void validate(Object value) throws Validator.InvalidValueException {
+				if (value.getClass() == String.class && !((String) value).isEmpty()) {
+				    if ((mode.getValue().equals("nscr") || mode.getValue().equals("uscr"))) {
+                                        return;
+                                    }
+                                    else {
+                                        throw new Validator.InvalidValueException("Mode is not correctly specified! Only values nscr and uscr allowed");
+                                    }
+				}
+				throw new Validator.InvalidValueException("Mode must be specified!");
+			}
+		});
       
         mainLayout.addComponent(mode);
         

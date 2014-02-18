@@ -3,33 +3,33 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+	<groupId>cz.cuni.mff.xrg.odcs</groupId>
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
     <artifactId>RDFa_Distiller</artifactId>
     <packaging>bundle</packaging>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 	<description>Module which is able to distill RDF data from RDFa</description>
-    <dependencies>
-        <!--<dependency>
+<!--    <dependencies>
+        <dependency>
             <groupId>net.rootdev</groupId>
             <artifactId>java-rdfa</artifactId>
             <version>0.4.2</version>
             <type>jar</type>
-        </dependency>-->
-        <!--<dependency>
+        </dependency>
+        <dependency>
         <groupId>org.semarglproject</groupId>
         <artifactId>semargl-rdfa</artifactId>
         <version>0.6.1</version>
-       </dependency>-->
+       </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>ontology</artifactId>
             <version>1.0.0</version>
             <type>jar</type>
         </dependency>
-    </dependencies>
+    </dependencies>-->
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.rdfUtils</dpu.package>
         <dpu.mainClass>RDFaDistiller</dpu.mainClass>    

@@ -13,7 +13,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +23,7 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
+import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 
 /**
  * Simple XSLT Extractor
@@ -78,7 +78,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig> impleme
         log.debug("Query for getting input files: {}", query);
         //get the return values
         //TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-        OrderTupleQueryResult  executeSelectQueryAsTuples  = rdfInput.executeOrderSelectQueryAsTuples(query);
+        OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
       
         int i = 0;
         try {
