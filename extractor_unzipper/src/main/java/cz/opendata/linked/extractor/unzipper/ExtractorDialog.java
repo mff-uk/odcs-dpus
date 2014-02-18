@@ -13,7 +13,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-	
 	private static final long serialVersionUID = 4526219476366177231L;
 	
 	private VerticalLayout mainLayout;
