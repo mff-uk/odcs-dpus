@@ -41,6 +41,16 @@ public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
     public String getMode() {
         return mode;
     }
+
+    @Override
+    public void onDeserialize() {
+        if (mode == null || mode.isEmpty()) {
+                       
+			mode = "nscr";
+        }
+    }
+    
+    
      
     
   

@@ -336,7 +336,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             return "";
         }
 
-        if (mode == "nsoud") {
+        if (mode.equals("nscr")) {
             //NSOUD:
             //add metadata elem <body><metadata>... </metadata> USNESENI...
             int indexBody = input_string.indexOf("<body>") + "<body>".length();
@@ -390,7 +390,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             return before + output + output2 + after;
             
         }
-        else if (mode == "usoud") {
+        else if (mode.equals("uscr")) {
             //USOUD:
             //metadata element already prepared, just add content element! 
             

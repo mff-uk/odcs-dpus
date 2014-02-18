@@ -100,8 +100,8 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
                 Binding b = solution.getBinding("o");
-                String fileContent = b.getValue().toString();
-                String subject = solution.getBinding("s").getValue().toString();
+                String fileContent = b.getValue().stringValue();
+                String subject = solution.getBinding("s").getValue().stringValue();
                 log.info("Processing new file for subject {}", subject);
                 //log.debug("Processing file {}", fileContent);
 
@@ -148,14 +148,15 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                
                //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
-               log.info("Output successfully created");
+               log.info("RF Output successfully created");
                //End of output creation
-                //FILE DataUnit OUTPUT
+                
+               //FILE DataUnit OUTPUT
                 DirectoryHandler rootDir = fileOutput.getRootDir();
-                rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(true));
+                rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
                         //add(new File(outputURIGeneratorFilename), false);
      
-               log.info("Output successfully created");
+               log.info("File Output successfully created");
                //End of output creation
                
                
