@@ -1,29 +1,25 @@
-package cz.opendata.linked.extractor.unzipper;
+package cz.opendata.linked.transformer.single_file_picker;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.opendata.linked.extractor.unzipper.Extractor;
-import cz.opendata.linked.extractor.unzipper.ExtractorConfig;
+import cz.opendata.linked.transformer.single_file_picker.SingleFilePicker;
+import cz.opendata.linked.transformer.single_file_picker.SingleFilePickerConfig;
 
-public class ExtractorTest {
+public class SingleFilePickerTest {
 
 	@Test
 	public void test() {
 
 		try	{
 		
-			Extractor extractor = new Extractor();
-			ExtractorConfig config = new ExtractorConfig("http://www.sukl.cz/file/76663_3_1/");
+			SingleFilePicker extractor = new SingleFilePicker();
+			SingleFilePickerConfig config = new SingleFilePickerConfig("http://www.sukl.cz/file/76663_3_1/");
 			
 			extractor.configureDirectly(config);
 			
@@ -40,9 +36,8 @@ public class ExtractorTest {
 			try {
 				// run the execution
 				env.run(extractor);
-				DirectoryHandler root = extractedFiles.getRootDir();
-				System.out.println("Resulting directory: " + root.getRootedPath());
-				
+				DirectoryHandler handler = extractedFiles.getRootDir();
+				System.out.println("Resulting directory: " + handler.getRootedPath());
 			}
 		    catch(Exception e) {
 			    e.printStackTrace();
