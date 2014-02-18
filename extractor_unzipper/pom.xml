@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>    
+    
+	<artifactId>extractor_unzipper</artifactId>
+    
+	<version>1.0.0</version>
+    
+	<packaging>bundle</packaging>
+    
+	<description>
+    This extractor downloads a ZIP archive and extracts files from it to an output data file unit.
+  </description>
+    
+	<properties>
+		<dpu.package>cz.opendata.linked.extractor.unzipper</dpu.package>
+		<dpu.mainClass>Extractor</dpu.mainClass>
+	</properties>
+ 	
+	<dependencies>
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+	</dependencies>
+ 	
+</project>
