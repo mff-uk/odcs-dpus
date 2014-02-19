@@ -38,6 +38,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
+import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
@@ -166,7 +167,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		int count = 0;
 		int failed = 0;
 		try {
-			MyTupleQueryResult countres = sAddresses.executeSelectQueryAsTuples(countQuery);
+			MyTupleQueryResultIf countres = sAddresses.executeSelectQueryAsTuples(countQuery);
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
