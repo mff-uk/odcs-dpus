@@ -92,17 +92,21 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             log.debug(ex.getLocalizedMessage());
         }
 
-        //to get unzipped version of JAR
-        String unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
         String pathToResources = "src" + File.separator + "main" + File.separator + "resources";
-        //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
-        log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
-        try {
-            unzip(jarPathString, unzipedJarPathString);
-        } catch (ZipException ex) {
-            log.error("Unzip error, {}", ex.getLocalizedMessage());
-        } catch (IOException ex) {
-            log.error("Error:: " + ex.getLocalizedMessage());
+        
+        //to get unzipped version of JAR
+        String unzipedJarPathString = "";
+        if (jarPathString.lastIndexOf(".jar") > 0) {
+            unzipedJarPathString = jarPathString.substring(0, jarPathString.lastIndexOf(".jar"));
+                //extract jar file to get to the resources? remove temp hack later when setting path for JTagger
+            log.debug("About to unzip {} to {} so that resources in JAR are accessible", jarPathString, unzipedJarPathString);
+            try {
+                unzip(jarPathString, unzipedJarPathString);
+            } catch (ZipException ex) {
+                log.error("Unzip error, {}", ex.getLocalizedMessage());
+            } catch (IOException ex) {
+                log.error("Error:: " + ex.getLocalizedMessage());
+            }
         }
 
         //adjust permissions so that we can execute binaries of jTagger
