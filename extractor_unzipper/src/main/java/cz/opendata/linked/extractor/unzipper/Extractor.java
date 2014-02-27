@@ -68,7 +68,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         //	get zipFile
         
         String zipFile = pathToWorkingDir + File.separator + "files.zip";
-        String extractedFiles = pathToWorkingDir + File.separator + "extracted_files";
+//        String extractedFiles = pathToWorkingDir + File.separator + "extracted_files";
+        String extractedFiles = pathToWorkingDir;
 
         if ( zipFileInput == null )	{
         	
@@ -129,8 +130,15 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         	
         }
         
-        DirectoryHandler dir = filesOutput.getRootDir();
-        dir.addExistingDirectory(new File(extractedFiles), new OptionsAdd());
+        DirectoryHandler outputRoot = filesOutput.getRootDir();
+        File inputRoot = new File(extractedFiles);
+        for (File file : inputRoot.listFiles()) {
+    		if (file.isFile()) {
+    			outputRoot.addExistingFile(file, new OptionsAdd(false, true));
+    		} else if (file.isDirectory())	{
+    			outputRoot.addExistingDirectory(file, new OptionsAdd(false, true));
+    		}
+    	}
 
        	if (context.canceled()) {
        		log.info("DPU cancelled");

@@ -1,4 +1,4 @@
-package cz.opendata.linked.extractor.unzipper;
+package cz.opendata.linked.transformer.single_file_picker;
 
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
@@ -11,17 +11,17 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
  */
-public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
+public class SingleFilePickerDialog extends BaseConfigDialog<SingleFilePickerConfig> {
 
 	private static final long serialVersionUID = 4526219476366177231L;
 	
 	private VerticalLayout mainLayout;
 	
-    private TextField zipFileURL;
-    private Label zipFileURLLabel = new Label("URL of ZIP file");
+    private TextField tfPath;
+    private Label lPath = new Label("Path to file");
     
-	public ExtractorDialog() {
-		super(ExtractorConfig.class);
+	public SingleFilePickerDialog() {
+		super(SingleFilePickerConfig.class);
         buildMainLayout();
         setCompositionRoot(this.mainLayout);
 	}
@@ -37,26 +37,26 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         this.setWidth("100%");
         this.setHeight("100%");
         
-        this.mainLayout.addComponent(this.zipFileURLLabel);
-        this.zipFileURL = new TextField();
-        this.zipFileURL.setWidth("100%");
-        this.mainLayout.addComponent(this.zipFileURL);
+        this.mainLayout.addComponent(this.lPath);
+        this.tfPath = new TextField();
+        this.tfPath.setWidth("100%");
+        this.mainLayout.addComponent(this.tfPath);
         
         return this.mainLayout;
         
 	}
 	
 	@Override
-	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+	public void setConfiguration(SingleFilePickerConfig conf) throws ConfigException {
 		
-		this.zipFileURL.setValue(conf.getZipFileURL());
+		this.tfPath.setValue(conf.getPath());
 		
 	}
 
 	@Override
-	public ExtractorConfig getConfiguration() throws ConfigException {
+	public SingleFilePickerConfig getConfiguration() throws ConfigException {
 		
-		return new ExtractorConfig(this.zipFileURL.getValue());
+		return new SingleFilePickerConfig(this.tfPath.getValue());
 		
 	}
 
