@@ -1,5 +1,6 @@
 import org.junit.Test;
 
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
@@ -24,12 +25,15 @@ public class ScrapeTest {
 		TestEnvironment env = TestEnvironment.create();
 		// prepare input and output data units
 		
-		RDFDataUnit smlouvy = env.createRdfOutput("XMLSmlouvy", false);
-		RDFDataUnit objednavky = env.createRdfOutput("XMLObjednavky", false);
-		RDFDataUnit plneni = env.createRdfOutput("XMLPlneni", false);
-		RDFDataUnit smlouvy_roky = env.createRdfOutput("XMLSmlouvy-RocniSeznam", false);
-		RDFDataUnit objednavky_roky = env.createRdfOutput("XMLObjednavky-RocniSeznam", false);
-		RDFDataUnit plneni_roky = env.createRdfOutput("XMLPlneni-RocniSeznam", false);
+		FileDataUnit smlouvy = env.createFileOutput("XMLSmlouvy");
+		FileDataUnit objednavky = env.createFileOutput("XMLObjednavky");
+		FileDataUnit plneni = env.createFileOutput("XMLPlneni");
+		FileDataUnit smlouvy_roky = env.createFileOutput("XMLSmlouvy-RocniSeznam");
+		FileDataUnit objednavky_roky = env.createFileOutput("XMLObjednavky-RocniSeznam");
+		FileDataUnit plneni_roky = env.createFileOutput("XMLPlneni-RocniSeznam");
+		RDFDataUnit smlouvy_meta = env.createRdfOutput("Smlouvy-Metadata", false);
+		RDFDataUnit objednavky_meta = env.createRdfOutput("Objednavky-Metadata", false);
+		RDFDataUnit plneni_meta = env.createRdfOutput("Plneni-Metadata", false);
 
 		// here we can simply pre-fill input data unit with content from 
 		// resource file
@@ -38,13 +42,6 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			smlouvy.loadToFile("C:\\temp\\smlouvy.ttl", RDFFormatType.TTL);
-			objednavky.loadToFile("C:\\temp\\objednavky.ttl", RDFFormatType.TTL);
-			plneni.loadToFile("C:\\temp\\plneni.ttl", RDFFormatType.TTL);
-			smlouvy_roky.loadToFile("C:\\temp\\smlouvy_roky.ttl", RDFFormatType.TTL);
-			objednavky_roky.loadToFile("C:\\temp\\objednavky_roky.ttl", RDFFormatType.TTL);
-			plneni_roky.loadToFile("C:\\temp\\plneni_roky.ttl", RDFFormatType.TTL);
-			
 			// verify result
 		}
 	    catch(Exception e) {

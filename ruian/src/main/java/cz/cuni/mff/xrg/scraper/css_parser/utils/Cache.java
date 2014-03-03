@@ -81,7 +81,7 @@ public class Cache {
 
 	public static Logger logger;
 	
-	public static boolean rewriteCache;
+	//public static boolean rewriteCache;
 
 	public static int getInterval() {
 		return interval;
@@ -158,7 +158,7 @@ public class Cache {
 
 		String out = null;
 
-		if (!hFile.exists() || rewriteCache) {
+		if (!hFile.exists() /*|| rewriteCache*/) {
 			hPath.mkdirs();
 			int attempt = 0;
 			while (attempt < maxAttempts) {
@@ -174,6 +174,12 @@ public class Cache {
 					{
 						download_and_gunzip(url.toString(), hFile);
 						//out = getURLContentAsUnGzippedString(url.toString());
+						//FileInputStream fisTargetFile = new FileInputStream(hFile);
+
+						//Pass path instead of content
+						out = hFile.getAbsolutePath();//IOUtils.toString(fisTargetFile, "UTF-8");
+					
+						//fisTargetFile.close();						
 					}
 					else 
 					{
@@ -230,14 +236,17 @@ public class Cache {
 				else logger.warn("ERROR caching: " + e.getLocalizedMessage());
 			}
 		} else {
-			if (!datatype.equals("gz")) {
+			if (datatype.equals("gz"))
+			{
+				out = hFile.getAbsolutePath();
+			}
+			else {	
 				FileInputStream fisTargetFile = new FileInputStream(hFile);
 
 				out = IOUtils.toString(fisTargetFile, "UTF-8");
 			
 				fisTargetFile.close();
 			}
-
 		}
 		return out;
 	}

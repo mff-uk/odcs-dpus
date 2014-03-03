@@ -18,6 +18,7 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
@@ -34,10 +35,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	@OutputDataUnit(name = "XMLObce")
-	public RDFDataUnit outObce;	
+	public FileDataUnit outObce;	
 	
 	@OutputDataUnit(name = "XMLZsj")
-	public RDFDataUnit outZsj;	
+	public FileDataUnit outZsj;	
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -54,7 +55,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Cache.setTimeout(config.timeout);
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
 		Cache.logger = logger;
-		Cache.rewriteCache = config.rewriteCache;
+		//Cache.rewriteCache = config.rewriteCache;
 		Scraper_parser s = new Scraper_parser();
 		s.logger = logger;
 		s.ctx = ctx;
