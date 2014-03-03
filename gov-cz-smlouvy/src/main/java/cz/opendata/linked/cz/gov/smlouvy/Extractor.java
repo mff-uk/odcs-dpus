@@ -18,6 +18,7 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
@@ -34,22 +35,31 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	@OutputDataUnit(name = "XMLSmlouvy")
-	public RDFDataUnit outSmlouvy;	
+	public FileDataUnit outSmlouvy;	
 	
 	@OutputDataUnit(name = "XMLObjednavky")
-	public RDFDataUnit outObjednavky;	
+	public FileDataUnit outObjednavky;	
 
 	@OutputDataUnit(name = "XMLPlneni")
-	public RDFDataUnit outPlneni;	
+	public FileDataUnit outPlneni;	
 
 	@OutputDataUnit(name = "XMLSmlouvy-RocniSeznam")
-	public RDFDataUnit outSmlouvyRoky;	
+	public FileDataUnit outSmlouvyRoky;	
 	
 	@OutputDataUnit(name = "XMLObjednavky-RocniSeznam")
-	public RDFDataUnit outObjednavkyRoky;	
+	public FileDataUnit outObjednavkyRoky;	
 
 	@OutputDataUnit(name = "XMLPlneni-RocniSeznam")
-	public RDFDataUnit outPlneniRoky;	
+	public FileDataUnit outPlneniRoky;	
+
+	@OutputDataUnit(name = "Smlouvy-Metadata")
+	public RDFDataUnit outSmlouvyMeta;	
+	
+	@OutputDataUnit(name = "Objednavky-Metadata")
+	public RDFDataUnit outObjednavkyMeta;	
+
+	@OutputDataUnit(name = "Plneni-Metadata")
+	public RDFDataUnit outPlneniMeta;	
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -76,6 +86,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.smlouvy_roky = outSmlouvyRoky;
 		s.objednavky_roky = outObjednavkyRoky;
 		s.plneni_roky = outPlneniRoky;
+		s.smlouvy_meta = outSmlouvyMeta;
+		s.objednavky_meta = outObjednavkyMeta;
+		s.plneni_meta = outPlneniMeta;
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
