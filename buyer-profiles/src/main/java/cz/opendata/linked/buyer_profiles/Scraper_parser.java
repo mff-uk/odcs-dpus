@@ -763,7 +763,12 @@ public class Scraper_parser extends ScrapingTemplate{
 		if (oldIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
 		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
-		if (!oldIC.equals(newIC)) logger.info("Varování: IC/DIC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
+		if (!newIC.matches("[0-9]{8}"))
+		{
+			newIC = null;
+			logger.info("Varování: IC/DIC po opravě není validní: " + oldIC + " Oprava: " + newIC);
+		}
+		else if (!oldIC.equals(newIC)) logger.info("Varování: IC/DIC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
     	return newIC; 
     }
     
