@@ -1,6 +1,6 @@
 package cz.opendata.linked.extractor.tabular;
 
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
@@ -8,7 +8,7 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	private static final long serialVersionUID = 6979581350385466975L;
 	
-	private Map<String, String> columnPropertyMap;
+	private LinkedHashMap<String, String> columnPropertyMap;
 	
 	private String baseURI;
 	
@@ -23,7 +23,7 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		this.encoding = null;
 	}
 	
-	public ExtractorConfig(Map<String, String> columnPropertyMap, String baseURI, String columnWithURISupplement, String encoding) {
+	public ExtractorConfig(LinkedHashMap<String, String> columnPropertyMap, String baseURI, String columnWithURISupplement, String encoding) {
 		
 		this.columnPropertyMap = columnPropertyMap;
 		this.baseURI = baseURI;
@@ -32,7 +32,7 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	}
 	
-	public Map<String,String> getColumnPropertyMap()	{
+	public LinkedHashMap<String,String> getColumnPropertyMap()	{
 		
 		return this.columnPropertyMap;
 		

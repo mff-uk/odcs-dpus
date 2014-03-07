@@ -35,6 +35,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		ConfigDialogProvider<ExtractorConfig> {
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(Extractor.class);
+	
+	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
 	@InputDataUnit(name = "table")
 	public FileDataUnit tableFile;
@@ -108,7 +110,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		DbfHeader header = reader.getHeader();
 
 		int columnWithURISupplementNumber = -1;
-		String[] propertyMap = new String[header.getFieldsCount()];
+		URI[] propertyMap = new URI[header.getFieldsCount()];
 		for ( int i = 0; i < header.getFieldsCount(); i++ )	{
 			DbfField field = header.getField(i);
 			String fieldName = field.getName();
@@ -116,15 +118,16 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 				columnWithURISupplementNumber = i;
 			}
 			if ( columnPropertyMap.containsKey(fieldName) )	{
-				propertyMap[i] = columnPropertyMap.get(fieldName);
+				propertyMap[i] = triplifiedTable.createURI(columnPropertyMap.get(fieldName));
 			} else {
 				fieldName = fieldName.replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
-				propertyMap[i] = "http://linked.opendata.cz/ontology/odcs/tabular/" + fieldName;
+				propertyMap[i] = triplifiedTable.createURI(baseODCSPropertyURI + fieldName);
 			}
 		}
 		
 		Object[] row = null;
 		int rowno = 0;
+		URI propertyRow = triplifiedTable.createURI(baseODCSPropertyURI + "row"); 
 		while ( (row = reader.nextRecord()) != null )	{
 					
 			String suffixURI;
@@ -137,12 +140,20 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			Resource subj = triplifiedTable.createURI(baseURI + suffixURI);
 			
 			for ( int i = 0; i < row.length; i++ )	{
-		        
-				URI pred = triplifiedTable.createURI(propertyMap[i]);				
-		        Value obj = triplifiedTable.createLiteral(this.getCellValue(row[i], encoding));
-		        triplifiedTable.addTriple(subj, pred, obj);
+		        					
+				String strValue = this.getCellValue(row[i], encoding);
+				if ( strValue == null || "".equals(strValue) )	{
+					URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+					triplifiedTable.addTriple(subj, propertyMap[i], obj);
+				} else {
+			        Value obj = triplifiedTable.createLiteral(this.getCellValue(row[i], encoding));
+			        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+				}
 		       	
 			}
+			 
+	        Value rowvalue = triplifiedTable.createLiteral(this.getCellValue(rowno, encoding));
+	        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
 			
 			if ( (rowno % 1000) == 0 )	{
 				log.debug("Row number " + rowno + " processed.");

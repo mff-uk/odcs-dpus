@@ -99,7 +99,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	public void execute(DPUContext ctx) throws DPUException
-	{
+	{	
 		Cache.setInterval(config.interval);
 		Cache.setTimeout(config.timeout);
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");

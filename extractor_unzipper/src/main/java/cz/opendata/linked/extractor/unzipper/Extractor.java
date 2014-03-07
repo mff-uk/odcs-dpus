@@ -118,11 +118,11 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         	DirectoryHandler root = zipFileInput.getRootDir();
         	for (Handler handler : root) {
         		if (handler instanceof FileHandler) {
-        			FileHandler file = (FileHandler) handler;
+        			File file = (File) handler.asFile();
         			try {
-                        unzip(file.getRootedPath(), extractedFiles);              
+                        unzip(file.getAbsolutePath(), extractedFiles);              
                     } catch (IllegalArgumentException ex) {
-                         context.sendMessage(MessageType.ERROR, "It was not possible to extract files from " + file.getRootedPath(), "The original problem was: " + ex.getLocalizedMessage());
+                         context.sendMessage(MessageType.ERROR, "It was not possible to extract files from " + file.getAbsolutePath(), "The original problem was: " + ex.getLocalizedMessage());
                          return;
                     }
         		}
