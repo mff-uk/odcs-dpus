@@ -765,7 +765,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
 		if (!newIC.matches("[0-9]{8}"))
 		{
-			newIC = null;
+			newIC = "";
 			logger.info("Varování: IC/DIC po opravě není validní: " + oldIC + " Oprava: " + newIC);
 		}
 		else if (!oldIC.equals(newIC)) logger.info("Varování: IC/DIC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
