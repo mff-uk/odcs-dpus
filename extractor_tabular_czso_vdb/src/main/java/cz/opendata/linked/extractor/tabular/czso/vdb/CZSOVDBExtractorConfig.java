@@ -10,7 +10,7 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 	
 	private LinkedHashMap<Integer, String> columnPropertyMap;
 	
-	private LinkedHashMap<Integer[], String> dimensionValueMap;
+	private LinkedHashMap<Integer[], String> fixedValueMap;
 	
 	private String baseURI;
 	
@@ -24,10 +24,10 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 		this.columnWithURISupplement = -1;
 	}
 	
-	public CZSOVDBExtractorConfig(LinkedHashMap<Integer, String> columnPropertyMap, LinkedHashMap<Integer[], String> dimensionValueMap, String baseURI, int columnWithURISupplement, int dataStartAtRow) {
+	public CZSOVDBExtractorConfig(LinkedHashMap<Integer, String> columnPropertyMap, LinkedHashMap<Integer[], String> fixedValueMap, String baseURI, int columnWithURISupplement, int dataStartAtRow) {
 		
 		this.columnPropertyMap = columnPropertyMap;
-		this.dimensionValueMap = dimensionValueMap;
+		this.fixedValueMap = fixedValueMap;
 		this.baseURI = baseURI;
 		this.columnWithURISupplement = columnWithURISupplement;
 		this.dataStartAtRow = dataStartAtRow;
@@ -40,9 +40,9 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 		
 	}
 	
-	public LinkedHashMap<Integer[], String> getDimensionValueMap()	{
+	public LinkedHashMap<Integer[], String> getFixedValueMap()	{
 		
-		return this.dimensionValueMap;
+		return this.fixedValueMap;
 		
 	}
 	

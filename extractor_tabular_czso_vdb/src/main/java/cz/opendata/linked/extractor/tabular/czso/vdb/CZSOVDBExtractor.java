@@ -42,11 +42,11 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 	
 	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
-	@InputDataUnit(name = "table")
-	public FileDataUnit tableFile;
+	@InputDataUnit(name = "tables")
+	public FileDataUnit tableFiles;
 	
-	@OutputDataUnit(name = "triplifiedTable")
-	public RDFDataUnit triplifiedTable;
+	@OutputDataUnit(name = "triplifiedTables")
+	public RDFDataUnit triplifiedTables;
 
 	public CZSOVDBExtractor() {
 		super(CZSOVDBExtractorConfig.class);
@@ -71,28 +71,28 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			log.warn("No mapping of table columns to RDF properties has been specified.");
 			propertyMap = new LinkedHashMap<Integer, String>();
 		}
-		LinkedHashMap<Integer[], String> dimensionValueMap = this.config.getDimensionValueMap();
-		HashMap<Integer, HashMap<Integer, String>> optimizedDimensionValueMap = new HashMap<Integer, HashMap<Integer, String>>(); 
-		if ( dimensionValueMap == null )	{
-			log.warn("No mapping of cells to dimension value properties has been specified.");
+		LinkedHashMap<Integer[], String> fixedValueMap = this.config.getFixedValueMap();
+		HashMap<Integer, HashMap<Integer, String>> optimizedFixedValueMap = new HashMap<Integer, HashMap<Integer, String>>(); 
+		if ( fixedValueMap == null )	{
+			log.warn("No mapping of cells to fixed value properties has been specified.");
 		} else {
-			for (Integer[] coordinates : dimensionValueMap.keySet()) {
+			for (Integer[] coordinates : fixedValueMap.keySet()) {
 				if ( coordinates != null )	{
 					Integer row = new Integer(coordinates[0]);
 					Integer column = new Integer(coordinates[1]);
 					
 					HashMap<Integer, String> rowMap;
-					if ( optimizedDimensionValueMap.containsKey(row) )	{
-						rowMap = optimizedDimensionValueMap.get(row);
+					if ( optimizedFixedValueMap.containsKey(row) )	{
+						rowMap = optimizedFixedValueMap.get(row);
 					} else {
 						rowMap = new HashMap<Integer, String>();
-						optimizedDimensionValueMap.put(row, rowMap);
+						optimizedFixedValueMap.put(row, rowMap);
 					}
-					rowMap.put(column, dimensionValueMap.get(coordinates));
+					rowMap.put(column, fixedValueMap.get(coordinates));
 				}
 			}
 		}
-		ArrayList<String[]> globalPropertyValueTypeTriples = new ArrayList<String[]>();
+		ArrayList<String[]> fixedPropertyValueTypeTriples = new ArrayList<String[]>();
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
 			log.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
@@ -116,7 +116,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			
 			int dataEndAtRow = sheet.getLastRowNum();
 		
-			URI propertyRow = triplifiedTable.createURI(baseODCSPropertyURI + "row");
+			URI propertyRow = triplifiedTables.createURI(baseODCSPropertyURI + "row");
 			
 			for ( int rowCounter = 0; rowCounter <= dataEndAtRow; rowCounter++ )	{
 				
@@ -125,7 +125,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 				if ( row != null)	{
 				
 					Resource subj = null;
-					HashMap<Integer, String> rowMapWithDimensionValues = optimizedDimensionValueMap.get(new Integer(rowCounter));
+					HashMap<Integer, String> rowMapWithDimensionValues = optimizedFixedValueMap.get(new Integer(rowCounter));
 					
 					int columnEnd = row.getLastCellNum();
 					
@@ -143,7 +143,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 							suffixURI = (new Integer(rowCounter)).toString();
 						}
 						
-						subj = triplifiedTable.createURI(baseURI + suffixURI);
+						subj = triplifiedTables.createURI(baseURI + suffixURI);
 						
 					}
 					
@@ -167,11 +167,11 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 								}
 								
 								if ( value[0] == null || "".equals(value[0]) )	{
-									URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-									triplifiedTable.addTriple(subj, triplifiedTable.createURI(propertyURI), obj);
+									URI obj = triplifiedTables.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+									triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
 								} else {
-							        Value obj = triplifiedTable.createLiteral(value[0], triplifiedTable.createURI(value[1]));
-							        triplifiedTable.addTriple(subj, triplifiedTable.createURI(propertyURI), obj);
+							        Value obj = triplifiedTables.createLiteral(value[0], triplifiedTables.createURI(value[1]));
+							        triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
 								}
 								
 							}
@@ -185,7 +185,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 									globalPropertyValueTriple[0] = propertyURI;
 									globalPropertyValueTriple[1] = value[0];
 									globalPropertyValueTriple[2] = value[1];
-									globalPropertyValueTypeTriples.add(globalPropertyValueTriple);
+									fixedPropertyValueTypeTriples.add(globalPropertyValueTriple);
 									
 								}
 								
@@ -197,11 +197,11 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 					
 					if ( subj != null )	{
 					
-						Value rowvalue = triplifiedTable.createLiteral(new Integer(rowCounter).toString(), triplifiedTable.createURI("http://www.w3.org/2001/XMLSchema#int"));
-				        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+						Value rowvalue = triplifiedTables.createLiteral(new Integer(rowCounter).toString(), triplifiedTables.createURI("http://www.w3.org/2001/XMLSchema#int"));
+				        triplifiedTables.addTriple(subj, propertyRow, rowvalue);
 				        
-				        for (String[] globalPropertyValueTriple : globalPropertyValueTypeTriples) {
-							triplifiedTable.addTriple(subj, triplifiedTable.createURI(globalPropertyValueTriple[0]), triplifiedTable.createLiteral(globalPropertyValueTriple[1], triplifiedTable.createURI(globalPropertyValueTriple[2])));
+				        for (String[] globalPropertyValueTriple : fixedPropertyValueTypeTriples) {
+							triplifiedTables.addTriple(subj, triplifiedTables.createURI(globalPropertyValueTriple[0]), triplifiedTables.createLiteral(globalPropertyValueTriple[1], triplifiedTables.createURI(globalPropertyValueTriple[2])));
 						}
 				        
 					}
@@ -237,7 +237,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 	public void execute(DPUContext context) throws DPUException,
 			DataUnitException {
 		
-		DirectoryHandler rootHandler = tableFile.getRootDir();
+		DirectoryHandler rootHandler = tableFiles.getRootDir();
 		File tableFile = null;
 		for (Handler handler : rootHandler) {
 			if ( handler instanceof FileHandler )	{
