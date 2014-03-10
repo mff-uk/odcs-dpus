@@ -71,9 +71,11 @@ public class MultipleFilesPicker extends ConfigurableBase<MultipleFilesPickerCon
 		
 		DirectoryHandler inputRootHandler = inputFiles.getRootDir();
 
-		ArrayList<File> pickedFilesPhysical = new ArrayList<File>();		
+		ArrayList<File> pickedFilesPhysical = new ArrayList<File>();
+		int filesCounter = 0;
 		for (Handler handler : inputRootHandler) {
     		if (handler instanceof FileHandler) {
+    			filesCounter++;
     			FileHandler file = (FileHandler) handler;
     			String fileName = file.getName();
     			if ( fileName.matches(fileNamePattern) )	{
@@ -81,6 +83,7 @@ public class MultipleFilesPicker extends ConfigurableBase<MultipleFilesPickerCon
     			}
     		}
     	}
+		log.debug(filesCounter + " files found on the input.");
 		if ( pickedFilesPhysical.size() == 0 )	{
 			log.warn("No files found in the input file data unit on the base of the pattern " + path);
         	return;

@@ -71,15 +71,15 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			log.warn("No mapping of table columns to RDF properties has been specified.");
 			propertyMap = new LinkedHashMap<Integer, String>();
 		}
-		LinkedHashMap<Integer[], String> fixedValueMap = this.config.getFixedValueMap();
+		LinkedHashMap<Coordinates, String> fixedValueMap = this.config.getFixedValueMap();
 		HashMap<Integer, HashMap<Integer, String>> optimizedFixedValueMap = new HashMap<Integer, HashMap<Integer, String>>(); 
 		if ( fixedValueMap == null )	{
 			log.warn("No mapping of cells to fixed value properties has been specified.");
 		} else {
-			for (Integer[] coordinates : fixedValueMap.keySet()) {
+			for (Coordinates coordinates : fixedValueMap.keySet()) {
 				if ( coordinates != null )	{
-					Integer row = new Integer(coordinates[0]);
-					Integer column = new Integer(coordinates[1]);
+					Integer column = new Integer(coordinates.column);
+					Integer row = new Integer(coordinates.row);
 					
 					HashMap<Integer, String> rowMap;
 					if ( optimizedFixedValueMap.containsKey(row) )	{
@@ -301,7 +301,6 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		
 		return result;
 	}
-	
 	
 	
 }

@@ -10,7 +10,7 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 	
 	private LinkedHashMap<Integer, String> columnPropertyMap;
 	
-	private LinkedHashMap<Integer[], String> fixedValueMap;
+	private LinkedHashMap<Coordinates, String> fixedValueMap;
 	
 	private String baseURI;
 	
@@ -24,7 +24,7 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 		this.columnWithURISupplement = -1;
 	}
 	
-	public CZSOVDBExtractorConfig(LinkedHashMap<Integer, String> columnPropertyMap, LinkedHashMap<Integer[], String> fixedValueMap, String baseURI, int columnWithURISupplement, int dataStartAtRow) {
+	public CZSOVDBExtractorConfig(LinkedHashMap<Integer, String> columnPropertyMap, LinkedHashMap<Coordinates, String> fixedValueMap, String baseURI, int columnWithURISupplement, int dataStartAtRow) {
 		
 		this.columnPropertyMap = columnPropertyMap;
 		this.fixedValueMap = fixedValueMap;
@@ -40,7 +40,7 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 		
 	}
 	
-	public LinkedHashMap<Integer[], String> getFixedValueMap()	{
+	public LinkedHashMap<Coordinates, String> getFixedValueMap()	{
 		
 		return this.fixedValueMap;
 		
