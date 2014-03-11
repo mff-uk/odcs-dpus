@@ -21,7 +21,10 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public URL datasetURI;
 
-	public String title_cs, title_en, desc_cs, desc_en;
+	public String title_cs = "Název datasetu";
+	public String title_en = "Dataset title";
+	public String desc_cs = "Popis datasetu";
+	public String desc_en = "Dataset description";
 
 	public LinkedList<URL> authors = new LinkedList<URL>();
 	public LinkedList<URL> possibleAuthors = new LinkedList<URL>();
