@@ -58,8 +58,6 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 				
         this.tfBaseURI = new TextField("Resource URI base");
         this.baseFormLayout.addComponent(this.tfBaseURI);
-        tfBaseURI.setRequired(true);
-        tfBaseURI.setRequiredError("Resource URI base must be supplied.");
         
         this.tfColumnWithURISupplement = new TextField("Key column");
         this.baseFormLayout.addComponent(this.tfColumnWithURISupplement);
@@ -111,15 +109,15 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
         this.addFixedValueMappingsHeading();
         
         TextField tfFixedValueMappingColumnNumber = new TextField();
-        this.propertiesGridLayout.addComponent(tfFixedValueMappingColumnNumber);
+        this.fixedValueMapGridLayout.addComponent(tfFixedValueMappingColumnNumber);
         tfColumnNumber.setWidth("100%");
         
         TextField tfFixedValueMappingRowNumber = new TextField();
-        this.propertiesGridLayout.addComponent(tfFixedValueMappingRowNumber);
+        this.fixedValueMapGridLayout.addComponent(tfFixedValueMappingRowNumber);
         tfColumnNumber.setWidth("100%");
         
         TextField tfFixedValueMappingPropertyURI = new TextField();
-        this.propertiesGridLayout.addComponent(tfFixedValueMappingPropertyURI);
+        this.fixedValueMapGridLayout.addComponent(tfFixedValueMappingPropertyURI);
         tfPropertyURI.setWidth("100%");
         
         this.mainLayout.addComponent(this.fixedValueMapGridLayout);
@@ -151,7 +149,7 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
         this.propertiesGridLayout.addComponent(tfPropertyURI);
         tfPropertyURI.setWidth("100%");
         
-        if ( columnNumber.intValue() >= 0 )	{
+        if ( columnNumber != null && columnNumber.intValue() >= 0 )	{
         	tfColumnName.setValue(columnNumber.toString());
         }
         
@@ -173,23 +171,23 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 	private void addRowToFixedValueMapping(Integer columnNumber, Integer rowNumber, String propertyURI)	{
 		
 		TextField tfColumnNumber = new TextField();
-		this.propertiesGridLayout.addComponent(tfColumnNumber);
+		this.fixedValueMapGridLayout.addComponent(tfColumnNumber);
         tfColumnNumber.setWidth("100%");
         
         TextField tfRowNumber = new TextField();
-		this.propertiesGridLayout.addComponent(tfRowNumber);
-        tfColumnNumber.setWidth("100%");
+		this.fixedValueMapGridLayout.addComponent(tfRowNumber);
+		tfRowNumber.setWidth("100%");
         
         TextField tfPropertyURI = new TextField();
-        this.propertiesGridLayout.addComponent(tfPropertyURI);
+        this.fixedValueMapGridLayout.addComponent(tfPropertyURI);
         tfPropertyURI.setWidth("100%");
         
-        if ( columnNumber.intValue() >= 0 )	{
+        if ( columnNumber != null && columnNumber.intValue() >= 0 )	{
         	tfColumnNumber.setValue(columnNumber.toString());
         }
         
-        if ( rowNumber.intValue() >= 0 )	{
-        	tfColumnNumber.setValue(rowNumber.toString());
+        if ( rowNumber != null && rowNumber.intValue() >= 0 )	{
+        	tfRowNumber.setValue(rowNumber.toString());
         }
         
         if ( propertyURI != null )	{
@@ -247,13 +245,13 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 		
 		if ( conf.getFixedValueMap() != null )	{
 
-			LinkedHashMap<Integer[], String> fixedValueMap = conf.getFixedValueMap();
+			LinkedHashMap<Coordinates, String> fixedValueMap = conf.getFixedValueMap();
 			
 			this.removeAllFixedValueMappings();
 			
 			// add mappings
-			for ( Integer[] key : fixedValueMap.keySet() )	{
-				this.addRowToFixedValueMapping(key[0], key[1], fixedValueMap.get(key));
+			for ( Coordinates key : fixedValueMap.keySet() )	{
+				this.addRowToFixedValueMapping(key.column, key.row, fixedValueMap.get(key));
 			}
 			
 			// add one empty mapping
@@ -283,20 +281,20 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 			}
 		}
 		
-		LinkedHashMap<Integer[], String> fixedValueMap = new LinkedHashMap<Integer[], String>();
+		LinkedHashMap<Coordinates, String> fixedValueMap = new LinkedHashMap<Coordinates, String>();
 		// the first row is heading of the mapping table!
 		for ( int row = 1; row < this.fixedValueMapGridLayout.getRows(); row++ )	{
 			try {
+				
 				Integer columnNumber = new Integer(((TextField)this.fixedValueMapGridLayout.getComponent(0, row)).getValue());
 				Integer rowNumber = new Integer(((TextField)this.fixedValueMapGridLayout.getComponent(1, row)).getValue());
-				String propertyURI = ((TextField)this.propertiesGridLayout.getComponent(2, row)).getValue();
+				String propertyURI = ((TextField)this.fixedValueMapGridLayout.getComponent(2, row)).getValue();
 				
 				if ( columnNumber != null && columnNumber.intValue() >= 0 && rowNumber != null && rowNumber.intValue() >= 0 && propertyURI != null && propertyURI.length() > 0 )	{
-					Integer[] coordinates = new Integer[2];
-					coordinates[0] = columnNumber;
-					coordinates[1] = rowNumber;
-					
+				
+					Coordinates coordinates = new Coordinates(columnNumber, rowNumber);
 					fixedValueMap.put(coordinates, propertyURI);
+
 				}
 			} catch (NumberFormatException ex)	{
 				//TODO if the value filled as the column number cannot be parsed as an Integer then tell something to the user.

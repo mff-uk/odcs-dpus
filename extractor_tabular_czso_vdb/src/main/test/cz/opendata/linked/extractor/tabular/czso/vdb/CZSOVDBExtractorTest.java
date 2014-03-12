@@ -41,10 +41,8 @@ public class CZSOVDBExtractorTest {
 			columnPropertyMap.put(new Integer(13), "http://linked.opendata.cz/ontology/czso/prirustek-stehovanim");
 			columnPropertyMap.put(new Integer(14), "http://linked.opendata.cz/ontology/czso/celkovy-prirustek");
 			
-			LinkedHashMap<Integer[], String> dimensionValueMap = new LinkedHashMap<Integer[], String>();
-			Integer[] coordinates1 = new Integer[2];
-			coordinates1[0] = 3;
-			coordinates1[1] = 14;
+			LinkedHashMap<Coordinates, String> dimensionValueMap = new LinkedHashMap<Coordinates, String>();
+			Coordinates coordinates1 = new Coordinates(14, 3);
 			dimensionValueMap.put(coordinates1, "http://linked.opendata.cz/ontology/czso/obdobi");
 			
 			
