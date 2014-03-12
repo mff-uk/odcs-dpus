@@ -18,11 +18,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  *
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
-
-    /**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 7003725620084616056L;
+	
 	private GridLayout mainLayout;
     private TextField interval;
     private TextField limit;
@@ -45,9 +43,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");
@@ -93,36 +91,36 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		interval.setValue(Integer.toString(conf.interval));
-		hoursToCheck.setValue(Integer.toString(conf.hoursToCheck));
-		limit.setValue(Integer.toString(conf.limit));
-		tfCountry.setValue(conf.country);
-		chkStructured.setValue(conf.structured);
-		chkStripNumFromLocality.setValue(conf.stripNumFromLocality);
+		interval.setValue(Integer.toString(conf.getInterval()));
+		hoursToCheck.setValue(Integer.toString(conf.getHoursToCheck()));
+		limit.setValue(Integer.toString(conf.getLimit()));
+		tfCountry.setValue(conf.getCountry());
+		chkStructured.setValue(conf.isStructured());
+		chkStripNumFromLocality.setValue(conf.isStripNumFromLocality());
 
 		LinkedList<String> values = new LinkedList<String>();
-		if (conf.useStreet) values.add(properties[0]);
-		if (conf.useRegion) values.add(properties[1]);
-		if (conf.useLocality) values.add(properties[2]);
-		if (conf.usePostalCode) values.add(properties[3]);
+		if (conf.isUseStreet()) values.add(properties[0]);
+		if (conf.isUseRegion()) values.add(properties[1]);
+		if (conf.isUseLocality()) values.add(properties[2]);
+		if (conf.isUsePostalCode()) values.add(properties[3]);
 		tcsProperties.setValue(values);
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.interval = Integer.parseInt(interval.getValue());
-		conf.hoursToCheck = Integer.parseInt(hoursToCheck.getValue());
-		conf.country = tfCountry.getValue();
-		conf.limit = Integer.parseInt(limit.getValue());
-		conf.structured = chkStructured.getValue();
-		conf.stripNumFromLocality = chkStripNumFromLocality.getValue();
+		conf.setInterval(Integer.parseInt(interval.getValue()));
+		conf.setHoursToCheck(Integer.parseInt(hoursToCheck.getValue()));
+		conf.setCountry(tfCountry.getValue());
+		conf.setLimit(Integer.parseInt(limit.getValue()));
+		conf.setStructured((boolean) chkStructured.getValue());
+		conf.setStripNumFromLocality((boolean) chkStripNumFromLocality.getValue());
 		
 		Collection<String> values = (Collection<String>)tcsProperties.getValue();
-		conf.useStreet = values.contains(properties[0]); 
-		conf.useRegion = values.contains(properties[1]);
-		conf.useLocality = values.contains(properties[2]);
-		conf.usePostalCode = values.contains(properties[3]);
+		conf.setUseStreet(values.contains(properties[0])); 
+		conf.setUseRegion(values.contains(properties[1]));
+		conf.setUseLocality(values.contains(properties[2]));
+		conf.setUsePostalCode(values.contains(properties[3]));
 		
 		return conf;
 	}

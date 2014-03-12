@@ -31,7 +31,7 @@ public class MultipleFilesPickerDialog extends BaseConfigDialog<MultipleFilesPic
 		this.mainLayout = new VerticalLayout();
 		this.mainLayout.setImmediate(false);
 		this.mainLayout.setWidth("100%");
-		this.mainLayout.setHeight("100%");
+		this.mainLayout.setHeight("-1px");
 		this.mainLayout.setMargin(false);
 
         this.setWidth("100%");

@@ -15,11 +15,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-	
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 839859194445887249L;
+
 	private GridLayout mainLayout;
     private CheckBox chkAccessProfiles;
     private CheckBox chkRewriteCache;
@@ -38,7 +35,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 
@@ -78,21 +75,21 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.rewriteCache);
-		chkAccessProfiles.setValue(conf.accessProfiles);
-		chkCurrentYearOnly.setValue(conf.currentYearOnly);
-		interval.setValue(Integer.toString(conf.interval));
-		timeout.setValue(Integer.toString(conf.timeout));
+		chkRewriteCache.setValue(conf.isRewriteCache());
+		chkAccessProfiles.setValue(conf.isAccessProfiles());
+		chkCurrentYearOnly.setValue(conf.isCurrentYearOnly());
+		interval.setValue(Integer.toString(conf.getInterval()));
+		timeout.setValue(Integer.toString(conf.getTimeout()));
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.rewriteCache = chkRewriteCache.getValue();
-		conf.accessProfiles = chkAccessProfiles.getValue();
-		conf.currentYearOnly = chkCurrentYearOnly.getValue();
-		conf.interval = Integer.parseInt(interval.getValue());
-		conf.timeout = Integer.parseInt(timeout.getValue());
+		conf.setRewriteCache(chkRewriteCache.getValue());
+		conf.setAccessProfiles(chkAccessProfiles.getValue());
+		conf.setCurrentYearOnly(chkCurrentYearOnly.getValue());
+		conf.setInterval(Integer.parseInt(interval.getValue()));
+		conf.setTimeout(Integer.parseInt(timeout.getValue()));
 		return conf;
 	}	
 }

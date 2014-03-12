@@ -87,9 +87,9 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
         mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");

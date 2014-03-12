@@ -29,12 +29,13 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import org.slf4j.Logger;
 
 @AsExtractor
 public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		ConfigDialogProvider<ExtractorConfig> {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(Extractor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
@@ -76,17 +77,17 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		
 		Map<String, String> columnPropertyMap = this.config.getColumnPropertyMap();
 		if ( columnPropertyMap == null )	{
-			log.warn("No mapping of table columns to RDF properties have been specified.");
+			LOG.warn("No mapping of table columns to RDF properties have been specified.");
 			columnPropertyMap = new HashMap<String, String>();
 		}
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
-			log.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
+			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
 			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/";
 		}
 		String columnWithURISupplement = this.config.getColumnWithURISupplement();
 		if ( columnWithURISupplement == null || "".equals(columnWithURISupplement) )	{
-			log.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
+			LOG.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
 			columnWithURISupplement = null;
 		}
 		
@@ -156,12 +157,12 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
 			
 			if ( (rowno % 1000) == 0 )	{
-				log.debug("Row number " + rowno + " processed.");
+				LOG.debug("Row number {} processed.", rowno);
 			}
 			rowno++;
 			
 			if (context.canceled()) {
-	       		log.info("DPU cancelled");
+	       		LOG.info("DPU cancelled");
 	       		reader.close();
 	       		return;
 	       	}
@@ -189,8 +190,6 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 				return "";
 			}
 		}
-	}
-	
-	
+	}	
 	
 }

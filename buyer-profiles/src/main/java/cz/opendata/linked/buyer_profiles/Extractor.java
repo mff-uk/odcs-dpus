@@ -34,11 +34,7 @@ public class Extractor
 	@OutputDataUnit(name = "profiles")
 	public RDFDataUnit profilesDataUnit;
 
-	/**
-	 * DPU's configuration.
-	 */
-	
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
         super(ExtractorConfig.class);
@@ -49,25 +45,26 @@ public class Extractor
 		return new ExtractorDialog();
 	}
 	
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
         // vytvorime si parser
         
-    	Cache.logger = logger;
-    	Cache.rewriteCache = config.rewriteCache;
+    	Cache.logger = LOG;
+    	Cache.rewriteCache = config.isRewriteCache();
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-    	Cache.setTimeout(config.timeout);
-    	Cache.setInterval(config.interval);
+    	Cache.setTimeout(config.getTimeout());
+    	Cache.setInterval(config.getInterval());
 		try {
 			Cache.setTrustAllCerts();
-		} catch (Exception e1) {
-			logger.error("Unexpected error when setting trust to all certificates: " + e1.getLocalizedMessage());
+		} catch (Exception e) {
+			LOG.error("Unexpected error when setting trust to all certificates. ", e);
 		}
 		
         Scraper_parser s = new Scraper_parser();
-        s.AccessProfiles = config.accessProfiles;
-        s.CurrentYearOnly = config.currentYearOnly;
-        s.logger = logger;
+        s.AccessProfiles = config.isAccessProfiles();
+        s.CurrentYearOnly = config.isCurrentYearOnly();
+        s.logger = LOG;
         s.ctx = ctx;
         
         String profilyname = ctx.getWorkingDir() + "/profily.ttl";
@@ -76,8 +73,7 @@ public class Extractor
 			s.ps = new PrintStream(profilyname, "UTF-8");
 			s.zak_ps = new PrintStream(zakazkyname, "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			logger.error("Unexpected error opening filestreams for temp files");
-			e.printStackTrace();
+			LOG.error("Unexpected error opening filestreams for temp files", e);
 		}
 
         String prefixes =
@@ -116,23 +112,22 @@ public class Extractor
 		    	s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowPublicPublisherProfiles"), "first");
 			    s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
 		        
-	        	logger.info("Parsing done. Passing RDF to ODCS");
+	        	LOG.info("Parsing done. Passing RDF to ODCS");
 		        try {
 		        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
 		        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
 		        }
 		        catch (RDFException e)
 		        {
-		        	logger.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
+		        	LOG.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
 		        	throw new DPUException("Cannot put TTL to repository.", e);
 		        }
 	    	}
-	    	if (ctx.canceled()) logger.error("Interrputed");
+	    	if (ctx.canceled()) LOG.error("Interrputed");
 		} catch (MalformedURLException e) {
-			logger.error("Unexpected malformed URL exception");
-			e.printStackTrace();
+			LOG.error("Unexpected malformed URL exception", e);
 		} catch (InterruptedException e) {
-			logger.error("Interrputed");
+			LOG.error("Interrputed");
 		}
         
 	    s.ps.close();
@@ -157,8 +152,5 @@ public class Extractor
 	    ctx.sendMessage(MessageType.INFO, "Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
         
     }
-
-	@Override
-	public void cleanUp() {	}
 	
 }

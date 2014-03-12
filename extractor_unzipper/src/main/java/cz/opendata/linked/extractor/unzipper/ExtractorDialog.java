@@ -18,6 +18,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	private VerticalLayout mainLayout;
 	
     private TextField zipFileURL;
+	
     private Label zipFileURLLabel = new Label("URL of ZIP file");
     
 	public ExtractorDialog() {
@@ -31,7 +32,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		this.mainLayout = new VerticalLayout();
 		this.mainLayout.setImmediate(false);
 		this.mainLayout.setWidth("100%");
-		this.mainLayout.setHeight("100%");
+		this.mainLayout.setHeight("-1px");
 		this.mainLayout.setMargin(false);
 
         this.setWidth("100%");

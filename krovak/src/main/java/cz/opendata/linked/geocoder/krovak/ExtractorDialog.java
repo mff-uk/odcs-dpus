@@ -37,7 +37,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 
@@ -66,19 +66,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		interval.setValue(Integer.toString(conf.interval));
-		failinterval.setValue(Integer.toString(conf.failInterval));
-		tfNumOfRecords.setValue(Integer.toString(conf.numofrecords));
-		tfSessionId.setValue(conf.sessionId);
+		interval.setValue(Integer.toString(conf.getInterval()));
+		failinterval.setValue(Integer.toString(conf.getFailInterval()));
+		tfNumOfRecords.setValue(Integer.toString(conf.getNumofrecords()));
+		tfSessionId.setValue(conf.getSessionId());
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.interval = Integer.parseInt(interval.getValue());
-		conf.failInterval = Integer.parseInt(failinterval.getValue());
-		conf.numofrecords = Integer.parseInt(tfNumOfRecords.getValue());
-		conf.sessionId = tfSessionId.getValue();
+		conf.setInterval(Integer.parseInt(interval.getValue()));
+		conf.setFailInterval(Integer.parseInt(failinterval.getValue()));
+		conf.setNumofrecords(Integer.parseInt(tfNumOfRecords.getValue()));
+		conf.setSessionId(tfSessionId.getValue());
 		return conf;
 	}
 	

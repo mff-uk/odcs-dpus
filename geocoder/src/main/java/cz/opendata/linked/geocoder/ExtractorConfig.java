@@ -12,15 +12,12 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 8719241993054209502L;
 
-    public boolean rewriteCache = true;
+    private boolean rewriteCache = true;
     
-    public String geocoderURI = "http://xrg15.projekty.ms.mff.cuni.cz:5555";
-	
+    private String geocoderURI = "http://xrg15.projekty.ms.mff.cuni.cz:5555";
+		
 	@Override
     public boolean isValid() {
 		try {
@@ -30,5 +27,21 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		}
 		return true;
     }
+
+	public boolean isRewriteCache() {
+		return rewriteCache;
+	}
+
+	public void setRewriteCache(boolean rewriteCache) {
+		this.rewriteCache = rewriteCache;
+	}
+
+	public String getGeocoderURI() {
+		return geocoderURI;
+	}
+
+	public void setGeocoderURI(String geocoderURI) {
+		this.geocoderURI = geocoderURI;
+	}
 
 }

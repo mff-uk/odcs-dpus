@@ -22,52 +22,28 @@ import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
-
-
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
- * 
- * 
+ *
+ *
  *
  */
 public class RDFDistillerDialog extends BaseConfigDialog<RDFaDistillerConfig> {
 
-   private static final Logger log = LoggerFactory.getLogger(RDFDistillerDialog.class);
-   
 
- 
+	public RDFDistillerDialog() {
+		super(RDFaDistillerConfig.class);
+	}
 
-    public RDFDistillerDialog() {
-        super(RDFaDistillerConfig.class);
-//        buildMainLayout();
-//        setCompositionRoot(mainLayout);
-    }
+	@Override
+	public void setConfiguration(RDFaDistillerConfig conf) throws ConfigException {
 
-   @Override
-    public void setConfiguration(RDFaDistillerConfig conf) throws ConfigException {
-        
-           
-         
-     
-         
-  
+	}
 
-    }
+	@Override
+	public RDFaDistillerConfig getConfiguration() throws ConfigException {
+		return new RDFaDistillerConfig();
+	}
 
-    @Override
-    public RDFaDistillerConfig getConfiguration() throws ConfigException {
-        return new RDFaDistillerConfig();
-                
-       
-
-        
-        
-        
-        
-    }
-    
 }

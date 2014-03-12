@@ -57,7 +57,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
         mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 

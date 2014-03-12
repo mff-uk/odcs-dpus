@@ -35,7 +35,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 
@@ -59,16 +59,16 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.rewriteCache);
-		geocoderURI.setValue(conf.geocoderURI);
+		chkRewriteCache.setValue(conf.isRewriteCache());
+		geocoderURI.setValue(conf.getGeocoderURI());
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.rewriteCache = chkRewriteCache.getValue();
+		conf.setRewriteCache((boolean) chkRewriteCache.getValue());
 		try {
-			conf.geocoderURI = new URI(geocoderURI.getValue()).toString();
+			conf.setGeocoderURI(new URI(geocoderURI.getValue()).toString());
 		} catch (URISyntaxException e) {
 			throw new ConfigException(e.getLocalizedMessage());
 		}

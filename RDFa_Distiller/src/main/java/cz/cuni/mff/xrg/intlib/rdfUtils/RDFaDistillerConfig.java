@@ -16,10 +16,13 @@ import org.slf4j.LoggerFactory;
 public class RDFaDistillerConfig extends DPUConfigObjectBase {
 
     private String inputPredicate = OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
-     
    
-
     public String getInputPredicate() {
         return inputPredicate;
     }
+
+	public void setInputPredicate(String inputPredicate) {
+		this.inputPredicate = inputPredicate;
+	}
+	
 }

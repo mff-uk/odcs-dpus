@@ -20,14 +20,16 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		
 	}
 	
-	public ExtractorConfig(String zipFileURL) {
-	
-		this.zipFileURL = zipFileURL;
-		
+	public ExtractorConfig(String zipFileURL) {	
+		this.zipFileURL = zipFileURL;		
 	}
     
 	public String getZipFileURL() {
 		return this.zipFileURL;
+	}
+
+	public void setZipFileURL(String zipFileURL) {
+		this.zipFileURL = zipFileURL;
 	}
 	
 }

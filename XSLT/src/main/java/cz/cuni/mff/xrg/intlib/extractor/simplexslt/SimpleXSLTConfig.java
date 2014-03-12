@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleXSLTConfig extends DPUConfigObjectBase {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(SimpleXSLTConfig.class);
     private String xslTemplate = "";
     
     //INPUT PREDICATE IN RDF DATA UNIT HOLDING the files to be processed
@@ -23,6 +22,44 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     private String xslTemplateFileNameShownInDialog = "";
     private String escapedString = "\"\"\":&quote;&quote;&quote; "; // "<:&lt; >:&gt; \":&guote; \\*:&#42; \\\\:&#92;";  //preset mappings
     private int numberOfTriesToConnect = -1;
+
+	public String getXslTemplateFileNameShownInDialog() {
+		return xslTemplateFileNameShownInDialog;
+	}
+
+	public void setXslTemplateFileNameShownInDialog(
+			String xslTemplateFileNameShownInDialog) {
+		this.xslTemplateFileNameShownInDialog = xslTemplateFileNameShownInDialog;
+	}
+
+	public void setXslTemplate(String xslTemplate) {
+		this.xslTemplate = xslTemplate;
+	}
+
+	public void setInputPredicate(String inputPredicate) {
+		this.inputPredicate = inputPredicate;
+	}
+
+	public void setOutputPredicate(String outputPredicate) {
+		this.outputPredicate = outputPredicate;
+	}
+
+	public void setEscapedString(String escapedString) {
+		this.escapedString = escapedString;
+	}
+
+	public void setNumberOfTriesToConnect(int numberOfTriesToConnect) {
+		this.numberOfTriesToConnect = numberOfTriesToConnect;
+	}
+
+	public void setOutputType(
+			OutputType outputType) {
+		this.outputType = outputType;
+	}
+
+	public void setOutputXSLTMethod(String outputXSLTMethod) {
+		this.outputXSLTMethod = outputXSLTMethod;
+	}
     
 //    //not used, but needed for backward compatibility
 //    private String storedXsltFilePath = "";
@@ -115,4 +152,13 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     public String getXslTemplate() {
         return xslTemplate;
     }
+
+	public static String getDATA_UNIT_RESULTING_SUBJECT_PREDICATE() {
+		return DATA_UNIT_RESULTING_SUBJECT_PREDICATE;
+	}
+
+	public static String getFILE_DATAUNIT_PATH() {
+		return FILE_DATAUNIT_PATH;
+	}
+		
 }

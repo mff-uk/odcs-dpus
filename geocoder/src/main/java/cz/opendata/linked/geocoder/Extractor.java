@@ -25,7 +25,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
-import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
+import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.opendata.linked.geocoder.lib.Geocoder;
 import cz.opendata.linked.geocoder.lib.Geocoder.GeoProvider;
@@ -37,11 +37,7 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	@InputDataUnit(name = "Schema.org addresses")
 	public RDFDataUnit sAddresses;
@@ -101,38 +97,38 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "UNION { ?address s:addressCountry ?country . } "
 				+ " }";
 
-		logger.debug("Geocoder init");
+		LOG.debug("Geocoder init");
 		Geocoder.loadCacheIfEmpty(geoCache);
 		GeoProvider gisgraphy = GeoProviderFactory.createXMLGeoProvider(
-                config.geocoderURI + "/fulltext/fulltextsearch?allwordsrequired=false&from=1&to=1&q=",
+                config.getGeocoderURI() + "/fulltext/fulltextsearch?allwordsrequired=false&from=1&to=1&q=",
                 "/response/result/doc[1]/double[@name=\"lat\"]",
                 "/response/result/doc[1]/double[@name=\"lng\"]",
                 0);
-		logger.debug("Geocoder initialized");
+		LOG.debug("Geocoder initialized");
 
 		int total = 0;
 		int count = 0;
 		int failed = 0;
 		try {
-			MyTupleQueryResult countres = sAddresses.executeSelectQueryAsTuples(countQuery);
+			MyTupleQueryResultIf countres = sAddresses.executeSelectQueryAsTuples(countQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
-			logger.info("Found " + total + " addresses.");
+			LOG.info("Found " + total + " addresses.");
 		} catch (InvalidQueryException e1) {
-			logger.error(e1.getLocalizedMessage());
+			LOG.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		} catch (QueryEvaluationException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}
 
 		try {
 			
 			//Schema.org addresses
-			logger.debug("Executing Schema.org query: " + sOrgQuery);
+			LOG.debug("Executing Schema.org query: " + sOrgQuery);
 			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
 			Graph resGraph = sAddresses.executeConstructQuery(sOrgConstructQuery);
 			
-			logger.debug("Starting geocoding.");
+			LOG.debug("Starting geocoding.");
 			
 			URI[] propURIs = new URI [] {streetAddressURI, addressLocalityURI, addressRegionURI, postalCodeURI, addressCountryURI};
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
@@ -182,7 +178,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				}*/
 				
 				String address = addressToGeoCode.toString();
-				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
+				LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
 				
 				Position pos = Geocoder.locate(address, gisgraphy);
 				
@@ -193,7 +189,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				{
 					latitude = pos.getLatitude();
 					longitude = pos.getLongitude();
-					logger.debug("Located " + address + " Latitude: " + latitude + " Longitude: " + longitude);
+					LOG.debug("Located " + address + " Latitude: " + latitude + " Longitude: " + longitude);
 					
 					String uri = currentAddressURI.stringValue();
 //					String uri = s.getValue("address").stringValue();
@@ -207,23 +203,23 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				}
 				else {
 					failed++;
-					logger.warn("Failed to locate: " + address);
+					LOG.warn("Failed to locate: " + address);
 				}
 			}
-			if (ctx.canceled()) logger.info("Cancelled");
+			if (ctx.canceled()) LOG.info("Cancelled");
 			
 		} catch (InvalidQueryException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}/* catch (QueryEvaluationException e) {
 			logger.error(e.getLocalizedMessage());
 		}*/
 
-       	logger.info("Geocoding done.");
+       	LOG.info("Geocoding done.");
 
-       	if (config.rewriteCache) {
-		   	logger.debug("Saving geo cache");
+       	if (config.isRewriteCache()) {
+		   	LOG.debug("Saving geo cache");
 			Geocoder.saveCache(geoCache);
-		   	logger.debug("Geo cache saved.");
+		   	LOG.debug("Geo cache saved.");
        	}
 			
 		java.util.Date date2 = new java.util.Date();

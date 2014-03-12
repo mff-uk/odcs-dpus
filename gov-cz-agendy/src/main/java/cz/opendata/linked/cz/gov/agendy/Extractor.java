@@ -6,9 +6,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +35,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@OutputDataUnit
 	public RDFDataUnit outputDataUnit;
 
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private Logger LOG = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -49,31 +46,32 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
 		// vytvorime si parser
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.rewriteCache = config.rewriteCache;
-		Cache.logger = logger;
+		Cache.rewriteCache = config.isRewriteCache();
+		Cache.logger = LOG;
 
 		try {
 			Cache.setTrustAllCerts();
-		} catch (Exception e1) {
-			logger.error("Unexpected error when setting trust to all certificates: " + e1.getLocalizedMessage());
+		} catch (Exception e) {
+			LOG.error("Unexpected error when setting trust to all certificates.",e );
 		}
 		
-		String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
+		String tempfilename = ctx.getWorkingDir() + "/" + config.getOutputFileName();
 		Parser s = new Parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
 		} catch (FileNotFoundException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error("Failed to create PrintStream.", e);
 		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error("Failed to create PrintStream.", e);
 		}
 
 		s.ps.println(
@@ -99,7 +97,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		// a spustim na vychozi stranku
 
-		logger.info("Starting extraction. Output: " + tempfilename);
+		LOG.info("Starting extraction. Output: " + tempfilename);
 		
 		try {
 			try {
@@ -114,30 +112,24 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
 			}
 			catch (IOException e) {
-				e.printStackTrace();
-				logger.error(e.getLocalizedMessage() + " ");
+				LOG.error("IOException", e);
 			}
         	
-			logger.info("Parsing done. Passing RDF to ODCS");
+			LOG.info("Parsing done. Passing RDF to ODCS");
 			//give ttl to odcs
 			try {
 				outputDataUnit.addFromTurtleFile(new File(tempfilename));
 			}
 			catch (RDFException e)
 			{
-				logger.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
+				LOG.error("Cannot put TTL to repository.", e);
 				throw new DPUException("Cannot put TTL to repository.");
 			}
 		} catch (InterruptedException intex) {
-			logger.error("Interrupted");
+			LOG.error("Interrupted");
 		}
 
 		s.ps.close();
-
-
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

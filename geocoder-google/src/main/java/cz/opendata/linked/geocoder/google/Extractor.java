@@ -39,7 +39,6 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
-import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import org.apache.commons.io.*;
@@ -49,11 +48,8 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
+	
 	final Geocoder geocoder = new Geocoder();
 	private int geocodes = 0;
 	private int cacheHits = 0;
@@ -96,15 +92,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				try {
 					modified = sdf.parse(sdf.format(currentFile.lastModified()));
 				} catch (ParseException e) {
-					logger.error(e.getLocalizedMessage());
+					LOG.error(e.getLocalizedMessage());
 				}
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
-				if (diff < (config.hoursToCheck * 60 * 60)) count++;
+				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
 			}
 		}
-		logger.info("Total of " + count + " positions cached in last " + config.hoursToCheck + " hours. " + (config.limit - count) + " remaining.");
+		LOG.info("Total of " + count + " positions cached in last " + config.getHoursToCheck() + " hours. " + (config.getLimit() - count) + " remaining.");
 		return count;
 	}
 	
@@ -160,7 +156,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "UNION { ?address s:addressCountry ?country . } "
 				+ " }";*/
 
-		logger.debug("Geocoder init");
+		LOG.debug("Geocoder init");
 		
 		int total = 0;
 		int ngc = 0;
@@ -173,27 +169,27 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses"/* + ngc + " not geocoded yet."*/);
 		} catch (InvalidQueryException e1) {
-			logger.error(e1.getLocalizedMessage());
+			LOG.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		} catch (QueryEvaluationException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}
 
 		try {
 			
 			//Schema.org addresses
-			logger.debug("Executing Schema.org query: " + sOrgConstructQuery);
+			LOG.debug("Executing Schema.org query: " + sOrgConstructQuery);
 			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
 			Graph resGraph = sAddresses.executeConstructQuery(sOrgConstructQuery);
 			
-			logger.debug("Starting geocoding.");
+			LOG.debug("Starting geocoding.");
 			
 			URI[] propURIs = new URI [] {streetAddressURI, addressLocalityURI, addressRegionURI, postalCodeURI, addressCountryURI};
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
 			
 			int cachedToday = countTodaysCacheFiles(ctx);
-			int toCache = (config.limit - cachedToday);
+			int toCache = (config.getLimit() - cachedToday);
 
 			long lastDownload = 0;
 			while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
@@ -221,7 +217,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				}				
 				
 				String address = addressToGeoCode.toString();
-				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
+				LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
 				//CACHE
 				String file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");
@@ -233,13 +229,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (!hFile.exists())
 				{
 					long curTS = date.getTime();
-					if (lastDownload + config.interval > curTS)
+					if (lastDownload + config.getInterval() > curTS)
 					{
-						logger.debug("Sleeping: " + (lastDownload + config.interval - curTS));
+						LOG.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
 						try {
-							Thread.sleep(lastDownload + config.interval - curTS);
+							Thread.sleep(lastDownload + config.getInterval() - curTS);
 						} catch (InterruptedException e) {
-							logger.info("Interrupted while sleeping");
+							LOG.info("Interrupted while sleeping");
 						}
 					}
 					
@@ -250,29 +246,29 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					geocodes++;
 					GeocoderStatus s = geocoderResponse.getStatus();
 					if (s == GeocoderStatus.OK) {
-						logger.debug("Googled (" + geocodes + "): " + address);
+						LOG.debug("Googled (" + geocodes + "): " + address);
 						
 						try {
 							BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 							fw.append(geocoderResponse.toString());
 							fw.close();
 						} catch (Exception e) {
-							logger.error(e.getLocalizedMessage());
+							LOG.error(e.getLocalizedMessage());
 						}
 						//CACHED
 					}
 					else if (s == GeocoderStatus.ZERO_RESULTS) {
-						logger.warn("Zero results for: " + address);
+						LOG.warn("Zero results for: " + address);
 						continue;
 					}
 					else {
-						logger.error("Status: " + geocoderResponse.getStatus() + " " + address);
+						LOG.error("Status: " + geocoderResponse.getStatus() + " " + address);
 						break;
 					}
 				}
 				else {
 					cacheHits++;
-					logger.debug("From cache (" + cacheHits + "): " + address);
+					LOG.debug("From cache (" + cacheHits + "): " + address);
 				}
 				
 				//READ FROM FILE - NOW IT EXISTS
@@ -280,7 +276,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				try {
 					cachedFile = FileUtils.readFileToString(hFile);
 				} catch (IOException e) {
-					logger.error(e.getLocalizedMessage());
+					LOG.error(e.getLocalizedMessage());
 				}
 				
 				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
@@ -289,7 +285,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
 				BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
 				
-				logger.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
+				LOG.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
 				
 				String uri = currentAddressURI.stringValue();
 				URI addressURI = outGeo.createURI(uri);
@@ -301,13 +297,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, dcsource, googleURI);
 			}
-			if (ctx.canceled()) logger.info("Cancelled");
+			if (ctx.canceled()) LOG.info("Cancelled");
 			
 		} catch (InvalidQueryException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}
 
-       	logger.info("Geocoding done.");
+       	LOG.info("Geocoding done.");
 
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();

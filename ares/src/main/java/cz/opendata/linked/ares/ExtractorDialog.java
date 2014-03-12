@@ -14,10 +14,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 7003725620084616056L;
+
 	private GridLayout mainLayout;
 	private CheckBox chkUseCacheOnly;
 	private CheckBox chkStdAdr;
@@ -36,17 +34,17 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     }  
 	
     private GridLayout buildMainLayout() {
-        // common part: create layout
-        mainLayout = new GridLayout(1, 2);
-        mainLayout.setImmediate(false);
-        mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
-        mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
-
         // top-level component properties
         setWidth("100%");
         setHeight("100%");
+		
+		// common part: create layout
+        mainLayout = new GridLayout(1, 2);
+        mainLayout.setImmediate(false);
+        mainLayout.setWidth("100%");
+        mainLayout.setHeight("-1px");
+        mainLayout.setMargin(false);
+        mainLayout.setSpacing(true);
 
         chkGenerateOutput = new CheckBox("Generate output:");
         chkGenerateOutput.setDescription("When selected, the cached or downloaded files will be passed as RDF literals to output.");
@@ -100,34 +98,48 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkUseCacheOnly.setValue(conf.useCacheOnly);
-		chkGenerateOutput.setValue(conf.generateOutput);
-		chkPuvAdr.setValue(conf.bas_puvadr);
-		chkActive.setValue(conf.bas_active);
-		chkStdAdr.setValue(conf.or_stdadr);
-		interval.setValue(Integer.toString(conf.interval));
-		timeout.setValue(Integer.toString(conf.timeout));
-		numDownloads.setValue(Integer.toString(conf.PerDay));
-		hoursToCheck.setValue(Integer.toString(conf.hoursToCheck));
+		chkUseCacheOnly.setValue(conf.isUseCacheOnly());
+		chkGenerateOutput.setValue(conf.isGenerateOutput());
+		chkPuvAdr.setValue(conf.isBas_puvadr());
+		chkActive.setValue(conf.isBas_active());
+		chkStdAdr.setValue(conf.isOr_stdadr());
+		interval.setValue(Integer.toString(conf.getInterval()));
+		timeout.setValue(Integer.toString(conf.getTimeout()));
+		numDownloads.setValue(Integer.toString(conf.getPerDay()));
+		hoursToCheck.setValue(Integer.toString(conf.getHoursToCheck()));
 	
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.bas_puvadr = chkPuvAdr.getValue();
-		conf.or_stdadr = chkStdAdr.getValue();
-		conf.bas_active = chkActive.getValue();
-		conf.useCacheOnly = chkUseCacheOnly.getValue();
-		conf.generateOutput = chkGenerateOutput.getValue();
-		try { Integer.parseInt(numDownloads.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.PerDay = Integer.parseInt(numDownloads.getValue());
-		try { Integer.parseInt(hoursToCheck.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.hoursToCheck = Integer.parseInt(hoursToCheck.getValue());
-		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.interval = Integer.parseInt(interval.getValue());
-		try { Integer.parseInt(timeout.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.timeout = Integer.parseInt(timeout.getValue());
+		conf.setBas_puvadr(chkPuvAdr.getValue());
+		conf.setOr_stdadr(chkStdAdr.getValue());
+		conf.setBas_active(chkActive.getValue());
+		conf.setUseCacheOnly(chkUseCacheOnly.getValue());
+		conf.setGenerateOutput(chkGenerateOutput.getValue());
+		
+		try {
+			conf.setPerDay(Integer.parseInt(numDownloads.getValue()));
+		} catch (InvalidValueException e) {
+			// TODO Throw something here?
+		}
+		try {
+			conf.setHoursToCheck(Integer.parseInt(hoursToCheck.getValue()));
+		} catch (InvalidValueException e) {
+			
+		}
+		try {
+			conf.setInterval(Integer.parseInt(interval.getValue()));
+		} catch (InvalidValueException e) {
+			
+		}
+		try {
+			conf.setTimeout(Integer.parseInt(timeout.getValue()));
+		} catch (InvalidValueException e) {
+			
+		}
+
 		return conf;
 	}
 	

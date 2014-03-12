@@ -40,6 +40,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
+import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
@@ -48,11 +49,7 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	@InputDataUnit(name = "gmlPoint points")
 	public RDFDataUnit gmlPoints;
@@ -114,40 +111,40 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "FILTER NOT EXISTS {?point s:geo ?geo}"
 				+  "}"; 
 
-		logger.debug("Init");
+		LOG.debug("Init");
 		
 		int total = 0;
 		int ngc = 0;
 		int count = 0;
 		int failed = 0;
 		try {
-			MyTupleQueryResult countres = gmlPoints.executeSelectQueryAsTuples(countQuery);
-			MyTupleQueryResult countnotGC = gmlPoints.executeSelectQueryAsTuples(notGCcountQuery);
+			MyTupleQueryResultIf countres = gmlPoints.executeSelectQueryAsTuples(countQuery);
+			MyTupleQueryResultIf countnotGC = gmlPoints.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " points, " + ngc + " not transformed yet.");
 		} catch (InvalidQueryException e1) {
-			logger.error(e1.getLocalizedMessage());
+			LOG.error(e1.getLocalizedMessage());
 		} catch (NumberFormatException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		} catch (QueryEvaluationException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}
 
 		try {
 			
 			//Schema.org addresses
-			logger.debug("Getting point data via query: " + sOrgConstructQuery);
+			LOG.debug("Getting point data via query: " + sOrgConstructQuery);
 			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
 			Graph resGraph = gmlPoints.executeConstructQuery(sOrgConstructQuery);
 			
-			int expectedNumOfBlocks = ngc/config.numofrecords + 1;
+			int expectedNumOfBlocks = ngc/config.getNumofrecords() + 1;
 			
-			logger.debug("Starting transformation, estimating " + expectedNumOfBlocks + " blocks. ");
+			LOG.debug("Starting transformation, estimating " + expectedNumOfBlocks + " blocks. ");
 			
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, gmlPoint);
 			
-			String url = "http://geoportal.cuzk.cz/(S(" + config.sessionId + "))/WCTSHandlerhld.ashx";
+			String url = "http://geoportal.cuzk.cz/(S(" + config.getSessionId() + "))/WCTSHandlerhld.ashx";
 			HttpClient httpclient = HttpClientBuilder.create().build();
 			
 			int blocksDone = 0;
@@ -157,7 +154,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				StringBuilder lines = new StringBuilder();
 				HashMap<String, String> uriMap = new HashMap<String, String>();
 
-				while (currentBlock < config.numofrecords && it.hasNext() && !ctx.canceled())
+				while (currentBlock < config.getNumofrecords() && it.hasNext() && !ctx.canceled())
 				{
 					count++;
 					Resource currentPointURI = it.next().getSubject();
@@ -186,7 +183,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					}
 					else
 					{
-						logger.info("Point " + currentPointURI.toString() + " not Krovak");
+						LOG.info("Point " + currentPointURI.toString() + " not Krovak");
 					}
 				}
 				
@@ -194,7 +191,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 				blocksDone++;
 				
-				logger.info("Block " + blocksDone + "/" + expectedNumOfBlocks + " of " + currentBlock + " records prepared to send");
+				LOG.info("Block " + blocksDone + "/" + expectedNumOfBlocks + " of " + currentBlock + " records prepared to send");
 				
 				String file = lines.toString();
 				
@@ -204,7 +201,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				while ((response == null || !goodresponse) && !ctx.canceled())
 				{
 					tries++;
-					logger.debug("Try " + tries);
+					LOG.debug("Try " + tries);
 					goodresponse = false;
 					try {
 					
@@ -228,18 +225,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						response = httpclient.execute(httppost);
 					
 					} catch (ClientProtocolException e) {
-						logger.error(e.getLocalizedMessage());
+						LOG.error(e.getLocalizedMessage());
 						try {
-							Thread.sleep(config.failInterval);
+							Thread.sleep(config.getFailInterval());
 						} catch (InterruptedException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 					continue;
 					} catch (IOException e) {
-						logger.error(e.getLocalizedMessage());
+						LOG.error(e.getLocalizedMessage());
 						try {
-							Thread.sleep(config.failInterval);
+							Thread.sleep(config.getFailInterval());
 						} catch (InterruptedException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -247,9 +244,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						continue;
 					}
 					if (response == null) {
-						logger.warn("Response null, sleeping and trying again");
+						LOG.warn("Response null, sleeping and trying again");
 						try {
-							Thread.sleep(config.failInterval);
+							Thread.sleep(config.getFailInterval());
 							continue;
 						} catch (InterruptedException e) { 
 							continue;
@@ -257,7 +254,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					}
 					
 					HttpEntity resEntity = response.getEntity();				
-					logger.debug("Got response");
+					LOG.debug("Got response");
 
 					String result = null;
 
@@ -266,18 +263,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					    try {
 							inputStream = resEntity.getContent();
 						} catch (IllegalStateException e) {
-							logger.error(e.getLocalizedMessage());
+							LOG.error(e.getLocalizedMessage());
 							try {
-								Thread.sleep(config.failInterval);
+								Thread.sleep(config.getFailInterval());
 							} catch (InterruptedException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 							continue;
 						} catch (IOException e) {
-							logger.error(e.getLocalizedMessage());
+							LOG.error(e.getLocalizedMessage());
 							try {
-								Thread.sleep(config.failInterval);
+								Thread.sleep(config.getFailInterval());
 							} catch (InterruptedException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
@@ -289,9 +286,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					    try {
 							IOUtils.copy(inputStream, writer, "UTF-8");
 						} catch (IOException e) {
-							logger.error(e.getLocalizedMessage());
+							LOG.error(e.getLocalizedMessage());
 							try {
-								Thread.sleep(config.failInterval);
+								Thread.sleep(config.getFailInterval());
 							} catch (InterruptedException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
@@ -317,9 +314,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						}
 						catch (Exception e)
 						{
-							logger.warn(e.getLocalizedMessage(), e);
+							LOG.warn(e.getLocalizedMessage(), e);
 							try {
-								Thread.sleep(config.failInterval);
+								Thread.sleep(config.getFailInterval());
 							} catch (InterruptedException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
@@ -341,18 +338,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (linesok)
 					{
 						goodresponse = true;
-						logger.info("Successfully got response for block: " + blocksDone);
+						LOG.info("Successfully got response for block: " + blocksDone);
 					}
 					
 				}
 			}
-			if (ctx.canceled()) logger.info("Cancelled");
+			if (ctx.canceled()) LOG.info("Cancelled");
 			
 		} catch (InvalidQueryException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 		}
 
-       	logger.info("Transformation done.");
+       	LOG.info("Transformation done.");
 
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();

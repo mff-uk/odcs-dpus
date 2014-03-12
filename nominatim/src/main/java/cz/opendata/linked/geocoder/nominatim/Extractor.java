@@ -35,7 +35,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
-import cz.cuni.mff.xrg.odcs.rdf.impl.MyTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import org.apache.commons.io.*;
@@ -43,7 +42,7 @@ import org.apache.commons.io.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
-import com.google.gson.JsonParser;
+import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 
 @AsExtractor
 public class Extractor 
@@ -120,10 +119,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
-				if (diff < (config.hoursToCheck * 60 * 60)) count++;
+				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
 			}
 		}
-		logger.info("Total of " + count + " positions cached in last " + config.hoursToCheck + " hours. " + (config.limit - count) + " remaining.");
+		logger.info("Total of " + count + " positions cached in last " + config.getHoursToCheck() + " hours. " + (config.getLimit() - count) + " remaining.");
 		return count;
 	}
 	
@@ -208,7 +207,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		int count = 0;
 		int failed = 0;
 		try {
-			MyTupleQueryResult countres = sAddresses.executeSelectQueryAsTuples(countQuery);
+			MyTupleQueryResultIf countres = sAddresses.executeSelectQueryAsTuples(countQuery);
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
@@ -233,7 +232,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
 			
 			int cachedToday = countTodaysCacheFiles(ctx);
-			int toCache = (config.limit - cachedToday);
+			int toCache = (config.getLimit() - cachedToday);
 
 			long lastDownload = 0;
 			while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
@@ -250,15 +249,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
 				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
 				
-				String address = (config.country.isEmpty() ? "" : config.country) + " " 
-				+ ((config.usePostalCode && postalCode != null) ? postalCode : "")  + " " 
-				+ ((config.useRegion && addressRegion != null) ? addressRegion : "") + " " 
-				+ ((config.useStreet && streetAddress != null) ? streetAddress : "") + " " 
-				+ ((config.useLocality && addressLocality != null) ? (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
+				String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " " 
+				+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " " 
+				+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " " 
+				+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " " 
+				+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
 				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
 								
 				String file;
-				if (config.structured)
+				if (config.isStructured())
 				{
 					file = "structured-" + address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
 				}
@@ -274,24 +273,24 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (!hFile.exists())
 				{
 					long curTS = date.getTime();
-					if (lastDownload + config.interval > curTS)
+					if (lastDownload + config.getInterval() > curTS)
 					{
-						logger.debug("Sleeping: " + (lastDownload + config.interval - curTS));
+						logger.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
 						try {
-							Thread.sleep(lastDownload + config.interval - curTS);
+							Thread.sleep(lastDownload + config.getInterval() - curTS);
 						} catch (InterruptedException e) {
 							logger.info("Interrupted while sleeping");
 						}
 					}
 					
 					String url;
-					if (config.structured) {
+					if (config.isStructured()) {
 						url = "http://nominatim.openstreetmap.org/search?format=json" 
-								+ (config.useStreet ? "&street=" + streetAddress : "") 
-								+ (config.useLocality ? "&city=" + (config.stripNumFromLocality ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
-								+ (config.country.isEmpty() ? "" : "&state=" + config.country) 
-								+ (config.usePostalCode ? "&postalcode=" + postalCode : "")
-								+ (config.useRegion ? "&county=" + addressRegion : "");
+								+ (config.isUseStreet() ? "&street=" + streetAddress : "") 
+								+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
+								+ (config.getCountry().isEmpty() ? "" : "&state=" + config.getCountry()) 
+								+ (config.isUsePostalCode() ? "&postalcode=" + postalCode : "")
+								+ (config.isUseRegion() ? "&county=" + addressRegion : "");
 						//url = url.replace(" ", "+");
 					}
 					else {

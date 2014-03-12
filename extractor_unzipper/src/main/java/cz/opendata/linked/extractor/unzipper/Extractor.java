@@ -25,13 +25,13 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
+import org.slf4j.Logger;
 
 @AsExtractor
 public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		ConfigDialogProvider<ExtractorConfig> {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(
-            Extractor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	@InputDataUnit(name = "zipFile", optional=true)
 	public FileDataUnit zipFileInput;
@@ -141,7 +141,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     	}
 
        	if (context.canceled()) {
-       		log.info("DPU cancelled");
+       		LOG.info("DPU cancelled");
        		return;
        	}
         
