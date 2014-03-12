@@ -7,7 +7,6 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import static org.junit.Assert.*;
 
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;

@@ -2,18 +2,12 @@ package cz.opendata.linked.cz.ruian;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.LinkedList;
 
-import org.apache.commons.pool.impl.GenericKeyedObjectPool.Config;
-
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnitException;
 import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
 
 /**

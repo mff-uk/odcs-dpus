@@ -1,9 +1,5 @@
 package cz.opendata.linked.geocoder.krovak;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;

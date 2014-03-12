@@ -1,8 +1,5 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;

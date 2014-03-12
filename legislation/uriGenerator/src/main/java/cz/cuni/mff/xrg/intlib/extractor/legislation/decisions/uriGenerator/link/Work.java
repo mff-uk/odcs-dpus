@@ -1,12 +1,9 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.UriGenerator;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 

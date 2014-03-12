@@ -1,16 +1,10 @@
 package cz.opendata.linked.psp_cz.metadata;
 
-import java.util.Calendar;
-
-import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.ui.*;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.

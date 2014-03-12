@@ -1,8 +1,6 @@
 package cz.opendata.linked.geocoder.nominatim;
 
 import com.vaadin.ui.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedList;
 

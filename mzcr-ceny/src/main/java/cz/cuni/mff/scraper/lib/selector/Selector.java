@@ -2,7 +2,6 @@ package cz.cuni.mff.scraper.lib.selector;
 
 import java.util.*;
 import java.util.regex.Pattern;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 

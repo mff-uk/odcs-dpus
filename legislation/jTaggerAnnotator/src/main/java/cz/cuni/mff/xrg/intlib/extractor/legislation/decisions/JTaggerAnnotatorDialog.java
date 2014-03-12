@@ -6,8 +6,6 @@ import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * DPU's configuration dialog. NO Dialog needed for this DPU

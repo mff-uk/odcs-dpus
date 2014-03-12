@@ -1,11 +1,7 @@
 package cz.cuni.mff.xrg.intlib.rdfUtils;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.DPUConfigObject;
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
-import java.util.HashMap;
-import java.util.Map;
-import org.slf4j.LoggerFactory;
 
 
 /**

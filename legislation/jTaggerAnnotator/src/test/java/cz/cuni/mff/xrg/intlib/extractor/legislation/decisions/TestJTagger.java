@@ -2,16 +2,10 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.JTaggerAnnotator;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.JTaggerAnnotatorConfig;
-import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import static org.junit.Assert.*;
-
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 

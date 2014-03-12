@@ -7,11 +7,8 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shor
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *

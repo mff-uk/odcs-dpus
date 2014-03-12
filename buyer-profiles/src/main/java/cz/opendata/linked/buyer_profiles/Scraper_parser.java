@@ -1,22 +1,16 @@
 package cz.opendata.linked.buyer_profiles;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
 
 /**
  * Specificky scraper pro statni spravu.

@@ -2,7 +2,6 @@ package cz.cuni.mff.xrg.intlib.extractor.simplexslt;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType;
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.Literal;
@@ -10,17 +9,13 @@ import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.Outpu
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
 import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

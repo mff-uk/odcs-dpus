@@ -2,7 +2,6 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator;
 
 
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 

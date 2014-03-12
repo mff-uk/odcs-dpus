@@ -1,16 +1,12 @@
 package cz.opendata.linked.extractor.unzipper;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.opendata.linked.extractor.unzipper.Extractor;
 import cz.opendata.linked.extractor.unzipper.ExtractorConfig;

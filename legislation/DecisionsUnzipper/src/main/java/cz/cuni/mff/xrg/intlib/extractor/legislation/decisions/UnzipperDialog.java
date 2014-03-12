@@ -6,8 +6,6 @@ import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
