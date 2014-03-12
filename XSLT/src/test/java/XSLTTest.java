@@ -110,7 +110,7 @@ public class XSLTTest {
 	}
         
         
-        @Test
+        //@Test
 	public void executeXSLTNsoudMetadataFileDataUnitWithFileURISpecified() throws Exception {
 		
                 SimpleXSLT trans = new SimpleXSLT();
