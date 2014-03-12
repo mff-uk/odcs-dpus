@@ -22,6 +22,8 @@ public class ScrapeTest {
 		TestEnvironment env = TestEnvironment.create();
 		// prepare input and output data units
 		
+		RDFDataUnit input = env.createRdfInput("Input data", false);
+
 		RDFDataUnit metadata = env.createRdfOutput("Metadata", false);
 
 		// here we can simply pre-fill input data unit with content from 
