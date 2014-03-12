@@ -40,7 +40,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
     private VerticalLayout mainLayout;
     
     private TextField dateTo; //Path
-    private TextField dateFrom; //Path
+    private TextField dateFro; //Path
     private TextField maxNumOfExtractedDecisions; //Path
     private CheckBox cbCurrentDay;
     private CheckBox cbSinceLastSuccess;
@@ -57,7 +57,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
         mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("-1px");
+        mainLayout.setHeight("100%");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 

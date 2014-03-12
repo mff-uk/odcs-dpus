@@ -341,11 +341,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
     }
 
-    private int processDirectory(DirectoryHandler root, DPUContext context, Templates templates) throws DPUException {
+    private int processDirectory(DirectoryHandler directory, DPUContext context, Templates templates) throws DPUException {
 
-        log.debug("Processing directory: {}", root.getName());
+        log.debug("Processing directory: {}, path {}", directory.getName(), directory.getRootedPath());
         int filesInDir = 0;
-        for (Handler handler : root) {
+        for (Handler handler : directory) {
 
             //if the DPU was cancelled, execution ends. 
             if (context.canceled()) {
@@ -397,14 +397,18 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         predicates.add(OdcsTerms.XSLT_PARAM_PREDICATE);
         Map<String, List<String>> metadata = new HashMap<>();
         if (rdfInput != null) {
+            log.info("Trying to fetch metadata from RDF data unit for path {}", fh.getRootedPath());
             metadata = rdfInput.getRDFMetadataForFile(fh.getRootedPath(), predicates);
         }
         else {
             log.info("No metadata available becauese there is no input RDF data unit");
         }
+        //metadata
+        log.info("Available metadata: {}", printAvailableMetadata(metadata));
         
         //collected XSLT params 
         Map<String, String> collectedXsltParams = getXsltParams(metadata);
+        
         //String outputString = executeXSLT(xslTemplate, file, xsltParams);
         String outputString = executeXSLT(templates, file, collectedXsltParams);
         if (outputString == null) {
@@ -426,15 +430,21 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         DataUnitUtils.checkExistanceOfDir(outputPathFolder);
         String outputPathFileWithoutExtension = outputPathFolder + fileName;
 
-        //if there is proper metadata in the rdf data unit, adjust "subject" (which is equal to filePath by default)
-        String subject = getXSLTParamSingleValue(metadata, OdcsTerms.DATA_UNIT_FILE_URI_PREDICATE);
-        if (!subject.isEmpty()) {
-            log.debug("Mapping found, using subject URI {} for file name {}", subject, fileName);
-        } else {
-            //create subject based on the fixed prefix and filePath
-            subject = "http://file" + fh.getRootedPath();
-            log.debug("Mapping not found, subject is set to: {}", subject);
+        
+        //subject is interesting only when "Literal" output is used
+        String subject = "";
+        if (config.getOutputType().equals(SimpleXSLTConfig.OutputType.Literal)) {
+                
+            //if there is proper metadata in the rdf data unit, adjust "subject" (which is equal to filePath by default)
+            subject = getXSLTParamSingleValue(metadata, OdcsTerms.DATA_UNIT_FILE_URI_PREDICATE);
+            if (!subject.isEmpty()) {
+                log.debug("Mapping found, using subject URI {} for file name {}", subject, fileName);
+            } else {
+                //create subject based on the fixed prefix and filePath
+                subject = "http://file" + fh.getRootedPath();
+                log.debug("Mapping not found, subject is set to: {}", subject);
 
+            }
         }
 
         RDFLoaderWrapper resultRDFDataLoader = createOutput(outputString, subject, outputPathFileWithoutExtension);
@@ -743,5 +753,24 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         DataUnitUtils.checkExistanceOfDir(outputPathFolder);
         return outputPathFolder + String.valueOf(fileNumber);
 
+    }
+
+    private String printAvailableMetadata(Map<String, List<String>> metadata) {
+        
+        StringBuilder res = new StringBuilder();
+        for (String key : metadata.keySet()) {
+            res.append("\nKey: ");
+            res.append(key);
+            List<String> values = metadata.get(key);
+            res.append("Values: ");
+            for (String value: values) {
+                
+                 res.append(value);
+                 res.append(", ");
+            }
+        }
+        return res.toString();
+        
+        
     }
 }

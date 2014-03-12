@@ -53,8 +53,122 @@ public class JTagger {
         
     }
     
+      public JTaggerResult processFile(String text, String court) throws Exception {
+        // 
+        // Zistim, ci vstupny text obsahuje <metadata>. 
+        // Ak ano, oddelim ich od zvysku textu...
+        // Ak ne, postupujem dalej
+        //
+        String[] texts = text.split("<\\/metadata>");
+        System.out.println("===========================================\n");
+        System.out.println("Pocet textov na analyzu = " + texts.length + "\n");
+        System.out.println("===========================================\n\n");
+
+        // Text neobsahuje XML kod, cely text spracujem narazS
+        if (texts.length == 1) {
+            return processText(text, court);
+        }
+
+        // Text obsahuje XML kod, spracujem ho oddelene
+        if (texts.length == 2) {
+            System.out.println("===========================================\n");
+            System.out.println("TEXT JEDNA = DECISION\n");
+            System.out.println("===========================================\n\n");
+
+            System.out.println(texts[1] + "\n");
+            JTaggerResult decision = processText(texts[1], court);
+
+            System.out.println("===========================================\n");
+            System.out.println("TEXT DVA   = METADATA\n");
+            System.out.println("===========================================\n\n");
+
+            System.out.println(texts[0] + "\n");
+            String escape_text0 = texts[0].replace("<metadata>", "");
+            escape_text0 = escape_text0.replace("<", "\n<");
+            escape_text0 = escape_text0.replace(">", ">\n ");
+            escape_text0 = escape_text0.replace("&", "&amp;");
+            escape_text0 = escape_text0.replace("<", "&lt;");
+            escape_text0 = escape_text0.replace(">", "&gt;");
+            escape_text0 = escape_text0.replace("\"", "&quot;");
+            escape_text0 = escape_text0.replace("\'", "&apos;");
+
+            System.out.println("Upraveny text = \n");
+            System.out.println(escape_text0 + "\n");
+            JTaggerResult metadata = processText(escape_text0, court);
+
+            System.out.println("===========================================\n");
+            System.out.println("METADATA\n");
+            System.out.println("===========================================\n\n");
+
+            String[] md_lines = metadata.getXml().split("\\n");
+            String md_body = "";
+            boolean in_body = false;
+            for (int i = 0; i < md_lines.length; i++) {
+                System.out.println(i + "\t" + md_lines[i]);
+
+                if (md_lines[i].matches("^\\s*<body>\\s*$")) {
+                    in_body = true;
+                    continue;
+                }
+
+                if (md_lines[i].matches("^\\s*<\\/body>\\s*$")) {
+                    break;
+                }
+
+                if (in_body) {
+                    md_body += md_lines[i] + "\n";
+                }
+            }
+
+            System.out.println("===========================================\n");
+            System.out.println("DOCUMENT\n");
+            System.out.println("===========================================\n\n");
+
+            String[] lines = decision.getXml().split("\\n");
+            for (int i = 0; i < lines.length; i++) {
+                System.out.println(i + "\t" + lines[i]);
+            }
+
+            // TODO - metadata vlozit do XML dokumentu namiesto povodnych metadat...
+            String output = "";
+            boolean in_metadata = false;
+            for (int i = 0; i < lines.length; i++) {
+                System.out.println(i + "\t" + lines[i]);
+
+                if (lines[i].matches("^\\s*<metadata>")) {
+                    in_metadata = true;
+                    output += lines[i] + "\n";
+                    output += md_body + "\n";
+                    continue;
+                }
+
+                if (lines[i].matches("^\\s*<\\/metadata>")) {
+                    in_metadata = false;
+                    output += lines[i] + "\n";
+                    continue;
+                }
+
+                if (in_metadata) {
+                    continue;
+                }
+
+                output += lines[i] + "\n";
+            }
+
+            System.out.println("*** VYSLEDOK: ***\n\n");
+            System.out.println(output);
+            System.out.println("*** KONIEC VYSLEDKU ***\n\n");
+
+            decision.setXml(output);
+            return decision;
+        }
+
+        // Toto je chyba
+        logger.error("Error if we get here");
+        return null;
+    }
    
-    public JTaggerResult processFile(String text, String court) throws Exception {
+    public JTaggerResult processText(String text, String court) throws Exception {
         Process process;
          logger.debug("Running annotator");
         // Ak neexistuje, zalozim si adresarovu strukturu
