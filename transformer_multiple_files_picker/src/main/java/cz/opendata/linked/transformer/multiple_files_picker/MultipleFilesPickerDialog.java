@@ -18,46 +18,43 @@ public class MultipleFilesPickerDialog extends BaseConfigDialog<MultipleFilesPic
 	private VerticalLayout mainLayout;
 	
     private TextField tfPath;
-    private Label lPath = new Label("Path to file");
-    
+	
 	public MultipleFilesPickerDialog() {
 		super(MultipleFilesPickerConfig.class);
         buildMainLayout();
         setCompositionRoot(this.mainLayout);
 	}
 
-	private VerticalLayout buildMainLayout() {
-
+	private void buildMainLayout() {
 		this.mainLayout = new VerticalLayout();
 		this.mainLayout.setImmediate(false);
 		this.mainLayout.setWidth("100%");
 		this.mainLayout.setHeight("-1px");
 		this.mainLayout.setMargin(false);
+		this.mainLayout.setSpacing(true);
 
         this.setWidth("100%");
         this.setHeight("100%");
         
-        this.mainLayout.addComponent(this.lPath);
         this.tfPath = new TextField();
-        this.tfPath.setWidth("100%");
+		this.tfPath.setCaption("Path to file");
+        this.tfPath.setSizeFull();
+		
         this.mainLayout.addComponent(this.tfPath);
-        
-        return this.mainLayout;
-        
 	}
 	
 	@Override
 	public void setConfiguration(MultipleFilesPickerConfig conf) throws ConfigException {
-		
-		this.tfPath.setValue(conf.getPath());
-		
+		if (conf.getPath() == null) {
+			this.tfPath.setValue("");
+		} else {
+			this.tfPath.setValue(conf.getPath());		
+		}
 	}
 
 	@Override
-	public MultipleFilesPickerConfig getConfiguration() throws ConfigException {
-		
-		return new MultipleFilesPickerConfig(this.tfPath.getValue());
-		
+	public MultipleFilesPickerConfig getConfiguration() throws ConfigException {		
+		return new MultipleFilesPickerConfig(this.tfPath.getValue());		
 	}
 
 }

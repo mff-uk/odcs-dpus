@@ -1,14 +1,11 @@
 package cz.opendata.linked.geocoder.nominatim;
 
+import com.vaadin.ui.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.TwinColSelect;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
@@ -34,9 +31,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);
-
-    }  
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
+	}  
 	
     private GridLayout buildMainLayout() {
         // common part: create layout
@@ -80,9 +79,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout.addComponent(hoursToCheck);
 
         tcsProperties = new TwinColSelect("Select properties to use");
+		tcsProperties.setSizeFull();
         tcsProperties.setLeftColumnCaption("Supported properties");
         tcsProperties.setRightColumnCaption("Selected properties");
-        for (int p = 0; p < properties.length; p++) tcsProperties.addItem(properties[p]);
+        for (int p = 0; p < properties.length; p++) {
+			tcsProperties.addItem(properties[p]);
+		}
         tcsProperties.setRows(properties.length);
         mainLayout.addComponent(tcsProperties);
         

@@ -3,6 +3,7 @@ package cz.opendata.linked.ares;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -30,7 +31,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);        
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+        setCompositionRoot(panel);
     }  
 	
     private GridLayout buildMainLayout() {

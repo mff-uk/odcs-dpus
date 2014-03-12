@@ -14,7 +14,7 @@ public class JTaggerAnnotatorConfig extends DPUConfigObjectBase {
 
 	private String outputPredicate = "http://linked.opendata.cz/ontology/odcs/xmlValue"; //OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE;
 
-     //mode in which jTaggerIsWorking
+    //mode in which jTaggerIsWorking
 	//nscr, uscr
 	private String mode = "nscr";
 

@@ -1,14 +1,9 @@
 package cz.opendata.linked.extractor.tabular.czso.vdb;
 
+import com.vaadin.ui.*;
 import java.util.LinkedHashMap;
 
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.FormLayout;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -39,7 +34,10 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 	public CZSOVDBExtractorDialog() {
 		super(CZSOVDBExtractorConfig.class);
 		buildMainLayout();
-        setCompositionRoot(this.mainLayout);
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
 	}
 	
 	private VerticalLayout buildMainLayout() {

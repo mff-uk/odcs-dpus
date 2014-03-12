@@ -1,6 +1,7 @@
 package cz.opendata.linked.extractor.unzipper;
 
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -19,12 +20,13 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
     private TextField zipFileURL;
 	
-    private Label zipFileURLLabel = new Label("URL of ZIP file");
-    
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(this.mainLayout);
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
 	}
 
 	private VerticalLayout buildMainLayout() {
@@ -38,7 +40,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         this.setWidth("100%");
         this.setHeight("100%");
         
-        this.mainLayout.addComponent(this.zipFileURLLabel);
+        this.mainLayout.addComponent(new Label("URL of ZIP file"));
         this.zipFileURL = new TextField();
         this.zipFileURL.setWidth("100%");
         this.mainLayout.addComponent(this.zipFileURL);
@@ -49,16 +51,16 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		
-		this.zipFileURL.setValue(conf.getZipFileURL());
-		
+		if (conf.getZipFileURL() == null) {
+			this.zipFileURL.setValue("");
+		} else {
+			this.zipFileURL.setValue(conf.getZipFileURL());
+		}
 	}
 
 	@Override
-	public ExtractorConfig getConfiguration() throws ConfigException {
-		
-		return new ExtractorConfig(this.zipFileURL.getValue());
-		
+	public ExtractorConfig getConfiguration() throws ConfigException {		
+		return new ExtractorConfig(this.zipFileURL.getValue());		
 	}
 
 }

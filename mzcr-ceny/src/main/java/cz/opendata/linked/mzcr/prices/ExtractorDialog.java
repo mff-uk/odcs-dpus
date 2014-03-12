@@ -6,11 +6,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Slider;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
@@ -30,8 +26,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);        
-    }  
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
+	}  
 	
     private GridLayout buildMainLayout() {
         // common part: create layout
@@ -40,7 +39,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");

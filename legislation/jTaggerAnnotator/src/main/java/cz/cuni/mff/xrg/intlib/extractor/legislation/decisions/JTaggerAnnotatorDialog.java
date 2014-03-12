@@ -52,7 +52,7 @@ public class JTaggerAnnotatorDialog extends BaseConfigDialog<JTaggerAnnotatorCon
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
 		mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+		mainLayout.setSpacing(true);
 
 		// top-level component properties
 		setWidth("100%");

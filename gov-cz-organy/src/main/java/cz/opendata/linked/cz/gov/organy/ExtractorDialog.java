@@ -3,6 +3,7 @@ package cz.opendata.linked.cz.gov.organy;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -15,9 +16,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-	/**
-	 *
-	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 
 	private GridLayout mainLayout;
@@ -31,7 +29,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
 		buildMainLayout();
-		setCompositionRoot(mainLayout);
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
 	}
 
 	private GridLayout buildMainLayout() {
@@ -41,7 +42,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
 		mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
 		// top-level component properties
 		setWidth("100%");
