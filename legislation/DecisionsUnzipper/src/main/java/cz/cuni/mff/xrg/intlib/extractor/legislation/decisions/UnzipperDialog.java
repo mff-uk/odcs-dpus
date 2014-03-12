@@ -40,7 +40,7 @@ public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
     private VerticalLayout mainLayout;
     
     private TextField dateTo; //Path
-    private TextField dateFrom; //Path
+    private TextField dateFro; //Path
     private TextField maxNumOfExtractedDecisions; //Path
     private CheckBox cbCurrentDay;
     private CheckBox cbSinceLastSuccess;

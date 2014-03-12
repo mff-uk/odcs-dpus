@@ -177,7 +177,16 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
                 //run jTagger
                 String outputJTaggerFilename = pathToWorkingDir + File.separator + "outJTagger" + File.separator + String.valueOf(i) + ".xml";
                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outJTagger" + File.separator);
-                runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir);
+                if (config.getMode().equals("nscr")) {
+                    runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("Cp1250"));
+                } 
+                else if (config.getMode().equals("uscr")){
+                    runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("UTF-8"));
+
+                }
+                else {
+                    throw new DPUException("Unsupported Mode " + config.getMode());
+                }
 
                 //check output
                 if (!outputGenerated(outputJTaggerFilename)) {
@@ -473,7 +482,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         }
     }
 
-    private void runJTagger(String inputFile, String outputJTaggerFilename, String jarPathString, String pathToWorkingDir) {
+    private void runJTagger(String inputFile, String outputJTaggerFilename, String jarPathString, String pathToWorkingDir, Charset charset) {
         log.info("Jtagger is about to be run for file {}, path to unpacked jar with resources: {} ", inputFile, jarPathString);
         try {
             //process one file in the filesystem
@@ -482,8 +491,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             //String inputFile = "/Users/tomasknap/Documents/PROJECTS/TACR/judikaty/data from web/nejvyssiSoud/rozhodnuti-3_Tdo_348_2013.txt";
 
             FileInputStream fis = new FileInputStream(inputFile);
-            InputStreamReader inp = new InputStreamReader(fis, "cp1250");
-            //InputStreamReader inp = new InputStreamReader(fis, "UTF-8");
+            InputStreamReader inp = new InputStreamReader(fis, charset);//"cp1250");
             BufferedReader reader = new BufferedReader(inp);
             String input_text = "";
             String line = null;
@@ -512,7 +520,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             log.debug("Path to extracted jar file: {}", jarPathString);
              jtagger.setWorkingDir(pathToWorkingDir);
             log.debug("Path to working dir: {}", pathToWorkingDir);
-            JTaggerResult res = jtagger.processFile(input_text, "nscr");
+            JTaggerResult res = jtagger.processFile(input_text, config.getMode());
           
 
             //store result to a file

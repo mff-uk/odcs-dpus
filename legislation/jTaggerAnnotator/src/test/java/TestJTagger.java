@@ -27,7 +27,7 @@ public class TestJTagger {
 //	}
 
         
-	@Test
+	//@Test
 	public void testLocally() throws Exception {
 		
                 JTaggerAnnotator trans = new JTaggerAnnotator();
