@@ -13,6 +13,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
@@ -80,7 +81,13 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			e.printStackTrace();
 		}
         buildMainLayout();
-        setCompositionRoot(mainLayout);
+        
+        Panel p = new Panel();
+        
+        p.setSizeFull();
+        p.setContent(mainLayout);
+        
+        setCompositionRoot(p);
     }  
 	
     private VerticalLayout buildMainLayout() {
