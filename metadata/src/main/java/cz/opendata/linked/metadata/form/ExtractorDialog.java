@@ -50,6 +50,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField tfSparqlEndpointUrl;
     private TextField tfContactPoint;
     private CheckBox chkNow;
+    private CheckBox chkQb;
     private DateField dfModified;
     private ComboBox cbPeriodicity;
     private ComboBox cbMime;
@@ -156,6 +157,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         tfDescEn.setWidth("100%");
         mainLayout.addComponent(tfDescEn);
 
+        chkQb = new CheckBox();
+        chkQb.setCaption("Dataset is RDF Data Cube");
+        chkQb.setWidth("100%");
+        mainLayout.addComponent(chkQb);
+
         dfModified = new DateField();
         dfModified.setCaption("Modified:");
         dfModified.setWidth("100%");
@@ -249,6 +255,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		tfDescCs.setValue(conf.desc_cs);
 		tfDescEn.setValue(conf.desc_en);
 		chkNow.setValue(conf.useNow);
+		chkQb.setValue(conf.isQb);
 		dfModified.setValue(conf.modified);
 		cbMime.setValue(conf.mime);
 		cbPeriodicity.setValue(conf.periodicity.toString());
@@ -313,6 +320,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.desc_en = tfDescEn.getValue();
 		conf.licenses = new LinkedList<URL>();
 		conf.useNow = chkNow.getValue();
+		conf.isQb = chkQb.getValue();
 		conf.modified = dfModified.getValue();
 		conf.mime = (String)cbMime.getValue();
 		

@@ -56,6 +56,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	public boolean useNow = true;
 	
+	public boolean isQb = false;
+
 	public Date modified = new Date();
 	
 	@Override

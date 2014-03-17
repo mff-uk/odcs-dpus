@@ -63,8 +63,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		String ns_dcat = "http://www.w3.org/ns/dcat#";
 		String ns_foaf = "http://xmlns.com/foaf/0.1/";
 		String ns_void = "http://rdfs.org/ns/void#";
+		String ns_qb = "http://purl.org/linked-data/cube#";
 
 		URI foaf_agent = out.createURI(ns_foaf + "Agent");
+		URI qb_DataSet = out.createURI(ns_qb + "DataSet");
 		URI dcat_keyword = out.createURI(ns_dcat + "keyword");
 		URI dcat_distribution = out.createURI(ns_dcat + "distribution");
 		URI dcat_downloadURL = out.createURI(ns_dcat + "downloadURL");
@@ -89,6 +91,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		out.addTriple(datasetURI, RDF.TYPE, void_datasetClass);
 		out.addTriple(datasetURI, RDF.TYPE, dcat_datasetClass);
+		if (config.isQb) out.addTriple(datasetURI, RDF.TYPE, out.createLiteral(config.desc_cs, "cs"));
 		if (config.desc_cs != null)	out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_cs, "cs"));
 		if (config.desc_en != null) out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_en, "en"));
 		if (config.title_cs != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.title_cs, "cs"));
