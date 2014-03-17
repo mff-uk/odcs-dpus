@@ -39,7 +39,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	private Logger logger = LoggerFactory.getLogger(DPU.class);
 	
-	@InputDataUnit(name = "Input data")
+	@InputDataUnit(name = "Statistics", optional = true)
+	public RDFDataUnit stats;	
+
+	@InputDataUnit(name = "Input data", optional = true)
 	public RDFDataUnit in;	
 
 	@OutputDataUnit(name = "Metadata")
@@ -142,18 +145,22 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		}
 		else out.addTriple(distroURI, DCTERMS.MODIFIED, out.createLiteral(df.format(config.getModified()), xsd_date));
 		
-		//Now compute statistics on input data
-		
-		ctx.sendMessage(MessageType.INFO, "Starting statistics computation");
-		executeCountQuery("SELECT (COUNT (*) as ?count) WHERE {?s ?p ?o}", void_triples, datasetURI);
-		executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s a ?t}", void_entities, datasetURI);
-		executeCountQuery("SELECT (COUNT (distinct ?t) as ?count) WHERE {?s a ?t}", void_classes, datasetURI);
-		executeCountQuery("SELECT (COUNT (distinct ?p) as ?count) WHERE {?s ?p ?o}", void_properties, datasetURI);
-		executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s ?p ?o}", void_dSubjects, datasetURI);
-		executeCountQuery("SELECT (COUNT (distinct ?o) as ?count) WHERE {?s ?p ?o}", void_dObjects, datasetURI);
-		ctx.sendMessage(MessageType.INFO, "Statistics computation done");
-		
-		//Done computing statistics
+		if (stats != null) {
+			ctx.sendMessage(MessageType.INFO, "Found statistics on input - copying");
+			stats.copyAllDataToTargetDataUnit(out);
+		}
+		else if (in != null) {
+			//Now compute statistics on input data
+			ctx.sendMessage(MessageType.INFO, "Starting statistics computation");
+			executeCountQuery("SELECT (COUNT (*) as ?count) WHERE {?s ?p ?o}", void_triples, datasetURI);
+			executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s a ?t}", void_entities, datasetURI);
+			executeCountQuery("SELECT (COUNT (distinct ?t) as ?count) WHERE {?s a ?t}", void_classes, datasetURI);
+			executeCountQuery("SELECT (COUNT (distinct ?p) as ?count) WHERE {?s ?p ?o}", void_properties, datasetURI);
+			executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s ?p ?o}", void_dSubjects, datasetURI);
+			executeCountQuery("SELECT (COUNT (distinct ?o) as ?count) WHERE {?s ?p ?o}", void_dObjects, datasetURI);
+			ctx.sendMessage(MessageType.INFO, "Statistics computation done");
+			//Done computing statistics
+		}
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
