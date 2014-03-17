@@ -6,10 +6,17 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,15 +24,77 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 /**
  *  Document cache. It stores downloaded files to hard drive.
  * 
- *  @author Jakub Starka
+ *  @author Jakub Klímek
  */
+
 public class Cache {
 	
     public static Logger logger;
+    
+    public static RDFDataUnit stats;
 	
+    private static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
+    private static String xsdPrefix = "http://www.w3.org/2001/XMLSchema#";
+    
+    public static Validator validator;
+
+    public static int validXML = 0;
+    public static int invalidXML = 0;
+    
+    private static boolean validate(String file, String url)
+	{
+		try {
+			// parse an XML document into a DOM tree
+			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			ByteArrayInputStream is = new ByteArrayInputStream(file.getBytes("UTF-8"));
+			org.w3c.dom.Document document = parser.parse(is);
+
+			// validate the DOM tree
+			try {
+			    
+				Source xmlSource = new StreamSource( new StringReader(file));
+				validator.validate(xmlSource);
+			    return true;
+			} catch (SAXException e) {
+			    // instance document is invalid!
+				logger.debug("Invalid XML: " + e.getLocalizedMessage());
+				stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "invalidMessage"), stats.createLiteral(e.getLocalizedMessage()));
+				return false;
+			}
+		}
+		catch (Exception e)
+		{
+			logger.debug("Invalid XML: " + e.getLocalizedMessage());
+			//e.printStackTrace();
+			return false;
+		}
+	}
+    
+    private static String getURLContent(String p_sURL) throws IOException
+	{
+	    URL oURL;
+	    String sResponse = null;
+
+        oURL = new URL(p_sURL);
+        oURL.openConnection();
+    	sResponse = IOUtils.toString(oURL, "UTF-8");
+
+	    return sResponse;
+	}
+
 	public static void setTrustAllCerts() throws Exception
 	{
 		TrustManager[] trustAllCerts = new TrustManager[]{
@@ -122,7 +191,7 @@ public class Cache {
 	File hPath = new File(Cache.basePath, host + File.separatorChar + path);
 	File hFile = new File(hPath, file);
 
-	Document out = null;
+	String out = null;
 
 	if (!hFile.exists() || rewriteCache) {
 	//if (!s.contains(file)) {
@@ -143,15 +212,15 @@ public class Cache {
 			
 					if (datatype.equals("xml"))
 					{
-						out = Jsoup.connect(url.toString()).parser(Parser.xmlParser()).timeout(timeout).get();
+						out = getURLContent(url.toString());
 					}
-					else out = Jsoup.parse(url, timeout);
+					else out = getURLContent(url.toString());
 					
 					
 					
 					java.util.Date date2= new java.util.Date();
 				    lastDownload = date2.getTime();
-		            logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.getHost() + url.getFile());
+		            logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.toString());
 		            break;
 				} catch (SocketTimeoutException ex) {
 		            java.util.Date date3= new java.util.Date();
@@ -189,6 +258,11 @@ public class Cache {
 		                	return null;
 		            	}
 		            }
+		            else if (ex instanceof FileNotFoundException)
+		            {
+	                	 logger.info("File not found: " + ex.getMessage() + " " + url);
+	                	 return null;
+		            }
 		            Thread.sleep(interval);
 		        	}
 				attempt++;
@@ -201,7 +275,7 @@ public class Cache {
 	    try 
 	    {
 	    	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-		    fw.append(out.outerHtml());
+		    fw.append(out);
 		    fw.close();
 		    logger.debug(Integer.toString(++downloaded));
 	    }
@@ -213,18 +287,31 @@ public class Cache {
 			}
 			else logger.error("ERROR caching: " + e.getLocalizedMessage());
 	    }
+	    
 	} else {
 	    //logger.info("Using cache for URL: " + url.getHost() + url.getFile());
-
-		if (datatype.equals("xml"))
+		out = IOUtils.toString(new FileInputStream(hFile), "UTF-8");
+	}
+	
+	Document outdoc = null;
+	if (datatype.equals("xml"))
+	{
+		if (validate(out, url.toString()))
 		{
-			out = Jsoup.parse(new FileInputStream(hFile), "UTF-8", host, Parser.xmlParser());
-			
+			logger.info("Valid XML: " + url.toString());
+			validXML++;
+			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("true", xsdPrefix + "boolean"));
 		}
-		else out = Jsoup.parse(hFile, "UTF-8", host);
+		else {
+			logger.warn("Invalid XML: " + url.toString());
+			invalidXML++;
+			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("false", xsdPrefix + "boolean"));
+		}
+		outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());
 		
 	}
-	return out;
+	else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host);	
+	return outdoc;
     }
 
 }

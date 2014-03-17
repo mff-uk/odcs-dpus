@@ -6,6 +6,7 @@ package cz.mff.cuni.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import java.io.IOException;
 import java.net.URL;
@@ -49,6 +50,13 @@ public abstract class ScrapingTemplate {
     
     public Logger logger;
 
+    public RDFDataUnit pstats;
+    
+    protected static String guidBEprefix = "http://linked.opendata.cz/resource/domain/buyer-profiles/business-entity/cz/";
+    protected static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
+    protected static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
+    protected static String xsdPrefix = "http://www.w3.org/2001/XMLSchema#";
+    
     /**
      * Run scraping on given URL and given document type.
      * 
@@ -77,6 +85,7 @@ public abstract class ScrapingTemplate {
                 }
                 else {
                 	logger.warn("Skipped: " + p.url.toString());
+                	pstats.addTriple(pstats.createURI(p.url.toString()), pstats.createURI(BPOprefix + "found"), pstats.createLiteral("false", xsdPrefix + "boolean"));
                 }
             } catch (IOException ex) {
             	logger.warn("Exception: " + ex.getLocalizedMessage());

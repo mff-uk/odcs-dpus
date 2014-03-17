@@ -33,6 +33,7 @@ public class ScrapeTest {
 		
 		RDFDataUnit contracts = env.createRdfOutput("contracts", false);
 		RDFDataUnit profiles = env.createRdfOutput("profiles", false);
+		RDFDataUnit profile_stats = env.createRdfOutput("profile statistics", false);
 		
 		try {
 			// run the execution
@@ -40,6 +41,7 @@ public class ScrapeTest {
 			
 			contracts.loadToFile("C:\\temp\\contracts.ttl", RDFFormatType.TTL);
 			profiles.loadToFile("C:\\temp\\profiles.ttl", RDFFormatType.TTL);
+			profile_stats.loadToFile("C:\\temp\\profile_stats.ttl", RDFFormatType.TTL);
 			
 		}
 	    catch(Exception e) {

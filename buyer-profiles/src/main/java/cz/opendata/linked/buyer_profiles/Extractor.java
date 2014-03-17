@@ -7,8 +7,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
@@ -34,6 +42,9 @@ public class Extractor
 	@OutputDataUnit(name = "profiles")
 	public RDFDataUnit profilesDataUnit;
 
+	@OutputDataUnit(name = "profile statistics")
+	public RDFDataUnit profileStatistics;
+
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
@@ -55,6 +66,28 @@ public class Extractor
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
     	Cache.setTimeout(config.getTimeout());
     	Cache.setInterval(config.getInterval());
+    	Cache.stats = profileStatistics;
+    	
+    	/*set up xsd validation*/
+		// create a SchemaFactory capable of understanding WXS schemas
+		SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+		// load a WXS schema, represented by a Schema instance
+		// http://www.isvz.cz/ProfilyZadavatelu/Profil_Zadavatele_SchemaVZ.xsd
+		Source schemaFile = new StreamSource("http://www.isvz.cz/ProfilyZadavatelu/Profil_Zadavatele_SchemaVZ.xsd");
+		//Source schemaFile = new StreamSource(new File(ctx.getUserDirectory(), "Profil_Zadavatele_SchemaVZ.xsd"));
+		Schema schema;
+		try {
+			schema = factory.newSchema(schemaFile);
+		
+			// create a Validator instance, which can be used to validate an instance document
+			Cache.validator = schema.newValidator();    	
+		} catch (SAXException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		/*end of set up xsd validation*/
+    	
 		try {
 			Cache.setTrustAllCerts();
 		} catch (Exception e) {
@@ -99,7 +132,7 @@ public class Extractor
 
         s.ps.println(prefixes);
         s.zak_ps.println(prefixes);
-
+        s.pstats = profileStatistics;
         // a spustim na vychozi stranku
         
 	    java.util.Date date = new java.util.Date();
@@ -144,6 +177,8 @@ public class Extractor
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs on profile details: " + s.missingIco);
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs in profile XML: " + s.missingIcoInProfile);
 	    ctx.sendMessage(MessageType.INFO, "Invalid XML: " + s.invalidXML + " (" + Math.round((double)s.invalidXML*100/(double)s.numprofiles) + "%)");
+	    ctx.sendMessage(MessageType.INFO, "Valid XSD/XML: " + Cache.validXML);
+	    ctx.sendMessage(MessageType.INFO, "Invalid XSD/XML: " + Cache.invalidXML);
 	    ctx.sendMessage(MessageType.INFO, "Profiles: " + s.numprofiles);
 	    ctx.sendMessage(MessageType.INFO, "Zakázky: " + s.numzakazky);
 	    ctx.sendMessage(MessageType.INFO, "Uchazeči: " + s.numuchazeci);
