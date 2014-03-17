@@ -9,6 +9,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.DCTERMS;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.SKOS;
+import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,8 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
+import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 @AsTransformer
@@ -68,9 +71,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		URI dcat_mediaType = out.createURI(ns_dcat + "mediaType");
 		URI dcat_theme = out.createURI(ns_dcat + "theme");
 		URI xsd_date = out.createURI("http://www.w3.org/2001/XMLSchema#date");
+		URI xsd_integer = out.createURI("http://www.w3.org/2001/XMLSchema#integer");
 		URI dcat_distroClass = out.createURI(ns_dcat + "Distribution");
 		URI dcat_datasetClass = out.createURI(ns_dcat + "Dataset");
 		URI void_datasetClass = out.createURI(ns_void + "Dataset");
+		URI void_triples = out.createURI(ns_void + "triples");
+		URI void_entities = out.createURI(ns_void + "entities");
+		URI void_classes = out.createURI(ns_void + "classes");
+		URI void_properties = out.createURI(ns_void + "properties");
+		URI void_dSubjects = out.createURI(ns_void + "distinctSubjects");
+		URI void_dObjects = out.createURI(ns_void + "distinctObjects");
 
 		URI datasetURI = out.createURI(config.datasetURI.toString());
 		URI distroURI = out.createURI(config.distroURI.toString());
@@ -130,12 +140,36 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		//Now compute statistics on input data
 		
+		ctx.sendMessage(MessageType.INFO, "Starting statistics computation");
+		executeCountQuery("SELECT (COUNT (*) as ?count) WHERE {?s ?p ?o}", void_triples, datasetURI);
+		executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s a ?t}", void_entities, datasetURI);
+		executeCountQuery("SELECT (COUNT (distinct ?t) as ?count) WHERE {?s a ?t}", void_classes, datasetURI);
+		executeCountQuery("SELECT (COUNT (distinct ?p) as ?count) WHERE {?s ?p ?o}", void_properties, datasetURI);
+		executeCountQuery("SELECT (COUNT (distinct ?s) as ?count) WHERE {?s ?p ?o}", void_dSubjects, datasetURI);
+		executeCountQuery("SELECT (COUNT (distinct ?o) as ?count) WHERE {?s ?p ?o}", void_dObjects, datasetURI);
+		ctx.sendMessage(MessageType.INFO, "Statistics computation done");
 		
+		//Done computing statistics
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 		ctx.sendMessage(MessageType.INFO, "Done in " + (end-start) + "ms");
 
+	}
+	
+	void executeCountQuery(String countQuery, URI property, URI datasetURI)
+	{
+		URI xsd_integer = out.createURI("http://www.w3.org/2001/XMLSchema#integer");
+		MyTupleQueryResultIf res;
+		int number;
+		
+		try {
+			res = in.executeSelectQueryAsTuples(countQuery);
+			number = Integer.parseInt(res.next().getValue("count").stringValue());
+			out.addTriple(datasetURI, property, out.createLiteral(Integer.toString(number), xsd_integer));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
