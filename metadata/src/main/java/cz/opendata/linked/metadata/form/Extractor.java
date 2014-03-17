@@ -54,6 +54,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
 		java.util.Date date = new java.util.Date();
@@ -84,62 +85,62 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		URI void_dSubjects = out.createURI(ns_void + "distinctSubjects");
 		URI void_dObjects = out.createURI(ns_void + "distinctObjects");
 
-		URI datasetURI = out.createURI(config.datasetURI.toString());
-		URI distroURI = out.createURI(config.distroURI.toString());
+		URI datasetURI = out.createURI(config.getDatasetURI().toString());
+		URI distroURI = out.createURI(config.getDistroURI().toString());
 		URI exResURI = out.createURI(ns_void + "exampleResource");
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		
 		out.addTriple(datasetURI, RDF.TYPE, void_datasetClass);
 		out.addTriple(datasetURI, RDF.TYPE, dcat_datasetClass);
-		if (config.isQb) out.addTriple(datasetURI, RDF.TYPE, out.createLiteral(config.desc_cs, "cs"));
-		if (config.desc_cs != null)	out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_cs, "cs"));
-		if (config.desc_en != null) out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_en, "en"));
-		if (config.title_cs != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.title_cs, "cs"));
-		if (config.title_en != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.title_en, "en"));
-		if (config.dataDump != null) out.addTriple(datasetURI, out.createURI(ns_void + "dataDump"), out.createURI(config.dataDump.toString()));
-		if (config.sparqlEndpoint != null) out.addTriple(datasetURI, out.createURI(ns_void + "sparqlEndpoint"), out.createURI(config.sparqlEndpoint.toString()));
+		if (config.isIsQb()) out.addTriple(datasetURI, RDF.TYPE, out.createLiteral(config.getDesc_cs(), "cs"));
+		if (config.getDesc_cs() != null)	out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_cs(), "cs"));
+		if (config.getDesc_en() != null) out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_en(), "en"));
+		if (config.getTitle_cs() != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.getTitle_cs(), "cs"));
+		if (config.getTitle_en() != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.getTitle_en(), "en"));
+		if (config.getDataDump() != null) out.addTriple(datasetURI, out.createURI(ns_void + "dataDump"), out.createURI(config.getDataDump().toString()));
+		if (config.getSparqlEndpoint() != null) out.addTriple(datasetURI, out.createURI(ns_void + "sparqlEndpoint"), out.createURI(config.getSparqlEndpoint().toString()));
 		
-		for (URL u : config.authors) { out.addTriple(datasetURI, DCTERMS.CREATOR, out.createURI(u.toString()));	}
-		for (URL u : config.publishers)	{ 
+		for (URL u : config.getAuthors()) { out.addTriple(datasetURI, DCTERMS.CREATOR, out.createURI(u.toString()));	}
+		for (URL u : config.getPublishers())	{ 
 			URI publisherURI = out.createURI(u.toString());
 			out.addTriple(datasetURI, DCTERMS.PUBLISHER, publisherURI); 
 			out.addTriple(publisherURI, RDF.TYPE, foaf_agent);
 			//TODO: more publisher data?
 		}
-		for (URL u : config.licenses) { out.addTriple(datasetURI, DCTERMS.LICENSE, out.createURI(u.toString())); }
-		for (URL u : config.exampleResources) { out.addTriple(datasetURI, exResURI, out.createURI(u.toString())); }
-		for (URL u : config.sources) { out.addTriple(datasetURI, DCTERMS.SOURCE, out.createURI(u.toString())); }
-		for (String u : config.keywords) { out.addTriple(datasetURI, dcat_keyword, out.createLiteral(u.toString())); }
-		for (URL u : config.languages) { out.addTriple(datasetURI, DCTERMS.LANGUAGE, out.createURI(u.toString())); }
-		for (URL u : config.themes) { 
+		for (URL u : config.getLicenses()) { out.addTriple(datasetURI, DCTERMS.LICENSE, out.createURI(u.toString())); }
+		for (URL u : config.getExampleResources()) { out.addTriple(datasetURI, exResURI, out.createURI(u.toString())); }
+		for (URL u : config.getSources()) { out.addTriple(datasetURI, DCTERMS.SOURCE, out.createURI(u.toString())); }
+		for (String u : config.getKeywords()) { out.addTriple(datasetURI, dcat_keyword, out.createLiteral(u.toString())); }
+		for (URL u : config.getLanguages()) { out.addTriple(datasetURI, DCTERMS.LANGUAGE, out.createURI(u.toString())); }
+		for (URL u : config.getThemes()) { 
 			URI themeURI = out.createURI(u.toString());
 			out.addTriple(datasetURI, dcat_theme, themeURI);
 			out.addTriple(themeURI, RDF.TYPE, SKOS.CONCEPT);
 			out.addTriple(themeURI, SKOS.IN_SCHEME, out.createURI("http://linked.opendata.cz/resource/catalog/Themes"));
 		}
 
-		if (config.useNow) {
+		if (config.isUseNow()) {
 			out.addTriple(datasetURI, DCTERMS.MODIFIED, out.createLiteral(df.format(new Date()), xsd_date));
 		}
-		else out.addTriple(datasetURI, DCTERMS.MODIFIED, out.createLiteral(df.format(config.modified), xsd_date));
+		else out.addTriple(datasetURI, DCTERMS.MODIFIED, out.createLiteral(df.format(config.getModified()), xsd_date));
 
 		out.addTriple(datasetURI, dcat_distribution, distroURI);
 
 		//DCAT Distribution
 		
 		out.addTriple(distroURI, RDF.TYPE, dcat_distroClass);
-		if (config.desc_cs != null)	out.addTriple(distroURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_cs, "cs"));
-		if (config.desc_en != null) out.addTriple(distroURI, DCTERMS.DESCRIPTION, out.createLiteral(config.desc_en, "en"));
-		if (config.title_cs != null) out.addTriple(distroURI, DCTERMS.TITLE, out.createLiteral(config.title_cs, "cs"));
-		if (config.title_en != null) out.addTriple(distroURI, DCTERMS.TITLE, out.createLiteral(config.title_en, "en"));
-		if (config.dataDump != null) out.addTriple(distroURI, dcat_downloadURL, out.createURI(config.dataDump.toString()));
-		if (config.dataDump != null) out.addTriple(distroURI, dcat_mediaType, out.createLiteral(config.mime));
-		for (URL u : config.licenses) { out.addTriple(distroURI, DCTERMS.LICENSE, out.createURI(u.toString())); }
+		if (config.getDesc_cs() != null)	out.addTriple(distroURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_cs(), "cs"));
+		if (config.getDesc_en() != null) out.addTriple(distroURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_en(), "en"));
+		if (config.getTitle_cs() != null) out.addTriple(distroURI, DCTERMS.TITLE, out.createLiteral(config.getTitle_cs(), "cs"));
+		if (config.getTitle_en() != null) out.addTriple(distroURI, DCTERMS.TITLE, out.createLiteral(config.getTitle_en(), "en"));
+		if (config.getDataDump() != null) out.addTriple(distroURI, dcat_downloadURL, out.createURI(config.getDataDump().toString()));
+		if (config.getDataDump() != null) out.addTriple(distroURI, dcat_mediaType, out.createLiteral(config.getMime()));
+		for (URL u : config.getLicenses()) { out.addTriple(distroURI, DCTERMS.LICENSE, out.createURI(u.toString())); }
 		
-		if (config.useNow) {
+		if (config.isUseNow()) {
 			out.addTriple(distroURI, DCTERMS.MODIFIED, out.createLiteral(df.format(new Date()), xsd_date));
 		}
-		else out.addTriple(distroURI, DCTERMS.MODIFIED, out.createLiteral(df.format(config.modified), xsd_date));
+		else out.addTriple(distroURI, DCTERMS.MODIFIED, out.createLiteral(df.format(config.getModified()), xsd_date));
 		
 		//Now compute statistics on input data
 		
