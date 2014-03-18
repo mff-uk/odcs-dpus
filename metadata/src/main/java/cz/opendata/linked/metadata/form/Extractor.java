@@ -42,7 +42,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@InputDataUnit(name = "Statistics", optional = true)
 	public RDFDataUnit stats;	
 
-	@InputDataUnit(name = "Input data", optional = true)
+	@InputDataUnit(name = "Input_data", optional = true)
 	public RDFDataUnit in;	
 
 	@OutputDataUnit(name = "Metadata")
@@ -95,7 +95,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		out.addTriple(datasetURI, RDF.TYPE, void_datasetClass);
 		out.addTriple(datasetURI, RDF.TYPE, dcat_datasetClass);
-		if (config.isIsQb()) out.addTriple(datasetURI, RDF.TYPE, out.createLiteral(config.getDesc_cs(), "cs"));
+		if (config.isIsQb()) out.addTriple(datasetURI, RDF.TYPE, qb_DataSet);
 		if (config.getDesc_cs() != null)	out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_cs(), "cs"));
 		if (config.getDesc_en() != null) out.addTriple(datasetURI, DCTERMS.DESCRIPTION, out.createLiteral(config.getDesc_en(), "en"));
 		if (config.getTitle_cs() != null) out.addTriple(datasetURI, DCTERMS.TITLE, out.createLiteral(config.getTitle_cs(), "cs"));
