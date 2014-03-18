@@ -87,7 +87,7 @@ public abstract class ScrapingTemplate {
                 }
                 else {
                 	logger.warn("Skipped: " + p.url.toString());
-                	pstats.addTriple(pstats.createURI(p.url.toString()), pstats.createURI(BPOprefix + "found"), pstats.createLiteral("false", xsdPrefix + "boolean"));
+                	pstats.addTriple(pstats.createURI(p.url.toString()), pstats.createURI(BPOprefix + "found"), pstats.createLiteral("false", pstats.createURI(xsdPrefix + "boolean")));
                 }
             } catch (IOException ex) {
             	logger.warn("Exception: " + ex.getLocalizedMessage());

@@ -22,6 +22,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private CheckBox chkAccessProfiles;
     private CheckBox chkRewriteCache;
     private CheckBox chkCurrentYearOnly;
+    private CheckBox chkValidate;
     private TextField interval;
     private TextField timeout;
     private TextField maxAttempts;
@@ -66,12 +67,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkCurrentYearOnly);
 
+        chkValidate = new CheckBox("Validate against XSD:");
+        chkValidate.setDescription("When selected, XSD validation will be performed:");
+        chkValidate.setWidth("100%");
+        
+        mainLayout.addComponent(chkValidate);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
         
         timeout = new TextField();
         timeout.setCaption("Timeout for download:");
+        mainLayout.addComponent(timeout);
         
         maxAttempts = new TextField();
         maxAttempts.setCaption("Max attemts at one download:");
@@ -86,6 +94,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		chkRewriteCache.setValue(conf.isRewriteCache());
 		chkAccessProfiles.setValue(conf.isAccessProfiles());
 		chkCurrentYearOnly.setValue(conf.isCurrentYearOnly());
+		chkValidate.setValue(conf.isValidateXSD());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		timeout.setValue(Integer.toString(conf.getTimeout()));
 		maxAttempts.setValue(Integer.toString(conf.getMaxAttempts()));
@@ -100,6 +109,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.setInterval(Integer.parseInt(interval.getValue()));
 		conf.setTimeout(Integer.parseInt(timeout.getValue()));
 		conf.setMaxAttempts(Integer.parseInt(maxAttempts.getValue()));
+		conf.setValidateXSD(chkValidate.getValue());
 		return conf;
 	}	
 }

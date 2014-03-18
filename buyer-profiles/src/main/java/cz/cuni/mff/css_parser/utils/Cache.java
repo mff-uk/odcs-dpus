@@ -50,35 +50,42 @@ public class Cache {
     private static String xsdPrefix = "http://www.w3.org/2001/XMLSchema#";
     
     public static Validator validator;
+    
+    public static boolean validate = false; 
 
     public static int validXML = 0;
     public static int invalidXML = 0;
+    public static long timeValidating = 0;
     
     private static boolean validate(String file, String url)
 	{
+	    java.util.Date date = new java.util.Date();
+	    long start = date.getTime();
+		logger.debug("XSD Validation starts: " + url);
 		try {
-			// parse an XML document into a DOM tree
-			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			ByteArrayInputStream is = new ByteArrayInputStream(file.getBytes("UTF-8"));
-			org.w3c.dom.Document document = parser.parse(is);
+		    
+			Source xmlSource = new StreamSource( new StringReader(file));
+			validator.validate(xmlSource);
 
-			// validate the DOM tree
-			try {
-			    
-				Source xmlSource = new StreamSource( new StringReader(file));
-				validator.validate(xmlSource);
-			    return true;
-			} catch (SAXException e) {
-			    // instance document is invalid!
-				logger.debug("Invalid XML: " + e.getLocalizedMessage());
-				stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "invalidMessage"), stats.createLiteral(e.getLocalizedMessage()));
-				return false;
-			}
-		}
-		catch (Exception e)
-		{
-			logger.debug("Invalid XML: " + e.getLocalizedMessage());
-			//e.printStackTrace();
+    	    java.util.Date date2 = new java.util.Date();
+    	    long end2 = date2.getTime();
+    	    timeValidating += (end2-start);
+			logger.debug("Valid XML (" + (end2-start) + " ms): " + url);
+			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validationTime"), stats.createLiteral(Long.toString(end2-start), stats.createURI(xsdPrefix + "integer")));
+
+			return true;
+		} catch (SAXException e) {
+		    // instance document is invalid!
+    	    java.util.Date date3 = new java.util.Date();
+    	    long end3 = date3.getTime();
+    	    timeValidating += (end3-start);
+    	    
+			logger.debug("Invalid XML (" + (end3-start) + " ms): " + url);
+			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "invalidMessage"), stats.createLiteral(e.getLocalizedMessage()));
+			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validationTime"), stats.createLiteral(Long.toString(end3-start), stats.createURI(xsdPrefix + "integer")));
+			return false;
+		} catch (IOException e) {
+			logger.error(e.getLocalizedMessage());
 			return false;
 		}
 	}
@@ -216,8 +223,6 @@ public class Cache {
 					}
 					else out = getURLContent(url.toString());
 					
-					
-					
 					java.util.Date date2= new java.util.Date();
 				    lastDownload = date2.getTime();
 		            logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.toString());
@@ -232,7 +237,8 @@ public class Cache {
 		            {
 		                BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 		    		    fw.close();
-		    		    return null;
+		    		    out = "";
+		    		    break;
 		            }
 			    
 			    //END comment
@@ -255,13 +261,20 @@ public class Cache {
 		            	{
 		                	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 		        		    fw.close();
-		                	return null;
+		                	out = "";
+		                	break;
 		            	}
 		            }
 		            else if (ex instanceof FileNotFoundException)
 		            {
-	                	 logger.info("File not found: " + ex.getMessage() + " " + url);
-	                	 return null;
+                 	    logger.info("File not found: " + ex.getMessage() + " " + url);
+		                if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+		            	{
+		                	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+		        		    fw.close();
+		            	}
+	                	out = "";
+	                	break;
 		            }
 		            Thread.sleep(interval);
 		        	}
@@ -269,8 +282,12 @@ public class Cache {
 	    }
 	    if (attempt == maxAttempts) {
 			logger.warn("Warning. Max attempts reached. Skipping: " + url.getHost() + url.getPath());
-			/*throw new SocketTimeoutException();*/
-			return null;
+            if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
+        	{
+            	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+    		    fw.close();
+        	}
+			out = "";
 	    }
 	    try 
 	    {
@@ -293,25 +310,35 @@ public class Cache {
 		out = IOUtils.toString(new FileInputStream(hFile), "UTF-8");
 	}
 	
-	Document outdoc = null;
-	if (datatype.equals("xml"))
-	{
-		if (validate(out, url.toString()))
-		{
-			logger.info("Valid XML: " + url.toString());
-			validXML++;
-			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("true", xsdPrefix + "boolean"));
-		}
-		else {
-			logger.warn("Invalid XML: " + url.toString());
-			invalidXML++;
-			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("false", xsdPrefix + "boolean"));
-		}
-		outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());
-		
+	if (out.length() == 0) {
+		logger.debug("Not working: " + url.toString());
+		stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "notWorking"), stats.createLiteral("true", stats.createURI(xsdPrefix + "boolean")));
+		return null;
 	}
-	else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host);	
-	return outdoc;
+	else {
+		Document outdoc = null;
+		if (datatype.equals("xml"))
+		{
+			if (validate) {
+				if (validate(out, url.toString()))
+				{
+					//logger.info("Valid XML: " + url.toString());
+					validXML++;
+					stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("true", stats.createURI(xsdPrefix + "boolean")));
+				}
+				else {
+					//logger.warn("Invalid XML: " + url.toString());
+					invalidXML++;
+					stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("false", stats.createURI(xsdPrefix + "boolean")));
+				}
+			}
+			outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());
+			
+		}
+		else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host);	
+		
+		return outdoc;
     }
+  }
 
 }

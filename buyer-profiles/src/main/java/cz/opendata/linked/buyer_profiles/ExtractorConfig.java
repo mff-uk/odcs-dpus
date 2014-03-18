@@ -17,6 +17,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	private int maxAttempts = 2;
 	
+	private boolean validateXSD = false;
+
 	private int timeout = 10000;
 	
 	private int interval = 0;
@@ -69,6 +71,14 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setMaxAttempts(int maxAttempts) {
 		this.maxAttempts = maxAttempts;
+	}
+
+	public boolean isValidateXSD() {
+		return validateXSD;
+	}
+
+	public void setValidateXSD(boolean validateXSD) {
+		this.validateXSD = validateXSD;
 	}
 	
 }

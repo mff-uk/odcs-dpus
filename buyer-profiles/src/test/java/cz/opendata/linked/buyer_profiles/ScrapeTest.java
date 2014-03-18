@@ -15,8 +15,10 @@ public class ScrapeTest {
 		ExtractorConfig config = new ExtractorConfig();
 		
 		config.setRewriteCache(false);
-		config.setInterval(2000);
-		config.setTimeout(10000);
+		config.setInterval(0);
+		config.setTimeout(2000);
+		config.setMaxAttempts(1);
+		config.setValidateXSD(true);
 		config.setCurrentYearOnly(true);
 		config.setAccessProfiles(true);
 		
@@ -33,7 +35,7 @@ public class ScrapeTest {
 		
 		RDFDataUnit contracts = env.createRdfOutput("contracts", false);
 		RDFDataUnit profiles = env.createRdfOutput("profiles", false);
-		RDFDataUnit profile_stats = env.createRdfOutput("profile statistics", false);
+		RDFDataUnit profile_stats = env.createRdfOutput("profile_statistics", false);
 		
 		try {
 			// run the execution

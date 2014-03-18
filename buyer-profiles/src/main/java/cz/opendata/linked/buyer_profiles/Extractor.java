@@ -42,7 +42,7 @@ public class Extractor
 	@OutputDataUnit(name = "profiles")
 	public RDFDataUnit profilesDataUnit;
 
-	@OutputDataUnit(name = "profile statistics")
+	@OutputDataUnit(name = "profile_statistics")
 	public RDFDataUnit profileStatistics;
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
@@ -67,6 +67,7 @@ public class Extractor
     	Cache.setTimeout(config.getTimeout());
     	Cache.setInterval(config.getInterval());
     	Cache.stats = profileStatistics;
+    	Cache.validate = config.isValidateXSD();
     	
     	/*set up xsd validation*/
 		// create a SchemaFactory capable of understanding WXS schemas
@@ -178,8 +179,11 @@ public class Extractor
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs on profile details: " + s.missingIco);
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs in profile XML: " + s.missingIcoInProfile);
 	    ctx.sendMessage(MessageType.INFO, "Invalid XML: " + s.invalidXML + " (" + Math.round((double)s.invalidXML*100/(double)s.numprofiles) + "%)");
-	    ctx.sendMessage(MessageType.INFO, "Valid XSD/XML: " + Cache.validXML);
-	    ctx.sendMessage(MessageType.INFO, "Invalid XSD/XML: " + Cache.invalidXML);
+	    if (config.isValidateXSD()) {
+		    ctx.sendMessage(MessageType.INFO, "Valid XSD/XML: " + Cache.validXML);
+		    ctx.sendMessage(MessageType.INFO, "Invalid XSD/XML: " + Cache.invalidXML);
+		    ctx.sendMessage(MessageType.INFO, "Time spent validating XSD/XML: " + Cache.timeValidating);
+	    }
 	    ctx.sendMessage(MessageType.INFO, "Profiles: " + s.numprofiles);
 	    ctx.sendMessage(MessageType.INFO, "Zakázky: " + s.numzakazky);
 	    ctx.sendMessage(MessageType.INFO, "Uchazeči: " + s.numuchazeci);
