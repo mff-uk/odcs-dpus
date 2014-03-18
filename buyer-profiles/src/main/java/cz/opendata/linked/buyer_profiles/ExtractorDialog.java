@@ -24,6 +24,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private CheckBox chkCurrentYearOnly;
     private TextField interval;
     private TextField timeout;
+    private TextField maxAttempts;
     
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -72,7 +73,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         timeout = new TextField();
         timeout.setCaption("Timeout for download:");
         
-        mainLayout.addComponent(timeout);
+        maxAttempts = new TextField();
+        maxAttempts.setCaption("Max attemts at one download:");
+
+        mainLayout.addComponent(maxAttempts);
         
         return mainLayout;
     }	
@@ -84,6 +88,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		chkCurrentYearOnly.setValue(conf.isCurrentYearOnly());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		timeout.setValue(Integer.toString(conf.getTimeout()));
+		maxAttempts.setValue(Integer.toString(conf.getMaxAttempts()));
 	}
 
 	@Override
@@ -94,6 +99,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.setCurrentYearOnly(chkCurrentYearOnly.getValue());
 		conf.setInterval(Integer.parseInt(interval.getValue()));
 		conf.setTimeout(Integer.parseInt(timeout.getValue()));
+		conf.setMaxAttempts(Integer.parseInt(maxAttempts.getValue()));
 		return conf;
 	}	
 }

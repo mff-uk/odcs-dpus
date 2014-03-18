@@ -15,6 +15,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	private boolean accessProfiles = true;
 	
+	private int maxAttempts = 2;
+	
 	private int timeout = 10000;
 	
 	private int interval = 0;
@@ -59,6 +61,14 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setCurrentYearOnly(boolean currentYearOnly) {
 		this.currentYearOnly = currentYearOnly;
+	}
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
 	}
 	
 }

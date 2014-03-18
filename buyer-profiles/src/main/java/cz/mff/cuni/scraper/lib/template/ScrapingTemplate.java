@@ -52,6 +52,8 @@ public abstract class ScrapingTemplate {
 
     public RDFDataUnit pstats;
     
+    public int maxAttempts;
+    
     protected static String guidBEprefix = "http://linked.opendata.cz/resource/domain/buyer-profiles/business-entity/cz/";
     protected static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
     protected static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
@@ -76,7 +78,7 @@ public abstract class ScrapingTemplate {
                 if (parsed.contains(p)) {
                     continue;
                 }
-                Document doc = Cache.getDocument(p.url, 10, p.datatype);
+                Document doc = Cache.getDocument(p.url, maxAttempts, p.datatype);
                 if (doc != null)
                 {
                 	toParse.addAll(this.getLinks(doc, p.type));

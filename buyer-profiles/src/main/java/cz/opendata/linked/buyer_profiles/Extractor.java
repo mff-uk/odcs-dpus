@@ -97,6 +97,7 @@ public class Extractor
         Scraper_parser s = new Scraper_parser();
         s.AccessProfiles = config.isAccessProfiles();
         s.CurrentYearOnly = config.isCurrentYearOnly();
+        s.maxAttempts = config.getMaxAttempts();
         s.logger = LOG;
         s.ctx = ctx;
         
