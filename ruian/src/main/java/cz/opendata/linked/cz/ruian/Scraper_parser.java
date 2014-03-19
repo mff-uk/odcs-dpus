@@ -30,13 +30,25 @@ public class Scraper_parser extends ScrapingTemplate{
         if (docType.equals("init") || docType.equals("initStat"))
         {
         	String[] lines = doc.split("\\r\\n");
-        	numDetails += lines.length;
-        	logger.info("I see " + numDetails + " files");
+        	String maxdate = "";
+        	for (String line : lines)
+        	{
+        		String current = line.substring(line.lastIndexOf('/') + 1, line.lastIndexOf('/') + 9);
+        		if (current.compareTo(maxdate) > 0) maxdate = current;
+        	}
+        	numDetails = 0;
+        	current = 0;
+        	for (String line : lines) { if (line.contains(maxdate)) numDetails++;	}
+        	
+        	logger.info("I see " + numDetails + " current files from " + maxdate + ", " + lines.length + " total.");
+
         	for (String line : lines)
         	{
         		try {
-					if (docType.equals("init")) out.add(new ParseEntry(new URL(line),"obec","gz"));
-					else if (docType.equals("initStat")) out.add(new ParseEntry(new URL(line),"zsj","gz"));
+					if (line.contains(maxdate)) {
+	        			if (docType.equals("init")) out.add(new ParseEntry(new URL(line),"obec","gz"));
+						else if (docType.equals("initStat")) out.add(new ParseEntry(new URL(line),"zsj","gz"));
+					}
 				} catch (MalformedURLException e) {
 					logger.warn(e.getLocalizedMessage());
 				}
