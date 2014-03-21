@@ -37,7 +37,7 @@ public class Parser extends ScrapingTemplate{
     static final String irzbe = "http://linked.opendata.cz/resource/domain/cenia.cz/organizace/";
     static final String gr = "http://purl.org/goodrelations/v1#";
     static final String adms = "http://www.w3.org/ns/adms#";
-    static final String xsd = "http://www.w3.org/ns/adms#";
+    static final String xsd = "http://www.w3.org/2001/XMLSchema#";
 
     
     /*private String turtleEscape(String input)
@@ -87,6 +87,23 @@ public class Parser extends ScrapingTemplate{
     private String uriSlug(String input)
     {
     	return input.toLowerCase().replace(" ", "-").replace(".", "-").replace("–", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
+    }
+    
+    private String geoClean(String input) {
+    	if (input.contains("°")) {
+    		String deg = input.substring(0, input.indexOf('°'));
+    		String min = input.substring(input.indexOf('°'), input.indexOf('\''));
+    		String sec = input.substring(input.indexOf('\'')).replace("\'", "");
+    		
+    		Double ddeg = Double.parseDouble(deg);
+    		Double dmin = Double.parseDouble(min);
+    		Double dsec = Double.parseDouble(sec);
+    		
+    		Double dnew = ddeg + dmin/60 + dsec/3600;
+    		
+    		return Double.toString(dnew);
+    	}
+    	else return input;
     }
 
     @Override
@@ -142,7 +159,7 @@ public class Parser extends ScrapingTemplate{
             count++;
             logger.debug("Parsing list " + count + "/" + total);
 
-            String rok = doc.select("table:eq(2) tbody tr td:eq(1)").text();
+            String rok = ((TextNode)(doc.childNode(1).childNode(2).childNode(5).childNode(1).childNode(1).childNode(3).childNode(0))).text();// .select("body p+p+table tbody tr:eq(0) td:eq(1)").text();
             Elements rows = doc.select("table.list tr");
             
             URI currentBranch = null;
@@ -155,17 +172,17 @@ public class Parser extends ScrapingTemplate{
             		String href = row.select("td a").attr("href"); 
             		String bid = href.substring(href.lastIndexOf('=') + 1);
             		
-            		currentBranch = outputDataUnit.createURI(irzbrid + '/' + rok + '/' + bid);
+            		currentBranch = outputDataUnit.createURI(irzbrid + rok + '/' + bid);
             		
             		break;
             	case 3:
             		Elements tds = row.getElementsByTag("td");
             		String currentChemical = tds.get(2).ownText();
-            		String ovzdusi = tds.get(3).ownText();
-            		String voda = tds.get(4).ownText();
-            		String puda = tds.get(5).ownText();
-            		String prenosVoda = tds.get(6).ownText();
-            		String prenosOdpad = tds.get(7).ownText();
+            		String ovzdusi = tds.get(3).ownText().replace(',', '.');
+            		String voda = tds.get(4).ownText().replace(',', '.');
+            		String puda = tds.get(5).ownText().replace(',', '.');
+            		String prenosVoda = tds.get(6).ownText().replace(',', '.');
+            		String prenosOdpad = tds.get(7).ownText().replace(',', '.');
             		
             		URI currentCheck = outputDataUnit.createURI(currentBranch.toString() + "/checks/" + rok);
 
@@ -275,9 +292,25 @@ public class Parser extends ScrapingTemplate{
         		    case 2:
         		    	eaddress = ((TextNode) child).text();
         		    	int carka = eaddress.indexOf(',');
-        		    	eaddress_street = eaddress.substring(0, carka);
-        		    	eaddress_postal = eaddress.substring(carka + 2, carka + 7);
-        		    	eaddress_city = eaddress.substring(carka + 8);
+        		    	if (eaddress.contains("null")) {
+	        		    	eaddress_street = "";
+	        		    	eaddress_postal = "";
+	        		    	eaddress_city = "";
+        		    	}
+        		    	else if (eaddress.contains(",")) {
+	        		    	eaddress_street = eaddress.substring(0, carka - 1);
+	        		    	eaddress_postal = eaddress.substring(carka + 2, carka + 7);
+	        		    	if (eaddress_postal.contains(" ")) {
+	        		    		logger.debug("Dropping bad postal " + eaddress_postal + " in " + url.toString());
+	        		    		eaddress_postal = "";
+	        		    	}
+	        		    	eaddress_city = eaddress.substring(carka + 8);
+        		    	}
+        		    	else {
+        		    		eaddress_street = "";
+        		    		eaddress_postal = eaddress.substring(0, 5);
+	        		    	eaddress_city = eaddress.substring(6);
+        		    	}
         		    	break;
         		    case 3:
         		    	eokres = ((TextNode) child).text();
@@ -314,10 +347,19 @@ public class Parser extends ScrapingTemplate{
 	        		    	baddress_postal = "";
 	        		    	baddress_city = "";
         		    	}
-        		    	else {
-	        		    	baddress_street = baddress.substring(0, carka);
+        		    	else if (baddress.contains(",")) {
+	        		    	baddress_street = baddress.substring(0, carka - 1);
 	        		    	baddress_postal = baddress.substring(carka + 2, carka + 7);
+	        		    	if (baddress_postal.contains(" ")) {
+	        		    		logger.debug("Dropping bad postal " + baddress_postal + " in " + url.toString());
+	        		    		baddress_postal = "";
+	        		    	}
 	        		    	baddress_city = baddress.substring(carka + 8);
+        		    	}
+        		    	else {
+        		    		baddress_street = "";
+        		    		baddress_postal = baddress.substring(0, 5);
+	        		    	baddress_city = baddress.substring(6);
         		    	}
         		    	break;
         		    case 3:
@@ -332,14 +374,23 @@ public class Parser extends ScrapingTemplate{
         		    	bwgs = ((TextNode) child).text();
         		    	bwgs = bwgs.substring(bwgs.indexOf(':') + 2);
         		    	String[] bwgs_coords = bwgs.split(" "); 
-        		    	bwgs_lng = bwgs_coords[0];
-        		    	bwgs_lat = bwgs_coords[1];
+        		    	bwgs_lng = geoClean(bwgs_coords[0].replace(";", ""));
+        		    	bwgs_lat = geoClean(bwgs_coords[1].replace(";", ""));
+        		    	
+        		    	if (bwgs_lng.startsWith("1")) {
+        		    		//SWITCH!
+        		    		logger.debug("Switching longitude and latitude: " + url.toString());
+        		    		String temp = bwgs_lat;
+        		    		bwgs_lat = bwgs_lng;
+        		    		bwgs_lng = temp;
+        		    	}
+        		    	
         		    	break;
         		    }
         		}
         	}
         	
-    		URI branchIDURI = outputDataUnit.createURI(irzbrid + '/' + rok2 + '/' + bid);
+    		URI branchIDURI = outputDataUnit.createURI(irzbrid + rok2 + '/' + bid);
     		URI entityURI = outputDataUnit.createURI(ldbe + eic);
     		URI entityIDURI = outputDataUnit.createURI(entityURI.toString() + "/identifier/cenia.cz");
     		URI entityAddressURI = outputDataUnit.createURI(irzbe + eic + "/adresa");
@@ -353,30 +404,30 @@ public class Parser extends ScrapingTemplate{
     		outputDataUnit.addTriple(entityURI, gr_legalName, outputDataUnit.createLiteral(ename));
     		outputDataUnit.addTriple(entityURI, adms_identifier, entityIDURI);
     		outputDataUnit.addTriple(entityURI, s_hasPOS, branchURI);
-    		outputDataUnit.addTriple(entityURI, s_address, entityAddressURI);
 
     		outputDataUnit.addTriple(entityIDURI, RDF.TYPE, adms_Identifier);
     		outputDataUnit.addTriple(entityIDURI, SKOS.NOTATION, outputDataUnit.createLiteral(eic));
     		outputDataUnit.addTriple(entityIDURI, SKOS.PREF_LABEL, outputDataUnit.createLiteral(eic));
     		outputDataUnit.addTriple(entityIDURI, SKOS.IN_SCHEME, ICScheme);
 
+    		outputDataUnit.addTriple(entityURI, s_address, entityAddressURI);
     		outputDataUnit.addTriple(entityAddressURI, RDF.TYPE, s_PostalAddress);
-    		outputDataUnit.addTriple(entityAddressURI, s_streetAddress, outputDataUnit.createLiteral(eaddress_street));
-    		outputDataUnit.addTriple(entityAddressURI, s_postalCode, outputDataUnit.createLiteral(eaddress_postal));
+    		if (!eaddress_street.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_streetAddress, outputDataUnit.createLiteral(eaddress_street));
+    		if (!eaddress_postal.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_postalCode, outputDataUnit.createLiteral(eaddress_postal));
     		outputDataUnit.addTriple(entityAddressURI, s_addressRegion, outputDataUnit.createLiteral(eokres));
-    		outputDataUnit.addTriple(entityAddressURI, s_addressLocality, outputDataUnit.createLiteral(eaddress_city));
+    		if (!eaddress_city.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_addressLocality, outputDataUnit.createLiteral(eaddress_city));
 
     		outputDataUnit.addTriple(branchURI, RDF.TYPE, s_Place);
     		outputDataUnit.addTriple(branchURI, s_name, outputDataUnit.createLiteral(bname));
-    		outputDataUnit.addTriple(branchURI, s_address, branchAddressURI);
     		outputDataUnit.addTriple(branchURI, s_geo, branchGeoURI);
     		outputDataUnit.addTriple(branchURI, owl_sameAs, branchIDURI);
     		
+    		outputDataUnit.addTriple(branchURI, s_address, branchAddressURI);
     		outputDataUnit.addTriple(branchAddressURI, RDF.TYPE, s_PostalAddress);
-    		outputDataUnit.addTriple(branchAddressURI, s_streetAddress, outputDataUnit.createLiteral(baddress_street));
-    		outputDataUnit.addTriple(branchAddressURI, s_postalCode, outputDataUnit.createLiteral(baddress_postal));
+    		if (!baddress_street.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_streetAddress, outputDataUnit.createLiteral(baddress_street));
+    		if (!baddress_postal.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_postalCode, outputDataUnit.createLiteral(baddress_postal));
     		outputDataUnit.addTriple(branchAddressURI, s_addressRegion, outputDataUnit.createLiteral(bokres));
-    		outputDataUnit.addTriple(branchAddressURI, s_addressLocality, outputDataUnit.createLiteral(baddress_city));
+    		if (!baddress_city.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_addressLocality, outputDataUnit.createLiteral(baddress_city));
     		
     		outputDataUnit.addTriple(branchGeoURI, RDF.TYPE, s_GeoCoordinates);
     		outputDataUnit.addTriple(branchGeoURI, s_latitude, outputDataUnit.createLiteral(bwgs_lat));
