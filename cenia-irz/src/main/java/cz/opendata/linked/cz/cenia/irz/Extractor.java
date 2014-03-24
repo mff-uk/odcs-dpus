@@ -74,12 +74,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				java.util.Date date = new java.util.Date();
 				long start = date.getTime();
 				
-				for (int i = 2004; i <= 2012; i++)
+				for (int i = config.getStartYear(); i <= config.getEndYear(); i++)
 				{
 					if (ctx.canceled()) break;
 					s.parse(new URL("http://portal.cenia.cz/irz/unikyPrenosy.jsp?rok=" + i + "&unikyPrenosyVyhledatVse=1"), "list");
 				}
 				
+				ctx.sendMessage(MessageType.INFO, "Bad PSCs: " + s.badPostals);
+				ctx.sendMessage(MessageType.INFO, "Switched GPS coordinats: " + s.switchedGPS);
 				java.util.Date date2 = new java.util.Date();
 				long end = date2.getTime();
 				

@@ -17,6 +17,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
     private GridLayout mainLayout;
     private CheckBox chkRewriteCache;
+    private TextField chkStartYear;
+    private TextField chkEndYear;
     private TextField interval;
     private TextField timeout;
     
@@ -48,6 +50,14 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkRewriteCache);
 
+        chkStartYear = new TextField();
+        chkStartYear.setCaption("Start year:");
+        mainLayout.addComponent(chkStartYear);
+        
+        chkEndYear = new TextField();
+        chkEndYear.setCaption("End year:");
+        mainLayout.addComponent(chkEndYear);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
@@ -64,6 +74,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		chkRewriteCache.setValue(conf.isRewriteCache());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		timeout.setValue(Integer.toString(conf.getTimeout()));
+		chkStartYear.setValue(Integer.toString(conf.getStartYear()));
+		chkEndYear.setValue(Integer.toString(conf.getEndYear()));
 	}
 
 	@Override
@@ -77,6 +89,16 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
 		try {
 			conf.setTimeout(Integer.parseInt(timeout.getValue()));
+		} catch (InvalidValueException e) {
+		}
+
+		try {
+			conf.setStartYear(Integer.parseInt(chkStartYear.getValue()));
+		} catch (InvalidValueException e) {
+		}
+
+		try {
+			conf.setEndYear(Integer.parseInt(chkEndYear.getValue()));
 		} catch (InvalidValueException e) {
 		}
 

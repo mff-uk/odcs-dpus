@@ -14,6 +14,10 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	private int timeout = 10000;
 
 	private int interval = 0;
+	
+	private int startYear = 2004;
+	
+	private int endYear = 2012;
 
 	public boolean isRewriteCache() {
 		return rewriteCache;
@@ -37,6 +41,22 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setInterval(int interval) {
 		this.interval = interval;
+	}
+
+	public int getStartYear() {
+		return startYear;
+	}
+
+	public void setStartYear(int startYear) {
+		this.startYear = startYear;
+	}
+
+	public int getEndYear() {
+		return endYear;
+	}
+
+	public void setEndYear(int endYear) {
+		this.endYear = endYear;
 	}
 
 }
