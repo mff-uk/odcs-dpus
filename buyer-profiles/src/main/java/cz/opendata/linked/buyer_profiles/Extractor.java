@@ -7,8 +7,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
@@ -34,11 +42,10 @@ public class Extractor
 	@OutputDataUnit(name = "profiles")
 	public RDFDataUnit profilesDataUnit;
 
-	/**
-	 * DPU's configuration.
-	 */
-	
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	@OutputDataUnit(name = "profile_statistics")
+	public RDFDataUnit profileStatistics;
+
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
         super(ExtractorConfig.class);
@@ -49,25 +56,50 @@ public class Extractor
 		return new ExtractorDialog();
 	}
 	
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
         // vytvorime si parser
         
-    	Cache.logger = logger;
-    	Cache.rewriteCache = config.rewriteCache;
+    	Cache.logger = LOG;
+    	Cache.rewriteCache = config.isRewriteCache();
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-    	Cache.setTimeout(config.timeout);
-    	Cache.setInterval(config.interval);
+    	Cache.setTimeout(config.getTimeout());
+    	Cache.setInterval(config.getInterval());
+    	Cache.stats = profileStatistics;
+    	Cache.validate = config.isValidateXSD();
+    	
+    	/*set up xsd validation*/
+		// create a SchemaFactory capable of understanding WXS schemas
+		SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+		// load a WXS schema, represented by a Schema instance
+		// http://www.isvz.cz/ProfilyZadavatelu/Profil_Zadavatele_SchemaVZ.xsd
+		Source schemaFile = new StreamSource("http://www.isvz.cz/ProfilyZadavatelu/Profil_Zadavatele_SchemaVZ.xsd");
+		//Source schemaFile = new StreamSource(new File(ctx.getUserDirectory(), "Profil_Zadavatele_SchemaVZ.xsd"));
+		Schema schema;
+		try {
+			schema = factory.newSchema(schemaFile);
+		
+			// create a Validator instance, which can be used to validate an instance document
+			Cache.validator = schema.newValidator();    	
+		} catch (SAXException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		/*end of set up xsd validation*/
+    	
 		try {
 			Cache.setTrustAllCerts();
-		} catch (Exception e1) {
-			logger.error("Unexpected error when setting trust to all certificates: " + e1.getLocalizedMessage());
+		} catch (Exception e) {
+			LOG.error("Unexpected error when setting trust to all certificates. ", e);
 		}
 		
         Scraper_parser s = new Scraper_parser();
-        s.AccessProfiles = config.accessProfiles;
-        s.CurrentYearOnly = config.currentYearOnly;
-        s.logger = logger;
+        s.AccessProfiles = config.isAccessProfiles();
+        s.CurrentYearOnly = config.isCurrentYearOnly();
+        s.maxAttempts = config.getMaxAttempts();
+        s.logger = LOG;
         s.ctx = ctx;
         
         String profilyname = ctx.getWorkingDir() + "/profily.ttl";
@@ -76,8 +108,7 @@ public class Extractor
 			s.ps = new PrintStream(profilyname, "UTF-8");
 			s.zak_ps = new PrintStream(zakazkyname, "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			logger.error("Unexpected error opening filestreams for temp files");
-			e.printStackTrace();
+			LOG.error("Unexpected error opening filestreams for temp files", e);
 		}
 
         String prefixes =
@@ -103,7 +134,7 @@ public class Extractor
 
         s.ps.println(prefixes);
         s.zak_ps.println(prefixes);
-
+        s.pstats = profileStatistics;
         // a spustim na vychozi stranku
         
 	    java.util.Date date = new java.util.Date();
@@ -116,23 +147,22 @@ public class Extractor
 		    	s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowPublicPublisherProfiles"), "first");
 			    s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
 		        
-	        	logger.info("Parsing done. Passing RDF to ODCS");
+	        	LOG.info("Parsing done. Passing RDF to ODCS");
 		        try {
 		        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
 		        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
 		        }
 		        catch (RDFException e)
 		        {
-		        	logger.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
+		        	LOG.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
 		        	throw new DPUException("Cannot put TTL to repository.", e);
 		        }
 	    	}
-	    	if (ctx.canceled()) logger.error("Interrputed");
+	    	if (ctx.canceled()) LOG.error("Interrputed");
 		} catch (MalformedURLException e) {
-			logger.error("Unexpected malformed URL exception");
-			e.printStackTrace();
+			LOG.error("Unexpected malformed URL exception", e);
 		} catch (InterruptedException e) {
-			logger.error("Interrputed");
+			LOG.error("Interrputed");
 		}
         
 	    s.ps.close();
@@ -149,6 +179,11 @@ public class Extractor
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs on profile details: " + s.missingIco);
 	    ctx.sendMessage(MessageType.INFO, "Missing ICOs in profile XML: " + s.missingIcoInProfile);
 	    ctx.sendMessage(MessageType.INFO, "Invalid XML: " + s.invalidXML + " (" + Math.round((double)s.invalidXML*100/(double)s.numprofiles) + "%)");
+	    if (config.isValidateXSD()) {
+		    ctx.sendMessage(MessageType.INFO, "Valid XSD/XML: " + Cache.validXML);
+		    ctx.sendMessage(MessageType.INFO, "Invalid XSD/XML: " + Cache.invalidXML);
+		    ctx.sendMessage(MessageType.INFO, "Time spent validating XSD/XML: " + Cache.timeValidating);
+	    }
 	    ctx.sendMessage(MessageType.INFO, "Profiles: " + s.numprofiles);
 	    ctx.sendMessage(MessageType.INFO, "Zakázky: " + s.numzakazky);
 	    ctx.sendMessage(MessageType.INFO, "Uchazeči: " + s.numuchazeci);
@@ -157,8 +192,5 @@ public class Extractor
 	    ctx.sendMessage(MessageType.INFO, "Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
         
     }
-
-	@Override
-	public void cleanUp() {	}
 	
 }

@@ -9,34 +9,106 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 8719241993054209502L;
 
-	public int limit = 2400;
+	private int limit = 2400;
 	
-	public int interval = 1000;
+	private int interval = 1000;
 	
-    public int hoursToCheck = 24;
+    private int hoursToCheck = 24;
     
-    public boolean structured = false;
+    private boolean structured = false;
 	
-    public boolean stripNumFromLocality = true;
+    private boolean stripNumFromLocality = true;
     
-    public String country = "";
+    private String country = "";
     
-    public boolean useStreet = true;
+    private boolean useStreet = true;
     
-    public boolean useRegion = false;
+    private boolean useRegion = false;
     
-    public boolean useLocality = true;
+    private boolean useLocality = true;
     
-    public boolean usePostalCode = false;
-    
-    @Override
-    public boolean isValid() {
-		return true;
-    }
+    private boolean usePostalCode = false;
 
+	public int getLimit() {
+		return limit;
+	}
+
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public int getHoursToCheck() {
+		return hoursToCheck;
+	}
+
+	public void setHoursToCheck(int hoursToCheck) {
+		this.hoursToCheck = hoursToCheck;
+	}
+
+	public boolean isStructured() {
+		return structured;
+	}
+
+	public void setStructured(boolean structured) {
+		this.structured = structured;
+	}
+
+	public boolean isStripNumFromLocality() {
+		return stripNumFromLocality;
+	}
+
+	public void setStripNumFromLocality(boolean stripNumFromLocality) {
+		this.stripNumFromLocality = stripNumFromLocality;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public boolean isUseStreet() {
+		return useStreet;
+	}
+
+	public void setUseStreet(boolean useStreet) {
+		this.useStreet = useStreet;
+	}
+
+	public boolean isUseRegion() {
+		return useRegion;
+	}
+
+	public void setUseRegion(boolean useRegion) {
+		this.useRegion = useRegion;
+	}
+
+	public boolean isUseLocality() {
+		return useLocality;
+	}
+
+	public void setUseLocality(boolean useLocality) {
+		this.useLocality = useLocality;
+	}
+
+	public boolean isUsePostalCode() {
+		return usePostalCode;
+	}
+
+	public void setUsePostalCode(boolean usePostalCode) {
+		this.usePostalCode = usePostalCode;
+	}
+    
 }

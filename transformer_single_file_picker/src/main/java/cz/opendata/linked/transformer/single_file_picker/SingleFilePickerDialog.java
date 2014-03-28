@@ -1,6 +1,5 @@
 package cz.opendata.linked.transformer.single_file_picker;
 
-import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -18,7 +17,6 @@ public class SingleFilePickerDialog extends BaseConfigDialog<SingleFilePickerCon
 	private VerticalLayout mainLayout;
 	
     private TextField tfPath;
-    private Label lPath = new Label("Path to file");
     
 	public SingleFilePickerDialog() {
 		super(SingleFilePickerConfig.class);
@@ -26,38 +24,36 @@ public class SingleFilePickerDialog extends BaseConfigDialog<SingleFilePickerCon
         setCompositionRoot(this.mainLayout);
 	}
 
-	private VerticalLayout buildMainLayout() {
-
+	private void buildMainLayout() {
 		this.mainLayout = new VerticalLayout();
 		this.mainLayout.setImmediate(false);
 		this.mainLayout.setWidth("100%");
-		this.mainLayout.setHeight("100%");
+		this.mainLayout.setHeight("-1px");
 		this.mainLayout.setMargin(false);
+		this.mainLayout.setSpacing(true);
 
         this.setWidth("100%");
         this.setHeight("100%");
         
-        this.mainLayout.addComponent(this.lPath);
         this.tfPath = new TextField();
-        this.tfPath.setWidth("100%");
+		this.tfPath.setCaption("Path to file");
+        this.tfPath.setSizeFull();
+		
         this.mainLayout.addComponent(this.tfPath);
-        
-        return this.mainLayout;
-        
 	}
 	
 	@Override
 	public void setConfiguration(SingleFilePickerConfig conf) throws ConfigException {
-		
-		this.tfPath.setValue(conf.getPath());
-		
+		if (conf.getPath() == null) {
+			this.tfPath.setValue("");
+		} else {
+			this.tfPath.setValue(conf.getPath());		
+		}
 	}
 
 	@Override
-	public SingleFilePickerConfig getConfiguration() throws ConfigException {
-		
-		return new SingleFilePickerConfig(this.tfPath.getValue());
-		
+	public SingleFilePickerConfig getConfiguration() throws ConfigException {		
+		return new SingleFilePickerConfig(this.tfPath.getValue());		
 	}
 
 }

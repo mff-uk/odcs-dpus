@@ -1,20 +1,10 @@
 package cz.opendata.linked.mzcr.prices;
 
-import java.util.Calendar;
-
-import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Slider;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
@@ -30,17 +20,20 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);        
-    }  
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
+	}  
 	
     private GridLayout buildMainLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");
@@ -69,19 +62,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.rewriteCache);
-		interval.setValue(Integer.toString(conf.interval));
-		timeout.setValue(Integer.toString(conf.timeout));
+		chkRewriteCache.setValue(conf.isRewriteCache());
+		interval.setValue(Integer.toString(conf.getInterval()));
+		timeout.setValue(Integer.toString(conf.getTimeout()));
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.rewriteCache = chkRewriteCache.getValue();
+		conf.setRewriteCache((boolean) chkRewriteCache.getValue());
 		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.interval = Integer.parseInt(interval.getValue());
+		conf.setInterval(Integer.parseInt(interval.getValue()));
 		try { Integer.parseInt(timeout.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.timeout = Integer.parseInt(timeout.getValue());
+		conf.setTimeout(Integer.parseInt(timeout.getValue()));
 		return conf;
 	}
 	

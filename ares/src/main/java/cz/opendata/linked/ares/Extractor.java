@@ -10,15 +10,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.jsoup.nodes.Document;
-import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +38,8 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
+	
 	@InputDataUnit(name = "ICs", optional = true )
 	public RDFDataUnit duICs;
 	
@@ -53,8 +48,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	@OutputDataUnit(name = "OR")
 	public RDFDataUnit outOR;
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -85,10 +78,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
-				if (diff < (config.hoursToCheck * 60 * 60)) count++;
+				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
 			}
 		}
-		ctx.sendMessage(MessageType.INFO, "Total of " + count + " files cached in last " + config.hoursToCheck + " hours. " + (config.PerDay - count) + " remaining.");
+		ctx.sendMessage(MessageType.INFO, "Total of " + count + " files cached in last " + config.getHoursToCheck() + " hours. " + (config.getPerDay() - count) + " remaining.");
 		return count;
 	}
 
@@ -98,32 +91,33 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{	
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = logger;
+		Cache.logger = LOG;
 		Scraper_parser s = new Scraper_parser();
-		s.logger = logger;
+		s.logger = LOG;
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		Set<String> ICs = new TreeSet<String>();
+		Set<String> ICs = new TreeSet<>();
 
 		//Load ICs from input DataUnit
 		
-		ctx.sendMessage(MessageType.INFO, "Interval: " + config.interval);
-		ctx.sendMessage(MessageType.INFO, "Timeout: " + config.timeout);
-		ctx.sendMessage(MessageType.INFO, "Hours to check: " + config.hoursToCheck);
-		ctx.sendMessage(MessageType.INFO, "Dowload per time frame: " + config.PerDay);
+		ctx.sendMessage(MessageType.INFO, "Interval: " + config.getInterval());
+		ctx.sendMessage(MessageType.INFO, "Timeout: " + config.getTimeout());
+		ctx.sendMessage(MessageType.INFO, "Hours to check: " + config.getHoursToCheck());
+		ctx.sendMessage(MessageType.INFO, "Dowload per time frame: " + config.getPerDay());
 		ctx.sendMessage(MessageType.INFO, "Cache base dir: " + Cache.basePath);
-		ctx.sendMessage(MessageType.INFO, "Cache only: " + config.useCacheOnly);
-		ctx.sendMessage(MessageType.INFO, "Generating output: " + config.generateOutput);
-		ctx.sendMessage(MessageType.INFO, "BAS Active only: " + config.bas_active);
-		ctx.sendMessage(MessageType.INFO, "Puvadr in BAS: " + config.bas_puvadr);
-		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.or_stdadr);
+		ctx.sendMessage(MessageType.INFO, "Cache only: " + config.isUseCacheOnly());
+		ctx.sendMessage(MessageType.INFO, "Generating output: " + config.isGenerateOutput());
+		ctx.sendMessage(MessageType.INFO, "BAS Active only: " + config.isBas_active());
+		ctx.sendMessage(MessageType.INFO, "Puvadr in BAS: " + config.isBas_puvadr());
+		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
 
 		int lines = 0;
 		if (duICs.getTripleCount() > 0)
@@ -142,10 +136,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					}
 				}
 			} catch (MalformedURLException e) {
-				logger.error("Unexpected malformed URL of ODCS textValue predicate");
+				LOG.error("Unexpected malformed URL of ODCS textValue predicate");
 			}
 		}
-		logger.info(lines + " ICs loaded from input");
+		LOG.info("{} ICs loaded from input", lines);
 		
 		//Load ICs from file
 		BufferedReader in = null;
@@ -158,9 +152,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
 			in.close();
 		} catch (IOException e) {
-			logger.info("IO error when loading ICs from file - probably not present");
+			LOG.info("IO error when loading ICs from file - probably not present");
 		}
-		logger.info(lines + " ICs loaded from config file");
+		LOG.info(lines + " ICs loaded from config file");
 		//End Load ICs from file
 
 		int downloaded = 0;
@@ -170,8 +164,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		try {
 			cachedToday = countTodaysCacheFiles(ctx);
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.info("countTodaysCacheFiles throws", e);
 		}
 
 		ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs.");
@@ -191,26 +184,26 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		if (!ctx.canceled())
 		{
 			//Download
-			int toCache = (config.PerDay - cachedToday);
+			int toCache = (config.getPerDay() - cachedToday);
 			Iterator<String> li = ICs.iterator();
 			//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 	
 			try {
-				while (li.hasNext() && !ctx.canceled() && (config.useCacheOnly || (downloaded < (toCache - 1)))) {
+				while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
 					String currentIC = li.next();
-					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.bas_active ? "" : "&aktivni=false") + (config.bas_puvadr ? "&adr_puv=true" : ""));
-					if (!Cache.isCached(current) && !config.useCacheOnly)
+					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
+					if (!Cache.isCached(current) && !config.isUseCacheOnly())
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						if (doc != null)
 						{
 							//logger.trace(doc.outerHtml());
-							if (config.generateOutput) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run.");
+							if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+							LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
 						}
 						else
 						{
-							logger.warn("Document null: " + current);
+							LOG.warn("Document null: {}", current);
 						}
 					}
 					else if (Cache.isCached(current))
@@ -220,30 +213,30 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						if (doc != null)
 						{
 							//logger.trace(doc.outerHtml());
-							if (config.generateOutput) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
+							if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+							LOG.debug("Got from cache {}:{}", cachedEarlier, current );
 						}
 						else
 						{
-							logger.warn("Document null: " + current);
+							LOG.warn("Document null: {}", current);
 						}
 					}
 						
 					if (ctx.canceled()) break;
 					
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.or_stdadr? "&stdadr=true" : ""));
-					if (!Cache.isCached(current) && !config.useCacheOnly)
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
+					if (!Cache.isCached(current) && !config.isUseCacheOnly())
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
 						cachedEarlier++;
 						if (doc != null)
 						{
-							if (config.generateOutput) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-							logger.debug("Downloaded " + ++downloaded + "/" + toCache + " in this run: " + current);
+							if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
 						}
 						else
 						{
-							logger.warn("Document null: " + current);
+							LOG.warn("Document null: {}", current);
 						}
 					}
 					else if (Cache.isCached(current))
@@ -252,22 +245,22 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						cachedEarlier++;
 						if (doc != null)
 						{
-							if (config.generateOutput) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-							logger.debug("Got from cache "+ cachedEarlier + ": " + current );
+							if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
 						}
 						else
 						{
-							logger.warn("Document null: " + current);
+							LOG.warn("Document null: {}", current);
 						}
 					}
 				}
-				if (ctx.canceled()) logger.error("Interrupted");
+				if (ctx.canceled()) LOG.error("Interrupted");
 			} catch (BannedException e) {
-				logger.warn("Seems like we are banned for today");
+				LOG.warn("Seems like we are banned for today");
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOG.info("IOException", e);
 			} catch (InterruptedException e) {
-				logger.error("Interrupted");
+				LOG.error("Interrupted");
 			}
 		}
 

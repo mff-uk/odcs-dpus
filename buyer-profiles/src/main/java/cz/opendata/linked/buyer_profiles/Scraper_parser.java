@@ -1,22 +1,19 @@
 package cz.opendata.linked.buyer_profiles;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
+import org.openrdf.model.URI;
+import org.openrdf.model.vocabulary.RDF;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -30,6 +27,7 @@ public class Scraper_parser extends ScrapingTemplate{
     public PrintStream zak_ps;
     public boolean AccessProfiles;
     public boolean CurrentYearOnly;
+    
     
     public int numrows = 0;
     public int cancellednumrows = 0;
@@ -50,12 +48,14 @@ public class Scraper_parser extends ScrapingTemplate{
     public int numsub = 0;
     public int totalcancellednumrows = 0;
     
-    private static String guidBEprefix = "http://linked.opendata.cz/resource/domain/buyer-profiles/business-entity/cz/";
-    private static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
+    /*stats*/
+    private static URI currentVVZProfileURI;
+    private static URI currentProfileURI;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
         LinkedList<ParseEntry> out = new LinkedList<>();
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
         if (docType.equals("list") || docType.equals("first") || docType.equals("firstCancelled") || docType.equals("cancelledList")) {
             /* Na strance se sezname si najdu linky na detaily */
             if (doc == null) return out;
@@ -78,36 +78,56 @@ public class Scraper_parser extends ScrapingTemplate{
                 
             	for(int i = 1; i < rows.size(); i++)
                 {
-                	Element row = rows.get(i);
+            		Element row = rows.get(i);
                 	Elements rowElements = row.getAllElements();
                 	String contractId = rowElements.get(1).text();
 	            	URL d = new URL("http://www.vestnikverejnychzakazek.cz/Views/Form/Display/" + contractId);
+                	URI vvzFormURI = pstats.createURI(d.toString());
+                	pstats.addTriple(vvzFormURI, RDF.TYPE, pstats.createURI(BPOprefix + "VVZForm"));
+	            	if (docType.equals("list") || docType.equals("first")) {
+	            		out.add(new ParseEntry(d, "detail", "html"));
+	                	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "cancelled"), pstats.createLiteral("false", xsd_boolean));
+	            	}
+                	else if (docType.equals("firstCancelled") || docType.equals("cancelledList")) {
+                		out.add(new ParseEntry(d, "cancelledDetail", "html"));
+                    	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "cancelled"), pstats.createLiteral("true", xsd_boolean));
+                	}
                 	
-	            	if (docType.equals("list") || docType.equals("first")) out.add(new ParseEntry(d, "detail", "html"));
-                	else if (docType.equals("firstCancelled") || docType.equals("cancelledList")) out.add(new ParseEntry(d, "cancelledDetail", "html"));
-                	
-	            	URL profilZadavatele = parseURL(rowElements.get(5).text(), rowElements.get(4).text(), rowElements.get(3).text(), "Profil zadavatele (link)");
+	            	URL profilZadavatele = parseURL(rowElements.get(5).text(), rowElements.get(4).text(), rowElements.get(3).text(), "Profil zadavatele (link)", vvzFormURI);
                 	if (AccessProfiles && (docType.equals("list") || docType.equals("first")) && profilZadavatele != null)
                 	{
-	                	if (profilZadavatele.toString().endsWith("/"))
+                		String provozovatel = profilZadavatele.getHost().toString().replaceAll("(.*\\.)*([^\\.]+\\.[^\\.]+)", "$2");
+                		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "profilePublisher"), pstats.createLiteral(provozovatel));
+                		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksTo"), pstats.createURI(profilZadavatele.toString()));
+                		String newProfil;
+                		if (profilZadavatele.toString().endsWith("/"))
 	                	{
-	                		profilZadavatele = new URL(profilZadavatele.toString() + "XMLdataVZ");
+	                		newProfil = profilZadavatele.toString() + "XMLdataVZ";
+                			profilZadavatele = new URL(newProfil);
 	                	}
 	                	else 
 	                	{
-	                		profilZadavatele = new URL(profilZadavatele.toString() + "/XMLdataVZ");
+	                		newProfil = profilZadavatele.toString() + "/XMLdataVZ";
+	                		profilZadavatele = new URL(newProfil);
 	                	}
 	                	
 	                	if (CurrentYearOnly)
 	                	{
 	                		int i1 = Calendar.getInstance().get(Calendar.YEAR);
-	                		out.add(new ParseEntry(new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1), "profil", "xml"));
+	                		URL currentURL = new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1);
+	                		out.add(new ParseEntry(currentURL, "profil", "xml"));
+                    		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksToYearXML"), pstats.createURI(currentURL.toString()));
 	                	}
 	                	else for (int i1 = 2010; i1 <= Calendar.getInstance().get(Calendar.YEAR); i1++)
 	                	{
-	                		
-		                	out.add(new ParseEntry(new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1), "profil", "xml"));
+	                		URL currentURL = new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1);
+		                	out.add(new ParseEntry(currentURL, "profil", "xml"));
+                    		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksToYearXML"), pstats.createURI(currentURL.toString()));
 	                	}
+                	}
+                	else if (profilZadavatele == null)
+                	{
+                    	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "invalidURLinForm"), pstats.createLiteral("true", xsd_boolean));
                 	}
             	}
             } catch (MalformedURLException ex) {
@@ -373,51 +393,60 @@ public class Scraper_parser extends ScrapingTemplate{
     	return original.replace("\n", " ").replace("\r", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
     }
     
-    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL)
+    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL, URI context)
     {
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
     	URL cleanURL = null;
     	try {
 			if (rawURL.isEmpty())
 			{
 				logger.debug("Varování (" + typURL + "): Prázdné URL: Zadavatel: " + ico + " " + nazevZadavatele);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "missingProfileURL"), pstats.createLiteral("true", xsd_boolean));
 				return null;
 			}
 			if (rawURL.contains("\\"))
 			{
 				logger.debug("Varování (" + typURL + "): Zpětné lomítko: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + " Oprava: " + rawURL.replace('\\', '/'));
 				rawURL = rawURL.replace('\\', '/');
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "missingProfileURL"), pstats.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			if (rawURL.contains(" "))
 			{
 				logger.debug("Chyba (" + typURL + "): Mezera v URL: " + rawURL + " Zadavatel: " + ico);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.contains("\""))
 			{
 				logger.debug("Chyba (" + typURL + "): Uvozovka v URL: " + rawURL + " Zadavatel: " + ico);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.contains("\n"))
 			{
 				logger.debug("Chyba (" + typURL + "): Nový řádek v URL: " + rawURL + " Zadavatel: " + ico);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (!rawURL.contains(".")) 
 			{
 				logger.debug("Chyba (" + typURL + "): Pravděpodobně není URL (Nenalezena tečka): " + rawURL + ico + " " + nazevZadavatele + ".");
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http//:")) 
 			{
 				cleanURL = new URL("http://" + rawURL.substring(7));
 				logger.debug("Varování (" + typURL + "): \"http//:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("www:")) 
 			{
 				cleanURL = new URL("http://www." + rawURL.substring(5));
 				logger.debug("Varování (" + typURL + "): \"www:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http://") || rawURL.toLowerCase().startsWith("https://"))
@@ -429,6 +458,7 @@ public class Scraper_parser extends ScrapingTemplate{
 				cleanURL = new URL("http://" + rawURL.substring(6));
 				logger.debug("Varování (" + typURL + "): Chybí lomítko v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 			}
 			else if (rawURL.toLowerCase().startsWith("https")) 
 			{
@@ -436,6 +466,7 @@ public class Scraper_parser extends ScrapingTemplate{
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("https://" + tempURL);
 				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http")) 
@@ -444,16 +475,19 @@ public class Scraper_parser extends ScrapingTemplate{
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("http://" + tempURL);
 				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else 
 			{
 				cleanURL = new URL("http://" + rawURL);
 				logger.debug("Varování: Missing protocol in URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Fixed: " + cleanURL);
+				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 			}
 		} catch (MalformedURLException e) {
 			logger.warn("Chyba (" + typURL + "): Špatné URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".");
 			numerrors++;
+			if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
 			e.printStackTrace();
 		}
     	
@@ -478,7 +512,7 @@ public class Scraper_parser extends ScrapingTemplate{
 			}
     	}
 
-        logger.debug("URL " + rawURL + " parsed as " + cleanURL);
+        //logger.debug("URL " + rawURL + " parsed as " + cleanURL);
     	return cleanURL;
     	
     }
@@ -499,13 +533,15 @@ public class Scraper_parser extends ScrapingTemplate{
 	}
 
     
-    private String cleanStatKod(String statKod)
+    private String cleanStatKod(String statKod, URI source)
     {
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
     	switch (statKod)
     	{
     	case "CR": 
     		logger.debug("Varování: Použit hack Kostarika -> ČR");
     		//return "Kostarická republika";
+        	pstats.addTriple(source, pstats.createURI(BPOprefix + "kostarika"), pstats.createLiteral("true", xsd_boolean));
     		return "CZ";
     	case "Česká republiky":
     	case "čr":
@@ -518,6 +554,7 @@ public class Scraper_parser extends ScrapingTemplate{
     	case "Česká Republika":
     	case "ČR":
     		logger.debug("Info: Přepis \"" + statKod + "\" na CZ");
+        	pstats.addTriple(source, pstats.createURI(BPOprefix + "cze"), pstats.createLiteral("true", xsd_boolean));
     		return "CZ";
     	
     	case "Spojené království Velké Británie a Severního Irska":
@@ -555,9 +592,9 @@ public class Scraper_parser extends ScrapingTemplate{
     	}    	
     }
     
-    private String getStat(String statKod)
+    private String getStat(String statKod, URI source)
     {
-    	return "countries:" + cleanStatKod(statKod);
+    	return "countries:" + cleanStatKod(statKod, source);
     }
     
     private String getDruh(String druh)
@@ -680,6 +717,7 @@ public class Scraper_parser extends ScrapingTemplate{
     		return null;
     	default: 
     		logger.warn("Doplnit: neznámý kód služby: " + sluzbaKod);
+            pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "unknownService"), pstats.createLiteral(sluzbaKod));
     		return "\"" + sluzbaKod + "\"";
     	}
     }
@@ -696,11 +734,19 @@ public class Scraper_parser extends ScrapingTemplate{
     	switch (druh)
     	{
     	case "Zakázka malého rozsahu":
+    	case "Vz malého rozsahu":
     		return "pccz:limit pccz:SmallAmount";
 
     	case "Zjednodušené podlimitní řízení":
     	case "zjednodušené podlimitní řízení":
-    		return "pc:procedureType pccz:SimplifiedUnderLimit";
+    	case "Zadané formou zjednodušeného podlimitního řízení dle §38":
+    	case "Dle § 38 zákona č. 137/2006":
+    	case "§ 38 zák. č. 137/2006 Sb.":
+    	case "Výzva k podaní nabídek ve zjednodušeném řízení":
+    	case "Podlimitní veřejná zakázka ve zjednodušeném řízení":
+    		return "pccz:limit pccz:SimplifiedUnderLimit";
+    		
+//    		return "pc:procedureType pccz:SimplifiedUnderLimit";
 
     	case "Jednací řízení s uveřejněním":
     		return "pc:procedureType proctypes:Negotiated";
@@ -715,12 +761,10 @@ public class Scraper_parser extends ScrapingTemplate{
     	case "ZŘ8: Přímé zadání (podlimitní VZ)":
     		return "pccz:limit pccz:UnderLimit";
 
-    	case "Podlimitní veřejná zakázka ve zjednodušeném řízení":
-    		return "pccz:limit pccz:SimplifiedUnderLimit";
-
     	case "otevřené řízení":
     	case "Otevřené řízení":
     	case "Otevřené":
+    	case "Výzva k podaní nabídek v otevřeném řízení":
     	case "RizeniSUverejnenim":
     		return "pc:procedureType proctypes:Open";
 
@@ -735,6 +779,8 @@ public class Scraper_parser extends ScrapingTemplate{
     	case "ZŘ9: Průzkum trhu - není zadávacím řízením ve smyslu ZVZ, ale způsobem oslovení dodavatelů prostřednictvím e-tržiště":
     		return "pc:procedureType proctypes:MarketAnalysis";
     		
+    	case "Výzva k podání nabídek + e-aukce":
+    	case "E-aukce":
     	case "On-line veřejná zakázka":
     		return "pc:procedureType proctypes:Online";
     		
@@ -747,7 +793,16 @@ public class Scraper_parser extends ScrapingTemplate{
     	case "DNS cyklus":
     		return "pc:procedureType proctypes:DNSCycle";
     	
+    	case "Více zájemcům":
+    	case "Veřejná výzva":
+    	case "Výzvou":
+    	case "Výzva":
+    	case "Výzva k podání":
+    	case "výzva k podání nabídky":
+    	case "Výzva pro podání nabídky":
+    	case "Výzva k podání zakázky":
     	case "Výzva k podání nabídky":
+    	case "Výzva k předložení nabídky":
     	case "Výzva k podání nabídek":
     		return "pc:procedureType proctypes:VyzvaKPodaniNabidek";
 
@@ -758,20 +813,46 @@ public class Scraper_parser extends ScrapingTemplate{
     	}
     }
     
-    private String fixIC(String oldIC)
+    private String fixIC(String oldIC, String docType)
     {
 		if (oldIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
-		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
+		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", "").replace("CZ", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
 		if (!newIC.matches("[0-9]{8}"))
 		{
 			newIC = "";
-			logger.info("Varování: IC/DIC po opravě není validní: " + oldIC + " Oprava: " + newIC);
+			logger.info("Varování: IC po opravě není validní: " + oldIC + " Oprava: " + newIC);
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
 		}
-		else if (!oldIC.equals(newIC)) logger.info("Varování: IC/DIC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
+		else if (!oldIC.equals(newIC)) {
+			logger.info("Varování: IC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+		}
     	return newIC; 
     }
     
+    private String fixDIC(String oldDIC, String docType)
+    {
+		if (oldDIC == null) return null;
+    	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
+		String newDIC = oldDIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
+		if (!newDIC.matches("CZ[0-9]{8}"))
+		{
+			newDIC = "";
+			logger.info("Varování: DIC po opravě není validní: " + oldDIC + " Oprava: " + newDIC);
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+		}
+		else if (!oldDIC.equals(newDIC)) {
+			logger.info("Varování: DIC obsahuje chyby: " + oldDIC + " Oprava: " + newDIC);
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+		}
+    	return newDIC; 
+    }
+
     private String getCurrency(String price)
     {
     	if (price == null) return null;
@@ -843,7 +924,8 @@ public class Scraper_parser extends ScrapingTemplate{
 
     @Override
     protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) {
-        if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+    	if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
         	logger.info("Parsing list #" + numlists++);
         	/* Na detailu si najdu nazev a ic a vyhodim jako nejaky element */
             Elements rows = doc.select("table tr");
@@ -864,7 +946,7 @@ public class Scraper_parser extends ScrapingTemplate{
             	String contractId = rowElements.get(1).text();
             	String evidencniCislo = rowElements.get(2).text();
             	String nazevZadavatele = escapeString(rowElements.get(3).text());
-            	String ico = fixIC(rowElements.get(4).text());
+            	String ico = fixIC(rowElements.get(4).text(), docType);
             	
             	
             	String guid = null;
@@ -886,7 +968,7 @@ public class Scraper_parser extends ScrapingTemplate{
             	URL profilZadavatele = null;
             	URL externiProfilZadavatele = null;
             	String originalProfilZadavatele = escapeString(rowElements.get(5).text());
-            	externiProfilZadavatele = parseURL(originalProfilZadavatele, ico, nazevZadavatele, "Profil zadavatele (seznam)");
+            	externiProfilZadavatele = parseURL(originalProfilZadavatele, ico, nazevZadavatele, "Profil zadavatele (seznam)", null);
 				
             	profilZadavatele = getInternalURLProfiluZadavatele(externiProfilZadavatele);
             	String datumUverejneni = escapeString(rowElements.get(7).text()).replaceAll("([0-9]{2}).([0-9]{2}).([0-9]{4})","$3-$2-$1");
@@ -951,6 +1033,8 @@ public class Scraper_parser extends ScrapingTemplate{
         else if (docType.equals("detail"))
         {
         	++numdetails;
+        	URI vvzFormURI = pstats.createURI(url.toString());
+        	currentVVZProfileURI = vvzFormURI;
         	
         	logger.debug("Phase 1/2: " + (int)Math.floor((double)numdetails*100/(double)totalnumrows) + "% Parsing detail #" + numdetails + "/" + totalnumrows);
         	String nazev = escapeString(doc.select("textarea#FormItems_Nazev_I").text());
@@ -961,20 +1045,21 @@ public class Scraper_parser extends ScrapingTemplate{
         	String stat = escapeString(doc.select("select#FormItems_Stat_I option[selected=selected]").attr("value"));
         	
         	String kodPravniFormy = escapeString(doc.select("input#FormItems_KodPravniFormy_I").attr("value"));
-        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")));
+        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")), docType);
         	String guid = null;
         	if (ico.isEmpty()) 
     		{
         		guid = UUID.randomUUID().toString();
         		logger.info("Varování: Nenalezeno IČ: " + nazev);
+                pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
         		missingIco++;
     		}
-        	String dic = fixIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")));
+        	String dic = fixDIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")), "ignore");
         	String zujObce = escapeString(doc.select("input#FormItems_ZujObce_I").attr("value"));
         	String kodNuts = escapeString(doc.select("input#FormItems_KodNuts_I").attr("value"));
         	if (kodNuts.startsWith("CZ")) kodNuts = kodNuts.substring(2);
         	String opravnenaOsoba = escapeString(doc.select("input#FormItems_OpravnenaOsoba_I").attr("value"));
-        	URL obecnaAdresaZadavatele = parseURL(doc.select("textarea#FormItems_ObecnaAdresaVerejnehoZadavatele_I").text(), ico, nazev, "URL zadavatele");
+        	URL obecnaAdresaZadavatele = parseURL(doc.select("textarea#FormItems_ObecnaAdresaVerejnehoZadavatele_I").text(), ico, nazev, "URL zadavatele", null);
         	
         	String typ = doc.select("input[name=FormItems.DruhZadavatele_II][checked=checked]").attr("value");        	
         	String typJiny = escapeString(doc.select("textarea[id=FormItems.Jine_II]").text());        	
@@ -994,7 +1079,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	
         	String nazevProfiluZadavatele = escapeString(doc.select("textarea#FormItems_NazevProfilu_III").text());        	
         	String originalUrlProfiluZadavatele = doc.select("textarea#FormItems_UrlAdresaVerejnehoZadavatele_III").text();
-        	URL ExterniURIProfiluZadavatele = parseURL(originalUrlProfiluZadavatele, ico, nazev, "Profil zadavatele (detail)");
+        	URL ExterniURIProfiluZadavatele = parseURL(originalUrlProfiluZadavatele, ico, nazev, "Profil zadavatele (detail)", vvzFormURI);
         	
         	URL URIProfiluZadavatele = getInternalURLProfiluZadavatele(ExterniURIProfiluZadavatele);
 
@@ -1045,7 +1130,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	if (!dic.isEmpty()) ps.println("\t<http://linked.opendata.cz/ontology/buyer-profiles/dic> \"" + dic + "\" ;");
         	if (!kodPravniFormy.isEmpty()) ps.println("\t<http://linked.opendata.cz/ontology/buyer-profiles/legalForm> <http://purl.org/procurement/legal-form#" + kodPravniFormy + "> ;");
         	if (!zujObce.isEmpty()) ps.println("\tpc:location <http://linked.opendata.cz/resource/region/" + zujObce + "> ;");        	
-        	if (!stat.isEmpty()) ps.println("\tpc:location " + getStat(stat) + " ;");
+        	if (!stat.isEmpty()) ps.println("\tpc:location " + getStat(stat, vvzFormURI) + " ;");
         	if (getDruh(typ) != null) ps.println("\tpc:authorityKind " + getDruh(typ) + " ;");
         	if (!typJiny.isEmpty()) ps.println("\tpc:authorityKind \"" + typJiny + "\"");
     		
@@ -1201,6 +1286,9 @@ public class Scraper_parser extends ScrapingTemplate{
         	numCancelledDetails++;
         	logger.debug("Phase 2/2: " + (int)Math.floor((double)numCancelledDetails*100/(double)totalcancellednumrows) + "% Parsing cancelled detail #" + numCancelledDetails + "/" + totalcancellednumrows);
         	
+        	URI vvzFormURI = pstats.createURI(url.toString());
+        	currentVVZProfileURI = vvzFormURI;
+
         	String nazev = escapeString(doc.select("textarea#FormItems_Nazev_I").text());
         	String ulice = escapeString(doc.select("textarea#FormItems_UliceCP_I").text());
         	String obec = escapeString(doc.select("input#FormItems_Obec_I").attr("value"));
@@ -1209,20 +1297,21 @@ public class Scraper_parser extends ScrapingTemplate{
         	String stat = escapeString(doc.select("select#FormItems_Stat_I option[selected=selected]").attr("value"));
         	
         	String kodPravniFormy = escapeString(doc.select("input#FormItems_KodPravniFormy_I").attr("value"));
-        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")));
+        	String ico = fixIC(escapeString(doc.select("input#FormItems_IdentifikacniCislo_I").attr("value")), docType);
         	String guid = null;
         	if (ico.isEmpty()) 
     		{
         		guid = UUID.randomUUID().toString();
         		logger.info("Varování: Nenalezeno IČ: " + nazev);
+                pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
         		missingIco++;
     		}
-        	String dic = fixIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")));
+        	String dic = fixDIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")), docType);
         	String zujObce = escapeString(doc.select("input#FormItems_ZujObce_I").attr("value"));
         	String kodNuts = escapeString(doc.select("input#FormItems_KodNuts_I").attr("value"));
         	if (kodNuts.startsWith("CZ")) kodNuts = kodNuts.substring(2);
         	String opravnenaOsoba = escapeString(doc.select("input#FormItems_OpravnenaOsoba_I").attr("value"));
-        	URL obecnaAdresaZadavatele = parseURL(doc.select("textarea#FormItems_ObecnaAdresaVerejnehoZadavatele_I").text(), ico, nazev, "URL zadavatele");
+        	URL obecnaAdresaZadavatele = parseURL(doc.select("textarea#FormItems_ObecnaAdresaVerejnehoZadavatele_I").text(), ico, nazev, "URL zadavatele", null);
         	
         	String typ = doc.select("input[name=FormItems.DruhZadavatele_II][checked=checked]").attr("value");        	
         	String typJiny = escapeString(doc.select("textarea[id=FormItems.Jine_II]").text());        	
@@ -1243,7 +1332,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	String nazevProfiluZadavatele = escapeString(doc.select("textarea#FormItems_NazevProfilu_III").text());        	
         	String originalUrlProfiluZadavatele = doc.select("textarea#FormItems_UrlAdresaVerejnehoZadavatele_III").text();
         	        	
-        	URL ExterniURIProfiluZadavatele = parseURL(originalUrlProfiluZadavatele, ico, nazev, "Profil zadavatele (detail)");
+        	URL ExterniURIProfiluZadavatele = parseURL(originalUrlProfiluZadavatele, ico, nazev, "Profil zadavatele (detail)", vvzFormURI);
         	URL URIProfiluZadavatele = getInternalURLProfiluZadavatele(ExterniURIProfiluZadavatele);
         	
         	originalUrlProfiluZadavatele = escapeString(originalUrlProfiluZadavatele);
@@ -1278,7 +1367,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	if (!dic.isEmpty()) ps.println("\t<http://linked.opendata.cz/ontology/buyer-profiles/dic> \"" + dic + "\" ;");
         	if (!kodPravniFormy.isEmpty()) ps.println("\t<http://linked.opendata.cz/ontology/buyer-profiles/legalForm> <http://purl.org/procurement/legal-form#" + kodPravniFormy + "> ;");
         	if (!zujObce.isEmpty()) ps.println("\tpc:location <http://linked.opendata.cz/resource/region/" + zujObce + "> ;");        	
-        	if (!stat.isEmpty()) ps.println("\tpc:location " + getStat(stat) + " ;");
+        	if (!stat.isEmpty()) ps.println("\tpc:location " + getStat(stat, vvzFormURI) + " ;");
         	if (getDruh(typ) != null) ps.println("\tpc:authorityKind " + getDruh(typ) + " ;");
         	if (!typJiny.isEmpty()) ps.println("\tpc:authorityKind \"" + typJiny + "\"");
     		
@@ -1385,10 +1474,15 @@ public class Scraper_parser extends ScrapingTemplate{
         else if (docType.equals("profil"))
         {
         	numprofiles++;
+        	
+        	URI profileURI = pstats.createURI(url.toString());
+        	currentProfileURI = profileURI;
+        	
         	if (doc == null || doc.getAllElements().size() < 5)
         	{
         		logger.info("Prázdné XML: " + url);
         		invalidXML++;
+                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidXML"), pstats.createLiteral("true", xsd_boolean));
         	}
         	else
         	{
@@ -1413,16 +1507,22 @@ public class Scraper_parser extends ScrapingTemplate{
         			found = true;
 	        		kodProfilu = escapeString(profil_kod_element.first().text().replace(" ", ""));
         		}
-	        	else logger.info("Chybí kód v XML profilu zadavatele: " + url);
+	        	else {
+	        		logger.info("Chybí kód v XML profilu zadavatele: " + url);
+	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingCode"), pstats.createLiteral("true", xsd_boolean));
+	        	}
 
 	        	Elements ic_element = doc.select("zadavatel ico_vlastni");
 	        	String IC = null;
 	        	if (ic_element.size() > 0)
 	        	{
 	        		found = true;
-	        		IC = fixIC(escapeString(ic_element.first().text()));
+	        		IC = fixIC(escapeString(ic_element.first().text()), docType);
 	        	}
-	        	else logger.info("Chybí IČ v XML profilu zadavatele: " + url);
+	        	else {
+	        		logger.info("Chybí IČ v XML profilu zadavatele: " + url);
+	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
+	        	}
 	        	
 	        	Elements nazev_element = doc.select("zadavatel nazev_zadavatele");
 	        	String nazevZadavatele = null;
@@ -1431,12 +1531,16 @@ public class Scraper_parser extends ScrapingTemplate{
 	        		found = true;
 	        		nazevZadavatele = escapeString(nazev_element.first().text());
 	        	}
-	        	else logger.info("Chybí název v XML profilu zadavatele: " + url);
+	        	else {
+	        		logger.info("Chybí název v XML profilu zadavatele: " + url);
+	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingName"), pstats.createLiteral("true", xsd_boolean));
+	        	}
 	        	
 	        	if (!found)
 	        	{
 	        		logger.info("Pravděpodobně není validní XML profil zadavatele: " + url);
 	        		invalidXML++;
+	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidXML"), pstats.createLiteral("true", xsd_boolean));
 	        	}
 	        	else
 	        	{
@@ -1446,6 +1550,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		        		guid = UUID.randomUUID().toString();
 		        		logger.info("Varování: Nenalezeno IČ v profilu zadavatele: " + nazevZadavatele + " URL: " + url);
 		        		missingIcoInProfile++;
+		                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
 		    		}
 	
 		        	//RDF
@@ -1546,7 +1651,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			if (uchazec == null) logger.warn("Uchazec null");
 	            			numuchazeci++;
 	            			String icUchazece = null;
-	            			if (uchazec.select("ico") != null) icUchazece = fixIC(getStringFromElements(uchazec.select("ico")));
+	            			if (uchazec.select("ico") != null) icUchazece = fixIC(getStringFromElements(uchazec.select("ico")), docType);
 	            			String nazevUchazece = null;
 	            			if (uchazec.select("nazev_uchazece") != null) nazevUchazece = getStringFromElements(uchazec.select("nazev_uchazece"));
 	            			String zemeSidlaUchazece = null;
@@ -1607,9 +1712,9 @@ public class Scraper_parser extends ScrapingTemplate{
 	            				ps.println("\tadms:identifier <" + icoBEprefix + icUchazece + "/identifier> ;");
 	            				if (nazevUchazece != null && !nazevUchazece.isEmpty()) ps.println("\tdcterms:title \"" + nazevUchazece + "\" ;");
 	            				if (nazevUchazece != null && !nazevUchazece.isEmpty()) ps.println("\tgr:legalName \"" + nazevUchazece + "\" ;");
-	            				if (zemeSidlaUchazece != null && !zemeSidlaUchazece.isEmpty() && getStat(zemeSidlaUchazece) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaUchazece) + " ;");
-	            				if (mistoPodnikani != null && !mistoPodnikani.isEmpty() && getStat(mistoPodnikani) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikani) + " ;");
-	            				if (bydliste != null && !bydliste.isEmpty() && getStat(bydliste) != null) ps.println("\tdcterms:location " + getStat(bydliste) + " ;");
+	            				if (zemeSidlaUchazece != null && !zemeSidlaUchazece.isEmpty() && getStat(zemeSidlaUchazece, profileURI) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaUchazece, profileURI) + " ;");
+	            				if (mistoPodnikani != null && !mistoPodnikani.isEmpty() && getStat(mistoPodnikani, profileURI) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikani, profileURI) + " ;");
+	            				if (bydliste != null && !bydliste.isEmpty() && getStat(bydliste, profileURI) != null) ps.println("\tdcterms:location " + getStat(bydliste, profileURI) + " ;");
 	            				ps.println("\t.\n");
 	            				
 	    	            		ps.println("<" + icoBEprefix + icUchazece + "/identifier> a adms:Identifier ;");
@@ -1635,7 +1740,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			if (dodavatel == null) logger.warn("Dodavatel null");
 	            			numdodavatele++;
 	            			String icDodavatele = null;
-	            			if (dodavatel.select("ico") != null) icDodavatele = fixIC(getStringFromElements(dodavatel.select("ico")));
+	            			if (dodavatel.select("ico") != null) icDodavatele = fixIC(getStringFromElements(dodavatel.select("ico")), docType);
 	            			String nazevDodavatele = null;
 	            			if (dodavatel.select("nazev_dodavatele") != null) nazevDodavatele = getStringFromElements(dodavatel.select("nazev_dodavatele"));
 	            			String zemeSidlaDodavatele = null;
@@ -1672,7 +1777,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	            			if (dodavatel.select("rozpad") != null) rozpad = getStringFromElements(dodavatel.select("rozpad"));
 
 
-	            			if (rozpad != null && !rozpad.isEmpty()) logger.debug("Rozpad: " + rozpad);
+	            			//if (rozpad != null && !rozpad.isEmpty()) logger.debug("Rozpad: " + rozpad);
 	            			
 	            			currentDodavatel++;
 	            			String uriTender;
@@ -1728,9 +1833,9 @@ public class Scraper_parser extends ScrapingTemplate{
 	            				ps.println("\tadms:identifier <" + icoBEprefix + icDodavatele + "/identifier> ;");
 	            				if (nazevDodavatele != null && !nazevDodavatele.isEmpty()) ps.println("\tdcterms:title \"" + nazevDodavatele + "\" ;");
 	            				if (nazevDodavatele != null && !nazevDodavatele.isEmpty()) ps.println("\tgr:legalName \"" + nazevDodavatele + "\" ;");
-	            				if (zemeSidlaDodavatele != null && !zemeSidlaDodavatele.isEmpty() && getStat(zemeSidlaDodavatele) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaDodavatele) + " ;");
-	            				if (mistoPodnikani != null && !mistoPodnikani.isEmpty() && getStat(mistoPodnikani) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikani) + " ;");
-	            				if (bydliste != null && !bydliste.isEmpty() && getStat(bydliste) != null) ps.println("\tdcterms:location " + getStat(bydliste) + " ;");
+	            				if (zemeSidlaDodavatele != null && !zemeSidlaDodavatele.isEmpty() && getStat(zemeSidlaDodavatele, profileURI) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaDodavatele, profileURI) + " ;");
+	            				if (mistoPodnikani != null && !mistoPodnikani.isEmpty() && getStat(mistoPodnikani, profileURI) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikani, profileURI) + " ;");
+	            				if (bydliste != null && !bydliste.isEmpty() && getStat(bydliste, profileURI) != null) ps.println("\tdcterms:location " + getStat(bydliste, profileURI) + " ;");
 	            				ps.println("\t.\n");
 	            				
 	    	            		ps.println("<" + icoBEprefix + icDodavatele + "/identifier> a adms:Identifier ;");
@@ -1747,7 +1852,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		            		{
 		            			numsub++;
 		            			String icSub = null;
-		            			if (subdodavatel.select("ico_sub") != null) icSub = fixIC(getStringFromElements(subdodavatel.select("ico_sub")));
+		            			if (subdodavatel.select("ico_sub") != null) icSub = fixIC(getStringFromElements(subdodavatel.select("ico_sub")), docType);
 		            			String nazevSub = null; 
 		            			if (subdodavatel.select("nazev_sub") != null) nazevSub = getStringFromElements(subdodavatel.select("nazev_sub"));
 		            			String zemeSidlaSub = null;
@@ -1765,9 +1870,9 @@ public class Scraper_parser extends ScrapingTemplate{
 		            				ps.println("\tadms:identifier <" + icoBEprefix + icSub + "/identifier> ;");
 		            				if (nazevSub != null && !nazevSub.isEmpty()) ps.println("\tdcterms:title \"" + nazevSub + "\" ;");
 		            				if (nazevSub != null && !nazevSub.isEmpty()) ps.println("\tgr:legalName \"" + nazevSub + "\" ;");
-		            				if (zemeSidlaSub != null && !zemeSidlaSub.isEmpty() && getStat(zemeSidlaSub) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaSub) + " ;");
-		            				if (mistoPodnikaniSub != null && !mistoPodnikaniSub.isEmpty() && getStat(mistoPodnikaniSub) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikaniSub) + " ;");
-		            				if (bydlisteSub != null && !bydlisteSub.isEmpty() && getStat(bydlisteSub) != null) ps.println("\tdcterms:location " + getStat(bydlisteSub) + " ;");
+		            				if (zemeSidlaSub != null && !zemeSidlaSub.isEmpty() && getStat(zemeSidlaSub, profileURI) != null) ps.println("\tdcterms:location " + getStat(zemeSidlaSub, profileURI) + " ;");
+		            				if (mistoPodnikaniSub != null && !mistoPodnikaniSub.isEmpty() && getStat(mistoPodnikaniSub, profileURI) != null) ps.println("\tdcterms:location " + getStat(mistoPodnikaniSub, profileURI) + " ;");
+		            				if (bydlisteSub != null && !bydlisteSub.isEmpty() && getStat(bydlisteSub, profileURI) != null) ps.println("\tdcterms:location " + getStat(bydlisteSub, profileURI) + " ;");
 		            				ps.println("\t.\n");
 		            				
 		    	            		ps.println("<" + icoBEprefix + icSub + "/identifier> a adms:Identifier ;");

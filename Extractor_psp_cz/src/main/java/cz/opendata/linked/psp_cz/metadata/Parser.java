@@ -9,12 +9,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
-import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 
-import cz.cuni.mff.xrg.scraper.lib.selector.CssSelector;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
@@ -23,7 +21,6 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
  * 
  * @author Jakub Klímek
  */
-
 public class Parser extends ScrapingTemplate{
     
 	public Logger logger;

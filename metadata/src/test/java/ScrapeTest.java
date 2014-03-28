@@ -22,7 +22,7 @@ public class ScrapeTest {
 		TestEnvironment env = TestEnvironment.create();
 		// prepare input and output data units
 		
-		RDFDataUnit input = env.createRdfInput("Input data", false);
+		RDFDataUnit input = env.createRdfInput("Statistics", false);
 
 		RDFDataUnit metadata = env.createRdfOutput("Metadata", false);
 

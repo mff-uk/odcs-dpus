@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.odcs</groupId>
+        <artifactId>module-base</artifactId>
+        <version>1.0.0</version>
+    </parent>    
+    <artifactId>Extractor_cenia_cz_irz</artifactId>
+    <packaging>bundle</packaging>
+    <version>1.0.1</version>
+	<description>This extractor scrapes environmental info from http://portal.cenia.cz/irz/unikyPrenosy.jsp</description>
+    <properties>    
+        <dpu.package>cz.opendata.linked.cz.cenia.irz</dpu.package>
+        <dpu.mainClass>Extractor</dpu.mainClass>    
+    </properties>
+ 	<dependencies>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.7.3</version>
+		</dependency> 		 		 
+ 	</dependencies>
+</project>

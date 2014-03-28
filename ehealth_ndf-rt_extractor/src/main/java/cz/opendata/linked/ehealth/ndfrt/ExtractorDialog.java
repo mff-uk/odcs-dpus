@@ -17,7 +17,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		return ;
+		
 	}
 
 	@Override

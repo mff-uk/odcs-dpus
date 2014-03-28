@@ -27,11 +27,7 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	@OutputDataUnit(name = "XMLList")
 	public RDFDataUnit outList;
@@ -48,15 +44,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = logger;
-		Cache.rewriteCache = config.rewriteCache;
+		Cache.logger = LOG;
+		Cache.rewriteCache = config.isRewriteCache();
 		Scraper_parser s = new Scraper_parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		s.list = outList;
 		s.details = outDetails;
@@ -69,26 +66,25 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		try {
 			URL init = new URL("http://seznam.gov.cz/ovm/datafile.do?format=xml&service=seznamovm");
 			
-			if (config.rewriteCache)
+			if (config.isRewriteCache())
 			{
 				Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
-				logger.info("Deleting " + path);
+				LOG.info("Deleting " + path);
 				Files.deleteIfExists(path);
 			}
 			
 			try {
 				s.parse(init, "init");
 			} catch (BannedException b) {
-				logger.warn("Seems like we are banned for today");
+				LOG.warn("Seems like we are banned for today");
 			}
 			
-        	logger.info("Download done.");
+        	LOG.info("Download done.");
 		
 		} catch (IOException e) {
-			logger.error(e.getLocalizedMessage());
-			e.printStackTrace();
+			LOG.error("IOException", e);
 		} catch (InterruptedException e) {
-			logger.error("Interrupted");
+			LOG.error("Interrupted");
 		}
 		
 		java.util.Date date2 = new java.util.Date();

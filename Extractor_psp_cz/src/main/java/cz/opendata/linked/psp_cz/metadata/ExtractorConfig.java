@@ -11,28 +11,81 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5577275030298541080L;
 
-	public int Start_year = 1918;
+	private int Start_year = 1918;
 
-	public int End_year = Calendar.getInstance().get(Calendar.YEAR);
+	private int End_year = Calendar.getInstance().get(Calendar.YEAR);
         
-	public String outputFileName = "sbirka.ttl";
+	private String outputFileName = "sbirka.ttl";
 	
-	public boolean rewriteCache = false;
+	private boolean rewriteCache = false;
 	
-	public boolean cachedLists = false;
+	private boolean cachedLists = false;
 	
-	public int timeout = 10000;
+	private int timeout = 10000;
 
-	public int interval = 2000;
-
+	private int interval = 2000;
+	
 	@Override
     public boolean isValid() {
         return Start_year <= End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
     }
+
+	public int getStart_year() {
+		return Start_year;
+	}
+
+	public void setStart_year(int Start_year) {
+		this.Start_year = Start_year;
+	}
+
+	public int getEnd_year() {
+		return End_year;
+	}
+
+	public void setEnd_year(int End_year) {
+		this.End_year = End_year;
+	}
+
+	public String getOutputFileName() {
+		return outputFileName;
+	}
+
+	public void setOutputFileName(String outputFileName) {
+		this.outputFileName = outputFileName;
+	}
+
+	public boolean isRewriteCache() {
+		return rewriteCache;
+	}
+
+	public void setRewriteCache(boolean rewriteCache) {
+		this.rewriteCache = rewriteCache;
+	}
+
+	public boolean isCachedLists() {
+		return cachedLists;
+	}
+
+	public void setCachedLists(boolean cachedLists) {
+		this.cachedLists = cachedLists;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
 
 }

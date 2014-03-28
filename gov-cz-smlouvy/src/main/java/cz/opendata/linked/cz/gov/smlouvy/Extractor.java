@@ -28,11 +28,7 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	@OutputDataUnit(name = "XMLSmlouvy")
 	public FileDataUnit outSmlouvy;	
@@ -70,15 +66,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = logger;
-		Cache.rewriteCache = config.rewriteCache;
+		Cache.logger = LOG;
+		Cache.rewriteCache = config.isRewriteCache();
 		Scraper_parser s = new Scraper_parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		s.smlouvy = outSmlouvy;
 		s.objednavky = outObjednavky;
@@ -100,16 +97,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			URL init_objednavky = new URL("https://portal.gov.cz/portal/rejstriky/data/10014/index.xml");
 			URL init_plneni = new URL("https://portal.gov.cz/portal/rejstriky/data/10015/index.xml");
 			
-			if (config.rewriteCache)
+			if (config.isRewriteCache())
 			{
 				Path path_smlouvy = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10013/index.xml");
 				Path path_objednavky = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10014/index.xml");
 				Path path_plneni = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10015/index.xml");
-				logger.info("Deleting " + path_smlouvy);
+				LOG.info("Deleting " + path_smlouvy);
 				Files.deleteIfExists(path_smlouvy);
-				logger.info("Deleting " + path_objednavky);
+				LOG.info("Deleting " + path_objednavky);
 				Files.deleteIfExists(path_objednavky);
-				logger.info("Deleting " + path_plneni);
+				LOG.info("Deleting " + path_plneni);
 				Files.deleteIfExists(path_plneni);
 			}
 			
@@ -118,16 +115,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				s.parse(init_objednavky, "init-o");
 				s.parse(init_plneni, "init-p");
 			} catch (BannedException b) {
-				logger.warn("Seems like we are banned for today");
+				LOG.warn("Seems like we are banned for today");
 			}
 			
-        	logger.info("Download done.");
+        	LOG.info("Download done.");
 		
 		} catch (IOException e) {
-			logger.error(e.getLocalizedMessage());
-			e.printStackTrace();
+			LOG.error("IOException", e);
 		} catch (InterruptedException e) {
-			logger.error("Interrupted");
+			LOG.error("Interrupted");
 		}
 		
 		java.util.Date date2 = new java.util.Date();
@@ -139,8 +135,5 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
 
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

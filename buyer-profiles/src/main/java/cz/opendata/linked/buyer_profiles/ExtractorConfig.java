@@ -9,24 +9,76 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 3509477277481754571L;
 
-	public boolean rewriteCache = false;
+	private boolean rewriteCache = false;
 	
-	public boolean accessProfiles = true;
+	private boolean accessProfiles = true;
 	
-	public int timeout = 10000;
+	private int maxAttempts = 2;
 	
-	public int interval = 0;
-	
-	public boolean currentYearOnly = false;
-	
-	@Override
-    public boolean isValid() {
-        return true;
-    }
+	private boolean validateXSD = false;
 
+	private int timeout = 10000;
+	
+	private int interval = 0;
+	
+	private boolean currentYearOnly = false;
+
+	public boolean isRewriteCache() {
+		return rewriteCache;
+	}
+
+	public void setRewriteCache(boolean rewriteCache) {
+		this.rewriteCache = rewriteCache;
+	}
+
+	public boolean isAccessProfiles() {
+		return accessProfiles;
+	}
+
+	public void setAccessProfiles(boolean accessProfiles) {
+		this.accessProfiles = accessProfiles;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public boolean isCurrentYearOnly() {
+		return currentYearOnly;
+	}
+
+	public void setCurrentYearOnly(boolean currentYearOnly) {
+		this.currentYearOnly = currentYearOnly;
+	}
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+	public boolean isValidateXSD() {
+		return validateXSD;
+	}
+
+	public void setValidateXSD(boolean validateXSD) {
+		this.validateXSD = validateXSD;
+	}
+	
 }

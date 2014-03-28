@@ -19,7 +19,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -28,11 +27,7 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	@OutputDataUnit(name = "XMLObce")
 	public FileDataUnit outObce;	
@@ -49,19 +44,20 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = logger;
+		Cache.logger = LOG;
 		//Cache.rewriteCache = config.rewriteCache;
 		Scraper_parser s = new Scraper_parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		s.obce = outObce;
 		s.zsj = outZsj;
-		s.outputFiles = config.passToOutput;
+		s.outputFiles = config.isPassToOutput();
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
@@ -70,7 +66,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		try {
 			URL init, initStat;
-			if (config.inclGeoData)
+			if (config.isInclGeoData())
 			{
 				init = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=K&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
 				initStat = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=K&vf.vu=Z&_vf.vu=on&vf.vu=G&_vf.vu=on&vf.vu=H&_vf.vu=on&_vf.vu=on&search=Vyhledat");
@@ -80,10 +76,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				init = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
 				initStat = new URL("http://vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&search=Vyhledat");
 			}
-			if (config.rewriteCache)
+			if (config.isRewriteCache())
 			{
 				Path path, pathStat;
-				if (config.inclGeoData)
+				if (config.isInclGeoData())
 				{
 					path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=K&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
 					pathStat = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=K&vf.vu=Z&_vf.vu=on&vf.vu=G&_vf.vu=on&vf.vu=H&_vf.vu=on&_vf.vu=on&search=Vyhledat");
@@ -91,11 +87,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				else
 				{
 					path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
-					pathStat = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
+					pathStat = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&search=Vyhledat");
 				}
-				logger.info("Deleting " + path);
+				LOG.info("Deleting " + path);
 				Files.deleteIfExists(path);
-				logger.info("Deleting " + pathStat);
+				LOG.info("Deleting " + pathStat);
 				Files.deleteIfExists(pathStat);				
 			}
 			
@@ -103,16 +99,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				s.parse(init, "init");
 				s.parse(initStat, "initStat");
 			} catch (BannedException b) {
-				logger.warn("Seems like we are banned for today");
+				LOG.warn("Seems like we are banned for today");
 			}
 			
-        	logger.info("Download done.");
+        	LOG.info("Download done.");
 		
 		} catch (IOException e) {
-			logger.error(e.getLocalizedMessage());
+			LOG.error(e.getLocalizedMessage());
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			logger.error("Interrupted");
+			LOG.error("Interrupted");
 		}
 		
 		java.util.Date date2 = new java.util.Date();

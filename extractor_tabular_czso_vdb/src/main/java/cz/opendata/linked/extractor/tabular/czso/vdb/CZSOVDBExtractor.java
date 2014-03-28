@@ -33,12 +33,14 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import org.slf4j.Logger;
 
 @AsExtractor
 public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> implements
 		ConfigDialogProvider<CZSOVDBExtractorConfig> {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(CZSOVDBExtractor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(
+			CZSOVDBExtractor.class);
 	
 	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
@@ -68,13 +70,13 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		
 		LinkedHashMap<Integer, String> propertyMap = this.config.getColumnPropertyMap();
 		if ( propertyMap == null )	{
-			log.warn("No mapping of table columns to RDF properties has been specified.");
+			LOG.warn("No mapping of table columns to RDF properties has been specified.");
 			propertyMap = new LinkedHashMap<Integer, String>();
 		}
 		LinkedHashMap<Coordinates, String> fixedValueMap = this.config.getFixedValueMap();
 		HashMap<Integer, HashMap<Integer, String>> optimizedFixedValueMap = new HashMap<Integer, HashMap<Integer, String>>(); 
 		if ( fixedValueMap == null )	{
-			log.warn("No mapping of cells to fixed value properties has been specified.");
+			LOG.warn("No mapping of cells to fixed value properties has been specified.");
 		} else {
 			for (Coordinates coordinates : fixedValueMap.keySet()) {
 				if ( coordinates != null )	{
@@ -95,17 +97,17 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		ArrayList<String[]> fixedPropertyValueTypeTriples = new ArrayList<String[]>();
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
-			log.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
+			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
 			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/";
 		}
 		int columnWithURISupplement = this.config.getColumnWithURISupplement();
 		if ( columnWithURISupplement < 0 )	{
-			log.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
+			LOG.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
 			columnWithURISupplement = -1;
 		}
 		int dataStartAtRow = this.config.getDataStartAtRow();
 		if ( dataStartAtRow < 0 )	{
-			log.warn("Row where the data start was not specified. Zero is used instead.");
+			LOG.warn("Row where the data start was not specified. Zero is used instead.");
 			columnWithURISupplement = 0;
 		}
 		
@@ -209,11 +211,11 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 				}
 			        
 //				if ( (rowCounter % 1000) == 0 )	{
-					log.debug("Row number " + rowCounter + " processed.");
+					LOG.debug("Row number " + rowCounter + " processed.");
 //				}
 				
 				if (context.canceled()) {
-		       		log.info("DPU cancelled");
+		       		LOG.info("DPU cancelled");
 		       		
 		       		return;
 		       	}

@@ -13,6 +13,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
@@ -49,6 +50,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField tfSparqlEndpointUrl;
     private TextField tfContactPoint;
     private CheckBox chkNow;
+    private CheckBox chkQb;
     private DateField dfModified;
     private ComboBox cbPeriodicity;
     private ComboBox cbMime;
@@ -80,7 +82,13 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			e.printStackTrace();
 		}
         buildMainLayout();
-        setCompositionRoot(mainLayout);
+        
+        Panel p = new Panel();
+        
+        p.setSizeFull();
+        p.setContent(mainLayout);
+        
+        setCompositionRoot(p);
     }  
 	
     private VerticalLayout buildMainLayout() {
@@ -148,6 +156,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         tfDescEn.setCaption("Description (en):");
         tfDescEn.setWidth("100%");
         mainLayout.addComponent(tfDescEn);
+
+        chkQb = new CheckBox();
+        chkQb.setCaption("Dataset is RDF Data Cube");
+        chkQb.setWidth("100%");
+        mainLayout.addComponent(chkQb);
 
         dfModified = new DateField();
         dfModified.setCaption("Modified:");
@@ -232,34 +245,35 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		tfDatasetUri.setValue(conf.datasetURI.toString());
-		tfDistributionUri.setValue(conf.distroURI.toString());
-		tfDataDumpUrl.setValue(conf.dataDump.toString());
-		tfSparqlEndpointUrl.setValue(conf.sparqlEndpoint.toString());
-		tfContactPoint.setValue(conf.contactPoint.toString());
-		tfTitleCs.setValue(conf.title_cs);
-		tfTitleEn.setValue(conf.title_en);
-		tfDescCs.setValue(conf.desc_cs);
-		tfDescEn.setValue(conf.desc_en);
-		chkNow.setValue(conf.useNow);
-		dfModified.setValue(conf.modified);
-		cbMime.setValue(conf.mime);
-		cbPeriodicity.setValue(conf.periodicity.toString());
+		tfDatasetUri.setValue(conf.getDatasetURI().toString());
+		tfDistributionUri.setValue(conf.getDistroURI().toString());
+		tfDataDumpUrl.setValue(conf.getDataDump().toString());
+		tfSparqlEndpointUrl.setValue(conf.getSparqlEndpoint().toString());
+		tfContactPoint.setValue(conf.getContactPoint().toString());
+		tfTitleCs.setValue(conf.getTitle_cs());
+		tfTitleEn.setValue(conf.getTitle_en());
+		tfDescCs.setValue(conf.getDesc_cs());
+		tfDescEn.setValue(conf.getDesc_en());
+		chkNow.setValue(conf.isUseNow());
+		chkQb.setValue(conf.isIsQb());
+		dfModified.setValue(conf.getModified());
+		cbMime.setValue(conf.getMime());
+		cbPeriodicity.setValue(conf.getPeriodicity().toString());
 		
-		setTcsConfig(conf.sources, conf.possibleSources, tcsSources);
-		setTcsConfig(conf.authors, conf.possibleAuthors, tcsAuthors);
-		setTcsConfig(conf.publishers, conf.possiblePublishers, tcsPublishers);
-		setTcsConfig(conf.exampleResources, conf.possibleExampleResources, tcsExamples);
-		setTcsConfig(conf.licenses, conf.possibleLicenses, tcsLicenses);
-		setTcsConfig(conf.themes, conf.possibleThemes, tcsThemes);
-		setTcsConfig(conf.languages, conf.possibleLanguages, tcsLanguages);
+		setTcsConfig(conf.getSources(), conf.getPossibleSources(), tcsSources);
+		setTcsConfig(conf.getAuthors(), conf.getPossibleAuthors(), tcsAuthors);
+		setTcsConfig(conf.getPublishers(), conf.getPossiblePublishers(), tcsPublishers);
+		setTcsConfig(conf.getExampleResources(), conf.getPossibleExampleResources(), tcsExamples);
+		setTcsConfig(conf.getLicenses(), conf.getPossibleLicenses(), tcsLicenses);
+		setTcsConfig(conf.getThemes(), conf.getPossibleThemes(), tcsThemes);
+		setTcsConfig(conf.getLanguages(), conf.getPossibleLanguages(), tcsLanguages);
 
-		for (String c : conf.possibleKeywords) tcsKeywords.addItem(c);
-		tcsKeywords.setRows(conf.possibleKeywords.size());
-        for (String l : conf.keywords) {
+		for (String c : conf.getPossibleKeywords()) tcsKeywords.addItem(c);
+		tcsKeywords.setRows(conf.getPossibleKeywords().size());
+        for (String l : conf.getKeywords()) {
 			if (!tcsKeywords.containsId(l)) tcsKeywords.addItem(l);
 		}
-        tcsKeywords.setValue(conf.keywords);
+        tcsKeywords.setValue(conf.getKeywords());
 
 	}
 
@@ -300,36 +314,37 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		
-		conf.title_cs = tfTitleCs.getValue();
-		conf.title_en = tfTitleEn.getValue();
-		conf.desc_cs = tfDescCs.getValue();
-		conf.desc_en = tfDescEn.getValue();
-		conf.licenses = new LinkedList<URL>();
-		conf.useNow = chkNow.getValue();
-		conf.modified = dfModified.getValue();
-		conf.mime = (String)cbMime.getValue();
+		conf.setTitle_cs(tfTitleCs.getValue());
+		conf.setTitle_en(tfTitleEn.getValue());
+		conf.setDesc_cs(tfDescCs.getValue());
+		conf.setDesc_en(tfDescEn.getValue());
+		conf.setLicenses(new LinkedList<URL>());
+		conf.setUseNow((boolean) chkNow.getValue());
+		conf.setIsQb((boolean) chkQb.getValue());
+		conf.setModified(dfModified.getValue());
+		conf.setMime((String)cbMime.getValue());
 		
 		try {
-			conf.datasetURI = new URL(tfDatasetUri.getValue());
-			conf.distroURI = new URL(tfDistributionUri.getValue());
-			conf.dataDump = new URL(tfDataDumpUrl.getValue());
-			conf.sparqlEndpoint = new URL(tfSparqlEndpointUrl.getValue());
-			conf.contactPoint = new URL(tfContactPoint.getValue());
-			conf.periodicity = new URL((String)cbPeriodicity.getValue());
+			conf.setDatasetURI(new URL(tfDatasetUri.getValue()));
+			conf.setDistroURI(new URL(tfDistributionUri.getValue()));
+			conf.setDataDump(new URL(tfDataDumpUrl.getValue()));
+			conf.setSparqlEndpoint(new URL(tfSparqlEndpointUrl.getValue()));
+			conf.setContactPoint(new URL(tfContactPoint.getValue()));
+			conf.setPeriodicity(new URL((String)cbPeriodicity.getValue()));
 
-			getTcsConfig(conf.authors, conf.possibleAuthors, tcsAuthors);
-			getTcsConfig(conf.publishers, conf.possiblePublishers, tcsPublishers);
-			getTcsConfig(conf.licenses, conf.possibleLicenses, tcsLicenses);
-			getTcsConfig(conf.exampleResources, conf.possibleExampleResources, tcsExamples);
-			getTcsConfig(conf.sources, conf.possibleSources, tcsSources);
-			getTcsConfig(conf.themes, conf.possibleThemes, tcsThemes);
-			getTcsConfig(conf.languages, conf.possibleLanguages, tcsLanguages);
+			getTcsConfig(conf.getAuthors(), conf.getPossibleAuthors(), tcsAuthors);
+			getTcsConfig(conf.getPublishers(), conf.getPossiblePublishers(), tcsPublishers);
+			getTcsConfig(conf.getLicenses(), conf.getPossibleLicenses(), tcsLicenses);
+			getTcsConfig(conf.getExampleResources(), conf.getPossibleExampleResources(), tcsExamples);
+			getTcsConfig(conf.getSources(), conf.getPossibleSources(), tcsSources);
+			getTcsConfig(conf.getThemes(), conf.getPossibleThemes(), tcsThemes);
+			getTcsConfig(conf.getLanguages(), conf.getPossibleLanguages(), tcsLanguages);
 			
-			conf.keywords.clear();
-			conf.keywords.addAll((Collection<String>)tcsKeywords.getValue());
+			conf.getKeywords().clear();
+			conf.getKeywords().addAll((Collection<String>)tcsKeywords.getValue());
 		
-			conf.possibleKeywords.clear();
-			conf.possibleKeywords.addAll((Collection<String>)tcsKeywords.getItemIds());
+			conf.getPossibleKeywords().clear();
+			conf.getPossibleKeywords().addAll((Collection<String>)tcsKeywords.getItemIds());
 
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block

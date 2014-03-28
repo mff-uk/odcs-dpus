@@ -3,6 +3,7 @@ package cz.opendata.linked.cz.gov.agendy;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -14,6 +15,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
+	private static final long serialVersionUID = -8158163219102623590L;
+	
     private GridLayout mainLayout;
     private CheckBox chkRewriteCache;
     private TextField interval;
@@ -22,7 +25,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);        
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
     }  
 	
     private GridLayout buildMainLayout() {
@@ -30,9 +36,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");
@@ -54,27 +60,28 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         return mainLayout;
     }	
-     
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8158163219102623590L;
-	
+     	
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.rewriteCache);
-		interval.setValue(Integer.toString(conf.interval));
-		timeout.setValue(Integer.toString(conf.timeout));
+		chkRewriteCache.setValue(conf.isRewriteCache());
+		interval.setValue(Integer.toString(conf.getInterval()));
+		timeout.setValue(Integer.toString(conf.getTimeout()));
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.rewriteCache = chkRewriteCache.getValue();
-		try { Integer.parseInt(interval.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.interval = Integer.parseInt(interval.getValue());
-		try { Integer.parseInt(timeout.getValue()); } catch (InvalidValueException e) { return conf;}
-		conf.timeout = Integer.parseInt(timeout.getValue());
+		conf.setRewriteCache(chkRewriteCache.getValue());
+		try {
+			conf.setInterval(Integer.parseInt(interval.getValue()));
+		} catch (InvalidValueException e) {
+		}
+
+		try {
+			conf.setTimeout(Integer.parseInt(timeout.getValue()));
+		} catch (InvalidValueException e) {
+		}
+
 		return conf;
 	}
 	

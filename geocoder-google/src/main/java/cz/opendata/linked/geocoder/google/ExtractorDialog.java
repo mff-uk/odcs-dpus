@@ -1,10 +1,7 @@
 package cz.opendata.linked.geocoder.google;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -16,10 +13,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 7003725620084616056L;
+
 	private GridLayout mainLayout;
     private TextField interval;
     private TextField limit;
@@ -28,8 +23,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);
-
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
     }  
 	
     private GridLayout buildMainLayout() {
@@ -37,7 +34,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 
@@ -62,18 +59,18 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		interval.setValue(Integer.toString(conf.interval));
-		hoursToCheck.setValue(Integer.toString(conf.hoursToCheck));
-		limit.setValue(Integer.toString(conf.limit));
+		interval.setValue(Integer.toString(conf.getInterval()));
+		hoursToCheck.setValue(Integer.toString(conf.getHoursToCheck()));
+		limit.setValue(Integer.toString(conf.getLimit()));
 
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.interval = Integer.parseInt(interval.getValue());
-		conf.hoursToCheck = Integer.parseInt(hoursToCheck.getValue());
-		conf.limit = Integer.parseInt(limit.getValue());
+		conf.setInterval(Integer.parseInt(interval.getValue()));
+		conf.setHoursToCheck(Integer.parseInt(hoursToCheck.getValue()));
+		conf.setLimit(Integer.parseInt(limit.getValue()));
 		return conf;
 	}
 	

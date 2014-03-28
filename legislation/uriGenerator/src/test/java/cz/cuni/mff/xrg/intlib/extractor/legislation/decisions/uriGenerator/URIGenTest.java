@@ -1,15 +1,12 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator;
 
-import com.google.gwt.thirdparty.guava.common.io.Files;
 import static org.junit.Assert.*;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.UriGenerator;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.UriGeneratorConfig;
-import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.dpu.test.context.TestContext;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;

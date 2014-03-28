@@ -34,34 +34,46 @@ public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
 	
 	}
 	
-	public LinkedHashMap<Integer, String> getColumnPropertyMap()	{
-		
-		return this.columnPropertyMap;
-		
+	public LinkedHashMap<Integer, String> getColumnPropertyMap()	{		
+		return this.columnPropertyMap;		
 	}
 	
-	public LinkedHashMap<Coordinates, String> getFixedValueMap()	{
-		
-		return this.fixedValueMap;
-		
+	public LinkedHashMap<Coordinates, String> getFixedValueMap()	{		
+		return this.fixedValueMap;		
 	}
 	
-	public String getBaseURI()	{
-		
-		return this.baseURI;
-		
+	public String getBaseURI()	{		
+		return this.baseURI;		
 	}
 	
-	public int getColumnWithURISupplement()	{
-		
-		return this.columnWithURISupplement;
-		
+	public int getColumnWithURISupplement()	{		
+		return this.columnWithURISupplement;		
 	}
 	
-	public int getDataStartAtRow()	{
-		
-		return this.dataStartAtRow;
-		
+	public int getDataStartAtRow()	{		
+		return this.dataStartAtRow;		
 	}
-    
+
+	public void setColumnPropertyMap(
+			LinkedHashMap<Integer, String> columnPropertyMap) {
+		this.columnPropertyMap = columnPropertyMap;
+	}
+
+	public void setFixedValueMap(
+			LinkedHashMap<Coordinates, String> fixedValueMap) {
+		this.fixedValueMap = fixedValueMap;
+	}
+
+	public void setBaseURI(String baseURI) {
+		this.baseURI = baseURI;
+	}
+
+	public void setColumnWithURISupplement(int columnWithURISupplement) {
+		this.columnWithURISupplement = columnWithURISupplement;
+	}
+
+	public void setDataStartAtRow(int dataStartAtRow) {
+		this.dataStartAtRow = dataStartAtRow;
+	}
+	    
 }

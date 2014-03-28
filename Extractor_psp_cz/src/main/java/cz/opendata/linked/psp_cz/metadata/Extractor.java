@@ -31,14 +31,10 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
 	@OutputDataUnit
 	public RDFDataUnit outputDataUnit;
 
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -49,17 +45,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
 		// vytvorime si parser
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.rewriteCache = config.rewriteCache;
-		Cache.logger = logger;
-		String tempfilename = ctx.getWorkingDir() + "/" + config.outputFileName;
+		Cache.rewriteCache = config.isRewriteCache();
+		Cache.logger = LOG;
+		String tempfilename = ctx.getWorkingDir() + "/" + config.getOutputFileName();
 		Parser s = new Parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
@@ -86,23 +83,23 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		// a spustim na vychozi stranku
 
-		ctx.sendMessage(MessageType.INFO, "Starting extraction. From year: " + config.Start_year + " To: " + config.End_year + " Output: " + tempfilename);
+		ctx.sendMessage(MessageType.INFO, "Starting extraction. From year: " + config.getStart_year() + " To: " + config.getEnd_year() + " Output: " + tempfilename);
 		
 		try {
-			for (int i = config.Start_year; i <= config.End_year; i++)
+			for (int i = config.getStart_year(); i <= config.getEnd_year(); i++)
 			{   
 				if (ctx.canceled())
 				{
-					logger.error("Interrupted");
+					LOG.error("Interrupted");
 					break;
 				}
 				try {
 					java.util.Date date = new java.util.Date();
 					long start = date.getTime();
-					if (!config.cachedLists)
+					if (!config.isCachedLists())
 					{
 						Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
-						logger.info("Deleting " + path);
+						LOG.info("Deleting " + path);
 						Files.deleteIfExists(path);
 					}
 					s.parse(new URL("http://www.psp.cz/sqw/sbirka.sqw?r=" + i), "list");
@@ -112,22 +109,22 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					ctx.sendMessage(MessageType.INFO, "Processed " + i + " in " + (end-start) + " ms");
 				}
 				catch (IOException e) {
-					logger.error(e.getLocalizedMessage());
+					LOG.error(e.getLocalizedMessage());
 				}
 			}
         	
-			logger.info("Parsing done. Passing RDF to ODCS");
+			LOG.info("Parsing done. Passing RDF to ODCS");
 			//give ttl to odcs
 			try {
 				outputDataUnit.addFromTurtleFile(new File(tempfilename));
 			}
 			catch (RDFException e)
 			{
-				logger.error("Cannot put TTL to repository. Error: {}", e.getLocalizedMessage());
+				LOG.error("Cannot put TTL to repository. Error: {}", e.getLocalizedMessage());
 				throw new DPUException("Cannot put TTL to repository.");
 			}
 		} catch (InterruptedException intex) {
-			logger.error("Interrupted");
+			LOG.error("Interrupted");
 		}
 
 		s.ps.close();

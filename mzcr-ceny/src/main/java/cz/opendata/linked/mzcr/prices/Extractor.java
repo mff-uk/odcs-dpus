@@ -1,15 +1,8 @@
 package cz.opendata.linked.mzcr.prices;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.openrdf.model.Statement;
@@ -26,7 +19,6 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 @AsExtractor
@@ -44,7 +36,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@InputDataUnit
 	public RDFDataUnit inputDataUnit;
 
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -55,21 +47,22 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return new ExtractorDialog();
 	}
 
+	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
 		// vytvorime si parser
-		Cache.setInterval(config.interval);
-		Cache.setTimeout(config.timeout);
+		Cache.setInterval(config.getInterval());
+		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.rewriteCache = config.rewriteCache;
-		Cache.logger = logger;
+		Cache.rewriteCache = config.isRewriteCache();
+		Cache.logger = LOG;
 		
 		Parser s = new Parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
 		s.output = outputDataUnit;
 		
-		logger.info("Starting extraction.");
+		LOG.info("Starting extraction.");
 		
 		int lines = 0;
 		java.util.Date date = new java.util.Date();
@@ -88,34 +81,29 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				{
 					if (ctx.canceled())
 					{
-						logger.error("Interrupted");
+						LOG.error("Interrupted");
 						break;
 					}
 					if (stmt.getPredicate().toString().equals(notationPredicate.toString()))
 					{
 						lines++;
-						logger.debug("Parsing " + lines + "/" + total);
+						LOG.debug("Parsing " + lines + "/" + total);
 						s.parse(Cache.getDocument(new URL("http://mzcr.cz/LekyNehrazene.aspx?naz=" + stmt.getObject().stringValue()), 10000), "tab");
 					}
 				}
 			} catch (MalformedURLException e) {
-				logger.error("Unexpected malformed URL of ODCS textValue predicate");
+				LOG.error("Unexpected malformed URL of ODCS textValue predicate");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("IOException", e);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				
 			}
 		}
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
-		logger.info("Processed " + lines + " in " + (end-start) + "ms");
+		LOG.info("Processed " + lines + " in " + (end-start) + "ms");
 
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

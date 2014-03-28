@@ -14,8 +14,8 @@ public class ScrapeTest {
 		// prepare dpu instance and configure it
 		Extractor extractor = new Extractor();
 		ExtractorConfig config = new ExtractorConfig();
-		config.structured = false;
-		config.stripNumFromLocality = true;
+		config.setStructured(false);
+		config.setStripNumFromLocality(true);
 		
 		extractor.configureDirectly(config);
 		

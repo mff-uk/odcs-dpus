@@ -9,24 +9,56 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8719241993054209502L;
+//	private static final long serialVersionUID = 8719241993054209502L;
 
-    public boolean rewriteCache = true;
+    private boolean rewriteCache = true;
 	
-	public int timeout = 40000;
+	private int timeout = 40000;
     
-    public int interval = 0;
+    private int interval = 0;
     
-    public boolean passToOutput = false;
+    private boolean passToOutput = false;
     
-    public boolean inclGeoData = false;
-	
-	@Override
-    public boolean isValid() {
-        return true;
-    }
+    private boolean inclGeoData = false;
+
+	public boolean isRewriteCache() {
+		return rewriteCache;
+	}
+
+	public void setRewriteCache(boolean rewriteCache) {
+		this.rewriteCache = rewriteCache;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public boolean isPassToOutput() {
+		return passToOutput;
+	}
+
+	public void setPassToOutput(boolean passToOutput) {
+		this.passToOutput = passToOutput;
+	}
+
+	public boolean isInclGeoData() {
+		return inclGeoData;
+	}
+
+	public void setInclGeoData(boolean inclGeoData) {
+		this.inclGeoData = inclGeoData;
+	}	
 
 }

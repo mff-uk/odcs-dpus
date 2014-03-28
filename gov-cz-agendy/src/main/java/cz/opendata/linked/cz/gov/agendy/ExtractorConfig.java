@@ -9,22 +9,46 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5577275030298541080L;
 
-	public String outputFileName = "agendy.ttl";
+	private String outputFileName = "agendy.ttl";
 	
-	public boolean rewriteCache = false;
+	private boolean rewriteCache = false;
 		
-	public int timeout = 10000;
+	private int timeout = 10000;
 
-	public int interval = 0;
+	private int interval = 0;
 
-	@Override
-    public boolean isValid() {
-        return true;
-    }
+	public String getOutputFileName() {
+		return outputFileName;
+	}
+
+	public void setOutputFileName(String outputFileName) {
+		this.outputFileName = outputFileName;
+	}
+
+	public boolean isRewriteCache() {
+		return rewriteCache;
+	}
+
+	public void setRewriteCache(boolean rewriteCache) {
+		this.rewriteCache = rewriteCache;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
 
 }

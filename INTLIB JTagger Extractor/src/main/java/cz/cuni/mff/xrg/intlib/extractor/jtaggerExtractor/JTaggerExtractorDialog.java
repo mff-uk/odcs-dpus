@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 
 import com.vaadin.data.Validator;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import cz.cuni.xrg.intlib.commons.configuration.ConfigException;
 import cz.cuni.xrg.intlib.commons.module.dialog.BaseConfigDialog;
@@ -20,7 +21,10 @@ public class JTaggerExtractorDialog extends BaseConfigDialog<JTaggerExtractorCon
     public JTaggerExtractorDialog() {
         super(JTaggerExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
     }
     
    

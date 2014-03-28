@@ -1,10 +1,7 @@
 package cz.opendata.linked.geocoder.krovak;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
@@ -16,9 +13,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 7003725620084616056L;
 	private GridLayout mainLayout;
     private TextField interval, failinterval;
@@ -28,8 +22,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
         buildMainLayout();
-        setCompositionRoot(mainLayout);
-
+		Panel panel = new Panel();
+		panel.setSizeFull();
+		panel.setContent(mainLayout);
+		setCompositionRoot(panel);
     }  
 	
     private GridLayout buildMainLayout() {
@@ -37,9 +33,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
         mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");
@@ -59,6 +55,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
         tfSessionId = new TextField();
         tfSessionId.setCaption("Session ID:");
+		tfSessionId.setWidth("100%");
         mainLayout.addComponent(tfSessionId);
 
         return mainLayout;
@@ -66,19 +63,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		interval.setValue(Integer.toString(conf.interval));
-		failinterval.setValue(Integer.toString(conf.failInterval));
-		tfNumOfRecords.setValue(Integer.toString(conf.numofrecords));
-		tfSessionId.setValue(conf.sessionId);
+		interval.setValue(Integer.toString(conf.getInterval()));
+		failinterval.setValue(Integer.toString(conf.getFailInterval()));
+		tfNumOfRecords.setValue(Integer.toString(conf.getNumofrecords()));
+		tfSessionId.setValue(conf.getSessionId());
 	}
 
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.interval = Integer.parseInt(interval.getValue());
-		conf.failInterval = Integer.parseInt(failinterval.getValue());
-		conf.numofrecords = Integer.parseInt(tfNumOfRecords.getValue());
-		conf.sessionId = tfSessionId.getValue();
+		conf.setInterval(Integer.parseInt(interval.getValue()));
+		conf.setFailInterval(Integer.parseInt(failinterval.getValue()));
+		conf.setNumofrecords(Integer.parseInt(tfNumOfRecords.getValue()));
+		conf.setSessionId(tfSessionId.getValue());
 		return conf;
 	}
 	
