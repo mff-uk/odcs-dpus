@@ -222,7 +222,11 @@ public class Cache {
 
 			if (datatype.equals("xml"))
 			{
-				out = Jsoup.parse(new FileInputStream(hFile), "UTF-8", host, Parser.xmlParser());
+                                
+                                //TODO in case of exception thrown, fis is not properly closed
+                                FileInputStream fis = new FileInputStream(hFile);
+                                out = Jsoup.parse(fis, "UTF-8", host, Parser.xmlParser());
+                                fis.close();
 
 			}
 			else
