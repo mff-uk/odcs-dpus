@@ -80,8 +80,8 @@ public class WordTxtConvertor {
                 log.info("Catdoc was executed successfully");
                 return f;
             } catch (IOException ex) {
-                log.error(ex.getLocalizedMessage());
-                context.sendMessage(MessageType.ERROR, "Problem executing catdoc: "
+                log.warn(ex.getLocalizedMessage());
+                log.warn("Problem executing catdoc: "
                         + ex.getMessage());
                
             }

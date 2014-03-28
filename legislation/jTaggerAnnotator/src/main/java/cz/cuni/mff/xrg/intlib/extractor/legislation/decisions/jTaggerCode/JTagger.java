@@ -95,7 +95,14 @@ public class JTagger {
             System.out.println("Upraveny text = \n");
             System.out.println(escape_text0 + "\n");
             JTaggerResult metadata = processText(escape_text0, court);
-
+       
+            //adjust metadata XML - again convert escaped entities back to their original chars
+            String xmlEscaped = metadata.getXml();
+            String xmlWithoutEscaped = xmlEscaped.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", "\"").replaceAll("&apos;", "\'");
+            metadata.setXml(xmlWithoutEscaped);       
+       
+      
+         
             System.out.println("===========================================\n");
             System.out.println("METADATA\n");
             System.out.println("===========================================\n\n");

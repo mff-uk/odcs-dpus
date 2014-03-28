@@ -540,9 +540,9 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             return result;
 
         } catch (TransformerConfigurationException tce) {
-            System.err.println("Exception: " + tce);
+            log.error("Exception: " + tce);
         } catch (TransformerException te) {
-            System.err.println("Exception: " + te);
+            log.error("Exception: " + te);
         }
         return null;
 
@@ -695,55 +695,59 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
      * @param context Context of the XSLT DPU used when DPU is canceled
      */
     private void loadDataToTargetRDFDataUnit(RDFLoaderWrapper resultRDFDataLoader, String fileName, DPUContext context) {
+        
+        try {
+            //load RDF data to data unit
+            resultRDFDataLoader.addData(new File(resultRDFDataLoader.getOutputPath()));
+        } catch (RDFException ex) {
+            log.error(ex.getLocalizedMessage());
+        }
+        log.info("Output created successfully");
 
-
-        //load RDF data to data unit
-
-
-        boolean retry = false;
-        int numberOfTries = 0;
-        do {
-            try {
-
-                resultRDFDataLoader.addData(new File(resultRDFDataLoader.getOutputPath()));
-                log.info("Output created successfully");
-
-
-            } catch (RDFException e) {
-
-                log.warn("Error when adding file {} to the RDF data unit", fileName);
-                log.debug("Error: {}", e.getLocalizedMessage());
-
-                if (e.getCause() != null) {
-                    log.debug("Cause: {}", e.getCause().getLocalizedMessage());
-                }
-
-
-                if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {
-                    log.warn("Error still occurs after {} tries, skipping input {}", config.getNumberOfTriesToConnect(), fileName);
-                    retry = false;
-                } else {
-                    retry = true;
-                    numberOfTries++;
-
-                    if (context.canceled()) {
-                        log.info("DPU cancelled, no further attempts");
-                        return;
-                    }
-
-                    log.info("Trying again in 10s");
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException ex) {
-                        log.info("Sleep interrupted, continues");
-                    }
-
-                }
-
-
-
-            }
-        } while (retry);
+//        boolean retry = false;
+//        int numberOfTries = 0;
+//        do {
+//            try {
+//
+//                resultRDFDataLoader.addData(new File(resultRDFDataLoader.getOutputPath()));
+//                log.info("Output created successfully");
+//
+//
+//            } catch (RDFException e) {
+//
+//                log.warn("Error when adding file {} to the RDF data unit", fileName);
+//                log.debug("Error: {}", e.getLocalizedMessage());
+//
+//                if (e.getCause() != null) {
+//                    log.debug("Cause: {}", e.getCause().getLocalizedMessage());
+//                }
+//
+//
+//                if ((config.getNumberOfTriesToConnect() != -1) && (numberOfTries >= config.getNumberOfTriesToConnect())) {
+//                    log.warn("Error still occurs after {} tries, skipping input {}", config.getNumberOfTriesToConnect(), fileName);
+//                    retry = false;
+//                } else {
+//                    retry = true;
+//                    numberOfTries++;
+//
+//                    if (context.canceled()) {
+//                        log.info("DPU cancelled, no further attempts");
+//                        return;
+//                    }
+//
+//                    log.info("Trying again in 10s");
+//                    try {
+//                        Thread.sleep(10000);
+//                    } catch (InterruptedException ex) {
+//                        log.info("Sleep interrupted, continues");
+//                    }
+//
+//                }
+//
+//
+//
+//            }
+//        } while (retry);
 
     }
 

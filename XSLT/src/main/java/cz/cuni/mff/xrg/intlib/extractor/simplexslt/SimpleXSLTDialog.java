@@ -5,9 +5,11 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
+import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -77,22 +79,27 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
     public SimpleXSLTDialog() {
         super(SimpleXSLTConfig.class);
-        buildMainLayout();
-        setCompositionRoot(mainLayout);
+       VerticalLayout mainLayout = buildMainLayout();
+       Panel p = new Panel();
+     
+       p.setSizeFull();
+       p.setContent(mainLayout);
+  //      setCompositionRoot(mainLayout);
+         setCompositionRoot(p);
     }
 
     private VerticalLayout buildMainLayout() {
         // common part: create layout
-        mainLayout = new VerticalLayout();
-        mainLayout.setImmediate(false);
+       VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setImmediate(true);
         mainLayout.setWidth("100%");
-        //mainLayout.setHeight("100%");
+        mainLayout.setHeight(null);
         mainLayout.setMargin(false);
         //mainLayout.setSpacing(true);
 
         // top-level component properties
         setWidth("100%");
-        setHeight("100%");
+        //setHeight("100%");
 
 
         //upload 
@@ -281,7 +288,7 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
           //TODO validate input
          tfEscaped = new TextField();
         tfEscaped.setImmediate(true);
-        tfEscaped.setCaption("Specify escaping mappings in the form \"string:replacement string2:replacement2\". These mappings are applied when wrapped output is produced. ");
+        tfEscaped.setCaption("Specify escaping mappings in the form \"string:replacement string2:replacement2\". \nThese mappings are applied when wrapped output is produced. ");
         tfEscaped.setWidth("100%");
       
        

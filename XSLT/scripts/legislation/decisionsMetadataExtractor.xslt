@@ -122,7 +122,7 @@
 		<xsl:if test="matches($yearSpisZnacka,'^[0-9]{4}$') and matches($spisovaZnackaInURI,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that spisova znacka has reasonable format-->
 			
 			<!-- Create basic decision and file record -->	
-			<xsl:call-template name="createDecisionAndFileBasicRecord">
+			<xsl:call-template name="createDecisionAndFileBasicRecordNS">
 				
 				<xsl:with-param name="decisionWithoutBrackets"><xsl:value-of select="$decPrefix"/></xsl:with-param>
 				<xsl:with-param name="decisionIdentifierInURI"><xsl:value-of select="$spisovaZnackaInURI"/></xsl:with-param> <!-- there is only spisova znacka, neni cislo jednaci -->
@@ -315,7 +315,7 @@
 	
 	  
 	  
-	<xsl:template name="createDecisionAndFileBasicRecord">
+	<xsl:template name="createDecisionAndFileBasicRecordNS">
 		<xsl:param name="decisionWithoutBrackets"> </xsl:param>
 		<xsl:param name="decisionIdentifierInURI"/> <!-- Typically it is spisova znacka (with dashes), but it could be also cislo jednaci -->
 		<xsl:param name="file"> </xsl:param> 
@@ -592,11 +592,11 @@
 		<xsl:if test="matches($year,'^[0-9]{4}$') and matches($IdentifierInURIForDecision,'^[0-9]+-[a-zA-Z]+-[0-9]+-[0-9]{4}(-[0-9]+){0,1}$')"> <!-- test that the date was extracted -->
 
 			
-			<xsl:call-template name="createDecisionAndFileBasicRecord">
+			<xsl:call-template name="createDecisionAndFileBasicRecordNS">
 				<xsl:with-param name="decisionWithoutBrackets"><xsl:value-of select="$decisionURI"/></xsl:with-param>
 				<xsl:with-param name="decisionIdentifierInURI"><xsl:value-of select="$IdentifierInURIForDecision"/></xsl:with-param>
 				<xsl:with-param name="file"><xsl:value-of select="$file"/></xsl:with-param>
-				<xsl:with-param name="fileIdentifierInURI"><xsl:value-of select="$IdentifierInURIForDecision"/></xsl:with-param>
+				<xsl:with-param name="fileIdentifierInURI"><xsl:value-of select="$IdentifierInURIForFile"/></xsl:with-param>
 				<xsl:with-param name="yearInURI"><xsl:value-of select="$year"/></xsl:with-param>
 				<xsl:with-param name="yearDecisionIssued"></xsl:with-param> <!-- year issued is not known -->
 				<xsl:with-param name="court"><xsl:value-of select="$court"/></xsl:with-param>

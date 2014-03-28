@@ -12,16 +12,28 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
+import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.openrdf.model.Resource;
@@ -31,6 +43,8 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 /**
  * Simple XSLT Extractor
@@ -49,9 +63,11 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
     @InputDataUnit
     public RDFDataUnit rdfInput;
     
+    //should be used when subject URI is needed in further DPUs (such as in XSLT producing result of the transformation in literal)
     @OutputDataUnit(name = "rdfOutput", optional = true)
     public RDFDataUnit rdfOutput;
     
+    //used for data when subject URI is further not needed.
     @OutputDataUnit(name = "fileOutput", optional = true)
     public FileDataUnit fileOutput;
 
@@ -96,6 +112,11 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
             
             while (executeSelectQueryAsTuples.hasNext()) {
 
+               if (context.canceled()) {
+                    log.info("DPU cancelled");
+                    return;
+               }
+                
                 i++;
                 //process the inputs
                 BindingSet solution = executeSelectQueryAsTuples.next();
@@ -130,7 +151,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 
                log.info("URI generator successfully executed, creating output");
               
-               //RDF DataUnit OUTPUT
+               //RDF DataUnit OUTPUT 
                String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
                 
                Resource subj = rdfOutput.createURI(subject);
@@ -153,17 +174,87 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 
                //FILE DataUnit OUTPUT
                 DirectoryHandler rootDir = fileOutput.getRootDir();
-                rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
-                        //add(new File(outputURIGeneratorFilename), false);
+                FileHandler addedFile = rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
+                //add(new File(outputURIGeneratorFilename), false);
      
                log.info("File Output successfully created");
                //End of output creation
                
                
-               if (context.canceled()) {
-                    log.info("DPU cancelled");
-                    return;
-               }
+               //Add metadata triples 
+//               <http://file/i> <http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath> "/input01.xml" .
+//               <http://xxx> <http://linked.opendata.cz/ontology/odcs/dataunit/file/fileURI> <http://linked.opendata.cz/resource/file/legislation/cz/decision/2013/8-Tdo-873-2013> .
+	       //to put metadata about the processed files (subject URIs) for XSLT -> used by RDFa XSLT 
+               
+               
+//               Resource  subj = rdfOutput.createURI("http://file/" + i);
+//               URI pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_FILE_PATH_PREDICATE);
+//               Value obj = rdfOutput.createLiteral(addedFile.getRootedPath()); 
+//               
+//               rdfOutput.addTriple(subj, pred, obj);
+//               
+//               subj = rdfOutput.createURI("http://file/" + i);
+//               pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_FILE_URI_PREDICATE);
+//                String subjectURI = subjectURIPrefix + year + "/" + spZn;
+//               obj = rdfOutput.createLiteral(subject); 
+//               
+//                rdfOutput.addTriple(subj, pred, obj);
+//               //end of adding metadata triples
+               
+//               String subjectURIPrefix = "http://linked.opendata.cz/resource/file/legislation/cz/decision/";
+//               String year = null;
+//               String spZn = null;
+//               
+//               try {
+//               DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//                DocumentBuilder builder = factory.newDocumentBuilder();
+//                Document doc = builder.parse(new File(outputURIGeneratorFilename));
+//                XPathFactory xPathfactory = XPathFactory.newInstance();
+//                XPath xpath = xPathfactory.newXPath();
+//                XPathExpression expr = xpath.compile("normalize-space(substring-after(substring-after(document/metadata/table//td[preceding-sibling::node()[contains(text(),'Datum podání')]]/normalize-space(text()),'.'),'.'))"); 
+//                year = (String) expr.evaluate(doc, XPathConstants.STRING);
+//            
+//                if (year.matches("[0-9]{4}")) {  
+//                    log.debug("Building subject URI for the file, year is: {}", year);
+//                }  
+//                else {
+//                    log.warn("Problem building subject URI for the given file, year taken from decision's metadata is not valid: {}", year);
+//                    log.warn("No metadata is stored for this file");
+//                    continue;
+//                }
+//                
+//                
+//                
+//                
+//                  XPathExpression expr2 = xpath.compile("replace(replace(replace(replace(document/metadata/table//td[preceding-sibling::node()[contains(text(),'Spisová značka')]]/normalize-space(text()),'\\.','-'),' ','-'),'Ú','U'),'/','-')"); 
+//                spZn = (String) expr2.evaluate(doc, XPathConstants.STRING);
+//                
+//                if (spZn.matches("[0-9]{4}")) {  
+//                    log.debug("Building subject URI for the file, spZn is: {}", spZn);
+//                }  
+//                else {
+//                    log.warn("Problem building subject URI for the given file, spZn taken from decision's metadata is not valid: {}", spZn);
+//                    log.warn("No metadata is stored for this file");
+//                    continue;
+//                }
+//                    
+//                    
+//                } catch (XPathExpressionException ex) {
+//                    log.error(ex.getLocalizedMessage());
+//                } catch (ParserConfigurationException ex) {
+//                    log.error(ex.getLocalizedMessage());
+//                } catch (SAXException ex) {
+//                    log.error(ex.getLocalizedMessage());
+//                } catch (IOException ex) {
+//                    log.error(ex.getLocalizedMessage());
+//                }
+//
+//               
+//               
+//              
+               
+               
+               
 
             }
         } catch (QueryEvaluationException ex) {

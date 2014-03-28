@@ -408,7 +408,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
             //metadata element already prepared, just add content element! 
             
             
-            int indexMeta= input_string.indexOf("</metadata>") + "</metadata>".length();
+            int indexMeta= input_string.indexOf("<body>") + "<body>".length();
             String before = input_string.substring(0, indexMeta);
 
             String content = input_string.substring(indexMeta);

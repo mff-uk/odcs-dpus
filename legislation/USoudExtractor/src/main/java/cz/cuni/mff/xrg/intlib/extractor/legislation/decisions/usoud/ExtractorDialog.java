@@ -64,86 +64,90 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         // top-level component properties
         setWidth("100%");
         setHeight("100%");
+        
+        Label lInput = new Label();
+         lInput.setValue("Procssing last 7 days");
+         mainLayout.addComponent(lInput);
 
-        // textFieldPath
-        dateFrom = new TextField();
-        dateFrom.setNullRepresentation("");
-        dateFrom.setCaption("Date From (DD/MM/YYYY):");
-        dateFrom.setImmediate(false);
-        dateFrom.setWidth("100%");
-        dateFrom.setHeight("-1px");
-        dateFrom.setInputPrompt("09/07/2013");
-//        dateFrom.addValidator(new Validator() {
-//            @Override
-//            public void validate(Object value) throws Validator.InvalidValueException {
-//                if (value.getClass() == String.class && !((String) value).isEmpty()) {
-//                    return;
-//                }
-//                throw new Validator.InvalidValueException("Date from must be filled!");
-//            }
-//        });
-        mainLayout.addComponent(dateFrom);
-        
-        dateTo = new TextField();
-        dateTo.setNullRepresentation("");
-        dateTo.setCaption("Date To (DD/MM/YYYY):");
-        dateTo.setImmediate(false);
-        dateTo.setWidth("100%");
-        dateTo.setHeight("-1px");
-        dateTo.setInputPrompt("10/07/2013");
-//        dateTo.addValidator(new Validator() {
-//            @Override
-//            public void validate(Object value) throws Validator.InvalidValueException {
-//                if (value.getClass() == String.class && !((String) value).isEmpty()) {
-//                    return;
-//                }
-//                throw new Validator.InvalidValueException("Path must be filled!");
-//            }
-//        });
-        mainLayout.addComponent(dateTo) ;
-        
-        
-        maxNumOfExtractedDecisions = new TextField();
-        maxNumOfExtractedDecisions.setNullRepresentation("");
-        maxNumOfExtractedDecisions.setCaption("Maximum number of extracted decisions:");
-        maxNumOfExtractedDecisions.setImmediate(false);
-        maxNumOfExtractedDecisions.setWidth("100%");
-        maxNumOfExtractedDecisions.setHeight("-1px");
-//        dateTo.addValidator(new Validator() {
-//            @Override
-//            public void validate(Object value) throws Validator.InvalidValueException {
-//                if (value.getClass() == String.class && !((String) value).isEmpty()) {
-//                    return;
-//                }
-//                throw new Validator.InvalidValueException("Path must be filled!");
-//            }
-//        });
-        mainLayout.addComponent(maxNumOfExtractedDecisions) ;
-
-        cbCurrentDay =  new CheckBox("Process yesterday");
-        cbCurrentDay.addValueChangeListener(new ValueChangeListener() {
-             public void valueChange(ValueChangeEvent event) {
-                 // Copy the value to the other checkbox.
-                  boolean value = (Boolean) event.getProperty().getValue();
-                 dateFrom.setEnabled(!value);
-                 dateTo.setEnabled(!value);
-                 cbSinceLastSuccess.setEnabled(!value);
-        } });
-        cbCurrentDay.setValue(false);
-        
-        cbSinceLastSuccess =  new CheckBox("Process the days from last successful run up to yesterday");
-           cbSinceLastSuccess.addValueChangeListener(new ValueChangeListener() {
-             public void valueChange(ValueChangeEvent event) {
-                 // Copy the value to the other checkbox.
-                  boolean value = (Boolean) event.getProperty().getValue();
-                 dateFrom.setEnabled(!value);
-                 dateTo.setEnabled(!value);
-                 cbCurrentDay.setEnabled(!value);
-        } });
-           cbSinceLastSuccess.setValue(false);
-           
-        mainLayout.addComponent(cbCurrentDay);
-         mainLayout.addComponent(cbSinceLastSuccess);
+//        // textFieldPath
+//        dateFrom = new TextField();
+//        dateFrom.setNullRepresentation("");
+//        dateFrom.setCaption("Date From (DD/MM/YYYY):");
+//        dateFrom.setImmediate(false);
+//        dateFrom.setWidth("100%");
+//        dateFrom.setHeight("-1px");
+//        dateFrom.setInputPrompt("09/07/2013");
+////        dateFrom.addValidator(new Validator() {
+////            @Override
+////            public void validate(Object value) throws Validator.InvalidValueException {
+////                if (value.getClass() == String.class && !((String) value).isEmpty()) {
+////                    return;
+////                }
+////                throw new Validator.InvalidValueException("Date from must be filled!");
+////            }
+////        });
+//        mainLayout.addComponent(dateFrom);
+//        
+//        dateTo = new TextField();
+//        dateTo.setNullRepresentation("");
+//        dateTo.setCaption("Date To (DD/MM/YYYY):");
+//        dateTo.setImmediate(false);
+//        dateTo.setWidth("100%");
+//        dateTo.setHeight("-1px");
+//        dateTo.setInputPrompt("10/07/2013");
+////        dateTo.addValidator(new Validator() {
+////            @Override
+////            public void validate(Object value) throws Validator.InvalidValueException {
+////                if (value.getClass() == String.class && !((String) value).isEmpty()) {
+////                    return;
+////                }
+////                throw new Validator.InvalidValueException("Path must be filled!");
+////            }
+////        });
+//        mainLayout.addComponent(dateTo) ;
+//        
+//        
+//        maxNumOfExtractedDecisions = new TextField();
+//        maxNumOfExtractedDecisions.setNullRepresentation("");
+//        maxNumOfExtractedDecisions.setCaption("Maximum number of extracted decisions:");
+//        maxNumOfExtractedDecisions.setImmediate(false);
+//        maxNumOfExtractedDecisions.setWidth("100%");
+//        maxNumOfExtractedDecisions.setHeight("-1px");
+////        dateTo.addValidator(new Validator() {
+////            @Override
+////            public void validate(Object value) throws Validator.InvalidValueException {
+////                if (value.getClass() == String.class && !((String) value).isEmpty()) {
+////                    return;
+////                }
+////                throw new Validator.InvalidValueException("Path must be filled!");
+////            }
+////        });
+//        mainLayout.addComponent(maxNumOfExtractedDecisions) ;
+//
+//        cbCurrentDay =  new CheckBox("Process yesterday");
+//        cbCurrentDay.addValueChangeListener(new ValueChangeListener() {
+//             public void valueChange(ValueChangeEvent event) {
+//                 // Copy the value to the other checkbox.
+//                  boolean value = (Boolean) event.getProperty().getValue();
+//                 dateFrom.setEnabled(!value);
+//                 dateTo.setEnabled(!value);
+//                 cbSinceLastSuccess.setEnabled(!value);
+//        } });
+//        cbCurrentDay.setValue(false);
+//        
+//        cbSinceLastSuccess =  new CheckBox("Process the days from last successful run up to yesterday");
+//           cbSinceLastSuccess.addValueChangeListener(new ValueChangeListener() {
+//             public void valueChange(ValueChangeEvent event) {
+//                 // Copy the value to the other checkbox.
+//                  boolean value = (Boolean) event.getProperty().getValue();
+//                 dateFrom.setEnabled(!value);
+//                 dateTo.setEnabled(!value);
+//                 cbCurrentDay.setEnabled(!value);
+//        } });
+//           cbSinceLastSuccess.setValue(false);
+//           
+//        mainLayout.addComponent(cbCurrentDay);
+//         mainLayout.addComponent(cbSinceLastSuccess);
 
 
         return mainLayout;
