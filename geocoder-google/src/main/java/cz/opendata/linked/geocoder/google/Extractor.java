@@ -265,8 +265,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				String cachedFile = null;
 				try {
 					cachedFile = FileUtils.readFileToString(hFile);
+                    continue;
 				} catch (IOException e) {
-					LOG.error(e.getLocalizedMessage());
+					LOG.error("Failed to load cached result for " + address + " with error " + e.getLocalizedMessage());
 				}
 				
 				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
