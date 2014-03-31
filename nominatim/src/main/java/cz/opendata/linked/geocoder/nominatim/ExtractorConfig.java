@@ -13,9 +13,9 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	private int interval = 1000;
 	
-    private int hoursToCheck = 24;
+    private int limitPeriod = 24;
     
-    private boolean structured = false;
+    private boolean isStructured = false;
 	
     private boolean stripNumFromLocality = true;
     
@@ -45,20 +45,20 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		this.interval = interval;
 	}
 
-	public int getHoursToCheck() {
-		return hoursToCheck;
+	public int getLimitPeriod() {
+		return limitPeriod;
 	}
 
-	public void setHoursToCheck(int hoursToCheck) {
-		this.hoursToCheck = hoursToCheck;
+	public void setLimitPeriod(int limitPeriod) {
+		this.limitPeriod = limitPeriod;
 	}
 
 	public boolean isStructured() {
-		return structured;
+		return isStructured;
 	}
 
 	public void setStructured(boolean structured) {
-		this.structured = structured;
+		this.isStructured = structured;
 	}
 
 	public boolean isStripNumFromLocality() {

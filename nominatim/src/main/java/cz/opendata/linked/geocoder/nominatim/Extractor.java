@@ -110,10 +110,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
-				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
+				if (diff < (config.getLimitPeriod() * 60 * 60)) count++;
 			}
 		}
-		logger.info("Total of " + count + " positions cached in last " + config.getHoursToCheck() + " hours. " + (config.getLimit() - count) + " remaining.");
+		logger.info("Total of " + count + " positions cached in last " + config.getLimitPeriod() + " hours. " + (config.getLimit() - count) + " remaining.");
 		return count;
 	}
 	
@@ -309,7 +309,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				} catch (IOException e) {
 					logger.error(e.getLocalizedMessage());
 				}
-				
+
 				try {
 					Geo[] gs = gson.fromJson(cachedFile, Geo[].class);
 					if (gs == null || gs.length == 0) {
