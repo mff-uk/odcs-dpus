@@ -265,11 +265,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				String cachedFile = null;
 				try {
 					cachedFile = FileUtils.readFileToString(hFile);
-                    continue;
 				} catch (IOException e) {
-					LOG.error("Failed to load cached result for " + address + " with error " + e.getLocalizedMessage());
+					LOG.error(e.getLocalizedMessage());
 				}
-				
+
+                if (cachedFile == null) {
+                    LOG.error("Failed to load cached result for " + address);
+                    continue;
+                }
 				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
 				String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation)); 
 				
@@ -281,14 +284,17 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				String uri = currentAddressURI.stringValue();
 				URI addressURI = outGeo.createURI(uri);
 				URI coordURI = outGeo.createURI(uri+"/geocoordinates/google");
-                URI webURI = outGeo.createURI("http://google.com/maps?q=" + latitude.toString() + "," + longitude.toString());
 				
 				outGeo.addTriple(addressURI, geoURI , coordURI);
 				outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
 				outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, dcsource, googleURI);
-                outGeo.addTriple(coordURI, urlURI, webURI);
+
+                if (config.isGenerateMapUrl()) {
+                    URI webURI = outGeo.createURI("http://google.com/maps?q=" + latitude.toString() + "," + longitude.toString());
+                    outGeo.addTriple(coordURI, urlURI, webURI);
+                }
 			}
 			if (ctx.canceled()) LOG.info("Cancelled");
 			

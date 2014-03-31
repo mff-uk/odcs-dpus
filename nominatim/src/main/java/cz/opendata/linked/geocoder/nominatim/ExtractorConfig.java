@@ -18,6 +18,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     private boolean isStructured = false;
 	
     private boolean stripNumFromLocality = true;
+
+    private boolean generateMapUrl = false;
     
     private String country = "";
     
@@ -108,5 +110,12 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	public void setUsePostalCode(boolean usePostalCode) {
 		this.usePostalCode = usePostalCode;
 	}
-    
+
+    public boolean isGenerateMapUrl() {
+        return generateMapUrl;
+    }
+
+    public void setGenerateMapUrl(boolean generateMapUrl) {
+        this.generateMapUrl = generateMapUrl;
+    }
 }

@@ -326,14 +326,17 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					String uri = currentAddressURI.stringValue();
 					URI addressURI = outGeo.createURI(uri);
 					URI coordURI = outGeo.createURI(uri+"/geocoordinates/nominatim");
-                    URI webURI = outGeo.createURI("http://www.openstreetmap.org/search?query=#map=13/" + latitude.toString() + "/" + longitude.toString());
 					
 					outGeo.addTriple(addressURI, geoURI , coordURI);
 					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
 					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
 					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 					outGeo.addTriple(coordURI, dcsource, nominatimURI);
-                    outGeo.addTriple(coordURI, urlURI, webURI);
+
+                    if (config.isGenerateMapUrl()) {
+                        URI webURI = outGeo.createURI("http://www.openstreetmap.org/search?query=#map=13/" + latitude.toString() + "/" + longitude.toString());
+                        outGeo.addTriple(coordURI, urlURI, webURI);
+                    }
 				} catch (Exception e) {
 					logger.warn(e.getLocalizedMessage());
 					e.printStackTrace();

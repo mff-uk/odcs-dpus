@@ -20,6 +20,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField country;
     private CheckBox isStructured;
     private CheckBox stripNumFromLocality;
+    private CheckBox generateMapUrl;
     private TwinColSelect tcsProperties;
     private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode"};
     
@@ -45,17 +46,20 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
-        isStructured = new CheckBox("Structured query (experimental):");
+        isStructured = new CheckBox("Structured query (experimental)");
         isStructured.setDescription("When selected, Nominatim will be queried by structured queries.");
         isStructured.setWidth("100%");
-        
         mainLayout.addComponent(isStructured);
 
-        stripNumFromLocality = new CheckBox("Strip number form Locality:");
+        stripNumFromLocality = new CheckBox("Strip number form Locality");
         stripNumFromLocality.setDescription("In structured query, replace Praha 6 => Praha, etc.");
         stripNumFromLocality.setWidth("100%");
-        
         mainLayout.addComponent(stripNumFromLocality);
+
+        generateMapUrl = new CheckBox("Generate schema:url property with direct link to map");
+        generateMapUrl.setDescription("Useful option for debugging results, URL to the service is constructed automatically and can be opened from SPARQL query result");
+        generateMapUrl.setWidth("100%");
+        mainLayout.addComponent(generateMapUrl);
 
         country = new TextField();
         country.setCaption("Country");
@@ -93,6 +97,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		limit.setValue(Integer.toString(conf.getLimit()));
 		country.setValue(conf.getCountry());
 		isStructured.setValue(conf.isStructured());
+		generateMapUrl.setValue(conf.isGenerateMapUrl());
 		stripNumFromLocality.setValue(conf.isStripNumFromLocality());
 
 		LinkedList<String> values = new LinkedList<String>();
@@ -112,7 +117,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.setLimit(Integer.parseInt(limit.getValue()));
 		conf.setStructured(isStructured.getValue());
 		conf.setStripNumFromLocality(stripNumFromLocality.getValue());
-		
+		conf.setGenerateMapUrl(generateMapUrl.getValue());
+
 		Collection<String> values = (Collection<String>)tcsProperties.getValue();
 		conf.setUseStreet(values.contains(properties[0])); 
 		conf.setUseRegion(values.contains(properties[1]));
