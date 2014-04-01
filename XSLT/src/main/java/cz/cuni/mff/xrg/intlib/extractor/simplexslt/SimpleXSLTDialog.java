@@ -164,10 +164,10 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 		lFileName = new Label("File not uploaded");
 		mainLayout.addComponent(lFileName);
 
-		//empty line
-		Label emptyLabel = new Label("");
-		emptyLabel.setHeight("1em");
-		mainLayout.addComponent(emptyLabel);
+//		//empty line
+//		Label emptyLabel = new Label("");
+//		emptyLabel.setHeight("1em");
+//		mainLayout.addComponent(emptyLabel);
 
 		Label lInput = new Label();
 		lInput.setValue("Input:");
@@ -192,10 +192,10 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 //        });
 		mainLayout.addComponent(tfInputPredicate);
 
-		//empty line
-		Label emptyLabel2 = new Label("");
-		emptyLabel2.setHeight("1em");
-		mainLayout.addComponent(emptyLabel2);
+//		//empty line
+//		Label emptyLabel2 = new Label("");
+//		emptyLabel2.setHeight("1em");
+//		mainLayout.addComponent(emptyLabel2);
 
 		// OptionGroup graphOption
 		ogOutputFormat = new OptionGroup("Output:");
@@ -252,10 +252,10 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
 		mainLayout.addComponent(tfOutputPredicate);
 
-		//empty line
-		Label emptyLabel3 = new Label("");
-		emptyLabel3.setHeight("1em");
-		mainLayout.addComponent(emptyLabel3);
+//		//empty line
+//		Label emptyLabel3 = new Label("");
+//		emptyLabel3.setHeight("1em");
+//		mainLayout.addComponent(emptyLabel3);
 
 		//TODO validate input
 		tfOutputXSLTMethod = new TextField();
@@ -267,10 +267,10 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
 
 		mainLayout.addComponent(tfOutputXSLTMethod);
 
-		//empty line
-		Label emptyLabel4 = new Label("");
-		emptyLabel4.setHeight("1em");
-		mainLayout.addComponent(emptyLabel4);
+//		//empty line
+//		Label emptyLabel4 = new Label("");
+//		emptyLabel4.setHeight("1em");
+//		mainLayout.addComponent(emptyLabel4);
 
 		//TODO validate input
 		tfEscaped = new TextField();
@@ -291,10 +291,10 @@ public class SimpleXSLTDialog extends BaseConfigDialog<SimpleXSLTConfig> {
          //***************
 		// TEXT AREA
 		//***************
-		//empty line
-		Label emptyLabel5 = new Label("");
-		emptyLabel4.setHeight("1em");
-		mainLayout.addComponent(emptyLabel5);
+//		//empty line
+//		Label emptyLabel5 = new Label("");
+//		emptyLabel4.setHeight("1em");
+//		mainLayout.addComponent(emptyLabel5);
 
 		taXSLTemplate = new TextArea();
 

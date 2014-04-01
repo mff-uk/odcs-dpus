@@ -193,18 +193,6 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         }
         log.info("Stylesheet was compiled successully");
 
-//        //try to compile XSLT
-//        Processor proc = new Processor(false);
-//        XsltCompiler compiler = proc.newXsltCompiler();
-//        XsltExecutable exp;
-//        try {
-//            exp = compiler.compile(new StreamSource(xslTemplate));
-//            log.info("Stylesheet was compiled successully");
-//            //log.debug("Stylesheet is: {}", DataUnitUtils.readFile(pathToXslTemplate));
-//        } catch (SaxonApiException ex) {
-//            throw new DPUException("Cannot compile XSLT: " + ex.getLocalizedMessage());
-//        }
-
         if (rdfInput != null) {
             String query = "SELECT (count(distinct(?s)) as ?count ) where {?s <" + config.getInputPredicate() + "> ?o}";
             log.debug("Query for counting number of input files: {}", query);
@@ -257,11 +245,17 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
                         //store the input content to file, inputs are xml files!
                         String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
-                        File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
-                        if (file == null) {
+                        File inputFile = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
+                        if (inputFile == null) {
                             log.warn("Problem processing object for subject {}", subject);
                             continue;
                         }
+                        
+                        //generate path to file with output
+                        //prepare the name of a file holding the output of XSLT
+                        String outputPathFileWithoutExtension = prepareOutputFileNameStub(pathToWorkingDir, fileNumber);
+                        File outputFile = new File(outputPathFileWithoutExtension);
+                        //String outputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
 
 
                         //get metadata - XSLT params only
@@ -279,22 +273,21 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                         //TODO Collect XSLT params
                         //Map<String, String> collectedXsltParams = collectXsltParams(xslTemplate,subject);
                         //String outputString = executeXSLT(xslTemplate, file, xsltParams);
-                        String outputString = executeXSLT(templates, file, xsltParams);
-                        if (outputString == null) {
+                        if (!executeXSLT(templates, inputFile, outputFile, xsltParams)) {
                             log.warn("Problem generating output of xslt transformation for subject {}. No output created. ", subject);
                             continue;
                         }
 
-                        log.info("XSLT executed successfully, about to create output");
-
-                        //prepare the stub of the name of a file holding the output of XSLT
-                        String outputPathFileWithoutExtension = prepareOutputFileNameStub(pathToWorkingDir, fileNumber);
-
                         //Prepares object being responsible for storing output of the XSLT to the output rdf data unit 
-                        RDFLoaderWrapper resultRDFDataLoader = createOutput(outputString, subject, outputPathFileWithoutExtension);
+                        if(!loadDataToTargetRDFDataUnit(outputFile, subject, outputPathFileWithoutExtension)) {
+                             log.warn("Problem adding output of xslt transformation for subject {} to rdf data unit. No output created. ", subject);
+                             continue;
+                        };
 
+                        log.info("XSLT executed successfully, output created successfully");
+                        
                         //stores data to target rdf unit
-                        loadDataToTargetRDFDataUnit(resultRDFDataLoader, String.valueOf(fileNumber), context);
+                        //loadDataToTargetRDFDataUnit(resultRDFDataLoader, String.valueOf(fileNumber), context);
 
                         //if the DPU was cancelled, execution ends. 
                         if (context.canceled()) {
@@ -383,9 +376,24 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
         log.debug("Processing file with file path {}", fh.getRootedPath());
 
-        final File file = fh.asFile();
+        //inputs
+        final File inputFile = fh.asFile();
         String fileName = fh.getName();
 
+        //prepare the stub of the name of a file holding the output of XSLT
+        String pathToWorkingDir;
+        try {
+            pathToWorkingDir = context.getWorkingDir().getCanonicalPath();
+        } catch (IOException ex) {
+            throw new DPUException("Cannot get path to working dir: " + ex.getLocalizedMessage());
+        }
+        //prepare the output file holding the output of XSLT
+        String outputPathFolder = pathToWorkingDir + File.separator + "out" + File.separator;
+        DataUnitUtils.checkExistanceOfDir(outputPathFolder);
+        String outputPathFileWithoutExtension = outputPathFolder + fileName;
+        File outputFile = new File(outputPathFileWithoutExtension);
+        //String outputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
+        
         //get metadata
         List<String> predicates = new ArrayList<String>();
         predicates.add(OdcsTerms.DATA_UNIT_FILE_URI_PREDICATE);
@@ -405,26 +413,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         Map<String, String> collectedXsltParams = getXsltParams(metadata);
         
         //String outputString = executeXSLT(xslTemplate, file, xsltParams);
-        String outputString = executeXSLT(templates, file, collectedXsltParams);
-        if (outputString == null) {
+        if (!executeXSLT(templates, inputFile, outputFile, collectedXsltParams)) {
             log.warn("Problem generating output of xslt transformation for subject {}. No output created. ", fileName);
             return false;
         }
-
-        log.info("XSLT executed successfully, about to create output");
-        //log.debug("Output of the transformation: {}", outputString);
-
-        //prepare the stub of the name of a file holding the output of XSLT
-        String pathToWorkingDir;
-        try {
-            pathToWorkingDir = context.getWorkingDir().getCanonicalPath();
-        } catch (IOException ex) {
-            throw new DPUException("Cannot get path to working dir: " + ex.getLocalizedMessage());
-        }
-        String outputPathFolder = pathToWorkingDir + File.separator + "out" + File.separator;
-        DataUnitUtils.checkExistanceOfDir(outputPathFolder);
-        String outputPathFileWithoutExtension = outputPathFolder + fileName;
-
         
         //subject is interesting only when "Literal" output is used
         String subject = "";
@@ -442,10 +434,15 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             }
         }
 
-        RDFLoaderWrapper resultRDFDataLoader = createOutput(outputString, subject, outputPathFileWithoutExtension);
+        //Prepares object being responsible for storing output of the XSLT to the output rdf data unit 
+        if(!loadDataToTargetRDFDataUnit(outputFile, subject, outputPathFileWithoutExtension)) {
+             log.warn("Problem adding output of xslt transformation for subject {} to rdf data unit. No output created. ", subject);
+             return false;
+        }
 
-        loadDataToTargetRDFDataUnit(resultRDFDataLoader, fileName, context);
-
+        log.info("XSLT executed successfully, output created successfully");
+        
+        
         //if the DPU was cancelled, execution ends. 
         if (context.canceled()) {
             throw new DPUException("DPU Cancelled");
@@ -480,19 +477,23 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     /**
      *
      * @param xslTemplate
-     * @param file
+     * @param inputFile
      * @param xsltParams
      * @param exp Compiled stylesheet
      * @return
      */
-    private String executeXSLT(Templates templates, File file, Map<String, String> xsltParams) {
+    private boolean executeXSLT(Templates templates, File inputFile, File outputFile, Map<String, String> xsltParams) {
 
-        if (file == null) {
+        if (inputFile == null) {
             log.error("Invalid inputs to executeXSLT method");
-            return null;
+            return false;
+        }
+         if (outputFile == null) {
+            log.error("No output file to executeXSLT method");
+            return false;
         }
 
-        String result = null;
+//        String result = null;
         log.debug("XSLT is being prepared to be executed");
         try {
 
@@ -511,35 +512,37 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 log.debug("Set param {} with value {}", s, xsltParams.get(s));
             }
 
-            StringWriter resultWriter = new StringWriter();
+            
+//            StringWriter resultWriter = new StringWriter();
             Date start = new Date();
             log.debug("XSLT is about to be executed");
-            transformer.transform(new StreamSource(file),
-                    new StreamResult(resultWriter));
+            transformer.transform(new StreamSource(inputFile),
+                    new StreamResult(outputFile));
 
             log.debug("XSLT executed in {} ms", (System.currentTimeMillis() - start.getTime()));
 
-            resultWriter.flush();
-            result = resultWriter.toString();
+//            resultWriter.flush();
+//            result = resultWriter.toString();
 
-            if (result.trim().equals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
-                log.warn("Template applied to the input generated output containing only: <?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
-                return null;
-            }
+// TODO Do we need these refinements of the output? 
+//            if (result.trim().equals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
+//                log.warn("Template applied to the input generated output containing only: <?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
+//                return null;
+//            }
+//
+//            if (result.trim().matches("<?xml[^>]*?>")) {
+//                log.warn("Template applied to the input generated output containing only: <?xml ... ?> .");
+//                return null;
+//            }
 
-            if (result.trim().matches("<?xml[^>]*?>")) {
-                log.warn("Template applied to the input generated output containing only: <?xml ... ?> .");
-                return null;
-            }
-
-            return result;
+            return true;
 
         } catch (TransformerConfigurationException tce) {
             log.error("Exception: " + tce);
         } catch (TransformerException te) {
             log.error("Exception: " + te);
         }
-        return null;
+        return false;
 
 
         /*
@@ -629,30 +632,28 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
      * should be created. Extension is added based on the type of the output
      * @return
      */
-    private RDFLoaderWrapper createOutput(String outputString, String subject, String outputFileWithoutExtension) {
+    private boolean loadDataToTargetRDFDataUnit(File outputFile, String subject, String outputFileWithoutExtension) {
 
-
+        
         RDFLoaderWrapper loaderWrapper = null;
-        String outputFile = null;
         switch (config.getOutputType()) {
             case RDFXML:
-                outputFile = outputFileWithoutExtension + ".rdf";
-
-                DataUnitUtils.storeStringToTempFile(outputString, outputFile);
                 loaderWrapper = new DataRDFXML(rdfOutput, outputFile);
                 break;
             case TTL:
-                outputFile = outputFileWithoutExtension + ".ttl";
-
-                DataUnitUtils.storeStringToTempFile(outputString, outputFile);
                 loaderWrapper = new DataTTL(rdfOutput, outputFile);
-
                 break;
             case Literal:
                 //OUTPUT
                 //check URI
                 java.net.URI compiledURI = java.net.URI.create(subject);
 
+                //get the content of outputFile
+                //TODO adjust the file directly. Currently, this approach is not suitable for big files 
+                //because the whole file is loading to String, adjusted, and then loaded back !
+                String pathToOutputFile = outputFile.getPath().toString();
+                String outputString = DataUnitUtils.readFile(pathToOutputFile);
+                
                 Resource subj = rdfOutput.createURI(subject);
                 URI pred = rdfOutput.createURI(config.getOutputPredicate());
                 //encode object as needed
@@ -661,43 +662,51 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
 
 
-                outputFile = outputFileWithoutExtension + ".ttl";
-                DataUnitUtils.storeStringToTempFile(preparedTriple, outputFile);
+                String outputFileNameAdjusted = pathToOutputFile + "TripleWrap";
+                File outputFileAdjusted = DataUnitUtils.storeStringToTempFile(preparedTriple, outputFileNameAdjusted);
 
-                loaderWrapper = new DataTTL(rdfOutput, outputFile);
+                loaderWrapper = new DataTTL(rdfOutput, outputFileAdjusted);
 
                 break;
 
             default:
                 log.error("Unsupported type of output");
-                return null;
+                return false;
 
         }
+        
+         try {
+              //load RDF data to data unit
+              loaderWrapper.addData();
+          } catch (RDFException ex) {
+              log.error(ex.getLocalizedMessage());
+          }
+          log.info("Output created successfully");
 
-        return loaderWrapper;
+        return true;
 
 
 
     }
 
-    /**
-     * Physically loads the data prepared in the {@link RDFLoaderWrapper}
-     *
-     * @param resultRDFDataLoader Class holding information about the way how
-     * the data should be loaded to output data unit
-     * @param fileNumber Number of file being processed. Used when logging
-     * success/failure
-     * @param context Context of the XSLT DPU used when DPU is canceled
-     */
-    private void loadDataToTargetRDFDataUnit(RDFLoaderWrapper resultRDFDataLoader, String fileName, DPUContext context) {
-        
-        try {
-            //load RDF data to data unit
-            resultRDFDataLoader.addData(new File(resultRDFDataLoader.getOutputPath()));
-        } catch (RDFException ex) {
-            log.error(ex.getLocalizedMessage());
-        }
-        log.info("Output created successfully");
+//    /**
+//     * Physically loads the data prepared in the {@link RDFLoaderWrapper}
+//     *
+//     * @param resultRDFDataLoader Class holding information about the way how
+//     * the data should be loaded to output data unit
+//     * @param fileNumber Number of file being processed. Used when logging
+//     * success/failure
+//     * @param context Context of the XSLT DPU used when DPU is canceled
+//     */
+//    private void loadDataToTargetRDFDataUnit(RDFLoaderWrapper resultRDFDataLoader, String fileName, DPUContext context) {
+//        
+//        try {
+//            //load RDF data to data unit
+//            resultRDFDataLoader.addData();
+//        } catch (RDFException ex) {
+//            log.error(ex.getLocalizedMessage());
+//        }
+//        log.info("Output created successfully");
 
 //        boolean retry = false;
 //        int numberOfTries = 0;
@@ -744,7 +753,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 //            }
 //        } while (retry);
 
-    }
+//    }
 
     private String prepareOutputFileNameStub(String pathToWorkingDir, int fileNumber) {
 

@@ -14,14 +14,14 @@ import java.io.File;
  */
 public class DataRDFXML extends RDFLoaderWrapper {
 
-    public DataRDFXML(RDFDataUnit _du, String outputPath) {
-        super(_du, outputPath);
+    public DataRDFXML(RDFDataUnit _du, File outputFile) {
+        super(_du, outputFile);
     }
 
     
     @Override
-    public void addData(File f) throws RDFException {
-         du.addFromRDFXMLFile(f);
+    public void addData() throws RDFException {
+         du.addFromRDFXMLFile(outputFile);
          
     }
     

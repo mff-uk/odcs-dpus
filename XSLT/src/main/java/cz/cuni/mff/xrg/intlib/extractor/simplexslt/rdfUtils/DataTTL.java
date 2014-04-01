@@ -14,14 +14,14 @@ import java.io.File;
  */
 public class DataTTL extends RDFLoaderWrapper {
 
-    public DataTTL(RDFDataUnit _du, String outputPath) {
-        super(_du, outputPath);
+    public DataTTL(RDFDataUnit _du, File outputFile) {
+        super(_du, outputFile);
     }
 
     
     @Override
-    public void addData(File f) throws RDFException {
-         du.addFromTurtleFile(f);
+    public void addData() throws RDFException {
+         du.addFromTurtleFile(outputFile);
          
     }
     
