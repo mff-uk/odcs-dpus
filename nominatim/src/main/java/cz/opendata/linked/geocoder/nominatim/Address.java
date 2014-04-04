@@ -86,6 +86,9 @@ public class Address {
 
     public String toFilename() {
         String filename = toString().replaceAll("\\s", "_").replaceAll("[^\\d\\w_]", "-");
+        if (config.isStructured()) {
+            filename = "structured-" + filename;
+        }
         return filename;
     }
 
