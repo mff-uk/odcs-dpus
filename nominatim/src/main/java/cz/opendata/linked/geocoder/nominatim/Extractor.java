@@ -18,7 +18,10 @@ import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.openrdf.model.*;
+import org.openrdf.model.Graph;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.Logger;
@@ -28,7 +31,6 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -133,20 +135,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	    return sResponse;
 	}
-
-	private String getAddressPart(Resource currentAddressURI, URI currentPropertyURI, Graph resGraph) {
-		Iterator<Statement> it1 = resGraph.match(currentAddressURI, currentPropertyURI, null); 
-		String currentValueString = null;
-		if (it1.hasNext())
-		{
-			Value currentValue = it1.next().getObject();
-			if (currentValue != null)
-			{
-				currentValueString = currentValue.stringValue();
-			}
-		}
-		return currentValueString;
-	}
 	
 	public void execute(DPUContext ctx) throws DPUException
 	{
@@ -159,11 +147,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		URI geoURI = outGeo.createURI("http://schema.org/geo");
 		URI geocoordsURI = outGeo.createURI("http://schema.org/GeoCoordinates");
 		URI postalAddressURI = sAddresses.createURI("http://schema.org/PostalAddress");
-		URI streetAddressURI = sAddresses.createURI("http://schema.org/streetAddress");
-		URI addressRegionURI = sAddresses.createURI("http://schema.org/addressRegion");
-		URI addressLocalityURI = sAddresses.createURI("http://schema.org/addressLocality");
-		URI addressCountryURI = sAddresses.createURI("http://schema.org/addressCountry");
-		URI postalCodeURI = sAddresses.createURI("http://schema.org/postalCode");
 		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
 		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
 		URI longURI = outGeo.createURI("http://schema.org/longitude");
@@ -212,10 +195,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		}
 
 		try {
-			
-			//Schema.org addresses
 			logger.debug("Executing Schema.org query: " + sOrgConstructQuery);
-			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
 			Graph resGraph = sAddresses.executeConstructQuery(sOrgConstructQuery);
 			
 			logger.debug("Starting geocoding.");
@@ -230,31 +210,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			{
 				count++;
 				Resource currentAddressURI = it.next().getSubject();
-				
-				String streetAddress, addressLocality, addressRegion, postalCode, addressCountry;
-				
-				streetAddress = getAddressPart(currentAddressURI, streetAddressURI, resGraph);
-				addressLocality = getAddressPart(currentAddressURI, addressLocalityURI, resGraph);
-				addressRegion = getAddressPart(currentAddressURI, addressRegionURI, resGraph);
-				postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
-				//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
-				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
-				
-				String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " " 
-				+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " " 
-				+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " " 
-				+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " " 
-				+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[\\s\\W][\\dIVX]+[\\s\\W]",  " ") : addressLocality) : "");
-				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
+
+                Address address = Address.buildFromRdf(config, resGraph, currentAddressURI);
+				logger.debug("Address to geocode (" + count + "/" + total + "): " + address.toString());
 								
-				String file;
-				if (config.isStructured())
+				String file = address.toFilename();
+                if (config.isStructured())
 				{
-					file = "structured-" + address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
-				}
-				else
-				{
-					file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
+					file = "structured-" + file;
 				}
 				//CACHE
 				
@@ -274,9 +237,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						}
 					}
 
-                    String url = buildUrl(streetAddress, addressLocality, addressRegion, postalCode, address);
-					
-					String out = null;
+                    String url = null;
+                    try {
+                        url = address.buildQuery();
+                    } catch (UnsupportedEncodingException e) {
+                        logger.error("Error while building request " + e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    String out = null;
 					try {
 						out = getURLContent(url.toString());
 					} catch (IOException e1) {
@@ -286,7 +255,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					
 					geocodes++;
 					logger.debug("Queried Nominatim (" + geocodes + "): " + address + " as " + url);
-					logger.debug("Result of request: " + out);
 					try {
 						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 						fw.append(out);
@@ -357,34 +325,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Nominatim: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
 
 	}
-
-    private String buildUrl(String streetAddress, String addressLocality, String addressRegion, String postalCode, String address) {
-        String url = "";
-        try {
-            if (config.isStructured()) {
-                url = "http://nominatim.openstreetmap.org/search?format=json"
-                    + (config.isUseStreet() ? "&street=" + encodeForUrl(streetAddress) : "")
-                    + (config.isUseLocality() ? "&city=" + encodeForUrl((config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]", "").replace(" (I)+", "") : addressLocality)) : "" )
-                    + (config.getCountry().isEmpty() ? "" : "&state=" + encodeForUrl(config.getCountry()))
-                    + (config.isUsePostalCode() ? "&postalcode=" + encodeForUrl(postalCode) : "")
-                    + (config.isUseRegion() ? "&county=" + encodeForUrl(addressRegion) : "");
-            }
-            else {
-                url = "http://nominatim.openstreetmap.org/search?format=json&q=" + encodeForUrl(address);
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return url;
-    }
-
-    private String encodeForUrl(String value) throws UnsupportedEncodingException {
-        if (value == null) {
-            return "";
-        } else {
-            return URLEncoder.encode(value, "UTF-8");
-        }
-    }
 
     @Override
 	public void cleanUp() {	}
