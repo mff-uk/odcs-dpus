@@ -1,29 +1,8 @@
 package cz.opendata.linked.geocoder.nominatim;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.openrdf.model.Graph;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.QueryEvaluationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -35,14 +14,25 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
-
-import org.apache.commons.io.*;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.openrdf.model.*;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.QueryEvaluationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 
 @AsExtractor
 public class Extractor 
@@ -178,6 +168,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
 		URI longURI = outGeo.createURI("http://schema.org/longitude");
 		URI latURI = outGeo.createURI("http://schema.org/latitude");
+        URI urlURI = outGeo.createURI("http://schema.org/url");
 		String countQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
@@ -306,7 +297,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					lastDownload = date.getTime();
 					
 					geocodes++;
-					logger.debug("Queried Nominatim (" + geocodes + "): " + address);
+					logger.debug("Queried Nominatim (" + geocodes + "): " + address + " as " + url);
 					
 					try {
 						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
@@ -347,12 +338,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					String uri = currentAddressURI.stringValue();
 					URI addressURI = outGeo.createURI(uri);
 					URI coordURI = outGeo.createURI(uri+"/geocoordinates/nominatim");
+                    URI webURI = outGeo.createURI("http://www.openstreetmap.org/search?query=#map=13/" + latitude.toString() + "/" + longitude.toString());
 					
 					outGeo.addTriple(addressURI, geoURI , coordURI);
 					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
 					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
 					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 					outGeo.addTriple(coordURI, dcsource, nominatimURI);
+                    outGeo.addTriple(coordURI, urlURI, webURI);
 				} catch (Exception e) {
 					logger.warn(e.getLocalizedMessage());
 					e.printStackTrace();
