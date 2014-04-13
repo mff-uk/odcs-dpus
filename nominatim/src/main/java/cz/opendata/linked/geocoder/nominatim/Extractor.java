@@ -28,6 +28,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -122,7 +123,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	    String sResponse = null;
 
         oURL = new URL(p_sURL);
-        oURL.openConnection();
         try	{
         	sResponse = IOUtils.toString(oURL, "UTF-8");
         }
@@ -273,20 +273,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 							logger.info("Interrupted while sleeping");
 						}
 					}
-					
-					String url;
-					if (config.isStructured()) {
-						url = "http://nominatim.openstreetmap.org/search?format=json" 
-								+ (config.isUseStreet() ? "&street=" + streetAddress : "") 
-								+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
-								+ (config.getCountry().isEmpty() ? "" : "&state=" + config.getCountry()) 
-								+ (config.isUsePostalCode() ? "&postalcode=" + postalCode : "")
-								+ (config.isUseRegion() ? "&county=" + addressRegion : "");
-						//url = url.replace(" ", "+");
-					}
-					else {
-						url = "http://nominatim.openstreetmap.org/search?format=json&q=" + address.replace(" ", "+");
-					}
+
+                    String url = buildUrl(streetAddress, addressLocality, addressRegion, postalCode, address);
 					
 					String out = null;
 					try {
@@ -298,7 +286,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					
 					geocodes++;
 					logger.debug("Queried Nominatim (" + geocodes + "): " + address + " as " + url);
-					
+					logger.debug("Result of request: " + out);
 					try {
 						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 						fw.append(out);
@@ -367,7 +355,35 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	}
 
-	@Override
+    private String buildUrl(String streetAddress, String addressLocality, String addressRegion, String postalCode, String address) {
+        String url = "";
+        try {
+            if (config.isStructured()) {
+                url = "http://nominatim.openstreetmap.org/search?format=json"
+                    + (config.isUseStreet() ? "&street=" + encodeForUrl(streetAddress) : "")
+                    + (config.isUseLocality() ? "&city=" + encodeForUrl((config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]", "").replace(" (I)+", "") : addressLocality)) : "" )
+                    + (config.getCountry().isEmpty() ? "" : "&state=" + encodeForUrl(config.getCountry()))
+                    + (config.isUsePostalCode() ? "&postalcode=" + encodeForUrl(postalCode) : "")
+                    + (config.isUseRegion() ? "&county=" + encodeForUrl(addressRegion) : "");
+            }
+            else {
+                url = "http://nominatim.openstreetmap.org/search?format=json&q=" + encodeForUrl(address);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
+    private String encodeForUrl(String value) throws UnsupportedEncodingException {
+        if (value == null) {
+            return "";
+        } else {
+            return URLEncoder.encode(value, "UTF-8");
+        }
+    }
+
+    @Override
 	public void cleanUp() {	}
 
 }
