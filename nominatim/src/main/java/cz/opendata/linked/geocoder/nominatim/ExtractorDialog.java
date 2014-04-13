@@ -14,8 +14,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
-	private static final long serialVersionUID = 7003725620084616056L;
-	
 	private GridLayout mainLayout;
     private TextField interval;
     private TextField limit;
