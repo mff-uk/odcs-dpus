@@ -7,6 +7,8 @@ import org.openrdf.model.impl.URIImpl;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Address {
 
@@ -50,7 +52,7 @@ public class Address {
     }
 
     private String stripNumbersFromCity(String city) {
-        return city.replaceAll("[\\s\\W][\\dIVX]+[\\s\\W]",  " ");
+        return city.replaceAll("([\\s\\W][\\dIVX]+[\\s\\W]|[\\s\\W][\\dIVX]+$)",  " ");
     }
 
     public static Address buildFromRdf(ExtractorConfig config, Graph graph, Resource address) {
@@ -85,29 +87,29 @@ public class Address {
     }
 
     public String toFilename() {
-        String filename = toString().replaceAll("\\s", "_").replaceAll("[^\\d\\w_]", "-");
+        String filename = toString().replaceAll("\\s", "_").replaceAll("[^\\d\\p{L}_]", "-");
         if (config.isStructured()) {
             filename = "structured-" + filename;
         }
         return filename;
     }
 
-    private String[] getParts() {
-        String[] parts = new String[5];
+    private List<String> getParts() {
+        List parts = new LinkedList<String>();
         if (street != "") {
-            parts[0] = street;
+            parts.add(street);
         }
         if (city != "") {
-            parts[1] = street;
+            parts.add(city);
         }
         if (region != "") {
-            parts[2] = region;
+            parts.add(region);
         }
         if (country != "") {
-            parts[3] = country;
+            parts.add(country);
         }
         if (postalCode != "") {
-            parts[4] = postalCode;
+            parts.add(postalCode);
         }
         return parts;
     }
@@ -122,7 +124,7 @@ public class Address {
             url += "&postalcode=" + encodeForUrl(postalCode);
         }
         else {
-            url = "&q=" + encodeForUrl(toString(" "));
+            url += "&q=" + encodeForUrl(toString(" "));
         }
         return url;
     }
@@ -135,4 +137,19 @@ public class Address {
         }
     }
 
+    public Address getAlternative() {
+        Address alternative = null;
+        if (cityIsSubstringOfStreet() || streetIsOnlyNumeric()) {
+            alternative = new Address(config, city, city, region, country, postalCode);
+        }
+        return alternative;
+    }
+
+    private boolean cityIsSubstringOfStreet() {
+        return street != city && (street.matches("^\\d+\\w?(/\\d+\\w?)? " + city) || street.matches(city + " \\d+"));
+    }
+
+    private boolean streetIsOnlyNumeric() {
+        return street.trim().matches("^\\d+$");
+    }
 }

@@ -40,7 +40,7 @@ import java.util.Map;
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
-implements DPU, ConfigDialogProvider<ExtractorConfig> {
+implements ConfigDialogProvider<ExtractorConfig> {
 
 	/**
 	 * DPU's configuration.
@@ -84,6 +84,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
             logger.error(e.getLocalizedMessage());
             ctx.sendMessage(MessageType.ERROR, "Failed to query for addresses, ending");
             return;
+        } catch (NullPointerException e) {
+            logger.error(e.getLocalizedMessage());
+            ctx.sendMessage(MessageType.ERROR, "Failed to query for addresses, ending");
+            return;
         }
 
         Iterator<Statement> it = graph.match(null, RDF.TYPE, sAddresses.createURI("http://schema.org/PostalAddress"));
@@ -100,32 +104,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
             Address address = Address.buildFromRdf(config, graph, currentAddressURI);
 
-            logger.debug("Address to geocode (" + count + "/" + total + "): " + address.toString());
-
-            File hFile = getCacheFile(ctx, address.toFilename());
-
-            if (!hFile.exists())
-            {
-                lastDownload = requestAndCache(date, lastDownload, address, hFile);
-            }
-            else {
-                cacheHits++;
-                logger.debug("From cache (" + cacheHits + "): " + address);
-            }
-
-            try {
-                QueryResult result = readDataFromCache(address, hFile);
-                if (result == null) {
-                    failed++;
-                    logger.debug("Failed to geolocate (" + failed + "): " + address);
-                } else {
-                    logger.debug("Located: " + address + " Possibilities: " + result.getLength() + " Latitude: " + result.getLatitude() + " Longitude: " + result.getLongitude());
-                    appendResultToDataUnit(result, currentAddressURI);
-                }
-            } catch (IOException e) {
-                logger.error(e.getLocalizedMessage());
-                e.printStackTrace();
-            }
+            lastDownload = geocodeAddress(ctx, date, total, lastDownload, currentAddressURI, address);
         }
 
         if (ctx.canceled()) {
@@ -139,6 +118,41 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Nominatim: "+ geocoded +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
 	}
+
+    private long geocodeAddress(DPUContext ctx, Date date, int total, long lastDownload, Resource currentAddressURI, Address address) {
+        logger.debug("Address to geocode (" + count + "/" + total + "): " + address.toString());
+
+        File hFile = getCacheFile(ctx, address.toFilename());
+
+        if (!hFile.exists())
+        {
+            lastDownload = requestAndCache(date, lastDownload, address, hFile);
+        }
+        else {
+            cacheHits++;
+            logger.debug("From cache (" + cacheHits + "): " + address);
+        }
+
+        try {
+            QueryResult result = readDataFromCache(address, hFile);
+            if (result == null) {
+                failed++;
+                logger.debug("Failed to geolocate (" + failed + "): " + address);
+                Address alternativeAddress = address.getAlternative();
+                if (alternativeAddress != null) {
+                    logger.debug("Trying alternative address");
+                    geocodeAddress(ctx, date, total, lastDownload, currentAddressURI, alternativeAddress);
+                }
+            } else {
+                logger.debug("Located: " + address + " Possibilities: " + result.getLength() + " Latitude: " + result.getLatitude() + " Longitude: " + result.getLongitude());
+                appendResultToDataUnit(result, currentAddressURI);
+            }
+        } catch (IOException e) {
+            logger.error(e.getLocalizedMessage());
+            e.printStackTrace();
+        }
+        return lastDownload;
+    }
 
     private void appendResultToDataUnit(QueryResult result, Resource currentAddressURI) {
         URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
