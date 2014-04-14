@@ -127,24 +127,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
 				+  "}";*/ 
 		String sOrgConstructQuery = "PREFIX s: <http://schema.org/> "
-				+ "CONSTRUCT {?address ?p ?o}"
+				+ "CONSTRUCT {?address ?p ?o ; s:addressCountry ?country }"
 				+ "WHERE "
 				+ "{"
 					+ "?address a s:PostalAddress ;"
 					+ "			?p ?o . "
-//					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
-				+  "}"; 
-		/*String sOrgQuery = "PREFIX s: <http://schema.org/> "
-				+ "SELECT DISTINCT * "
-				+ "WHERE "
-				+ "{"
-					+ "{?address a s:PostalAddress . } "
-					+ "UNION { ?address s:streetAddress ?street . } "
-					+ "UNION { ?address s:addressRegion ?region . } "
-					+ "UNION { ?address s:addressLocality ?locality . } "
-					+ "UNION { ?address s:postalCode ?postal . } "
-					+ "UNION { ?address s:addressCountry ?country . } "
-				+ " }";*/
+                + " OPTIONAL {"
+                    + "?address s:addressCountry ?c ."
+                    + "?c s:name ?country ."
+                + "}"
+				+  "}";
 
 		LOG.debug("Geocoder init");
 		
@@ -195,11 +187,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (it1.hasNext())
 					{
 						Value currentValue = it1.next().getObject();
-						if (currentValue != null)
+						if (currentValue != null && !currentValue.stringValue().startsWith("http://"))
 						{
-							//logger.trace("Currently " + currentBinding);
 							String currentValueString = currentValue.stringValue();
-							//logger.trace("Value " + currentValueString);
 							addressToGeoCode.append(currentValueString);
 							addressToGeoCode.append(" ");
 						}

@@ -23,9 +23,30 @@ public class Address {
     private static URI addressRegionURI = new URIImpl("http://schema.org/addressRegion");
     private static URI addressLocalityURI = new URIImpl("http://schema.org/addressLocality");
     private static URI postalCodeURI = new URIImpl("http://schema.org/postalCode");
+    private static URI countryURI = new URIImpl("http://schema.org/addressCountry");
 
     public Address(ExtractorConfig config, String street, String city, String region, String country, String postalCode) {
         this.config = config;
+
+        this.street = street;
+        this.city = city;
+        this.region = region;
+        this.country = country;
+        this.postalCode = postalCode;
+    }
+
+    private static String stripNumbersFromCity(String city) {
+        return city.replaceAll("([\\s\\W][\\dIVX]+[\\s\\W]|[\\s\\W][\\dIVX]+$)",  " ");
+    }
+
+    public static Address buildFromRdf(ExtractorConfig config, Graph graph, Resource address) {
+
+        String street = getAddressPart(address, streetAddressURI, graph);
+        String city = getAddressPart(address, addressLocalityURI, graph);
+        String region = getAddressPart(address, addressRegionURI, graph);
+        String postalCode = getAddressPart(address, postalCodeURI, graph);
+        String country = getAddressPart(address, countryURI, graph);
+        String countryFallback = config.getCountry();
 
         if (street == null || !config.isUseStreet()) {
             street = "";
@@ -38,31 +59,18 @@ public class Address {
         if (region == null || !config.isUseRegion()) {
             region = "";
         }
-        if (country == null) {
-            country = "";
+        if (country == null || !config.isUseCountry()) {
+            if (countryFallback == null) {
+                country = "";
+            } else {
+                country = countryFallback;
+            }
         }
         if (postalCode == null || !config.isUsePostalCode()) {
             postalCode = "";
         }
-        this.street = street;
-        this.city = city;
-        this.region = region;
-        this.country = country;
-        this.postalCode = postalCode;
-    }
 
-    private String stripNumbersFromCity(String city) {
-        return city.replaceAll("([\\s\\W][\\dIVX]+[\\s\\W]|[\\s\\W][\\dIVX]+$)",  " ");
-    }
-
-    public static Address buildFromRdf(ExtractorConfig config, Graph graph, Resource address) {
-
-        String street = getAddressPart(address, streetAddressURI, graph);
-        String city = getAddressPart(address, addressLocalityURI, graph);
-        String region = getAddressPart(address, addressRegionURI, graph);
-        String postalCode = getAddressPart(address, postalCodeURI, graph);
-
-        return new Address(config, street, city, region, config.getCountry(), postalCode);
+        return new Address(config, street, city, region, country, postalCode);
     }
 
     private static String getAddressPart(Resource address, URI currentPropertyURI, Graph graph) {
@@ -71,7 +79,7 @@ public class Address {
         if (it1.hasNext())
         {
             Value currentValue = it1.next().getObject();
-            if (currentValue != null)
+            if (currentValue != null && !currentValue.stringValue().startsWith("http://"))
             {
                 currentValueString = currentValue.stringValue();
             }
@@ -120,11 +128,11 @@ public class Address {
             url += "&street=" + encodeForUrl(street);
             url += "&city=" + encodeForUrl(city);
             url += "&county=" + encodeForUrl(region);
-            url += "&state=" + encodeForUrl(country);
+            url += "&country=" + encodeForUrl(country);
             url += "&postalcode=" + encodeForUrl(postalCode);
         }
         else {
-            url += "&q=" + encodeForUrl(toString(" "));
+            url += "q=" + encodeForUrl(toString(" "));
         }
         return url;
     }

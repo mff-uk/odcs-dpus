@@ -279,11 +279,15 @@ implements ConfigDialogProvider<ExtractorConfig> {
 
     private Graph queryAddresses() throws InvalidQueryException {
         String sOrgConstructQuery = "PREFIX s: <http://schema.org/> "
-                + "CONSTRUCT {?address ?p ?o}"
+                + "CONSTRUCT {?address ?p ?o ; s:addressCountry ?country}"
                 + "WHERE "
                 + "{"
                 + "?address a s:PostalAddress ;"
                 + "			?p ?o . "
+                + " OPTIONAL {"
+                        + "?address s:addressCountry ?c ."
+                        + "?c s:name ?country ."
+                + "}"
                 +  "}";
 
         logger.debug("Executing Schema.org query: " + sOrgConstructQuery);

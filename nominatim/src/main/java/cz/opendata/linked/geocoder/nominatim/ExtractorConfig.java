@@ -30,8 +30,9 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     private boolean useLocality = true;
     
     private boolean usePostalCode = false;
+    private boolean useCountry;
 
-	public int getLimit() {
+    public int getLimit() {
 		return limit;
 	}
 
@@ -117,5 +118,13 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
     public void setGenerateMapUrl(boolean generateMapUrl) {
         this.generateMapUrl = generateMapUrl;
+    }
+
+    public boolean isUseCountry() {
+        return useCountry;
+    }
+
+    public void setUseCountry(boolean useCountry) {
+        this.useCountry = useCountry;
     }
 }

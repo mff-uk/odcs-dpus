@@ -22,7 +22,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private CheckBox stripNumFromLocality;
     private CheckBox generateMapUrl;
     private TwinColSelect tcsProperties;
-    private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode"};
+    private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode", "s:addressCountry"};
     
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -63,6 +63,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
         country = new TextField();
         country.setCaption("Country");
+        country.setDescription("Fallback to schema:addressCountry property");
         mainLayout.addComponent(country);
 
         interval = new TextField();
@@ -105,6 +106,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		if (conf.isUseRegion()) values.add(properties[1]);
 		if (conf.isUseLocality()) values.add(properties[2]);
 		if (conf.isUsePostalCode()) values.add(properties[3]);
+		if (conf.isUseCountry()) values.add(properties[4]);
 		tcsProperties.setValue(values);
 	}
 
@@ -124,7 +126,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.setUseRegion(values.contains(properties[1]));
 		conf.setUseLocality(values.contains(properties[2]));
 		conf.setUsePostalCode(values.contains(properties[3]));
-		
+		conf.setUseCountry(values.contains(properties[4]));
+
 		return conf;
 	}
 	
