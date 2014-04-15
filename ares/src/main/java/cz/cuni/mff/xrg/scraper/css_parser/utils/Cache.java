@@ -84,13 +84,13 @@ public class Cache {
 		File hPath = new File(Cache.basePath, host + File.separatorChar + path);
 		File hFile = new File(hPath, file);
 		
-		logger.trace("Checking " + hFile.getAbsolutePath() + " Exists: " + hFile.exists() + " Longer than 0: " + (hFile.length() > 0) );
+		//logger.trace("Checking " + hFile.getAbsolutePath() + " Exists: " + hFile.exists() + " Longer than 0: " + (hFile.length() > 0) );
 		
 		if (hFile.exists() && (hFile.length() > 0))
 		{
 			Date date = new Date (hFile.lastModified());
 			Format format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
-			logger.trace("File found. Modififed: " + format.format(date).toString());
+			//logger.trace("File found. Modififed: " + format.format(date).toString());
 			return true;
 		}
 		else return false;
