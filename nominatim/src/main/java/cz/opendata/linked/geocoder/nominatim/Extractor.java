@@ -139,7 +139,7 @@ implements ConfigDialogProvider<ExtractorConfig> {
                 failed++;
                 logger.debug("Failed to geolocate (" + failed + "): " + address);
                 Address alternativeAddress = address.getAlternative();
-                if (alternativeAddress != null) {
+                if (alternativeAddress != null && !alternativeAddress.equals(address)) {
                     logger.debug("Trying alternative address");
                     geocodeAddress(ctx, date, total, lastDownload, currentAddressURI, alternativeAddress);
                 }

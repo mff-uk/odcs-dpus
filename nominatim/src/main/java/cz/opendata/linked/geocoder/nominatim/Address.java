@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class Address {
 
@@ -154,10 +155,19 @@ public class Address {
     }
 
     private boolean cityIsSubstringOfStreet() {
-        return street != city && (street.matches("^\\d+\\w?(/\\d+\\w?)? " + city) || street.matches(city + " \\d+"));
+        String cityRegexp = Pattern.quote(city);
+        return street != city && (street.matches("^\\d+\\w?(/\\d+\\w?)? " + cityRegexp) || street.matches(cityRegexp + " \\d+"));
     }
 
     private boolean streetIsOnlyNumeric() {
         return street.trim().matches("^\\d+$");
+    }
+
+    public boolean equals(Address other) {
+        return street.equals(other.street)
+                && city.equals(other.city)
+                && region.equals(other.region)
+                && country.equals(other.country)
+                && postalCode.equals(other.postalCode);
     }
 }
