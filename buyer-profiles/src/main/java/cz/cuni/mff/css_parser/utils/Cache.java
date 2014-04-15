@@ -61,10 +61,11 @@ public class Cache {
 	{
 	    java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
-		logger.debug("XSD Validation starts: " + url);
 		try {
 		    
+			logger.debug("Loading file for validation: " + url);
 			Source xmlSource = new StreamSource( new StringReader(file));
+			logger.debug("XSD Validation starts: " + url);
 			validator.validate(xmlSource);
 
     	    java.util.Date date2 = new java.util.Date();
@@ -233,6 +234,7 @@ public class Cache {
 		            logger.info("Timeout (attempt " + attempt + ") in " + (failed - curTS)+ " : " + url.getHost() + url.getFile());
 		            
 		            //Comment to retry when timeout
+                	out = "";
 		            if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
 		            {
 		                BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
@@ -257,11 +259,11 @@ public class Cache {
 		            	)
 		            {
 		    	    	//This makes sure that next run will see the errorneous page as cached. Does not have to be always desirable
+	                	out = "";
 		                if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
 		            	{
 		                	BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
 		        		    fw.close();
-		                	out = "";
 		                	break;
 		            	}
 		            }

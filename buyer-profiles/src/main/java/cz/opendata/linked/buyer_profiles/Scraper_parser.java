@@ -815,6 +815,7 @@ public class Scraper_parser extends ScrapingTemplate{
     
     private String fixIC(String oldIC, String docType)
     {
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
 		if (oldIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
 		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", "").replace("CZ", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
@@ -822,19 +823,20 @@ public class Scraper_parser extends ScrapingTemplate{
 		{
 			newIC = "";
 			logger.info("Varování: IC po opravě není validní: " + oldIC + " Oprava: " + newIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsd_boolean));
 		}
 		else if (!oldIC.equals(newIC)) {
 			logger.info("Varování: IC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsd_boolean));
 		}
     	return newIC; 
     }
     
     private String fixDIC(String oldDIC, String docType)
     {
+        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
 		if (oldDIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
 		String newDIC = oldDIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
@@ -842,13 +844,13 @@ public class Scraper_parser extends ScrapingTemplate{
 		{
 			newDIC = "";
 			logger.info("Varování: DIC po opravě není validní: " + oldDIC + " Oprava: " + newDIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsd_boolean));
 		}
 		else if (!oldDIC.equals(newDIC)) {
 			logger.info("Varování: DIC obsahuje chyby: " + oldDIC + " Oprava: " + newDIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsdPrefix + "boolean"));
+			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsd_boolean));
 		}
     	return newDIC; 
     }
