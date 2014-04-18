@@ -10,10 +10,11 @@ import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
+import org.junit.Test;
 
 public class URIGenTest {
 
-	
+	//@Test
 	public void testActsURICreation() throws Exception {
 		// prepare dpu
 		
@@ -31,11 +32,11 @@ public class URIGenTest {
 		trans.configureDirectly(config);
 
 		// TODO prepare test environment (specify the directory for working dir, you can leave empty for temp dir )
-		TestEnvironment env = TestEnvironment.create(new File("/Users/tomasknap/Documents/tmp/test"));
+		TestEnvironment env = TestEnvironment.create(new File("/Users/tomasknap/Documents/tmp/test2"));
 		// prepare data units
 		RDFDataUnit input = env.createRdfInputFromResource("input", false,
 				"input/2_1.ttl", RDFFormat.TURTLE);
-		RDFDataUnit output = env.createRdfOutput("output", false);
+		RDFDataUnit output = env.createRdfOutput("rdfOutput", false);
             
                
                 
@@ -54,7 +55,7 @@ public class URIGenTest {
 			// assertTrue(input.getTripleCount() == output.getTripleCount());
 		} finally {
 			// release resources
-			env.release();
+			//env.release();
 		}
 	}
 

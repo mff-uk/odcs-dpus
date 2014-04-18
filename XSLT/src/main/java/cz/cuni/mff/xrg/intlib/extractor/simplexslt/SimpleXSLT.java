@@ -5,6 +5,7 @@ import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.Outpu
 import static cz.cuni.mff.xrg.intlib.extractor.simplexslt.SimpleXSLTConfig.OutputType.TTL;
 import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.DataRDFXML;
 import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.DataTTL;
+import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.ProcessedFilesCount;
 import cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils.RDFLoaderWrapper;
 
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
@@ -26,7 +27,6 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 import java.io.File;
@@ -51,6 +51,7 @@ import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQueryResult;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -73,6 +74,8 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
             SimpleXSLT.class);
+    
+    private static final String FILE_RESOURCE_PREFIX = "http://linked.opendata.cz/resource/file";
 
     public SimpleXSLT() {
         super(SimpleXSLTConfig.class);
@@ -197,7 +200,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             String query = "SELECT (count(distinct(?s)) as ?count ) where {?s <" + config.getInputPredicate() + "> ?o}";
             log.debug("Query for counting number of input files: {}", query);
             //get the number of files in the rdf data unit
-            MyTupleQueryResultIf executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
+            TupleQueryResult executeSelectQueryAsTuplesCount = rdfInput.executeSelectQueryAsTuples(query);
             int resSize = 0;
             try {
                 if (executeSelectQueryAsTuplesCount.hasNext()) {
@@ -302,7 +305,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                     log.debug(ex.getLocalizedMessage());
                 }
 
-                context.sendMessage(MessageType.INFO, "Processed " + fileNumber + " files");
+                context.sendMessage(MessageType.INFO, "Processed " + fileNumber + " files from " + resSize);
             } else {
 
                 context.sendMessage(MessageType.INFO, "NO files received via RDF INPUT");
@@ -321,18 +324,19 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
             context.sendMessage(MessageType.INFO, "Processing FILE INPUT");
             DirectoryHandler root = fileInput.getRootDir();
-            int processFiles = processDirectory(root, context, templates);
-            context.sendMessage(MessageType.INFO, "Processed " + processFiles + " files");
+            ProcessedFilesCount processedFilesCount = processDirectory(root, context, templates);
+            context.sendMessage(MessageType.INFO, "Processed " + processedFilesCount.successful + " files from " + processedFilesCount.all);
         } else {
             context.sendMessage(MessageType.INFO, "NO files received via FILE INPUT");
         }
 
     }
 
-    private int processDirectory(DirectoryHandler directory, DPUContext context, Templates templates) throws DPUException {
+    private ProcessedFilesCount processDirectory(DirectoryHandler directory, DPUContext context, Templates templates) throws DPUException {
 
         log.debug("Processing directory: {}, path {}", directory.getName(), directory.getRootedPath());
-        int filesInDir = 0;
+        ProcessedFilesCount filesProcessedByThisDirAndSubDirs = new ProcessedFilesCount();
+//        int filesInDir = 0;
         for (Handler handler : directory) {
 
             //if the DPU was cancelled, execution ends. 
@@ -344,19 +348,24 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 // it's a file
                 FileHandler file = (FileHandler) handler;
                 if (processFile(file, context, templates)) {
-                    filesInDir++;
+                    filesProcessedByThisDirAndSubDirs.successful++;
                 } else {
                     context.sendMessage(MessageType.WARNING, "Problem processing file " + file.getName());
                 }
+                filesProcessedByThisDirAndSubDirs.all++;
 
             } else if (handler instanceof DirectoryHandler) {
+                
                 // it's a directory
                 DirectoryHandler file = (DirectoryHandler) handler;
-                filesInDir += processDirectory(file, context, templates);
+                ProcessedFilesCount subdirCounts = processDirectory(file, context, templates);
+                filesProcessedByThisDirAndSubDirs.all += subdirCounts.all;
+                filesProcessedByThisDirAndSubDirs.successful += subdirCounts.successful;
+                
             }
 
         }
-        return filesInDir;
+        return filesProcessedByThisDirAndSubDirs;
 
 
     }
@@ -428,7 +437,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 log.debug("Mapping found, using subject URI {} for file name {}", subject, fileName);
             } else {
                 //create subject based on the fixed prefix and filePath
-                subject = "http://file" + fh.getRootedPath();
+                subject = FILE_RESOURCE_PREFIX + fh.getRootedPath();
                 log.debug("Mapping not found, subject is set to: {}", subject);
 
             }

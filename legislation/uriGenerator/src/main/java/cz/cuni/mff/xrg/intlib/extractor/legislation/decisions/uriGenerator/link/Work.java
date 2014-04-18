@@ -541,6 +541,12 @@ public class Work implements Comparable<Work> {
     public static LinkedList<Work> parse(String expression, WorkType type, LawDocument law, Integer referedId) {
         // results
         LinkedList<Work> result = new LinkedList<>();
+        
+        //preprocessing 
+        // replace "//" with "/"
+        expression = expression.replaceAll("//", "/");
+        //reason: https://github.com/mff-uk/DPUs/issues/56
+        
         String originalExpression = expression;
         expression = expression.toLowerCase();
         

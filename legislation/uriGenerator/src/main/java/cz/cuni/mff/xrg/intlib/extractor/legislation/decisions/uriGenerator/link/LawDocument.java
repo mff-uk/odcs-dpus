@@ -292,7 +292,7 @@ public class LawDocument extends Work {
                 TransformerFactory tf = TransformerFactory.newInstance();
                 Transformer writer = tf.newTransformer();
                 writer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
-                logger.info("About to write outputß");
+                logger.info("About to write output");
                 writer.transform(new DOMSource(doc), new StreamResult(new File(output)));
         } catch (TransformerException ex) {
             logger.error(ex.getLocalizedMessage());
