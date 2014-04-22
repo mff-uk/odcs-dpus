@@ -2,6 +2,7 @@ package cz.opendata.linked.extractor.tabular;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.junit.Test;
 
@@ -18,7 +19,7 @@ import cz.opendata.linked.extractor.tabular.ExtractorConfig;
 
 public class ExtractorTest {
 
-	@Test
+//	@Test
 	public void testKLK() {
 
 		try	{
@@ -26,9 +27,10 @@ public class ExtractorTest {
 			Extractor extractor = new Extractor();
 			
 			
-			HashMap<String, String> columnPropertyMap = new HashMap<String, String>();
+			LinkedHashMap<String, String> columnPropertyMap = new LinkedHashMap<String, String>();
 			columnPropertyMap.put("ATC_WHO", "http://linked.opendata.cz/ontology/sukl/hasATCCode");
-			ExtractorConfig config = new ExtractorConfig(columnPropertyMap, "http://linked.opendata.cz/resource/sukl/medicinal-product-packaging/", "KOD", "CP852");
+
+			ExtractorConfig config = new ExtractorConfig(columnPropertyMap, "http://linked.opendata.cz/resource/sukl/medicinal-product-packaging/", "KOD", "CP852", null, null, null, true, false);
 			
 			extractor.configureDirectly(config);
 			
@@ -61,7 +63,7 @@ public class ExtractorTest {
 		
 	}
 	
-	@Test
+//	@Test
 	public void testLEKFORMY() {
 
 		try	{
@@ -69,9 +71,9 @@ public class ExtractorTest {
 			Extractor extractor = new Extractor();
 			
 			
-			HashMap<String, String> columnPropertyMap = new HashMap<String, String>();
+			LinkedHashMap<String, String> columnPropertyMap = new LinkedHashMap<String, String>();
 			columnPropertyMap.put("ATC_WHO", "http://linked.opendata.cz/ontology/sukl/hasATCCode");
-			ExtractorConfig config = new ExtractorConfig(columnPropertyMap, "http://linked.opendata.cz/resource/sukl/df/", "LEK_FORMA", "CP852");
+			ExtractorConfig config = new ExtractorConfig(columnPropertyMap, "http://linked.opendata.cz/resource/sukl/df/", "LEK_FORMA", "CP852", null, null, null, true, false);
 			
 			extractor.configureDirectly(config);
 			
@@ -91,6 +93,50 @@ public class ExtractorTest {
 		    }
 			
 			triplifiedTable.loadToFile("C:\\temp\\lekformy.ttl", RDFFormatType.TTL);
+			
+			env.release();
+			
+		} catch (RDFException e)	{
+			e.printStackTrace();
+		} catch (ConfigException e) {
+			e.printStackTrace();
+		} catch (DataUnitException e)	{
+			e.printStackTrace();
+		}
+		
+	}
+	
+	@Test
+	public void testMFCRLargeCSV() {
+
+		try	{
+		
+			Extractor extractor = new Extractor();
+			
+			
+			LinkedHashMap<String, String> columnPropertyMap = new LinkedHashMap<String, String>();
+			columnPropertyMap.put("ATC_WHO", "http://linked.opendata.cz/ontology/sukl/hasATCCode");
+
+			ExtractorConfig config = new ExtractorConfig(columnPropertyMap, "http://linked.opendata.cz/resource/mfcr/rozpoctova-polozka/", null, null, "\"", ";", "\n", false, true);
+			
+			extractor.configureDirectly(config);
+			
+			// prepare test environment, we use system tmp directory
+			TestEnvironment env = TestEnvironment.create();
+						
+			FileDataUnit tableFile = env.createFileInput("table", new File("c:\\Users\\martin\\Documents\\WORK\\PROJECTS\\#FP7\\COMSODE\\_SUBPROJECTS\\MFCR\\rozpocty"));
+			tableFile.getRootDir().addExistingFile(new File("c:\\Users\\martin\\Documents\\WORK\\PROJECTS\\#FP7\\COMSODE\\_SUBPROJECTS\\MFCR\\rozpocty\\ROZV.csv"), new OptionsAdd(false));
+			RDFDataUnit triplifiedTable = env.createRdfOutput("triplifiedTable", false);
+						
+			try {
+				// run the execution
+				env.run(extractor);
+			}
+		    catch(Exception e) {
+			    e.printStackTrace();
+		    }
+			
+			triplifiedTable.loadToFile("C:\\temp\\mfcr.ttl", RDFFormatType.TTL);
 			
 			env.release();
 			

@@ -1,10 +1,14 @@
 package cz.opendata.linked.extractor.tabular;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jamel.dbf.DbfReader;
@@ -29,7 +33,11 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+
 import org.slf4j.Logger;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.io.ICsvListReader;
+import org.supercsv.prefs.CsvPreference;
 
 @AsExtractor
 public class Extractor extends ConfigurableBase<ExtractorConfig> implements
@@ -91,85 +99,198 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			columnWithURISupplement = null;
 		}
 		
-		String encoding = this.config.getEncoding();
-		if ( encoding == null || "".equals(encoding) )	{
-			DbfReaderLanguageDriver languageDriverReader = new DbfReaderLanguageDriver(tableFile);
-			DbfHeaderLanguageDriver languageDriverHeader = languageDriverReader.getHeader();
-//			byte languageDriver = languageDriverHeader.getLanguageDriver();
-			languageDriverHeader.getLanguageDriver();
-			languageDriverReader.close();
-			
-			//TODO Make proper mapping of DBF encoding codes to Java codes. Until this is repaired, we set UTF-8. We suppose that DPUs have set the encoding explicitly by the user.
-			encoding = "UTF-8";
-		}
-		if (!Charset.isSupported(encoding))	{
-			context.sendMessage(MessageType.ERROR, "Charset " + encoding + " is not supported.");
-        	return;
-		}
 		
-		DbfReader reader = new DbfReader(tableFile);
-		DbfHeader header = reader.getHeader();
+		URI propertyRow = triplifiedTable.createURI(baseODCSPropertyURI + "row");
+		
+		if ( this.config.isCSV() )	{
+			
+			String quoteChar = this.config.getQuoteChar();
+			String delimiterChar = this.config.getDelimiterChar();
+			String eofSymbols = this.config.getEofSymbols();
+			
+			if ( quoteChar == null || "".equals(quoteChar) )	{
+				quoteChar = "\"";
+				LOG.warn("No quote char supplied. Default quote char '\"' will be used.");
+			}
+			
+			if ( delimiterChar == null || "".equals(delimiterChar) )	{
+				delimiterChar = "\"";
+				LOG.warn("No delimiter char supplied. Default delimiter char ',' will be used.");
+			}
+			
+			if ( eofSymbols == null || "".equals(eofSymbols) )	{
+				eofSymbols = "\n";
+				LOG.warn("No end of line symbols supplied. Default end of line symbols '\\n' will be used.");
+			}
+			
+			final CsvPreference CSV_PREFERENCE = new CsvPreference.Builder(quoteChar.charAt(0), delimiterChar.charAt(0), eofSymbols).build();
+			
+			ICsvListReader listReader = null;
+			try	{
+				
+				listReader = new CsvListReader(new BufferedReader(new FileReader(tableFile)), CSV_PREFERENCE);
+								
+				final String[] header = listReader.getHeader(true);
+				int columnWithURISupplementNumber = -1;
+    			URI[] propertyMap = new URI[header.length];
+    			for ( int i = 0; i < header.length; i++ )	{
+    				String fieldName = header[i];
+    				if ( columnWithURISupplement != null && columnWithURISupplement.equals(fieldName) )	{
+    					columnWithURISupplementNumber = i;
+    				}
+    				if ( columnPropertyMap.containsKey(fieldName) )	{
+    					propertyMap[i] = triplifiedTable.createURI(columnPropertyMap.get(fieldName));
+    				} else {
+    					fieldName = this.convertStringToURIPart(fieldName);
+    					propertyMap[i] = triplifiedTable.createURI(baseODCSPropertyURI + fieldName);
+    				}
+    			}
+				
+				List<String> row = listReader.read();
+				int rowno = 0;
+                while( row != null ) {
 
-		int columnWithURISupplementNumber = -1;
-		URI[] propertyMap = new URI[header.getFieldsCount()];
-		for ( int i = 0; i < header.getFieldsCount(); i++ )	{
-			DbfField field = header.getField(i);
-			String fieldName = field.getName();
-			if ( columnWithURISupplement != null && columnWithURISupplement.equals(fieldName) )	{
-				columnWithURISupplementNumber = i;
-			}
-			if ( columnPropertyMap.containsKey(fieldName) )	{
-				propertyMap[i] = triplifiedTable.createURI(columnPropertyMap.get(fieldName));
-			} else {
-				fieldName = fieldName.replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
-				propertyMap[i] = triplifiedTable.createURI(baseODCSPropertyURI + fieldName);
-			}
-		}
-		
-		Object[] row = null;
-		int rowno = 0;
-		URI propertyRow = triplifiedTable.createURI(baseODCSPropertyURI + "row"); 
-		while ( (row = reader.nextRecord()) != null )	{
-					
-			String suffixURI;
-			if ( columnWithURISupplementNumber >= 0 )	{
-				suffixURI = this.getCellValue(row[columnWithURISupplementNumber], encoding).replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
-			} else {
-				suffixURI = (new Integer(rowno)).toString();
-			}
+                	String suffixURI;
+    				if ( columnWithURISupplementNumber >= 0 )	{
+    					suffixURI = this.convertStringToURIPart(row.get(columnWithURISupplementNumber));
+    				} else {
+    					suffixURI = (new Integer(rowno)).toString();
+    				}
+    				
+    				Resource subj = triplifiedTable.createURI(baseURI + suffixURI);
+    				
+    				int i = 0;
+    				for (String strValue : row) {
+    					if ( strValue == null || "".equals(strValue) )	{
+    						URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+    						triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    					} else {
+    				        Value obj = triplifiedTable.createLiteral(strValue);
+    				        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    					}
+    					i++;
+					}
+    			        					
+    		        Value rowvalue = triplifiedTable.createLiteral(String.valueOf(rowno));
+    		        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+    				
+    				if ( (rowno % 1000) == 0 )	{
+    					LOG.debug("Row number {} processed.", rowno);
+    				}
+    				
+    				rowno++;
+    				row = listReader.read();
+    				
+    				if (context.canceled()) {
+    		       		LOG.info("DPU cancelled");
+    		       		listReader.close();
+    		       		return;
+    		       	}
+                	
+                }
+                
+                
+			} catch (IOException e)	{
+				
+				context.sendMessage(MessageType.ERROR, "IO exception during processing the input CSV file.");
+	        	return;
+				
+			} finally {
 			
-			Resource subj = triplifiedTable.createURI(baseURI + suffixURI);
-			
-			for ( int i = 0; i < row.length; i++ )	{
-		        					
-				String strValue = this.getCellValue(row[i], encoding);
-				if ( strValue == null || "".equals(strValue) )	{
-					URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-					triplifiedTable.addTriple(subj, propertyMap[i], obj);
-				} else {
-			        Value obj = triplifiedTable.createLiteral(this.getCellValue(row[i], encoding));
-			        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+				
+				if ( listReader != null )	{
+					try	{
+						listReader.close();
+					} catch (IOException e)	{
+						context.sendMessage(MessageType.ERROR, "IO exception when closing the reader of the input CSV file.");
+			        	return;
+					}
 				}
-		       	
+				
 			}
+			
+		} else if ( this.config.isDBF() )	{
+		
+			String encoding = this.config.getEncoding();
+			if ( encoding == null || "".equals(encoding) )	{
+				DbfReaderLanguageDriver languageDriverReader = new DbfReaderLanguageDriver(tableFile);
+				DbfHeaderLanguageDriver languageDriverHeader = languageDriverReader.getHeader();
+				languageDriverHeader.getLanguageDriver();
+				languageDriverReader.close();
+				
+				//TODO Make proper mapping of DBF encoding codes to Java codes. Until this is repaired, we set UTF-8. We suppose that DPUs have set the encoding explicitly by the user.
+				encoding = "UTF-8";
+			}
+			if (!Charset.isSupported(encoding))	{
+				context.sendMessage(MessageType.ERROR, "Charset " + encoding + " is not supported.");
+	        	return;
+			}
+			
+			DbfReader reader = new DbfReader(tableFile);
+			DbfHeader header = reader.getHeader();
+	
+			int columnWithURISupplementNumber = -1;
+			URI[] propertyMap = new URI[header.getFieldsCount()];
+			for ( int i = 0; i < header.getFieldsCount(); i++ )	{
+				DbfField field = header.getField(i);
+				String fieldName = field.getName();
+				if ( columnWithURISupplement != null && columnWithURISupplement.equals(fieldName) )	{
+					columnWithURISupplementNumber = i;
+				}
+				if ( columnPropertyMap.containsKey(fieldName) )	{
+					propertyMap[i] = triplifiedTable.createURI(columnPropertyMap.get(fieldName));
+				} else {
+					fieldName = this.convertStringToURIPart(fieldName);
+					propertyMap[i] = triplifiedTable.createURI(baseODCSPropertyURI + fieldName);
+				}
+			}
+			
+			Object[] row = null;
+			int rowno = 0;
 			 
-	        Value rowvalue = triplifiedTable.createLiteral(this.getCellValue(rowno, encoding));
-	        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
-			
-			if ( (rowno % 1000) == 0 )	{
-				LOG.debug("Row number {} processed.", rowno);
+			while ( (row = reader.nextRecord()) != null )	{
+						
+				String suffixURI;
+				if ( columnWithURISupplementNumber >= 0 )	{
+					suffixURI = this.convertStringToURIPart(this.getCellValue(row[columnWithURISupplementNumber], encoding));
+				} else {
+					suffixURI = (new Integer(rowno)).toString();
+				}
+				
+				Resource subj = triplifiedTable.createURI(baseURI + suffixURI);
+				
+				for ( int i = 0; i < row.length; i++ )	{
+			        					
+					String strValue = this.getCellValue(row[i], encoding);
+					if ( strValue == null || "".equals(strValue) )	{
+						URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+						triplifiedTable.addTriple(subj, propertyMap[i], obj);
+					} else {
+				        Value obj = triplifiedTable.createLiteral(this.getCellValue(row[i], encoding));
+				        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+					}
+			       	
+				}
+				 
+		        Value rowvalue = triplifiedTable.createLiteral(this.getCellValue(rowno, encoding));
+		        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+				
+				if ( (rowno % 1000) == 0 )	{
+					LOG.debug("Row number {} processed.", rowno);
+				}
+				rowno++;
+				
+				if (context.canceled()) {
+		       		LOG.info("DPU cancelled");
+		       		reader.close();
+		       		return;
+		       	}
+				
 			}
-			rowno++;
 			
-			if (context.canceled()) {
-	       		LOG.info("DPU cancelled");
-	       		reader.close();
-	       		return;
-	       	}
+			reader.close();
 			
 		}
-		
-		reader.close();
 
 	}
 	
@@ -190,6 +311,10 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 				return "";
 			}
 		}
-	}	
+	}
+	
+	private String convertStringToURIPart(String part)	{
+		return part.replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
+	}
 	
 }

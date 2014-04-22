@@ -98,7 +98,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
 			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
-			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/";
+			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/";
 		}
 		int columnWithURISupplement = this.config.getColumnWithURISupplement();
 		if ( columnWithURISupplement < 0 )	{
@@ -114,113 +114,125 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		try	{
 		
 			Workbook wb = WorkbookFactory.create(tableFile);
-			Sheet sheet = wb.getSheetAt(0);
 			
-			int dataEndAtRow = sheet.getLastRowNum();
-		
-			URI propertyRow = triplifiedTables.createURI(baseODCSPropertyURI + "row");
+			int numberOfSheets = wb.getNumberOfSheets();
 			
-			for ( int rowCounter = 0; rowCounter <= dataEndAtRow; rowCounter++ )	{
+			for ( int i = 0; i < numberOfSheets; i++ )	{
+			
+				Sheet sheet = wb.getSheetAt(0);
 				
-				Row row = sheet.getRow(rowCounter);
+				String sheetURI = "sheet/" + i + "/";
 				
-				if ( row != null)	{
+				int dataEndAtRow = sheet.getLastRowNum();
+			
+				URI propertyRow = triplifiedTables.createURI(baseODCSPropertyURI + "row");
 				
-					Resource subj = null;
-					HashMap<Integer, String> rowMapWithDimensionValues = optimizedFixedValueMap.get(new Integer(rowCounter));
+				for ( int rowCounter = 0; rowCounter <= dataEndAtRow; rowCounter++ )	{
 					
-					int columnEnd = row.getLastCellNum();
+					Row row = sheet.getRow(rowCounter);
 					
-					if ( rowCounter >= dataStartAtRow )	{
+					if ( row != null)	{
+					
+						Resource subj = null;
+						HashMap<Integer, String> rowMapWithDimensionValues = optimizedFixedValueMap.get(new Integer(rowCounter));
 						
-						String suffixURI;
-						if ( columnWithURISupplement >= 0 )	{
-							String[] value = this.getCellValue(row.getCell(columnWithURISupplement));
-							if ( value[0] != null )	{
-								suffixURI = value[0].replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
+						int columnEnd = row.getLastCellNum();
+						
+						if ( rowCounter >= dataStartAtRow )	{
+							
+							String suffixURI;
+							if ( columnWithURISupplement >= 0 )	{
+								String[] value = this.getCellValue(row.getCell(columnWithURISupplement));
+								if ( value[0] != null )	{
+									suffixURI = value[0].replaceAll("\\s+", "-").replaceAll("[^a-zA-Z0-9-_]", "");
+								} else {
+									suffixURI = (new Integer(rowCounter)).toString();
+								}
 							} else {
 								suffixURI = (new Integer(rowCounter)).toString();
 							}
-						} else {
-							suffixURI = (new Integer(rowCounter)).toString();
+							
+							subj = triplifiedTables.createURI(baseURI + sheetURI + "row/" + suffixURI);
+														
 						}
 						
-						subj = triplifiedTables.createURI(baseURI + suffixURI);
-						
-					}
-					
-					for ( int columnCounter = 0; columnCounter <= columnEnd; columnCounter++ )	{
-						
-						Cell cell = row.getCell(columnCounter);
-						if ( cell != null )	{
+						for ( int columnCounter = 0; columnCounter <= columnEnd; columnCounter++ )	{
 							
-							String[] value = this.getCellValue(cell);
-	
-							Integer key = new Integer(columnCounter);
-							
-							if ( rowCounter >= dataStartAtRow )	{
-							
-								String propertyURI;
-	
-								if ( propertyMap.containsKey(key) )	{
-									propertyURI = propertyMap.get(key);
-								} else {
-									propertyURI = baseODCSPropertyURI + "column" + key.toString();
+							Cell cell = row.getCell(columnCounter);
+							if ( cell != null )	{
+								
+								String[] value = this.getCellValue(cell);
+								
+								Integer key = new Integer(columnCounter);
+								
+								if ( rowCounter >= dataStartAtRow )	{
+								
+									String propertyURI;
+		
+									if ( propertyMap.containsKey(key) )	{
+										propertyURI = propertyMap.get(key);
+									} else {
+										propertyURI = baseODCSPropertyURI + "column" + key.toString();
+									}
+									
+									if ( value[0] == null || "".equals(value[0]) )	{
+										URI obj = triplifiedTables.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+										triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
+									} else {
+								        Value obj = triplifiedTables.createLiteral(value[0], triplifiedTables.createURI(value[1]));
+								        triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
+									}
+									
 								}
 								
-								if ( value[0] == null || "".equals(value[0]) )	{
-									URI obj = triplifiedTables.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-									triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
-								} else {
-							        Value obj = triplifiedTables.createLiteral(value[0], triplifiedTables.createURI(value[1]));
-							        triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
+								if ( value[0] != null && !"".equals(value[0]) && rowMapWithDimensionValues != null )	{
+									
+									String propertyURI = rowMapWithDimensionValues.get(key);
+									if ( propertyURI != null && !"".equals(propertyURI) )	{
+										
+										String[] globalPropertyValueTriple = new String[3];
+										globalPropertyValueTriple[0] = propertyURI;
+										globalPropertyValueTriple[1] = value[0];
+										globalPropertyValueTriple[2] = value[1];
+										fixedPropertyValueTypeTriples.add(globalPropertyValueTriple);
+										
+									}
+									
 								}
 								
 							}
 							
-							if ( value[0] != null && !"".equals(value[0]) && rowMapWithDimensionValues != null )	{
-								
-								String propertyURI = rowMapWithDimensionValues.get(key);
-								if ( propertyURI != null && !"".equals(propertyURI) )	{
-									
-									String[] globalPropertyValueTriple = new String[3];
-									globalPropertyValueTriple[0] = propertyURI;
-									globalPropertyValueTriple[1] = value[0];
-									globalPropertyValueTriple[2] = value[1];
-									fixedPropertyValueTypeTriples.add(globalPropertyValueTriple);
-									
-								}
-								
-							}
-							
 						}
 						
-					}
-					
-					if ( subj != null )	{
-					
-						Value rowvalue = triplifiedTables.createLiteral(new Integer(rowCounter).toString(), triplifiedTables.createURI("http://www.w3.org/2001/XMLSchema#int"));
-				        triplifiedTables.addTriple(subj, propertyRow, rowvalue);
-				        
-				        for (String[] globalPropertyValueTriple : fixedPropertyValueTypeTriples) {
-							triplifiedTables.addTriple(subj, triplifiedTables.createURI(globalPropertyValueTriple[0]), triplifiedTables.createLiteral(globalPropertyValueTriple[1], triplifiedTables.createURI(globalPropertyValueTriple[2])));
+						if ( subj != null )	{
+						
+							Value rowvalue = triplifiedTables.createLiteral(new Integer(rowCounter).toString(), triplifiedTables.createURI("http://www.w3.org/2001/XMLSchema#int"));
+					        triplifiedTables.addTriple(subj, propertyRow, rowvalue);
+
+					        for (String[] globalPropertyValueTriple : fixedPropertyValueTypeTriples) {
+								triplifiedTables.addTriple(subj, triplifiedTables.createURI(globalPropertyValueTriple[0]), triplifiedTables.createLiteral(globalPropertyValueTriple[1], triplifiedTables.createURI(globalPropertyValueTriple[2])));
+							}
+					        
 						}
 				        
 					}
-			        
+				        
+					if ( (rowCounter % 1000) == 1 )	{
+						LOG.debug("Row number " + rowCounter + " of sheet " + i + " processed.");
+					}
+					
+					if (context.canceled()) {
+			       		LOG.info("DPU cancelled");
+			       		
+			       		return;
+			       	}
+					
 				}
-			        
-//				if ( (rowCounter % 1000) == 0 )	{
-					LOG.debug("Row number " + rowCounter + " processed.");
-//				}
 				
-				if (context.canceled()) {
-		       		LOG.info("DPU cancelled");
-		       		
-		       		return;
-		       	}
-				
+				LOG.debug("All " + dataEndAtRow + " rows of sheet " + i + " processed.");
 			}
+			
+			LOG.debug("All sheets processed.");
 			
 		} catch (IOException e)	{
 			context.sendMessage(MessageType.ERROR, "I/O exception when creating a workbook from the file with a table " + tableFile.getName() + ".");

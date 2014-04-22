@@ -15,20 +15,40 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	private String columnWithURISupplement;
 
 	private String encoding;
+	
+	private String quoteChar;
+	
+	private String delimiterChar;
+	
+	private String eofSymbols;
 
+	private boolean isDBF;
+	
+	private boolean isCSV;
+	
 	public ExtractorConfig() {
 		this.columnPropertyMap = null;
 		this.baseURI = null;
 		this.columnWithURISupplement = null;
 		this.encoding = null;
+		this.quoteChar = null;
+		this.delimiterChar = null;
+		this.eofSymbols = null;
+		this.isCSV = false;
+		this.isDBF = false;
 	}
 
 	public ExtractorConfig(LinkedHashMap<String, String> columnPropertyMap,
-			String baseURI, String columnWithURISupplement, String encoding) {
+			String baseURI, String columnWithURISupplement, String encoding, String quoteChar, String delimiterChar, String eofSymbols, boolean isDBF, boolean isCSV) {
 		this.columnPropertyMap = columnPropertyMap;
 		this.baseURI = baseURI;
 		this.columnWithURISupplement = columnWithURISupplement;
 		this.encoding = encoding;
+		this.quoteChar = quoteChar;
+		this.delimiterChar = delimiterChar;
+		this.eofSymbols = eofSymbols;
+		this.isCSV = isCSV;
+		this.isDBF = isDBF;
 	}
 
 	public LinkedHashMap<String, String> getColumnPropertyMap() {
@@ -62,6 +82,46 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
+	}
+
+	public String getQuoteChar() {
+		return quoteChar;
+	}
+
+	public void setQuoteChar(String quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	public String getDelimiterChar() {
+		return delimiterChar;
+	}
+
+	public void setDelimiterChar(String delimiterChar) {
+		this.delimiterChar = delimiterChar;
+	}
+
+	public String getEofSymbols() {
+		return eofSymbols;
+	}
+
+	public void setEofSymbols(String eofSymbols) {
+		this.eofSymbols = eofSymbols;
+	}
+
+	public boolean isDBF() {
+		return isDBF;
+	}
+
+	public void setDBF(boolean isDBF) {
+		this.isDBF = isDBF;
+	}
+
+	public boolean isCSV() {
+		return isCSV;
+	}
+
+	public void setCSV(boolean isCSV) {
+		this.isCSV = isCSV;
 	}
 
 }

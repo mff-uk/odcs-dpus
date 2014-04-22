@@ -23,11 +23,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
 	private GridLayout propertiesGridLayout;
 	
+	private OptionGroup ogInputFileType;
+	
     private TextField tfBaseURI;
     
     private TextField tfColumnWithURISupplement;
 
     private TextField tfEncoding;
+    
+    private TextField tfQuoteChar;
+    
+    private TextField tfDelimiterChar;
+    
+    private TextField tfEOFSymbols;
     
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -52,6 +60,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		this.baseFormLayout = new FormLayout();
 		this.baseFormLayout.setSizeUndefined();
 				
+		this.ogInputFileType = new OptionGroup("Choose the input type:");
+		this.ogInputFileType.addItem("CSV");
+		this.ogInputFileType.addItem("DBF");
+		this.ogInputFileType.setValue("CSV");
+		this.baseFormLayout.addComponent(this.ogInputFileType);
+		
         this.tfBaseURI = new TextField("Resource URI base");
         this.baseFormLayout.addComponent(this.tfBaseURI);
         tfBaseURI.setRequired(true);
@@ -60,12 +74,21 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         this.tfColumnWithURISupplement = new TextField("Key column");
         this.baseFormLayout.addComponent(this.tfColumnWithURISupplement);
         
-        this.tfEncoding = new TextField("Encoding");
+        this.tfEncoding = new TextField("Encoding (for DBF)");
         this.baseFormLayout.addComponent(this.tfEncoding);
         
-        this.mainLayout.addComponent(this.baseFormLayout);
+        this.tfQuoteChar = new TextField("Quote char (for CSV)");
+        this.baseFormLayout.addComponent(this.tfQuoteChar);
         
-        this.mainLayout.addComponent(new Label("Column to property URI mappings"));
+        this.tfDelimiterChar = new TextField("Delimiter char (for CSV)");
+        this.baseFormLayout.addComponent(this.tfDelimiterChar);
+        
+        this.tfEOFSymbols = new TextField("End of line symbols (for CSV)");
+        this.baseFormLayout.addComponent(this.tfEOFSymbols);
+        
+        this.baseFormLayout.addComponent(new Label("Column to property URI mappings"));
+        
+        this.mainLayout.addComponent(this.baseFormLayout);
         
         this.propertiesGridLayout = new GridLayout(2,2);
         this.propertiesGridLayout.setWidth("100%");
@@ -153,6 +176,30 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			this.tfEncoding.setValue(conf.getEncoding());
 		}
 		
+		if ( conf.getQuoteChar() == null )	{
+			this.tfQuoteChar.setValue("");
+		} else {
+			this.tfQuoteChar.setValue(conf.getQuoteChar());
+		}
+		
+		if ( conf.getDelimiterChar() == null )	{
+			this.tfDelimiterChar.setValue("");
+		} else {
+			this.tfDelimiterChar.setValue(conf.getDelimiterChar());
+		}
+		
+		if ( conf.getEofSymbols() == null )	{
+			this.tfEOFSymbols.setValue("");
+		} else {
+			this.tfEOFSymbols.setValue(conf.getEofSymbols());
+		}
+		
+		if ( conf.isDBF() == true )	{
+			this.ogInputFileType.setValue("DBF");
+		} else {
+			this.ogInputFileType.setValue("CSV");
+		}
+		
 		if ( conf.getColumnPropertyMap() != null )	{
 			
 			LinkedHashMap<String, String> columnPropertyMap = conf.getColumnPropertyMap();
@@ -173,7 +220,6 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		//TODO Validate filled values.
-		//return new ExtractorConfig(new LinkedHashMap<String, String>(), this.tfBaseURI.getValue(), this.tfColumnWithURISupplement.getValue(), this.tfEncoding.getValue());
 		
 		LinkedHashMap<String, String> columnPropertiesMap = new LinkedHashMap<String, String>();
 		
@@ -204,7 +250,35 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			encoding = null;
 		}
 		
-		return new ExtractorConfig(columnPropertiesMap, baseURI, columnWithURISupplement, encoding);
+		String inputFileType = (String) this.ogInputFileType.getValue();
+		boolean isDBF = false;
+		boolean isCSV = false;
+		if ( "DBF".equals(inputFileType) )	{
+			isDBF = true;
+		} else {
+			isCSV = true;
+		}
+		
+		String quoteChar = this.tfQuoteChar.getValue();
+		if ( quoteChar == null || quoteChar.length() == 0)	{
+			quoteChar = null;
+		} else {
+			quoteChar = quoteChar.substring(0, 1);
+		}
+		
+		String delimiterChar = this.tfDelimiterChar.getValue();
+		if ( delimiterChar == null || delimiterChar.length() == 0)	{
+			delimiterChar = null;
+		} else {
+			delimiterChar = delimiterChar.substring(0, 1);
+		}
+		
+		String eofSymbols = this.tfEOFSymbols.getValue();
+		if ( eofSymbols == null || eofSymbols.length() == 0)	{
+			eofSymbols = null;
+		}
+		
+		return new ExtractorConfig(columnPropertiesMap, baseURI, columnWithURISupplement, encoding, quoteChar, delimiterChar, eofSymbols, isDBF, isCSV);
 	}
 
 }
