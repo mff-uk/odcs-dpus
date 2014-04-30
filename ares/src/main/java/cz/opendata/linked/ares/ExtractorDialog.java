@@ -19,6 +19,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
 	private GridLayout mainLayout;
 	private CheckBox chkUseCacheOnly;
+	private CheckBox chkBasic;
+	private CheckBox chkOR;
 	private CheckBox chkStdAdr;
 	private CheckBox chkActive;
 	private CheckBox chkGenerateOutput;
@@ -62,6 +64,18 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkUseCacheOnly);
         
+        chkBasic = new CheckBox("Download Basic:");
+        chkBasic.setDescription("When selected, downloads will include basic registry.");
+        chkBasic.setWidth("100%");
+        
+        mainLayout.addComponent(chkBasic);
+
+        chkOR = new CheckBox("Download OR:");
+        chkOR.setDescription("When selected, downloads will include business registry.");
+        chkOR.setWidth("100%");
+        
+        mainLayout.addComponent(chkOR);
+
         chkStdAdr = new CheckBox("Include OR stdadr:");
         chkStdAdr.setDescription("When selected, downloads will include standardized address.");
         chkStdAdr.setWidth("100%");
@@ -104,6 +118,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		chkUseCacheOnly.setValue(conf.isUseCacheOnly());
 		chkGenerateOutput.setValue(conf.isGenerateOutput());
+		chkOR.setValue(conf.isDownloadOR());
+		chkBasic.setValue(conf.isDownloadBasic());
 		chkPuvAdr.setValue(conf.isBas_puvadr());
 		chkActive.setValue(conf.isBas_active());
 		chkStdAdr.setValue(conf.isOr_stdadr());
@@ -119,6 +135,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.setBas_puvadr(chkPuvAdr.getValue());
 		conf.setOr_stdadr(chkStdAdr.getValue());
+		conf.setDownloadOR(chkOR.getValue());
+		conf.setDownloadBasic(chkBasic.getValue());
 		conf.setBas_active(chkActive.getValue());
 		conf.setUseCacheOnly(chkUseCacheOnly.getValue());
 		conf.setGenerateOutput(chkGenerateOutput.getValue());

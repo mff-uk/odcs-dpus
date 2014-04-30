@@ -120,7 +120,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
 
 		int lines = 0;
-		if (duICs.getTripleCount() > 0)
+		if (duICs != null && duICs.getTripleCount() > 0)
 		{
 			List<Statement> statements = duICs.getTriples();
 			
@@ -191,66 +191,72 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			try {
 				while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
 					String currentIC = li.next();
-					URL current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
-					if (!Cache.isCached(current) && !config.isUseCacheOnly())
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						if (doc != null)
+					URL current = null;
+					
+					if (config.isDownloadBasic()) {
+						current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
+						if (!Cache.isCached(current) && !config.isUseCacheOnly())
 						{
-							//logger.trace(doc.outerHtml());
-							if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-							LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
+							Document doc = Cache.getDocument(current, 10, "xml");
+							if (doc != null)
+							{
+								//logger.trace(doc.outerHtml());
+								if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+								LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
+							}
+							else
+							{
+								LOG.warn("Document null: {}", current);
+							}
 						}
-						else
+						else if (Cache.isCached(current))
 						{
-							LOG.warn("Document null: {}", current);
+							Document doc = Cache.getDocument(current, 10, "xml");
+							cachedEarlier++;
+							if (doc != null)
+							{
+								//logger.trace(doc.outerHtml());
+								if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
+								LOG.debug("Got from cache {}:{}", cachedEarlier, current );
+							}
+							else
+							{
+								LOG.warn("Document null: {}", current);
+							}
 						}
 					}
-					else if (Cache.isCached(current))
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							//logger.trace(doc.outerHtml());
-							if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-							LOG.debug("Got from cache {}:{}", cachedEarlier, current );
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-						
+					
 					if (ctx.canceled()) break;
 					
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
-					if (!Cache.isCached(current) && !config.isUseCacheOnly())
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
+					if (config.isDownloadOR()) {
+						current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
+						if (!Cache.isCached(current) && !config.isUseCacheOnly())
 						{
-							if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+							Document doc = Cache.getDocument(current, 10, "xml");
+							cachedEarlier++;
+							if (doc != null)
+							{
+								if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+								LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+							}
+							else
+							{
+								LOG.warn("Document null: {}", current);
+							}
 						}
-						else
+						else if (Cache.isCached(current))
 						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-					else if (Cache.isCached(current))
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
+							Document doc = Cache.getDocument(current, 10, "xml");
+							cachedEarlier++;
+							if (doc != null)
+							{
+								if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
+								LOG.debug("Got from cache {}: {}", cachedEarlier, current);
+							}
+							else
+							{
+								LOG.warn("Document null: {}", current);
+							}
 						}
 					}
 				}

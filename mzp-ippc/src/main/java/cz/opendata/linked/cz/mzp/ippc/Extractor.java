@@ -120,35 +120,48 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			    if (!currentFile.exists() || config.isRewriteCache() )
 			    {
 			    	CloseableHttpResponse response2 = null;
-			    	try {
-						List <NameValuePair> nvps = new ArrayList <NameValuePair>();
-						nvps.add(new BasicNameValuePair("$$ajaxid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1_OUTER_TABLE"));
-						nvps.add(new BasicNameValuePair("$$viewid", viewid));
-						nvps.add(new BasicNameValuePair("$$xspsubmitid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1:_id20:pager__Next"));
-						nvps.add(new BasicNameValuePair("$$xspexecid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1:_id20:pager"));
-						UrlEncodedFormEntity uefe = new UrlEncodedFormEntity(nvps, "UTF-8");
-						httpPost.setEntity(uefe);
-						
-						response2 = httpclient.execute(httpPost);
-					    
-					    HttpEntity entity2 = response2.getEntity();
-					    Header[] headers = response2.getAllHeaders();
-					    PrintWriter out = new PrintWriter(currentFile);
-					    IOUtils.copy(entity2.getContent(), out, "UTF-8");
-					    out.close();
-					    EntityUtils.consume(entity2);
-					} catch (UnsupportedEncodingException e1) {
-						logger.error(e1.getLocalizedMessage(),e1);
-					} catch (ClientProtocolException e1) {
-						logger.error(e1.getLocalizedMessage(),e1);
-					} catch (IOException e1) {
-						logger.error(e1.getLocalizedMessage(),e1);
-					} finally {
-					    try {
-							response2.close();
-						} catch (IOException e) {
-							logger.error(e.getLocalizedMessage(),e);
+					int attempt = 0;
+					while (attempt < config.getMaxattempts() && !ctx.canceled()) {
+				    	try {
+							List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+							nvps.add(new BasicNameValuePair("$$ajaxid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1_OUTER_TABLE"));
+							nvps.add(new BasicNameValuePair("$$viewid", viewid));
+							nvps.add(new BasicNameValuePair("$$xspsubmitid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1:_id20:pager__Next"));
+							nvps.add(new BasicNameValuePair("$$xspexecid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1:_id20:pager"));
+							UrlEncodedFormEntity uefe = new UrlEncodedFormEntity(nvps, "UTF-8");
+							httpPost.setEntity(uefe);
+							
+							response2 = httpclient.execute(httpPost);
+						    
+						    HttpEntity entity2 = response2.getEntity();
+						    Header[] headers = response2.getAllHeaders();
+						    PrintWriter out = new PrintWriter(currentFile);
+						    IOUtils.copy(entity2.getContent(), out, "UTF-8");
+						    out.close();
+						    EntityUtils.consume(entity2);
+						    break;
+						} catch (UnsupportedEncodingException e1) {
+							logger.error(e1.getLocalizedMessage(),e1);
+						} catch (ClientProtocolException e1) {
+							logger.error(e1.getLocalizedMessage(),e1);
+						} catch (IOException e1) {
+							logger.error(e1.getLocalizedMessage(),e1);
+						} finally {
+						    try {
+								if (response2 != null) response2.close();
+							} catch (IOException e) {
+								logger.error(e.getLocalizedMessage(),e);
+							}
 						}
+						
+				    	attempt++;
+						logger.info("Warning (retrying) " + attempt);
+						try {
+							Thread.sleep(config.getInterval());
+						} catch (InterruptedException e1) {
+							logger.warn(e1.getLocalizedMessage(), e1);
+						}
+				    	
 					}
 			    }
 			    

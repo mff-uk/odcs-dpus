@@ -27,6 +27,10 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     private boolean bas_puvadr = true;
     
     private boolean bas_active = false;
+    
+    private boolean downloadOR = true;
+    
+    private boolean downloadBasic = true;
 	
 	@Override
     public boolean isValid() {
@@ -103,6 +107,22 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setBas_active(boolean bas_active) {
 		this.bas_active = bas_active;
+	}
+
+	public boolean isDownloadOR() {
+		return downloadOR;
+	}
+
+	public void setDownloadOR(boolean downloadOR) {
+		this.downloadOR = downloadOR;
+	}
+
+	public boolean isDownloadBasic() {
+		return downloadBasic;
+	}
+
+	public void setDownloadBasic(boolean downloadBasic) {
+		this.downloadBasic = downloadBasic;
 	}	
 	
 }

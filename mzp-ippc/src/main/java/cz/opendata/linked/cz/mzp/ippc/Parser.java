@@ -28,6 +28,7 @@ public class Parser extends ScrapingTemplate{
     
 	public Logger logger;
     private int count = 0;
+    private int kontrolacount = 0;
     private int total;
     
     static final String schemaorg = "http://schema.org/";
@@ -46,12 +47,20 @@ public class Parser extends ScrapingTemplate{
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType, URL url) {
         LinkedList<ParseEntry> out = new LinkedList<>();
         switch (docType) {
+        case "doc":
+        	for (Element a : doc.getElementById("view:_id1:_id2:facetMiddle:_id146:repeatLinks").select("a")) {
+        		try {
+					out.add(new ParseEntry(new URL("http://www.mzp.cz" + a.attr("href")), "kontrola"));
+				} catch (MalformedURLException e) {
+					logger.error(e.getLocalizedMessage(), e);
+				}
+        	}
+        	break;
         case "docview":
         	try {
 				out.add(new ParseEntry(new URL("http://www.mzp.cz" + doc.getElementById("view:_id1:_id2:facetMiddle:_id19:link1").attr("href")), "doc"));
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getLocalizedMessage(), e);
 			}
         	break;
         case "provozovna":
@@ -61,6 +70,41 @@ public class Parser extends ScrapingTemplate{
         return out;
     }
 
+    private String getMonth(String m) 
+    {
+    	switch (m) {
+    	case "Jan": return "01";
+    	case "Feb": return "02";
+    	case "Mar": return "03";
+    	case "Apr": return "04";
+    	case "May": return "05";
+    	case "Jun": return "06";
+    	case "Jul": return "07";
+    	case "Aug": return "08";
+    	case "Sep": return "09";
+    	case "Oct": return "10";
+    	case "Nov": return "11";
+    	case "Dec": return "12";
+    	default: return "01";
+    	}
+    }
+    
+    private String getDate(String input) {
+    	String out = null;
+    	if (input.matches("[a-zA-Z]{3}")) {
+    		out = input.replaceAll(".*([0-9]{4}).*","$1") + "-" + getMonth(input.replaceAll(".*([a-zA-Z]{3}).*","$1")) + "-" + input.replaceAll("[a-zA-Z]{3} ([^,]+).*","$1");
+    	}
+    	else if (input.contains(".")) {
+    		String d = input.replaceAll("([0-9]+)\\.([0-9]+)\\.([0-9]{4})","$1");
+    		if (d.length() == 1) d = "0" + d;
+    		String m = input.replaceAll("([0-9]+)\\.([0-9]+)\\.([0-9]{4})","$2");
+    		if (m.length() == 1) m = "0" + m;
+    		String y = input.replaceAll("([0-9]+)\\.([0-9]+)\\.([0-9]{4})","$3");
+    		out = y + "-" + m + "-" + d;
+    	}
+    	return out;
+    }
+    
     private String uriSlug(String input)
     {
     	return input.toLowerCase().replace(" ", "-").replace(".", "-").replace("–", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
@@ -80,7 +124,7 @@ public class Parser extends ScrapingTemplate{
         URI s_PostalAddress = outputDataUnit.createURI(schemaorg + "PostalAddress");
         URI s_object = outputDataUnit.createURI(schemaorg + "object");
         URI s_geo = outputDataUnit.createURI(schemaorg + "geo");
-        //URI s_result = outputDataUnit.createURI(schemaorg + "result");
+        URI s_result = outputDataUnit.createURI(schemaorg + "result");
         URI s_address = outputDataUnit.createURI(schemaorg + "address");
         URI s_addressLocality = outputDataUnit.createURI(schemaorg + "addressLocality");
         URI s_addressRegion = outputDataUnit.createURI(schemaorg + "addressRegion");
@@ -90,6 +134,7 @@ public class Parser extends ScrapingTemplate{
         URI s_latitude = outputDataUnit.createURI(schemaorg + "latitude");
         URI s_GeoCoordinates = outputDataUnit.createURI(schemaorg + "GeoCoordinates");
         URI s_location = outputDataUnit.createURI(schemaorg + "location");
+        URI s_actionStatus = outputDataUnit.createURI(schemaorg + "actionStatus");
         URI s_startTime = outputDataUnit.createURI(schemaorg + "startTime");
         URI s_endTime = outputDataUnit.createURI(schemaorg + "endTime");
         URI s_instrument = outputDataUnit.createURI(schemaorg + "instrument");
@@ -100,28 +145,52 @@ public class Parser extends ScrapingTemplate{
         URI xsd_gYear = outputDataUnit.createURI(xsd + "gYear");
         //URI dcterms_source = outputDataUnit.createURI(dcterms + "source");
         URI ICScheme = outputDataUnit.createURI("http://linked.opendata.cz/resource/concept-scheme/CZ-ICO");
-        URI chemScheme = outputDataUnit.createURI(mzponto + "chemicals/ConceptScheme");
+        URI catScheme = outputDataUnit.createURI(mzponto + "categories/ConceptScheme");
+    	URI s_ActionStatusType = outputDataUnit.createURI(schemaorg + "ActionStatusType");
     	
-		URI ovzdusiURI = outputDataUnit.createURI(mzponto + "UnikDoOvzdusi");
-		URI vodaURI = outputDataUnit.createURI(mzponto + "UnikDoVody");
-		URI pudaURI = outputDataUnit.createURI(mzponto + "UnikDoPudy");
-		URI prenosOdpadVodaURI = outputDataUnit.createURI(mzponto + "PrenosOdpadniVody");
-		URI prenosOdpadyURI = outputDataUnit.createURI(mzponto + "PrenosOdpady");
-
-		URI mereniURI = outputDataUnit.createURI(mzponto + "Mereni");
-		URI odhadURI = outputDataUnit.createURI(mzponto + "Odhad");
-		URI vypocetURI = outputDataUnit.createURI(mzponto + "Vypocet");
-		
-		URI recyklaceURI = outputDataUnit.createURI(mzponto + "Recyklace");
-		URI odstraneniURI = outputDataUnit.createURI(mzponto + "Odstraneni");
-		URI urceni_odpadu = outputDataUnit.createURI(mzponto + "urceniOdpadu");
+		URI mainCategoryURI = outputDataUnit.createURI(mzponto + "hlavniKategorie");
+		URI additionalCategoryURI = outputDataUnit.createURI(mzponto + "vedlejsiKategorie");
 		
 		logger.trace("Processing: " + url.toString());
 		
 		switch (docType) {
+		case "kontrola":
+			kontrolacount++;
+            logger.debug("Parsing kontrola " + kontrolacount + ": " + url.toString());
+            
+            String bCode = doc.getElementById("view:_id1:_id2:facetMiddle:_id7:link1").text();
+            String checkCode = doc.getElementById("view:_id1:_id2:facetMiddle:_id7:pid").text();
+			
+            String start = doc.getElementById("view:_id1:_id2:facetMiddle:Date_Check_Start").text();
+            String end = doc.getElementById("view:_id1:_id2:facetMiddle:Date_Check_End").text();
+            String state = doc.getElementById("view:_id1:_id2:facetMiddle:radioGroup1").text();
+            String object = doc.getElementById("view:_id1:_id2:facetMiddle:check_subject").text();
+            String text = doc.getElementById("view:_id1:_id2:facetMiddle:Body").text();
+            
+    		URI bURI = outputDataUnit.createURI(mzpbr + bCode);
+    		URI checkURI = outputDataUnit.createURI(mzpbr + bCode + "/checks/" + checkCode);
+            
+            outputDataUnit.addTriple(checkURI, RDF.TYPE, s_CheckAction);
+    		outputDataUnit.addTriple(checkURI, s_location, bURI);
+    		
+    		
+    		String starttime = getDate(start) + "T00:00:00";
+    		String endtime = getDate(end) + "T23:59:59";
+    		outputDataUnit.addTriple(checkURI, s_startTime, outputDataUnit.createLiteral(starttime, xsd_dateTime));
+    		outputDataUnit.addTriple(checkURI, s_endTime, outputDataUnit.createLiteral(endtime, xsd_dateTime));
+    		if (!object.isEmpty()) outputDataUnit.addTriple(checkURI, s_instrument, outputDataUnit.createLiteral(object));
+    		if (!state.isEmpty()) {
+    			URI actionStatus = outputDataUnit.createURI(mzponto + "action-states/" + uriSlug(state));
+    			outputDataUnit.addTriple(checkURI, s_actionStatus, actionStatus);
+    			outputDataUnit.addTriple(actionStatus, RDF.TYPE, s_ActionStatusType);
+    			outputDataUnit.addTriple(actionStatus, s_name, outputDataUnit.createLiteral(state));
+    		}
+    		if (!text.isEmpty()) outputDataUnit.addTriple(checkURI, s_result, outputDataUnit.createLiteral(text));
+    		
+			break;
         case "doc":
             count++;
-            logger.debug("Parsing doc " + count + "/" + total + ": " + url.toString());
+            logger.debug("Parsing doc " + count + ": " + url.toString());
             
             String regCode = doc.getElementById("view:_id1:_id2:facetMiddle:pid").text();
             String name = doc.getElementById("view:_id1:_id2:facetMiddle:Title").text();
@@ -129,9 +198,10 @@ public class Parser extends ScrapingTemplate{
             String additionalCategoriesConcat = doc.getElementById("view:_id1:_id2:facetMiddle:Equipment_Categories_Other").val();
             String additionalCategories[] = additionalCategoriesConcat.split(";");
             String mainCategoryLabel = StringEscapeUtils.unescapeJava(doc.getElementsByAttributeValue("id", "view:_id1:_id2:facetMiddle:Equipment_Categories").attr("labels"));
+            if (mainCategoryLabel.equals("{}")) mainCategoryLabel = null;
             String additionalCategoriesLabelsConcat = StringEscapeUtils.unescapeJava(doc.getElementsByAttributeValue("id", "view:_id1:_id2:facetMiddle:Equipment_Categories_Other").attr("labels"));
             String additionalCategoriesLabels[] = null;
-            if (!additionalCategoriesLabelsConcat.isEmpty() && !additionalCategoriesLabelsConcat.equals("{}")) additionalCategories = additionalCategoriesLabelsConcat.substring(2, additionalCategoriesLabelsConcat.length() - 2).split("\",\"");
+            if (!additionalCategoriesLabelsConcat.isEmpty() && !additionalCategoriesLabelsConcat.equals("{}")) additionalCategoriesLabels = additionalCategoriesLabelsConcat.substring(2, additionalCategoriesLabelsConcat.length() - 2).split("\",\"");
             String provozovatelName = doc.getElementById("view:_id1:_id2:facetMiddle:link3").text();
             String provozovatelIC = doc.getElementById("view:_id1:_id2:facetMiddle:ic").text();
             String pravniForma = doc.getElementById("view:_id1:_id2:facetMiddle:companyForm").text();
@@ -194,7 +264,46 @@ public class Parser extends ScrapingTemplate{
 	    		outputDataUnit.addTriple(branchGeoURI, s_latitude, outputDataUnit.createLiteral(x));
 	    		outputDataUnit.addTriple(branchGeoURI, s_longitude, outputDataUnit.createLiteral(y));
     		}
-            
+    		
+    		//categories
+    		
+    		if (mainCategory != null && !mainCategory.isEmpty()) {
+	    		URI mCategory = outputDataUnit.createURI(mzponto + "categories/" + mainCategory);
+	    		outputDataUnit.addTriple(branchURI, mainCategoryURI, mCategory);
+	    		outputDataUnit.addTriple(mCategory, RDF.TYPE, SKOS.CONCEPT);
+	    		if (mainCategoryLabel != null && !mainCategoryLabel.isEmpty()) outputDataUnit.addTriple(mCategory, SKOS.PREF_LABEL, outputDataUnit.createLiteral(mainCategoryLabel.substring(mainCategoryLabel.lastIndexOf(':') + 2, mainCategoryLabel.length() - 2)));
+	    		outputDataUnit.addTriple(mCategory, SKOS.NOTATION, outputDataUnit.createLiteral(mainCategory));
+	    		if (mainCategory.contains(".")) {
+	    			URI broader = outputDataUnit.createURI(mzponto + "categories/" + mainCategory.substring(0, mainCategory.indexOf('.')));
+	    			outputDataUnit.addTriple(mCategory, SKOS.BROADER_TRANSITIVE, broader);
+	    		}
+	    		outputDataUnit.addTriple(mCategory, SKOS.IN_SCHEME, catScheme);
+    		}
+    		
+    		for (int i = 0; i < additionalCategories.length; i++) {
+        		URI aCategory = outputDataUnit.createURI(mzponto + "categories/" + additionalCategories[i]);
+        		outputDataUnit.addTriple(branchURI, additionalCategoryURI, aCategory);
+        		outputDataUnit.addTriple(aCategory, RDF.TYPE, SKOS.CONCEPT);
+        		if (additionalCategoriesLabels != null) {
+        			String currentlabel = null;
+        			for (String lbl: additionalCategoriesLabels)
+        			{
+        				if (lbl.contains(additionalCategories[i])) {
+        					currentlabel = lbl.substring(lbl.lastIndexOf(':') + 2);
+        					break;
+        				}
+        				
+        			}
+        			if (currentlabel != null) outputDataUnit.addTriple(aCategory, SKOS.PREF_LABEL, outputDataUnit.createLiteral(currentlabel));
+        		}
+        		outputDataUnit.addTriple(aCategory, SKOS.NOTATION, outputDataUnit.createLiteral(additionalCategories[i]));
+	    		if (additionalCategories[i].contains(".")) {
+	    			URI broader = outputDataUnit.createURI(mzponto + "categories/" + additionalCategories[i].substring(0, additionalCategories[i].indexOf('.')));
+	    			outputDataUnit.addTriple(aCategory, SKOS.BROADER_TRANSITIVE, broader);
+	    		}
+        		outputDataUnit.addTriple(aCategory, SKOS.IN_SCHEME, catScheme);
+    		}
+    		
             break;
         case "provozovna":
 

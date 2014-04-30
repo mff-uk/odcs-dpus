@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>Extractor_ares</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 	<description>This extractor scrapes ARES XML records about Czech business entities</description>
     <properties>    
         <dpu.package>cz.opendata.linked.ares</dpu.package>
