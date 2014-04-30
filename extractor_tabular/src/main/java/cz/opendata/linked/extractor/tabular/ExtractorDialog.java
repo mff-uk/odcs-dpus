@@ -37,6 +37,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     
     private TextField tfEOFSymbols;
     
+    private TextField tfRowLimit;
+    
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
 		buildMainLayout();
@@ -85,6 +87,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         this.tfEOFSymbols = new TextField("End of line symbols (for CSV)");
         this.baseFormLayout.addComponent(this.tfEOFSymbols);
+        
+        this.tfRowLimit = new TextField("Rows limit");
+        this.baseFormLayout.addComponent(this.tfRowLimit);
         
         this.baseFormLayout.addComponent(new Label("Column to property URI mappings"));
         
@@ -194,6 +199,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			this.tfEOFSymbols.setValue(conf.getEofSymbols());
 		}
 		
+		if ( conf.getRowLimit() == 0 )	{
+			this.tfRowLimit.setValue("");
+		} else {
+			this.tfRowLimit.setValue(String.valueOf(conf.getRowLimit()));
+		}
+		
 		if ( conf.isDBF() == true )	{
 			this.ogInputFileType.setValue("DBF");
 		} else {
@@ -278,7 +289,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 			eofSymbols = null;
 		}
 		
-		return new ExtractorConfig(columnPropertiesMap, baseURI, columnWithURISupplement, encoding, quoteChar, delimiterChar, eofSymbols, isDBF, isCSV);
+		int rowLimit;
+		
+		try	{
+			Integer rowLimitObj = new Integer(this.tfRowLimit.getValue());
+			rowLimit = rowLimitObj.intValue();
+			if ( rowLimit < 0 )	{
+				rowLimit = 0;
+			}
+		} catch (NumberFormatException ex)	{
+			rowLimit = 0;
+		}
+		
+		return new ExtractorConfig(columnPropertiesMap, baseURI, columnWithURISupplement, encoding, quoteChar, delimiterChar, eofSymbols, rowLimit, isDBF, isCSV);
 	}
 
 }

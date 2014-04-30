@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +16,16 @@ import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfHeader;
 import org.jamel.dbf.utils.DbfUtils;
+import org.openrdf.model.Graph;
+import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
@@ -32,6 +40,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
+import cz.cuni.mff.xrg.odcs.rdf.interfaces.ManagableRdfDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
 
 import org.slf4j.Logger;
@@ -51,7 +60,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	public FileDataUnit tableFile;
 	
 	@OutputDataUnit(name = "triplifiedTable")
-	public RDFDataUnit triplifiedTable;
+	public RDFDataUnit triplifiedTableT;
+	public ManagableRdfDataUnit triplifiedTable;
 
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -65,6 +75,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	@Override
 	public void execute(DPUContext context) throws DPUException,
 			DataUnitException {
+		
+		this.triplifiedTable = (ManagableRdfDataUnit) triplifiedTableT;
 		
 		DirectoryHandler rootHandler = tableFile.getRootDir();
 		File tableFile = null;
@@ -147,8 +159,19 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     			}
 				
 				List<String> row = listReader.read();
+				
+				int stmtBufferSize = 100000;
+//				List<Statement> stmtBuffer = new ArrayList<Statement>(stmtBufferSize+header.length+10);
+				Model mBuffer = new LinkedHashModel(stmtBufferSize+header.length+10);
+				
 				int rowno = 0;
                 while( row != null ) {
+                	
+                	if ( config.getRowLimit() > 0 )	{
+                		if ( rowno >= config.getRowLimit() )	{
+                			break;
+                		}
+                	}
 
                 	String suffixURI;
     				if ( columnWithURISupplementNumber >= 0 )	{
@@ -163,19 +186,27 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     				for (String strValue : row) {
     					if ( strValue == null || "".equals(strValue) )	{
     						URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-    						triplifiedTable.addTriple(subj, propertyMap[i], obj);
+//    						triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    						mBuffer.add(subj, propertyMap[i], obj);
     					} else {
     				        Value obj = triplifiedTable.createLiteral(strValue);
-    				        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+//    				        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    				        mBuffer.add(subj, propertyMap[i], obj);
     					}
     					i++;
 					}
     			        					
     		        Value rowvalue = triplifiedTable.createLiteral(String.valueOf(rowno));
-    		        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+//    		        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+    		        mBuffer.add(subj, propertyRow, rowvalue);
     				
     				if ( (rowno % 1000) == 0 )	{
     					LOG.debug("Row number {} processed.", rowno);
+    				}
+    				
+    				if ( mBuffer.size() > stmtBufferSize )	{
+    					triplifiedTable.addTriplesFromGraph(mBuffer);
+    					mBuffer.clear();
     				}
     				
     				rowno++;
@@ -188,6 +219,9 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     		       	}
                 	
                 }
+                
+				triplifiedTable.addTriplesFromGraph(mBuffer);
+				mBuffer.clear();
                 
                 
 			} catch (IOException e)	{
@@ -249,7 +283,13 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			int rowno = 0;
 			 
 			while ( (row = reader.nextRecord()) != null )	{
-						
+				
+				if ( config.getRowLimit() > 0 )	{
+            		if ( rowno >= config.getRowLimit() )	{
+            			break;
+            		}
+            	}
+				
 				String suffixURI;
 				if ( columnWithURISupplementNumber >= 0 )	{
 					suffixURI = this.convertStringToURIPart(this.getCellValue(row[columnWithURISupplementNumber], encoding));
