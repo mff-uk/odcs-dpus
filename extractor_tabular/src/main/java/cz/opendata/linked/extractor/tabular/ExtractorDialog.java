@@ -76,7 +76,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         this.tfColumnWithURISupplement = new TextField("Key column");
         this.baseFormLayout.addComponent(this.tfColumnWithURISupplement);
         
-        this.tfEncoding = new TextField("Encoding (for DBF)");
+        this.tfEncoding = new TextField("Encoding");
+        this.tfEncoding.setInputPrompt("UTF-8, Cp1250, ...");
         this.baseFormLayout.addComponent(this.tfEncoding);
         
         this.tfQuoteChar = new TextField("Quote char (for CSV)");

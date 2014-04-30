@@ -2,8 +2,10 @@ package cz.opendata.linked.extractor.tabular;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -140,7 +142,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			ICsvListReader listReader = null;
 			try	{
 				
-				listReader = new CsvListReader(new BufferedReader(new FileReader(tableFile)), CSV_PREFERENCE);
+				listReader = new CsvListReader(new BufferedReader(new InputStreamReader(new FileInputStream(tableFile), config.getEncoding())), CSV_PREFERENCE);
 								
 				final String[] header = listReader.getHeader(true);
 				int columnWithURISupplementNumber = -1;
