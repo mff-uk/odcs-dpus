@@ -6,8 +6,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 public class ExtractorConfig extends DPUConfigObjectBase {
 
-	private static final long serialVersionUID = 6979581350385466975L;
-
 	private LinkedHashMap<String, String> columnPropertyMap;
 
 	private String baseURI;

@@ -14,8 +14,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	private static final long serialVersionUID = 8719241993054209502L;
-
 	private URL datasetURI;
 
 	private URL distroURI;
