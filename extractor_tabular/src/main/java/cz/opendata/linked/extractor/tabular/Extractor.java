@@ -104,12 +104,12 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		}
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
-			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
+			LOG.info("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
 			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/";
 		}
 		String columnWithURISupplement = this.config.getColumnWithURISupplement();
 		if ( columnWithURISupplement == null || "".equals(columnWithURISupplement) )	{
-			LOG.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
+			LOG.info("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
 			columnWithURISupplement = null;
 		}
 		
@@ -124,17 +124,17 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			
 			if ( quoteChar == null || "".equals(quoteChar) )	{
 				quoteChar = "\"";
-				LOG.warn("No quote char supplied. Default quote char '\"' will be used.");
+				LOG.info("No quote char supplied. Default quote char '\"' will be used.");
 			}
 			
 			if ( delimiterChar == null || "".equals(delimiterChar) )	{
 				delimiterChar = "\"";
-				LOG.warn("No delimiter char supplied. Default delimiter char ',' will be used.");
+				LOG.info("No delimiter char supplied. Default delimiter char ',' will be used.");
 			}
 			
 			if ( eofSymbols == null || "".equals(eofSymbols) )	{
 				eofSymbols = "\n";
-				LOG.warn("No end of line symbols supplied. Default end of line symbols '\\n' will be used.");
+				LOG.info("No end of line symbols supplied. Default end of line symbols '\\n' will be used.");
 			}
 			
 			final CsvPreference CSV_PREFERENCE = new CsvPreference.Builder(quoteChar.charAt(0), delimiterChar.charAt(0), eofSymbols).build();
