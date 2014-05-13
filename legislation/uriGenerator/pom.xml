@@ -18,26 +18,32 @@
 			<artifactId>zip4j</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-	 <dependency>
-	  <groupId>cz.cuni.mff.xrg.odcs</groupId>
-	  <artifactId>ontology</artifactId>
-	  <version>1.0.0</version>
-	  <type>jar</type>
-	 </dependency>
-         <dependency>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>ontology</artifactId>
+			<version>1.0.0</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>dataunit-rdf</artifactId>
 			<version>${odcs.version}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
-                 <dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>dataunit-file</artifactId>
 			<version>${odcs.version}</version>
 			<type>jar</type>
 			<scope>provided</scope>
-		</dependency>			
+		</dependency>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf-simple</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>	
 	</dependencies>
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>

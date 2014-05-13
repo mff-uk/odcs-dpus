@@ -11,8 +11,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +22,10 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import org.openrdf.rio.RDFFormat;
+import org.slf4j.Logger;
 
 /**
  * Simple XSLT Extractor
@@ -34,17 +37,16 @@ import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 		implements ConfigDialogProvider<RDFaDistillerConfig> {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(
-			RDFaDistiller.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RDFaDistiller.class);
 
 	public RDFaDistiller() {
 		super(RDFaDistillerConfig.class);
 	}
 
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public RDFDataUnit rdfInput;
 
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public RDFDataUnit rdfOutput;
 
 	@Override
@@ -55,7 +57,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 	@Override
 	public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-		log.info(
+		LOG.info(
 				"\n ****************************************************** \n RDFa Distiller \n *****************************************************");
 
 		//get working dir
@@ -66,14 +68,14 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 		try {
 			pathToWorkingDir = workingDir.getCanonicalPath();
 		} catch (IOException ex) {
-			log.error("Problem of getting path to the working dir");
-			log.debug(ex.getLocalizedMessage());
+			LOG.error("Problem of getting path to the working dir");
+			LOG.debug(ex.getLocalizedMessage());
 		}
 
         //prepare inputs, call xslt for each input
 		//String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
 		String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
-		log.debug("Query for getting input files: {}", query);
+		LOG.debug("Query for getting input files: {}", query);
         //get the return values
 		//TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 		OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput
@@ -90,7 +92,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 				Binding b = solution.getBinding("o");
 				String fileContent = b.getValue().toString();
 				String subject = solution.getBinding("s").getValue().toString();
-				log.info("Processing new file for subject {}", subject);
+				LOG.info("Processing new file for subject {}", subject);
                 //log.debug("Processing file {}", fileContent);
 
 				String inputFilePath = pathToWorkingDir + File.separator + String
@@ -105,13 +107,13 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 				File file = DataUnitUtils.storeStringToTempFile(decode(
 						removeTrailingQuotes(fileContent)), inputFilePath);
 				if (file == null) {
-					log
+					LOG
 							.warn("Problem processing object for subject {}",
 									subject);
 					continue;
 				}
 
-				log.info("Distiller is about to be executed");
+				LOG.info("Distiller is about to be executed");
 
 //                try {
 //                    CharOutputSink outputSink = new CharOutputSink();
@@ -138,7 +140,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
             //java -jar java-rdfa-0.4.jar http://examples.tobyinkster.co.uk/hcard
 					printProcessOutput(p);
 				} catch (IOException ex) {
-					log.error(ex.getLocalizedMessage());
+					LOG.error(ex.getLocalizedMessage());
 					context.sendMessage(MessageType.ERROR, "Problem executing: "
 							+ ex.getMessage());
 				}
@@ -156,19 +158,21 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 //            context.sendMessage(MessageType.ERROR, "Problem executing: "
 //                    + ex.getMessage());
 //        }
-				log.info("Distiller was executed, output is being prepared");
+				LOG.info("Distiller was executed, output is being prepared");
 
 				try {
-					log.info("Output file name is: {}", outputFilePath);
-					rdfOutput.addFromTurtleFile(new File(outputFilePath));
-				} catch (RDFException ex) {
-					log.error(ex.getLocalizedMessage());
-					context.sendMessage(MessageType.ERROR, "RDFException: "
+					LOG.info("Output file name is: {}", outputFilePath);
+					
+					SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+					rdfOutputWrap.extract(new File(outputFilePath), RDFFormat.TURTLE, null);
+				} catch (OperationFailedException ex) {
+					LOG.error("OperationFailed", ex);
+					context.sendMessage(MessageType.ERROR, "OperationFailed: "
 							+ ex.getMessage());
 				}
 
 				if (context.canceled()) {
-					log.info("DPU cancelled");
+					LOG.info("DPU cancelled");
 					return;
 				}
 
@@ -177,13 +181,13 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 			context.sendMessage(MessageType.ERROR,
 					"Problem evaluating the query to obtain files to be processed. Processing ends.",
 					ex.getLocalizedMessage());
-			log.error(
+			LOG.error(
 					"Problem evaluating the query to obtain values of the {} literals. Processing ends.",
 					config.getInputPredicate());
-			log.debug(ex.getLocalizedMessage());
+			LOG.debug(ex.getLocalizedMessage());
 		}
 
-		log.info("Processed {} files - values of predicate {}", i, config
+		LOG.info("Processed {} files - values of predicate {}", i, config
 				.getInputPredicate());
 
 	}
@@ -196,12 +200,12 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 			String[] keyAndVal = s.split(":");
 			if (keyAndVal.length == 2) {
 				val = val.replaceAll(keyAndVal[0], keyAndVal[1]);
-				log
+				LOG
 						.debug("Encoding mapping {} to {} was applied.",
 								keyAndVal[0], keyAndVal[1]);
 
 			} else {
-				log.warn(
+				LOG.warn(
 						"Wrong format of escaped character mappings, skipping the mapping");
 
 			}
@@ -216,7 +220,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 					.getErrorStream()));
 			String line = "";
 			while ((line = in.readLine()) != null) {
-				log.warn(line);
+				LOG.warn(line);
 			}
 			in.close();
 
@@ -228,7 +232,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 			}
 			in.close();
 		} catch (Exception e) {
-			log.warn("Vyjimka... " + e);
+			LOG.warn("Vyjimka... " + e);
 		}
 	}
 
@@ -247,6 +251,6 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 	private String decode(String input) {
 		return input;
 		//return input.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quote;", "\"");
-
 	}
+	
 }

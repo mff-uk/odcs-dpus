@@ -1,5 +1,6 @@
 package cz.cuni.mff.css_parser.utils;
 
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -11,12 +12,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -24,16 +22,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import org.openrdf.model.ValueFactory;
 /**
  *  Document cache. It stores downloaded files to hard drive.
  * 
@@ -44,9 +36,10 @@ public class Cache {
 	
     public static Logger logger;
     
-    public static RDFDataUnit stats;
+    public static SimpleRDF stats;
 	
     private static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
+	
     private static String xsdPrefix = "http://www.w3.org/2001/XMLSchema#";
     
     public static Validator validator;
@@ -57,10 +50,11 @@ public class Cache {
     public static int invalidXML = 0;
     public static long timeValidating = 0;
     
-    private static boolean validate(String file, String url)
+    private static boolean validate(String file, String url) throws OperationFailedException
 	{
 	    java.util.Date date = new java.util.Date();
 	    long start = date.getTime();
+		ValueFactory valueFactory = stats.getValueFactory();
 		try {
 		    
 			logger.debug("Loading file for validation: " + url);
@@ -72,7 +66,11 @@ public class Cache {
     	    long end2 = date2.getTime();
     	    timeValidating += (end2-start);
 			logger.debug("Valid XML (" + (end2-start) + " ms): " + url);
-			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validationTime"), stats.createLiteral(Long.toString(end2-start), stats.createURI(xsdPrefix + "integer")));
+			
+			stats.add(valueFactory.createURI(url.toString()), 
+					valueFactory.createURI(BPOprefix + "validationTime"), 
+					valueFactory.createLiteral(Long.toString(end2-start), 
+					valueFactory.createURI(xsdPrefix + "integer")));
 
 			return true;
 		} catch (SAXException e) {
@@ -82,8 +80,13 @@ public class Cache {
     	    timeValidating += (end3-start);
     	    
 			logger.debug("Invalid XML (" + (end3-start) + " ms): " + url);
-			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "invalidMessage"), stats.createLiteral(e.getLocalizedMessage()));
-			stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validationTime"), stats.createLiteral(Long.toString(end3-start), stats.createURI(xsdPrefix + "integer")));
+			stats.add(valueFactory.createURI(url.toString()), 
+					valueFactory.createURI(BPOprefix + "invalidMessage"), 
+					valueFactory.createLiteral(e.getLocalizedMessage()));
+			stats.add(valueFactory.createURI(url.toString()), 
+					valueFactory.createURI(BPOprefix + "validationTime"), 
+					valueFactory.createLiteral(Long.toString(end3-start), 
+					valueFactory.createURI(xsdPrefix + "integer")));
 			return false;
 		} catch (IOException e) {
 			logger.error(e.getLocalizedMessage());
@@ -129,7 +132,7 @@ public class Cache {
 		}
 		catch ( Exception e ) {
 			//We can not recover from this exception.
-			e.printStackTrace();
+			logger.error("SSL connection failure", e);
 		}
 	}	
 
@@ -140,7 +143,7 @@ public class Cache {
     
     public static boolean rewriteCache = false;
 
-    private static HashSet<String> s = new HashSet<String>();
+    private static HashSet<String> s = new HashSet<>();
 
     public static void init() {
 	File f = new File(Cache.basePath, "www.isvzus.cz/cs/Form/Display");
@@ -169,7 +172,7 @@ public class Cache {
     private static long lastDownload = 0;
     private static int timeout;
     
-    public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException {   
+    public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException, OperationFailedException {   
 	String host = url.getHost();
         if (url.getPath().lastIndexOf("/") == -1) {
             return null;
@@ -312,9 +315,12 @@ public class Cache {
 		out = IOUtils.toString(new FileInputStream(hFile), "UTF-8");
 	}
 	
+	ValueFactory valueFactory = stats.getValueFactory();
 	if (out.length() == 0) {
 		logger.debug("Not working: " + url.toString());
-		stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "notWorking"), stats.createLiteral("true", stats.createURI(xsdPrefix + "boolean")));
+		stats.add(valueFactory.createURI(url.toString()), 
+				valueFactory.createURI(BPOprefix + "notWorking"), 
+				valueFactory.createLiteral("true", valueFactory.createURI(xsdPrefix + "boolean")));
 		return null;
 	}
 	else {
@@ -326,16 +332,19 @@ public class Cache {
 				{
 					//logger.info("Valid XML: " + url.toString());
 					validXML++;
-					stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("true", stats.createURI(xsdPrefix + "boolean")));
+					stats.add(valueFactory.createURI(url.toString()), 
+							valueFactory.createURI(BPOprefix + "validXML"), 
+							valueFactory.createLiteral("true", valueFactory.createURI(xsdPrefix + "boolean")));
 				}
 				else {
 					//logger.warn("Invalid XML: " + url.toString());
 					invalidXML++;
-					stats.addTriple(stats.createURI(url.toString()), stats.createURI(BPOprefix + "validXML"), stats.createLiteral("false", stats.createURI(xsdPrefix + "boolean")));
+					stats.add(valueFactory.createURI(url.toString()), 
+							valueFactory.createURI(BPOprefix + "validXML"), 
+							valueFactory.createLiteral("false", valueFactory.createURI(xsdPrefix + "boolean")));
 				}
 			}
-			outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());
-			
+			outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());			
 		}
 		else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host);	
 		

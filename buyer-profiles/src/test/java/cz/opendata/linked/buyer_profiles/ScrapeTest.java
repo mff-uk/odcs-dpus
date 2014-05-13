@@ -3,9 +3,7 @@ package cz.opendata.linked.buyer_profiles;
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
-
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 public class ScrapeTest {
 	@Test
@@ -20,14 +18,12 @@ public class ScrapeTest {
 		config.setMaxAttempts(1);
 		config.setValidateXSD(true);
 		config.setCurrentYearOnly(true);
-		config.setAccessProfiles(true);
-		
+		config.setAccessProfiles(true);		
 		
 		extractor.configureDirectly(config);
-		
-	
+			
 		// prepare test environment, we use system tmp directory
-		TestEnvironment env = TestEnvironment.create();
+		TestEnvironment env = new TestEnvironment();
 		// prepare input and output data units
 		
 		// here we can simply pre-fill input data unit with content from 
@@ -40,11 +36,10 @@ public class ScrapeTest {
 		try {
 			// run the execution
 			env.run(extractor);
-			
-			contracts.loadToFile("C:\\temp\\contracts.ttl", RDFFormatType.TTL);
-			profiles.loadToFile("C:\\temp\\profiles.ttl", RDFFormatType.TTL);
-			profile_stats.loadToFile("C:\\temp\\profile_stats.ttl", RDFFormatType.TTL);
-			
+//TODO: add loadToFile method - possibly into test environment?
+//			contracts.loadToFile("C:\\temp\\contracts.ttl", RDFFormatType.TTL);
+//			profiles.loadToFile("C:\\temp\\profiles.ttl", RDFFormatType.TTL);
+//			profile_stats.loadToFile("C:\\temp\\profile_stats.ttl", RDFFormatType.TTL);			
 		}
 	    catch(Exception e) {
 			e.printStackTrace();

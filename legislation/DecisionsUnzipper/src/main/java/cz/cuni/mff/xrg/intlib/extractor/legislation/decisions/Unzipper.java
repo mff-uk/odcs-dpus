@@ -13,8 +13,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,13 +28,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.rio.RDFFormat;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -44,7 +46,7 @@ import org.slf4j.LoggerFactory;
 @AsExtractor
 public class Unzipper extends ConfigurableBase<UnzipperConfig> implements ConfigDialogProvider<UnzipperConfig> {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             Unzipper.class);
     
     private String dateFrom;
@@ -76,7 +78,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
         } catch (IOException ex) {
-            log.error(ex.getLocalizedMessage());
+            LOG.error(ex.getLocalizedMessage());
         }
         //*****************************
         //get data (zipped file) from target URL
@@ -84,7 +86,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         String tmpCourtFilesZipFile = pathToWorkingDir + File.separator + "data.zip";
         String tmpCourtFiles = pathToWorkingDir + File.separator + "unzipped";
 
-        String urlWithZip = null;
+        String urlWithZip;
         try {
             urlWithZip = buildURL(config,context.getLastExecutionTime());
             context.sendMessage(MessageType.INFO, "Running for dates: " + dateFrom + " - " + dateTo);
@@ -96,27 +98,24 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         
         if (urlWithZip.isEmpty()) {
             //nothing to do
-            log.info("No new files to be extracted");
+            LOG.info("No new files to be extracted");
             return;
         }
         
-
-
         if (!new File(tmpCourtFilesZipFile).exists()) {
-
-            URL url = null;
+            URL url;
             try {
                 url = new URL(urlWithZip);
 
-                log.info("About to download zip file {}", urlWithZip);
+                LOG.info("About to download zip file {}", urlWithZip);
                 ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                 FileOutputStream fos = new FileOutputStream(tmpCourtFilesZipFile);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 
             } catch (MalformedURLException ex) {
-                log.error("Malformed URL " + ex.getLocalizedMessage());
+                LOG.error("Malformed URL " + ex.getLocalizedMessage());
             } catch (IOException e) {
-                log.error("Error storing zip file " + e.getLocalizedMessage());
+                LOG.error("Error storing zip file " + e.getLocalizedMessage());
             } finally {
                 //TODO clean up
             }
@@ -132,7 +131,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         
         //*****************************
         //UNZIP files
-        log.info("About to unzip {} ", tmpCourtFilesZipFile);
+        LOG.info("About to unzip {} ", tmpCourtFilesZipFile);
 
         try {
             unzip(tmpCourtFilesZipFile, tmpCourtFiles);              
@@ -152,34 +151,38 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         //*****************************
         //OUTPUT
         int i = 0;
+		
+		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+		
         for (File file : (new File(tmpCourtFiles)).listFiles()) {
             i++;
 
             if (i == config.getMaxExtractedDecisions()) {
-                log.warn("The number of unzipped files is equal to max number of extracted decisions {}, thus certain decisions above this threshold may be thrown away", config.getMaxExtractedDecisions());
-                log.info("If you need more decisions, please increase the max number of extracted decisions via configuration dialog");
+                LOG.warn("The number of unzipped files is equal to max number of extracted decisions {}, thus certain decisions above this threshold may be thrown away", config.getMaxExtractedDecisions());
+                LOG.info("If you need more decisions, please increase the max number of extracted decisions via configuration dialog");
             }
 
             //process each extracted file
-            log.info("Processing fle name {}", file.getName());
+            LOG.info("Processing fle name {}", file.getName());
             try {
-                log.debug("Processing file with path: {}", file.getCanonicalPath().toString());
+                LOG.debug("Processing file with path: {}", file.getCanonicalPath().toString());
             } catch (IOException ex) {
-                log.error(ex.getLocalizedMessage());
+                LOG.error(ex.getLocalizedMessage());
             }
 
             String output = null;
             try {
                 output =  DataUnitUtils.readFile(file.getCanonicalPath().toString(), Charset.forName("Cp1250"));
             } catch (IOException ex) {
-                Logger.getLogger(Unzipper.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.error("Failed to read file", ex);
             }
 
             if (output == null) {
-                log.warn("File {} cannot be read", file.getName());
-                log.warn("File skipped");
+                LOG.warn("File {} cannot be read", file.getName());
+                LOG.warn("File skipped");
             }
-            log.debug("File was read, the content of the file: {}", output);
+            LOG.debug("File was read, the content of the file: {}", output);
 
 
             //OUTPUT
@@ -203,45 +206,32 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             // add /cz/decision/2010/22-Cdo-4430-2010/cs
             newSubject = newSubject + "/cz/decision/" + year + "/" + decisionID + "/cs";
 
-            Resource subj = rdfOutput.createURI(newSubject);
-            URI pred = rdfOutput.createURI(config.getOutputPredicate());
-            Value obj = rdfOutput.createLiteral(output);
+            Resource subj = valueFactory.createURI(newSubject);
+            URI pred = valueFactory.createURI(config.getOutputPredicate());
+            Value obj = valueFactory.createLiteral(output);
 
 
             String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-            log.debug("Prepared triple {}", preparedTriple);
+            LOG.debug("Prepared triple {}", preparedTriple);
 
             DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
             String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
             DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
             
-            try {
-                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-
-            } catch(RDFException e) {
-                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
-                log.info("Continues with the next file");
-            }
-
-            
-         
-                if (context.canceled()) {
-                    log.info("DPU cancelled");
-                    return;
-                }
-
-
-        }
-
-
-        log.info("Processed {} files", i);
-
-
-
-
-
-
+			try {
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+				LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+			} catch (OperationFailedException e) {
+				LOG.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
+				LOG.info("Continues with the next file");
+			}
+			
+			if (context.canceled()) {
+				LOG.info("DPU cancelled");
+				return;
+			}
+		}
+        LOG.info("Processed {} files", i);
     }
 
     private String buildURL(UnzipperConfig config, Date lastExecutionTime) throws ConfigException {
@@ -270,7 +260,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
              
             
             if (lastExecutionTime == null) {
-                log.warn("No Last execution, processing decisions for yesterday");
+                LOG.warn("No Last execution, processing decisions for yesterday");
                 dateFrom = yesterday;
             }
             else  {
@@ -288,7 +278,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
 //                }
            
 
-            log.info("Getting decisions for the dates from {} to {}", dateFrom, dateTo);
+            LOG.info("Getting decisions for the dates from {} to {}", dateFrom, dateTo);
         }
         else if (config.isCurrentDay()) {
 
@@ -307,7 +297,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
             dateFrom = yesterday;
             dateTo = yesterday;
 
-            log.info("Getting decisions for the date {}", yesterday);
+            LOG.info("Getting decisions for the date {}", yesterday);
 
         }
        
@@ -326,7 +316,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         }
         urlWithZip += "&start=1&count=" + config.getMaxExtractedDecisions() + "&pohled=";
 
-        log.debug(urlWithZip);
+        LOG.debug(urlWithZip);
        
         return urlWithZip;
 

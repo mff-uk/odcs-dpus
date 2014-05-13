@@ -1,13 +1,9 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.JTaggerAnnotator;
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.JTaggerAnnotatorConfig;
 import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
-import java.io.File;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 public class TestJTagger {
 
@@ -29,19 +25,17 @@ public class TestJTagger {
 		trans.configureDirectly(config);
 
 		// prepare test environment
-		TestEnvironment env = TestEnvironment.create();
+		TestEnvironment env = new TestEnvironment();
 		// prepare data units
 		RDFDataUnit rdfInput = env.createRdfInput("input", false);
-		rdfInput.addFromFile(new File("src/test/resources/input.ttl"),
-				RDFFormat.TURTLE);
+//		rdfInput.addFromFile(new File("src/test/resources/input.ttl"),
+//				RDFFormat.TURTLE);
 		RDFDataUnit rdfOutput = env.createRdfOutput("output", false);
 		env.setJarPath("");
 
 		//run 
 		try {
 			env.run(trans);
-
-                        // DPU is running
 		} finally {
 			// release resources
 			env.release();

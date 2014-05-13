@@ -18,7 +18,8 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -47,6 +48,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
+		final SimpleRDF outListWrap = new SimpleRDF(outList, ctx);
+		final SimpleRDF outDetailsWrap = new SimpleRDF(outDetails, ctx);
+		
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
@@ -55,8 +59,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Scraper_parser s = new Scraper_parser();
 		s.logger = LOG;
 		s.ctx = ctx;
-		s.list = outList;
-		s.details = outDetails;
+		s.list = outListWrap;
+		s.details = outDetailsWrap;
 
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
@@ -77,8 +81,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				s.parse(init, "init");
 			} catch (BannedException b) {
 				LOG.warn("Seems like we are banned for today");
-			}
-			
+			}			
         	LOG.info("Download done.");
 		
 		} catch (IOException e) {
@@ -91,10 +94,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		long end = date2.getTime();
 
 		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
-
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

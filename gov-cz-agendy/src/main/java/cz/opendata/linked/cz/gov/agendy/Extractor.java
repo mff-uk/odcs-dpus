@@ -19,23 +19,20 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
+import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public RDFDataUnit outputDataUnit;
 
-	private Logger LOG = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -68,9 +65,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
-		} catch (FileNotFoundException e) {
-			LOG.error("Failed to create PrintStream.", e);
-		} catch (UnsupportedEncodingException e) {
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			LOG.error("Failed to create PrintStream.", e);
 		}
 
@@ -96,7 +91,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 
 		// a spustim na vychozi stranku
-
 		LOG.info("Starting extraction. Output: " + tempfilename);
 		
 		try {
@@ -116,16 +110,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
         	
 			LOG.info("Parsing done. Passing RDF to ODCS");
-			//give ttl to odcs
-			try {
-				outputDataUnit.addFromTurtleFile(new File(tempfilename));
-			}
-			catch (RDFException e)
-			{
-				LOG.error("Cannot put TTL to repository.", e);
-				throw new DPUException("Cannot put TTL to repository.");
-			}
-		} catch (InterruptedException intex) {
+			SimpleRDF outputDataUnitWrap = new SimpleRDF(outputDataUnit, ctx);
+			outputDataUnitWrap.extract(new File(tempfilename), RDFFormat.TURTLE, null);
+
+		} catch (InterruptedException e) {
 			LOG.error("Interrupted");
 		}
 

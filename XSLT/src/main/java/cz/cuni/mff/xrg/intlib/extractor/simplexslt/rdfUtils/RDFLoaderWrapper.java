@@ -4,8 +4,8 @@
  */
 package cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils;
 
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import java.io.File;
 
 /**
@@ -14,15 +14,15 @@ import java.io.File;
  */
 public abstract class RDFLoaderWrapper {
 
-    protected RDFDataUnit du;
+    protected SimpleRDF du;
     protected File outputFile;
     
-    public RDFLoaderWrapper(RDFDataUnit _du, File outputFile) {
+    public RDFLoaderWrapper(SimpleRDF _du, File outputFile) {
         this.du = _du;
         this.outputFile = outputFile;
     }
     
-    public abstract void addData() throws RDFException;
+    public abstract void addData() throws OperationFailedException;
 
     public File getOutputFile() {
         return outputFile;

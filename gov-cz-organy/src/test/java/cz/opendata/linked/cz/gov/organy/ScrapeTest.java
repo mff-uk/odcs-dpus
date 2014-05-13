@@ -3,8 +3,7 @@ package cz.opendata.linked.cz.gov.organy;
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 public class ScrapeTest {
 
@@ -21,7 +20,7 @@ public class ScrapeTest {
 		extractor.configureDirectly(config);
 
 		// prepare test environment, we use system tmp directory
-		TestEnvironment env = TestEnvironment.create();
+		TestEnvironment env = new TestEnvironment();
 		// prepare input and output data units
 
 		RDFDataUnit list = env.createRdfOutput("XMLList", false);
@@ -33,8 +32,8 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			list.loadToFile("C:\\temp\\list.ttl", RDFFormatType.TTL);
-			details.loadToFile("C:\\temp\\details.ttl", RDFFormatType.TTL);
+//			list.loadToFile("C:\\temp\\list.ttl", RDFFormatType.TTL);
+//			details.loadToFile("C:\\temp\\details.ttl", RDFFormatType.TTL);
 
 			// verify result
 		} catch (Exception e) {

@@ -29,9 +29,12 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
+import org.openrdf.model.ValueFactory;
 
 @AsExtractor
 public class Extractor 
@@ -59,28 +62,23 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		// Directory path here
 		String path = ctx.getUserDirectory() + "/cache/wwwinfo.mfcr.cz/cgi-bin/ares/"; 
-		File currentFile;
 		File folder = new File(path);
 		if (!folder.isDirectory()) return 0;
 
 		File[] listOfFiles = folder.listFiles(); 
 		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
-		for (int i = 0; i < listOfFiles.length; i++) 
-		{
-
-			if (listOfFiles[i].isFile()) 
-			{
-				currentFile = listOfFiles[i];
-
+		for (File item : listOfFiles){
+			if (item.isFile())  {
 				Date now = new Date();
-				Date modified = sdf.parse(sdf.format(currentFile.lastModified()));
+				Date modified = sdf.parse(sdf.format(item.lastModified()));
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
 				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
 			}
 		}
+
 		ctx.sendMessage(MessageType.INFO, "Total of " + count + " files cached in last " + config.getHoursToCheck() + " hours. " + (config.getPerDay() - count) + " remaining.");
 		return count;
 	}
@@ -120,11 +118,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
 
 		int lines = 0;
-		if (duICs != null && duICs.getTripleCount() > 0)
+		
+		SimpleRDF duICsWrap = new SimpleRDF(duICs, ctx);
+		final List<Statement> statements = duICsWrap.getStatements();
+		if (statements != null && !statements.isEmpty())
 		{
-			List<Statement> statements = duICs.getTriples();
-			
-			URL textPredicate = null;
+			URL textPredicate;
 			try {
 				textPredicate = new URL("http://linked.opendata.cz/ontology/odcs/textValue");
 				for (Statement stmt : statements)
@@ -142,7 +141,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		LOG.info("{} ICs loaded from input", lines);
 		
 		//Load ICs from file
-		BufferedReader in = null;
+		BufferedReader in;
 		lines = 0;
 		try {
 			in = new BufferedReader(new FileReader(new File(ctx.getUserDirectory(),"ic.txt")));
@@ -181,103 +180,135 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		ICs = dedupICs;*/
 		
-		if (!ctx.canceled())
-		{
-			//Download
-			int toCache = (config.getPerDay() - cachedToday);
-			Iterator<String> li = ICs.iterator();
-			//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
-	
-			try {
-				while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
-					String currentIC = li.next();
-					URL current = null;
-					
-					if (config.isDownloadBasic()) {
-						current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
-						if (!Cache.isCached(current) && !config.isUseCacheOnly())
+		if (ctx.canceled()) {
+			return;
+		}
+		
+
+		//Download
+		int toCache = (config.getPerDay() - cachedToday);
+		Iterator<String> li = ICs.iterator();
+		//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
+
+		final SimpleRDF outBasicWrap = new SimpleRDF(outBasic, ctx);
+		outBasicWrap.setPolicy(AddPolicy.BUFFERED);
+
+		final SimpleRDF outORWrap = new SimpleRDF(outOR, ctx);
+		outORWrap.setPolicy(AddPolicy.BUFFERED);
+
+		try {
+			while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
+				String currentIC = li.next();
+				URL current;
+
+				if (config.isDownloadBasic()) {
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
+
+					final ValueFactory valueFactory = outBasicWrap.getValueFactory();						
+					if (!Cache.isCached(current) && !config.isUseCacheOnly())
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						if (doc != null)
 						{
-							Document doc = Cache.getDocument(current, 10, "xml");
-							if (doc != null)
-							{
-								//logger.trace(doc.outerHtml());
-								if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-								LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
+							//logger.trace(doc.outerHtml());
+							if (config.isGenerateOutput()) {
+								outBasicWrap.add(
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
 							}
-							else
-							{
-								LOG.warn("Document null: {}", current);
-							}
+							LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
 						}
-						else if (Cache.isCached(current))
+						else
 						{
-							Document doc = Cache.getDocument(current, 10, "xml");
-							cachedEarlier++;
-							if (doc != null)
-							{
-								//logger.trace(doc.outerHtml());
-								if (config.isGenerateOutput()) outBasic.addTriple(outBasic.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outBasic.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outBasic.createLiteral(doc.outerHtml()));
-								LOG.debug("Got from cache {}:{}", cachedEarlier, current );
-							}
-							else
-							{
-								LOG.warn("Document null: {}", current);
-							}
+							LOG.warn("Document null: {}", current);
 						}
 					}
-					
-					if (ctx.canceled()) break;
-					
-					if (config.isDownloadOR()) {
-						current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
-						if (!Cache.isCached(current) && !config.isUseCacheOnly())
+					else if (Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
 						{
-							Document doc = Cache.getDocument(current, 10, "xml");
-							cachedEarlier++;
-							if (doc != null)
-							{
-								if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-								LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+							//logger.trace(doc.outerHtml());
+							if (config.isGenerateOutput()) {
+								outBasicWrap.add(
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
 							}
-							else
-							{
-								LOG.warn("Document null: {}", current);
-							}
+							LOG.debug("Got from cache {}:{}", cachedEarlier, current );
 						}
-						else if (Cache.isCached(current))
+						else
 						{
-							Document doc = Cache.getDocument(current, 10, "xml");
-							cachedEarlier++;
-							if (doc != null)
-							{
-								if (config.isGenerateOutput()) outOR.addTriple(outOR.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), outOR.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),outOR.createLiteral(doc.outerHtml()));
-								LOG.debug("Got from cache {}: {}", cachedEarlier, current);
-							}
-							else
-							{
-								LOG.warn("Document null: {}", current);
-							}
+							LOG.warn("Document null: {}", current);
 						}
 					}
 				}
-				if (ctx.canceled()) LOG.error("Interrupted");
-			} catch (BannedException e) {
-				LOG.warn("Seems like we are banned for today");
-			} catch (IOException e) {
-				LOG.info("IOException", e);
-			} catch (InterruptedException e) {
-				LOG.error("Interrupted");
+
+				if (ctx.canceled()) break;
+
+				if (config.isDownloadOR()) {
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
+
+					final ValueFactory valueFactory = outORWrap.getValueFactory();
+					if (!Cache.isCached(current) && !config.isUseCacheOnly())
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							if (config.isGenerateOutput()) {
+								outORWrap.add( 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
+							}
+							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+						}
+						else
+						{
+							LOG.warn("Document null: {}", current);
+						}
+					}
+					else if (Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							if (config.isGenerateOutput()) {
+								outORWrap.add( 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
+							}
+							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
+						}
+						else
+						{
+							LOG.warn("Document null: {}", current);
+						}
+					}
+				}
 			}
+			if (ctx.canceled()) LOG.error("Interrupted");
+		} catch (BannedException e) {
+			LOG.warn("Seems like we are banned for today");
+		} catch (IOException e) {
+			LOG.info("IOException", e);
+		} catch (InterruptedException e) {
+			LOG.error("Interrupted");
 		}
 
+		// add the triples in repositories
+		outBasicWrap.flushBuffer();
+		outORWrap.flushBuffer();
+		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
 		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
-
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

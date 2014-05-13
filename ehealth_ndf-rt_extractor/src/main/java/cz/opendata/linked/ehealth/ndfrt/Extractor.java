@@ -26,14 +26,16 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import org.openrdf.model.ValueFactory;
+import org.slf4j.Logger;
 
 @AsExtractor
 public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		ConfigDialogProvider<ExtractorConfig> {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(
-            Extractor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	@OutputDataUnit(name = "XMLNDFRT")
 	public RDFDataUnit rdfOutput;
@@ -56,7 +58,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         workingDir.mkdirs();
 
         //	get path to the working directory
-        String pathToWorkingDir = null;
+        String pathToWorkingDir;
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
         } catch (IOException ex) {
@@ -69,7 +71,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         String ndfrtFiles = pathToWorkingDir + File.separator + "unzipped";
 
         String urlWithZip = "http://evs.nci.nih.gov/ftp1/NDF-RT/NDF-RT_XML_Inferred.zip";
-        URL url = null;
+        URL url;
         FileOutputStream fos = null;
         try {
         	url = new URL(urlWithZip);
@@ -127,8 +129,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         	            } catch (IOException ex) {
         	            	context.sendMessage(MessageType.ERROR, "It was not possible to read NDFRT_Public_YYYY.MM.DD_TDE_inferred.xml.", "The original problem was: " + ex.getLocalizedMessage());
         	            	return;
-        	            }
-        	            
+        	            }        	            
         	            break;
         			}
         		}
@@ -147,25 +148,26 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         if ( ndfrtFileContent == null || "".equals(ndfrtFileContent) )	{
         	context.sendMessage(MessageType.ERROR, "File NDFRT_Public_YYYY.MM.DD_TDE_inferred.xml was found but it is empty.");
         	return;
-        }
-        
-        Resource subj = rdfOutput.createURI(config.getNDFRTPrefix() + ndfrtFileName.substring(0, ndfrtFileName.length()-4));
-        URI pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
-        Value obj = rdfOutput.createLiteral(ndfrtFileContent);
-
-       	rdfOutput.addTriple(subj, pred, obj);
-       	log.debug("Result was added to output data unit as turtle data containing one triple");
+        }        
+		
+		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);
+		// add triple into the pository
+		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+		Resource subj = valueFactory.createURI(config.getNDFRTPrefix() + ndfrtFileName.substring(0, ndfrtFileName.length()-4));
+		URI pred = valueFactory.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
+		Value obj = valueFactory.createLiteral(ndfrtFileContent);
+			
+		rdfOutputWrap.add(subj, pred, obj);
+		
+       	LOG.debug("Result was added to output data unit as turtle data containing one triple");
 
        	if (context.canceled()) {
-       		log.info("DPU cancelled");
-       		return;
+       		LOG.info("DPU cancelled");
        	}
-        
-        
+		
 	}
 	
 	private static void unzip(String source, String destination) throws IllegalArgumentException {
-
         try {
             ZipFile zipFile = new ZipFile(source);
             if (zipFile.isEncrypted()) {
@@ -178,3 +180,4 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     }
 
 }
+ 

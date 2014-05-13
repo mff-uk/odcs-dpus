@@ -4,9 +4,10 @@
  */
 package cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils;
 
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import java.io.File;
+import org.openrdf.rio.RDFFormat;
 
 /**
  *
@@ -14,15 +15,14 @@ import java.io.File;
  */
 public class DataRDFXML extends RDFLoaderWrapper {
 
-    public DataRDFXML(RDFDataUnit _du, File outputFile) {
+    public DataRDFXML(SimpleRDF _du, File outputFile) {
         super(_du, outputFile);
     }
 
     
     @Override
-    public void addData() throws RDFException {
-         du.addFromRDFXMLFile(outputFile);
-         
+    public void addData() throws OperationFailedException {
+		 du.extract(outputFile, RDFFormat.RDFXML, null);
     }
     
 }

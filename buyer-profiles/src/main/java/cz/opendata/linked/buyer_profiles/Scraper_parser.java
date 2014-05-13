@@ -1,5 +1,6 @@
 package cz.opendata.linked.buyer_profiles;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openrdf.model.URI;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
 
 /**
@@ -20,16 +22,14 @@ import org.openrdf.model.vocabulary.RDF;
  * 
  * @author Jakub Starka
  */
-
-public class Scraper_parser extends ScrapingTemplate{
+public class Scraper_parser extends ScrapingTemplate {
     
     public PrintStream ps;
     public PrintStream zak_ps;
     public boolean AccessProfiles;
     public boolean CurrentYearOnly;
-    
-    
-    public int numrows = 0;
+   
+	public int numrows = 0;
     public int cancellednumrows = 0;
     public int numerrors = 0;
     public int numwarnings = 0;
@@ -52,21 +52,22 @@ public class Scraper_parser extends ScrapingTemplate{
     private static URI currentVVZProfileURI;
     private static URI currentProfileURI;
     
+	public ValueFactory valueFactory;
+	
     @Override
-    protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
-        LinkedList<ParseEntry> out = new LinkedList<>();
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+    protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) throws OperationFailedException {
+		LinkedList<ParseEntry> out = new LinkedList<>();
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         if (docType.equals("list") || docType.equals("first") || docType.equals("firstCancelled") || docType.equals("cancelledList")) {
             /* Na strance se sezname si najdu linky na detaily */
             if (doc == null) return out;
         	Elements e = doc.select("div#SearchGrid div.t-grid-pager.t-grid-bottom div.t-pager.t-reset div~a.t-link ");
             Elements rows = doc.select("table tr");
             if (rows == null) return out;
-            if (e.size() == 0)
+            if (e.isEmpty())
             {
             	logger.warn("0 elements?? Clear cache and try again");
-            	return out;
-            	
+            	return out;            	
             }
             try {
             	if (!("#".equals(e.get(0).attr("href"))))
@@ -82,23 +83,31 @@ public class Scraper_parser extends ScrapingTemplate{
                 	Elements rowElements = row.getAllElements();
                 	String contractId = rowElements.get(1).text();
 	            	URL d = new URL("http://www.vestnikverejnychzakazek.cz/Views/Form/Display/" + contractId);
-                	URI vvzFormURI = pstats.createURI(d.toString());
-                	pstats.addTriple(vvzFormURI, RDF.TYPE, pstats.createURI(BPOprefix + "VVZForm"));
+                	URI vvzFormURI = valueFactory.createURI(d.toString());
+                	pstats.add(vvzFormURI, RDF.TYPE, valueFactory.createURI(BPOprefix + "VVZForm"));
 	            	if (docType.equals("list") || docType.equals("first")) {
 	            		out.add(new ParseEntry(d, "detail", "html"));
-	                	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "cancelled"), pstats.createLiteral("false", xsd_boolean));
+	                	pstats.add(vvzFormURI, 
+								valueFactory.createURI(BPOprefix + "cancelled"), 
+								valueFactory.createLiteral("false", xsd_boolean));
 	            	}
                 	else if (docType.equals("firstCancelled") || docType.equals("cancelledList")) {
                 		out.add(new ParseEntry(d, "cancelledDetail", "html"));
-                    	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "cancelled"), pstats.createLiteral("true", xsd_boolean));
+                    	pstats.add(vvzFormURI, 
+								valueFactory.createURI(BPOprefix + "cancelled"), 
+								valueFactory.createLiteral("true", xsd_boolean));
                 	}
                 	
 	            	URL profilZadavatele = parseURL(rowElements.get(5).text(), rowElements.get(4).text(), rowElements.get(3).text(), "Profil zadavatele (link)", vvzFormURI);
                 	if (AccessProfiles && (docType.equals("list") || docType.equals("first")) && profilZadavatele != null)
                 	{
                 		String provozovatel = profilZadavatele.getHost().toString().replaceAll("(.*\\.)*([^\\.]+\\.[^\\.]+)", "$2");
-                		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "profilePublisher"), pstats.createLiteral(provozovatel));
-                		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksTo"), pstats.createURI(profilZadavatele.toString()));
+                		pstats.add(vvzFormURI, 
+								valueFactory.createURI(BPOprefix + "profilePublisher"), 
+								valueFactory.createLiteral(provozovatel));
+                		pstats.add(vvzFormURI, 
+								valueFactory.createURI(BPOprefix + "linksTo"), 
+								valueFactory.createURI(profilZadavatele.toString()));
                 		String newProfil;
                 		if (profilZadavatele.toString().endsWith("/"))
 	                	{
@@ -116,18 +125,24 @@ public class Scraper_parser extends ScrapingTemplate{
 	                		int i1 = Calendar.getInstance().get(Calendar.YEAR);
 	                		URL currentURL = new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1);
 	                		out.add(new ParseEntry(currentURL, "profil", "xml"));
-                    		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksToYearXML"), pstats.createURI(currentURL.toString()));
+                    		pstats.add(vvzFormURI, 
+									valueFactory.createURI(BPOprefix + "linksToYearXML"), 
+									valueFactory.createURI(currentURL.toString()));
 	                	}
 	                	else for (int i1 = 2010; i1 <= Calendar.getInstance().get(Calendar.YEAR); i1++)
 	                	{
 	                		URL currentURL = new URL(profilZadavatele + "?od=0101" + i1 + "&do=3112" + i1);
 		                	out.add(new ParseEntry(currentURL, "profil", "xml"));
-                    		pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "linksToYearXML"), pstats.createURI(currentURL.toString()));
+                    		pstats.add(vvzFormURI, 
+									valueFactory.createURI(BPOprefix + "linksToYearXML"), 
+									valueFactory.createURI(currentURL.toString()));
 	                	}
                 	}
                 	else if (profilZadavatele == null)
                 	{
-                    	pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "invalidURLinForm"), pstats.createLiteral("true", xsd_boolean));
+                    	pstats.add(vvzFormURI, 
+								valueFactory.createURI(BPOprefix + "invalidURLinForm"), 
+								valueFactory.createLiteral("true", xsd_boolean));
                 	}
             	}
             } catch (MalformedURLException ex) {
@@ -393,60 +408,60 @@ public class Scraper_parser extends ScrapingTemplate{
     	return original.replace("\n", " ").replace("\r", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
     }
     
-    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL, URI context)
+    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL, URI context) throws OperationFailedException
     {
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
     	URL cleanURL = null;
     	try {
 			if (rawURL.isEmpty())
 			{
 				logger.debug("Varování (" + typURL + "): Prázdné URL: Zadavatel: " + ico + " " + nazevZadavatele);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "missingProfileURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "missingProfileURL"), valueFactory.createLiteral("true", xsd_boolean));
 				return null;
 			}
 			if (rawURL.contains("\\"))
 			{
 				logger.debug("Varování (" + typURL + "): Zpětné lomítko: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + " Oprava: " + rawURL.replace('\\', '/'));
 				rawURL = rawURL.replace('\\', '/');
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "missingProfileURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "missingProfileURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			if (rawURL.contains(" "))
 			{
 				logger.debug("Chyba (" + typURL + "): Mezera v URL: " + rawURL + " Zadavatel: " + ico);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.contains("\""))
 			{
 				logger.debug("Chyba (" + typURL + "): Uvozovka v URL: " + rawURL + " Zadavatel: " + ico);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.contains("\n"))
 			{
 				logger.debug("Chyba (" + typURL + "): Nový řádek v URL: " + rawURL + " Zadavatel: " + ico);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (!rawURL.contains(".")) 
 			{
 				logger.debug("Chyba (" + typURL + "): Pravděpodobně není URL (Nenalezena tečka): " + rawURL + ico + " " + nazevZadavatele + ".");
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numerrors++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http//:")) 
 			{
 				cleanURL = new URL("http://" + rawURL.substring(7));
 				logger.debug("Varování (" + typURL + "): \"http//:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("www:")) 
 			{
 				cleanURL = new URL("http://www." + rawURL.substring(5));
 				logger.debug("Varování (" + typURL + "): \"www:\": " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http://") || rawURL.toLowerCase().startsWith("https://"))
@@ -458,7 +473,7 @@ public class Scraper_parser extends ScrapingTemplate{
 				cleanURL = new URL("http://" + rawURL.substring(6));
 				logger.debug("Varování (" + typURL + "): Chybí lomítko v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
 				numwarnings++;
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 			}
 			else if (rawURL.toLowerCase().startsWith("https")) 
 			{
@@ -466,7 +481,7 @@ public class Scraper_parser extends ScrapingTemplate{
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("https://" + tempURL);
 				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else if (rawURL.toLowerCase().startsWith("http")) 
@@ -475,20 +490,19 @@ public class Scraper_parser extends ScrapingTemplate{
 				tempURL = tempURL.replaceAll("[^a-zA-Z0-9]*(.*)","$1");
 				cleanURL = new URL("http://" + tempURL);
 				logger.debug("Varování (" + typURL + "): Chybí dvojtečka v URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Oprava: " + cleanURL);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 				numwarnings++;
 			}
 			else 
 			{
 				cleanURL = new URL("http://" + rawURL);
 				logger.debug("Varování: Missing protocol in URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ". Fixed: " + cleanURL);
-				if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
+				if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 			}
 		} catch (MalformedURLException e) {
-			logger.warn("Chyba (" + typURL + "): Špatné URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".");
+			logger.warn("Chyba (" + typURL + "): Špatné URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".", e);
 			numerrors++;
-			if (context != null) pstats.addTriple(context, pstats.createURI(BPOprefix + "invalidURL"), pstats.createLiteral("true", xsd_boolean));
-			e.printStackTrace();
+			if (context != null) pstats.add(context, valueFactory.createURI(BPOprefix + "invalidURL"), valueFactory.createLiteral("true", xsd_boolean));
 		}
     	
     	if (cleanURL != null && cleanURL.getHost().contains("vhodne"))
@@ -497,9 +511,9 @@ public class Scraper_parser extends ScrapingTemplate{
     		{
     			cleanURL = new URL("https://www.vhodne-uverejneni.cz/profil/" + cleanURL.getPath().replaceAll("/pr[^/]+/(.*)", "$1"));
 			} catch (MalformedURLException e) {
-				logger.warn("Chyba (" + typURL + "): Špatně upravené URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".");
+				logger.warn("Chyba (" + typURL + "): Špatně upravené URL: " + rawURL + " Zadavatel: " + ico + " " + nazevZadavatele + ".", e);
 				numerrors++;
-				e.printStackTrace();			
+	
 			} 
 		}
     	
@@ -508,7 +522,7 @@ public class Scraper_parser extends ScrapingTemplate{
     		try {
 				cleanURL = new URL(cleanURL.toString().substring(0, cleanURL.toString().length() - 1));
 			} catch (MalformedURLException e) {
-				e.printStackTrace();
+				logger.warn("MalformedURLException", e);
 			}
     	}
 
@@ -526,22 +540,21 @@ public class Scraper_parser extends ScrapingTemplate{
 			+ external.getProtocol() + "/" + external.getHost() + external.getFile());
 			return URIProfiluZadavatele;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("MalformedURLException", e);
 			return null;
 		}
 	}
 
     
-    private String cleanStatKod(String statKod, URI source)
+    private String cleanStatKod(String statKod, URI source) throws OperationFailedException
     {
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
     	switch (statKod)
     	{
     	case "CR": 
     		logger.debug("Varování: Použit hack Kostarika -> ČR");
     		//return "Kostarická republika";
-        	pstats.addTriple(source, pstats.createURI(BPOprefix + "kostarika"), pstats.createLiteral("true", xsd_boolean));
+        	pstats.add(source, valueFactory.createURI(BPOprefix + "kostarika"), valueFactory.createLiteral("true", xsd_boolean));
     		return "CZ";
     	case "Česká republiky":
     	case "čr":
@@ -554,7 +567,7 @@ public class Scraper_parser extends ScrapingTemplate{
     	case "Česká Republika":
     	case "ČR":
     		logger.debug("Info: Přepis \"" + statKod + "\" na CZ");
-        	pstats.addTriple(source, pstats.createURI(BPOprefix + "cze"), pstats.createLiteral("true", xsd_boolean));
+        	pstats.add(source, valueFactory.createURI(BPOprefix + "cze"), valueFactory.createLiteral("true", xsd_boolean));
     		return "CZ";
     	
     	case "Spojené království Velké Británie a Severního Irska":
@@ -592,7 +605,7 @@ public class Scraper_parser extends ScrapingTemplate{
     	}    	
     }
     
-    private String getStat(String statKod, URI source)
+    private String getStat(String statKod, URI source) throws OperationFailedException
     {
     	return "countries:" + cleanStatKod(statKod, source);
     }
@@ -653,7 +666,7 @@ public class Scraper_parser extends ScrapingTemplate{
     	}
     }
 
-    private String getSluzby(String sluzbaKod)
+    private String getSluzby(String sluzbaKod) throws OperationFailedException
     {
     	if (sluzbaKod.startsWith("0")) sluzbaKod = sluzbaKod.substring(1);
     	
@@ -717,7 +730,7 @@ public class Scraper_parser extends ScrapingTemplate{
     		return null;
     	default: 
     		logger.warn("Doplnit: neznámý kód služby: " + sluzbaKod);
-            pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "unknownService"), pstats.createLiteral(sluzbaKod));
+            pstats.add(currentVVZProfileURI, valueFactory.createURI(BPOprefix + "unknownService"), valueFactory.createLiteral(sluzbaKod));
     		return "\"" + sluzbaKod + "\"";
     	}
     }
@@ -813,9 +826,9 @@ public class Scraper_parser extends ScrapingTemplate{
     	}
     }
     
-    private String fixIC(String oldIC, String docType)
+    private String fixIC(String oldIC, String docType) throws OperationFailedException
     {
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
 		if (oldIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
 		String newIC = oldIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", "").replace("CZ", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
@@ -823,20 +836,20 @@ public class Scraper_parser extends ScrapingTemplate{
 		{
 			newIC = "";
 			logger.info("Varování: IC po opravě není validní: " + oldIC + " Oprava: " + newIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsd_boolean));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidIC"), pstats.createLiteral("true", xsd_boolean));
+			if ("detail".equals(docType)) pstats.add(currentVVZProfileURI, valueFactory.createURI(BPOprefix + "invalidIC"), valueFactory.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "invalidIC"), valueFactory.createLiteral("true", xsd_boolean));
 		}
 		else if (!oldIC.equals(newIC)) {
 			logger.info("Varování: IC obsahuje chyby: " + oldIC + " Oprava: " + newIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsd_boolean));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedIC"), pstats.createLiteral("true", xsd_boolean));
+			if ("detail".equals(docType)) pstats.add(currentVVZProfileURI, valueFactory.createURI(BPOprefix + "fixedIC"), valueFactory.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "fixedIC"), valueFactory.createLiteral("true", xsd_boolean));
 		}
     	return newIC; 
     }
     
-    private String fixDIC(String oldDIC, String docType)
+    private String fixDIC(String oldDIC, String docType) throws OperationFailedException
     {
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
 		if (oldDIC == null) return null;
     	//.replaceAll("|.*", "") je hack za czbe:CZ62537741|00244732 zruseno 21.3.2013, <http://www.vestnikverejnychzakazek.cz/Views/Form/Display/395580>
 		String newDIC = oldDIC.replace(" ", "").replace("/", "").replace(" ", "").replaceAll("\\|.*", ""); //second is &nbsp; ASCII 160, first is space, ASCII 32
@@ -844,13 +857,13 @@ public class Scraper_parser extends ScrapingTemplate{
 		{
 			newDIC = "";
 			logger.info("Varování: DIC po opravě není validní: " + oldDIC + " Oprava: " + newDIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsd_boolean));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidDIC"), pstats.createLiteral("true", xsd_boolean));
+			if ("detail".equals(docType)) pstats.add(currentVVZProfileURI, valueFactory.createURI(BPOprefix + "invalidDIC"), valueFactory.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "invalidDIC"), valueFactory.createLiteral("true", xsd_boolean));
 		}
 		else if (!oldDIC.equals(newDIC)) {
 			logger.info("Varování: DIC obsahuje chyby: " + oldDIC + " Oprava: " + newDIC);
-			if ("detail".equals(docType)) pstats.addTriple(currentVVZProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsd_boolean));
-			else if ("profile".equals(docType)) pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "fixedDIC"), pstats.createLiteral("true", xsd_boolean));
+			if ("detail".equals(docType)) pstats.add(currentVVZProfileURI, valueFactory.createURI(BPOprefix + "fixedDIC"), valueFactory.createLiteral("true", xsd_boolean));
+			else if ("profile".equals(docType)) pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "fixedDIC"), valueFactory.createLiteral("true", xsd_boolean));
 		}
     	return newDIC; 
     }
@@ -925,8 +938,8 @@ public class Scraper_parser extends ScrapingTemplate{
     }
 
     @Override
-    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) {
-        URI xsd_boolean = pstats.createURI(xsdPrefix + "boolean");
+    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws OperationFailedException {
+        URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
     	if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
         	logger.info("Parsing list #" + numlists++);
         	/* Na detailu si najdu nazev a ic a vyhodim jako nejaky element */
@@ -949,8 +962,7 @@ public class Scraper_parser extends ScrapingTemplate{
             	String evidencniCislo = rowElements.get(2).text();
             	String nazevZadavatele = escapeString(rowElements.get(3).text());
             	String ico = fixIC(rowElements.get(4).text(), docType);
-            	
-            	
+            	            	
             	String guid = null;
             	String BEuri;
             	
@@ -1035,7 +1047,7 @@ public class Scraper_parser extends ScrapingTemplate{
         else if (docType.equals("detail"))
         {
         	++numdetails;
-        	URI vvzFormURI = pstats.createURI(url.toString());
+        	URI vvzFormURI = valueFactory.createURI(url.toString());
         	currentVVZProfileURI = vvzFormURI;
         	
         	logger.debug("Phase 1/2: " + (int)Math.floor((double)numdetails*100/(double)totalnumrows) + "% Parsing detail #" + numdetails + "/" + totalnumrows);
@@ -1053,7 +1065,7 @@ public class Scraper_parser extends ScrapingTemplate{
     		{
         		guid = UUID.randomUUID().toString();
         		logger.info("Varování: Nenalezeno IČ: " + nazev);
-                pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
+                pstats.add(vvzFormURI, valueFactory.createURI(BPOprefix + "missingIC"), valueFactory.createLiteral("true", xsd_boolean));
         		missingIco++;
     		}
         	String dic = fixDIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")), "ignore");
@@ -1288,7 +1300,7 @@ public class Scraper_parser extends ScrapingTemplate{
         	numCancelledDetails++;
         	logger.debug("Phase 2/2: " + (int)Math.floor((double)numCancelledDetails*100/(double)totalcancellednumrows) + "% Parsing cancelled detail #" + numCancelledDetails + "/" + totalcancellednumrows);
         	
-        	URI vvzFormURI = pstats.createURI(url.toString());
+        	URI vvzFormURI = valueFactory.createURI(url.toString());
         	currentVVZProfileURI = vvzFormURI;
 
         	String nazev = escapeString(doc.select("textarea#FormItems_Nazev_I").text());
@@ -1305,7 +1317,7 @@ public class Scraper_parser extends ScrapingTemplate{
     		{
         		guid = UUID.randomUUID().toString();
         		logger.info("Varování: Nenalezeno IČ: " + nazev);
-                pstats.addTriple(vvzFormURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
+                pstats.add(vvzFormURI, valueFactory.createURI(BPOprefix + "missingIC"), valueFactory.createLiteral("true", xsd_boolean));
         		missingIco++;
     		}
         	String dic = fixDIC(escapeString(doc.select("input#FormItems_DanoveIdentifikacniCislo_I").attr("value")), docType);
@@ -1477,14 +1489,14 @@ public class Scraper_parser extends ScrapingTemplate{
         {
         	numprofiles++;
         	
-        	URI profileURI = pstats.createURI(url.toString());
+        	URI profileURI = valueFactory.createURI(url.toString());
         	currentProfileURI = profileURI;
         	
         	if (doc == null || doc.getAllElements().size() < 5)
         	{
         		logger.info("Prázdné XML: " + url);
         		invalidXML++;
-                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidXML"), pstats.createLiteral("true", xsd_boolean));
+                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "invalidXML"), valueFactory.createLiteral("true", xsd_boolean));
         	}
         	else
         	{
@@ -1511,7 +1523,7 @@ public class Scraper_parser extends ScrapingTemplate{
         		}
 	        	else {
 	        		logger.info("Chybí kód v XML profilu zadavatele: " + url);
-	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingCode"), pstats.createLiteral("true", xsd_boolean));
+	                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "missingCode"), valueFactory.createLiteral("true", xsd_boolean));
 	        	}
 
 	        	Elements ic_element = doc.select("zadavatel ico_vlastni");
@@ -1523,7 +1535,7 @@ public class Scraper_parser extends ScrapingTemplate{
 	        	}
 	        	else {
 	        		logger.info("Chybí IČ v XML profilu zadavatele: " + url);
-	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
+	                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "missingIC"), valueFactory.createLiteral("true", xsd_boolean));
 	        	}
 	        	
 	        	Elements nazev_element = doc.select("zadavatel nazev_zadavatele");
@@ -1535,14 +1547,14 @@ public class Scraper_parser extends ScrapingTemplate{
 	        	}
 	        	else {
 	        		logger.info("Chybí název v XML profilu zadavatele: " + url);
-	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingName"), pstats.createLiteral("true", xsd_boolean));
+	                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "missingName"), valueFactory.createLiteral("true", xsd_boolean));
 	        	}
 	        	
 	        	if (!found)
 	        	{
 	        		logger.info("Pravděpodobně není validní XML profil zadavatele: " + url);
 	        		invalidXML++;
-	                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "invalidXML"), pstats.createLiteral("true", xsd_boolean));
+	                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "invalidXML"), valueFactory.createLiteral("true", xsd_boolean));
 	        	}
 	        	else
 	        	{
@@ -1552,7 +1564,7 @@ public class Scraper_parser extends ScrapingTemplate{
 		        		guid = UUID.randomUUID().toString();
 		        		logger.info("Varování: Nenalezeno IČ v profilu zadavatele: " + nazevZadavatele + " URL: " + url);
 		        		missingIcoInProfile++;
-		                pstats.addTriple(currentProfileURI, pstats.createURI(BPOprefix + "missingIC"), pstats.createLiteral("true", xsd_boolean));
+		                pstats.add(currentProfileURI, valueFactory.createURI(BPOprefix + "missingIC"), valueFactory.createLiteral("true", xsd_boolean));
 		    		}
 	
 		        	//RDF

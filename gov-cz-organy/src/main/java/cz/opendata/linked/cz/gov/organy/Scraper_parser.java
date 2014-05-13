@@ -12,9 +12,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
+import org.openrdf.model.ValueFactory;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -22,9 +24,9 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
  * @author Jakub Starka
  */
 
-public class Scraper_parser extends ScrapingTemplate{
+public class Scraper_parser extends ScrapingTemplate {
     
-	public RDFDataUnit list, details;
+	public SimpleRDF list, details;
 	private int numDetails;
 	private int current;
 	
@@ -54,10 +56,8 @@ public class Scraper_parser extends ScrapingTemplate{
 				logger.info("Got " + numDetails + " links to details.");
 				current = 0;
 				
-			} catch (IOException e1) {
-				logger.error(e1.getLocalizedMessage());
-			} catch (SAXException e1) {
-				logger.error(e1.getLocalizedMessage());
+			} catch (IOException | SAXException e) {
+				logger.error("Failed to parse document", e);
 			}
 
         }
@@ -66,14 +66,24 @@ public class Scraper_parser extends ScrapingTemplate{
     
     @Override
     protected void parse(String doc, String docType, URL url) {
+		try {
     	if (docType.equals("init"))
     	{
-			list.addTriple(list.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), list.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),list.createLiteral(doc));
+			final ValueFactory valueFactory = list.getValueFactory();
+			list.add(valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+					valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+					valueFactory.createLiteral(doc));
     	}
     	if (docType.equals("detail"))
     	{
     		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
-    		details.addTriple(list.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), details.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),details.createLiteral(doc));
+			final ValueFactory valueFactory = details.getValueFactory();
+    		details.add(valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+					valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+					valueFactory.createLiteral(doc));
     	}
+		} catch (OperationFailedException ex) {
+			logger.error("Failed to add triple into storage.", ex);
+		}
     }
 }

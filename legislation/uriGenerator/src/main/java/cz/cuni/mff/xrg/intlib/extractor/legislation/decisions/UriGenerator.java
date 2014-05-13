@@ -12,39 +12,30 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
-import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
-import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.rio.RDFFormat;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 /**
  * Simple XSLT Extractor
@@ -54,13 +45,14 @@ import org.xml.sax.SAXException;
 @AsTransformer
 public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implements ConfigDialogProvider<UriGeneratorConfig> {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             UriGenerator.class);
 
     public UriGenerator() {
         super(UriGeneratorConfig.class);
     }
-    @InputDataUnit
+	
+    @InputDataUnit(name = "input")
     public RDFDataUnit rdfInput;
     
     //should be used when subject URI is needed in further DPUs (such as in XSLT producing result of the transformation in literal)
@@ -77,9 +69,8 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
     }
 
     @Override
-    public void execute(DPUContext context) throws DPUException, DataUnitException {
-
-  log.info("\n ****************************************************** \n STARTING URI GENERATOR \n *****************************************************");
+    public void execute(DPUContext context) throws DPUException, DataUnitException {		
+		LOG.info("\n ****************************************************** \n STARTING URI GENERATOR \n *****************************************************");
         //get working dir
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
@@ -89,31 +80,33 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
         } catch (IOException ex) {
-            log.error(ex.getLocalizedMessage());
+            LOG.error(ex.getLocalizedMessage());
         }
         
         if (config.getStoredXsltFilePath().isEmpty()) {
-                     log.error("Configuration file is missing, the processing will NOT continue");
+                     LOG.error("Configuration file is missing, the processing will NOT continue");
                      context.sendMessage(MessageType.ERROR, "Configuration file is missing, the processing will NOT continue");
         }
 
         //prepare inputs, call xslt for each input
 //        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
-        log.debug("Query for getting input files: {}", query);
+        LOG.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
          //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
-        OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
+		
+		SimpleRDF rdfInputWrap = new SimpleRDF(rdfInput, context);
+		TupleQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeSelectQuery(query);
 
         //log.info(executeSelectQueryAsTuples.asList().)
         int i = 0;
         try {
-            
+           		
             while (executeSelectQueryAsTuples.hasNext()) {
 
                if (context.canceled()) {
-                    log.info("DPU cancelled");
+                    LOG.info("DPU cancelled");
                     return;
                }
                 
@@ -123,7 +116,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 Binding b = solution.getBinding("o");
                 String fileContent = b.getValue().stringValue();
                 String subject = solution.getBinding("s").getValue().stringValue();
-                log.info("Processing new file for subject {}", subject);
+                LOG.info("Processing new file for subject {}", subject);
                 //log.debug("Processing file {}", fileContent);
 
 
@@ -132,7 +125,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 //store the input content to file, inputs are xml files!
                 File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
                 if (file == null) {
-                    log.warn("Problem processing object for subject {}", subject);
+                    LOG.warn("Problem processing object for subject {}", subject);
                     continue;
                 }
                 
@@ -149,37 +142,41 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
                 }
                 
 
-               log.info("URI generator successfully executed, creating output");
+               LOG.info("URI generator successfully executed, creating output");
               
                //RDF DataUnit OUTPUT 
-               String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
-                
-               Resource subj = rdfOutput.createURI(subject);
-               URI pred = rdfOutput.createURI(config.getOutputPredicate());
-               Value obj = rdfOutput.createLiteral(outputString); 
-            
-               
-               String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-               
-               DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-               String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
-            
-               DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-               rdfOutput.addFromTurtleFile(new File(tempFileLoc));
-               
+			   if (rdfOutput != null) {
+				    String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
+
+					SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+					final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+					
+					Resource subj = valueFactory.createURI(subject);
+					URI pred = valueFactory.createURI(config.getOutputPredicate());
+					Value obj = valueFactory.createLiteral(outputString); 
+
+					String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+
+					DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+					String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+
+					DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+					rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+			   }
                //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 
-               log.info("RF Output successfully created");
+               LOG.info("RF Output successfully created");
                //End of output creation
                 
                //FILE DataUnit OUTPUT
-                DirectoryHandler rootDir = fileOutput.getRootDir();
-                FileHandler addedFile = rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
-                //add(new File(outputURIGeneratorFilename), false);
-     
-               log.info("File Output successfully created");
+			   if (fileOutput != null) {
+					DirectoryHandler rootDir = fileOutput.getRootDir();
+					FileHandler addedFile = rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
+					//add(new File(outputURIGeneratorFilename), false);
+
+				   LOG.info("File Output successfully created");
                //End of output creation
-               
+			   }
                
                //Add metadata triples 
 //               <http://file/i> <http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath> "/input01.xml" .
@@ -252,64 +249,47 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //               
 //               
 //              
-               
-               
-               
-
             }
         } catch (QueryEvaluationException ex) {
-              context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
-            log.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
-            log.debug(ex.getLocalizedMessage());
+            context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+            LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+            LOG.debug(ex.getLocalizedMessage());
         }
         
-        log.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
-
-
-
-
-
-
-
-
-
-
-
+        LOG.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
     }
 
-      private void runURIGenerator(String file, String output, String configURiGen, DPUContext context) {
-                    //log.info("About to run URI generator for {}", file);
-                    IntLibLink.processFiles(file, output, configURiGen,context);
+	private void runURIGenerator(String file, String output, String configURiGen,
+			DPUContext context) {
+		//log.info("About to run URI generator for {}", file);
+		IntLibLink.processFiles(file, output, configURiGen, context);
 
+	}
 
-                }
-    
 
     private boolean outputGenerated(String output) {
         File f = new File(output);
         if (!f.exists()) {
-            log.warn("File {} was not created", output);
-            log.warn("Skipping rest of the steps for the given file");
+            LOG.warn("File {} was not created", output);
+            LOG.warn("Skipping rest of the steps for the given file");
             return false;
         } else {
-            log.info("File {} was generated as result of URI generator",
+            LOG.info("File {} was generated as result of URI generator",
                     output);
             return true;
         }
     }
-
-    
 
     private static void unzip(String source, String destination) throws IOException, ZipException {
 
         try {
             ZipFile zipFile = new ZipFile(source);
             if (zipFile.isEncrypted()) {
-                log.error("Zip encrypted");
+                LOG.error("Zip encrypted");
             }
             zipFile.extractAll(destination);
         } catch (ZipException e) {
-            log.error("Error {}", e.getLocalizedMessage());
+            LOG.error("Error {}", e.getLocalizedMessage());
         }
     }
 

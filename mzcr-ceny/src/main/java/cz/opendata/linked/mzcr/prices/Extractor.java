@@ -19,21 +19,19 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public RDFDataUnit outputDataUnit;
 	
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public RDFDataUnit inputDataUnit;
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
@@ -50,6 +48,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
+		final SimpleRDF inputWrap = new SimpleRDF(inputDataUnit, ctx);
+		final SimpleRDF outputWrap = new SimpleRDF(outputDataUnit, ctx);
+		outputWrap.setPolicy(AddPolicy.BUFFERED);
+		
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
@@ -60,7 +62,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Parser s = new Parser();
 		s.logger = LOG;
 		s.ctx = ctx;
-		s.output = outputDataUnit;
+		s.output = outputWrap;
 		
 		LOG.info("Starting extraction.");
 		
@@ -68,10 +70,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 		
-		if (inputDataUnit.getTripleCount() > 0)
+		List<Statement> statements = inputWrap.getStatements();
+		if (!statements.isEmpty())
 		{
-			List<Statement> statements = inputDataUnit.getTriples();
-			
 			int total = statements.size();
 			
 			URL notationPredicate = null;
@@ -99,6 +100,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 			}
 		}
+		
+		outputWrap.flushBuffer();
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();

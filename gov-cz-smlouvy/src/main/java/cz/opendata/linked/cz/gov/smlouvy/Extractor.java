@@ -19,7 +19,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -69,6 +71,15 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException
 	{
+		final SimpleRDF outSmlouvyMetaWrap = new SimpleRDF(outSmlouvyMeta, ctx);
+		outSmlouvyMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
+		final SimpleRDF outObjednavkyMetaWrap = new SimpleRDF(outObjednavkyMeta, ctx);
+		outObjednavkyMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
+		final SimpleRDF outPlneniMetaWrap = new SimpleRDF(outPlneniMeta, ctx);
+		outPlneniMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
@@ -83,15 +94,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.smlouvy_roky = outSmlouvyRoky;
 		s.objednavky_roky = outObjednavkyRoky;
 		s.plneni_roky = outPlneniRoky;
-		s.smlouvy_meta = outSmlouvyMeta;
-		s.objednavky_meta = outObjednavkyMeta;
-		s.plneni_meta = outPlneniMeta;
+		s.smlouvy_meta = outSmlouvyMetaWrap;
+		s.objednavky_meta = outObjednavkyMetaWrap;
+		s.plneni_meta = outPlneniMetaWrap;
 
+		outSmlouvyMetaWrap.flushBuffer();
+		outObjednavkyMetaWrap.flushBuffer();
+		outPlneniMetaWrap.flushBuffer();
+		
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
 		//Download
-
 		try {
 			URL init_smlouvy = new URL("https://portal.gov.cz/portal/rejstriky/data/10013/index.xml");
 			URL init_objednavky = new URL("https://portal.gov.cz/portal/rejstriky/data/10014/index.xml");
