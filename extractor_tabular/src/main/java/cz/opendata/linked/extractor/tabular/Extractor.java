@@ -2,10 +2,13 @@ package cz.opendata.linked.extractor.tabular;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +18,16 @@ import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfHeader;
 import org.jamel.dbf.utils.DbfUtils;
+import org.openrdf.model.Graph;
+import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.GraphImpl;
+import org.openrdf.model.impl.LinkedHashModel;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
@@ -54,7 +64,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	public FileDataUnit inTableFile;
 	
 	@OutputDataUnit(name = "triplifiedTable")
-	public RDFDataUnit triplifiedTable;
+	public RDFDataUnit triplifiedTableT;
+	public ManagableRdfDataUnit triplifiedTable;
 
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -68,6 +79,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	@Override
 	public void execute(DPUContext context) throws DPUException,
 			DataUnitException {
+		
+		this.triplifiedTable = (ManagableRdfDataUnit) triplifiedTableT;
 		
 		SimpleRDF triplifiedTableWrap = new SimpleRDF(triplifiedTable, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
@@ -97,12 +110,12 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 		}
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
-			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
+			LOG.info("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
 			baseURI = "http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/";
 		}
 		String columnWithURISupplement = this.config.getColumnWithURISupplement();
 		if ( columnWithURISupplement == null || "".equals(columnWithURISupplement) )	{
-			LOG.warn("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
+			LOG.info("No column with values supplementing the base for URIs of resources extracted from rows of the table has been specified. Row number (starting at 0) will be used instead.");
 			columnWithURISupplement = null;
 		}
 		
@@ -117,17 +130,17 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			
 			if ( quoteChar == null || "".equals(quoteChar) )	{
 				quoteChar = "\"";
-				LOG.warn("No quote char supplied. Default quote char '\"' will be used.");
+				LOG.info("No quote char supplied. Default quote char '\"' will be used.");
 			}
 			
 			if ( delimiterChar == null || "".equals(delimiterChar) )	{
 				delimiterChar = "\"";
-				LOG.warn("No delimiter char supplied. Default delimiter char ',' will be used.");
+				LOG.info("No delimiter char supplied. Default delimiter char ',' will be used.");
 			}
 			
 			if ( eofSymbols == null || "".equals(eofSymbols) )	{
 				eofSymbols = "\n";
-				LOG.warn("No end of line symbols supplied. Default end of line symbols '\\n' will be used.");
+				LOG.info("No end of line symbols supplied. Default end of line symbols '\\n' will be used.");
 			}
 			
 			final CsvPreference CSV_PREFERENCE = new CsvPreference.Builder(quoteChar.charAt(0), delimiterChar.charAt(0), eofSymbols).build();
@@ -135,7 +148,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			ICsvListReader listReader = null;
 			try	{
 				
-				listReader = new CsvListReader(new BufferedReader(new FileReader(tableFile)), CSV_PREFERENCE);
+				listReader = new CsvListReader(new BufferedReader(new InputStreamReader(new FileInputStream(tableFile), config.getEncoding())), CSV_PREFERENCE);
 								
 				final String[] header = listReader.getHeader(true);
 				int columnWithURISupplementNumber = -1;
@@ -154,8 +167,19 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     			}
 				
 				List<String> row = listReader.read();
+				
+				int stmtBufferSize = 100000;
+//				List<Statement> stmtBuffer = new ArrayList<Statement>(stmtBufferSize+header.length+10);
+				Model mBuffer = new LinkedHashModel(stmtBufferSize+header.length+10);
+				
 				int rowno = 0;
                 while( row != null ) {
+                	
+                	if ( config.getRowLimit() > 0 )	{
+                		if ( rowno >= config.getRowLimit() )	{
+                			break;
+                		}
+                	}
 
                 	String suffixURI;
     				if ( columnWithURISupplementNumber >= 0 )	{
@@ -169,20 +193,28 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     				int i = 0;
     				for (String strValue : row) {
     					if ( strValue == null || "".equals(strValue) )	{
-    						URI obj = valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-    						triplifiedTableWrap.add(subj, propertyMap[i], obj);
+    						URI obj = triplifiedTable.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
+//    						triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    						mBuffer.add(subj, propertyMap[i], obj);
     					} else {
-    				        Value obj = valueFactory.createLiteral(strValue);
-    				        triplifiedTableWrap.add(subj, propertyMap[i], obj);
+    				        Value obj = triplifiedTable.createLiteral(strValue);
+//    				        triplifiedTable.addTriple(subj, propertyMap[i], obj);
+    				        mBuffer.add(subj, propertyMap[i], obj);
     					}
     					i++;
 					}
     			        					
-    		        Value rowvalue = valueFactory.createLiteral(String.valueOf(rowno));
-    		        triplifiedTableWrap.add(subj, propertyRow, rowvalue);
+    		        Value rowvalue = triplifiedTable.createLiteral(String.valueOf(rowno));
+//    		        triplifiedTable.addTriple(subj, propertyRow, rowvalue);
+    		        mBuffer.add(subj, propertyRow, rowvalue);
     				
     				if ( (rowno % 1000) == 0 )	{
     					LOG.debug("Row number {} processed.", rowno);
+    				}
+    				
+    				if ( mBuffer.size() > stmtBufferSize )	{
+    					triplifiedTable.addTriplesFromGraph(mBuffer);
+    					mBuffer.clear();
     				}
     				
     				rowno++;
@@ -195,6 +227,9 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
     		       	}
                 	
                 }
+                
+				triplifiedTable.addTriplesFromGraph(mBuffer);
+				mBuffer.clear();
                 
                 
 			} catch (IOException e)	{				
@@ -251,7 +286,13 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 			int rowno = 0;
 			 
 			while ( (row = reader.nextRecord()) != null )	{
-						
+				
+				if ( config.getRowLimit() > 0 )	{
+            		if ( rowno >= config.getRowLimit() )	{
+            			break;
+            		}
+            	}
+				
 				String suffixURI;
 				if ( columnWithURISupplementNumber >= 0 )	{
 					suffixURI = this.convertStringToURIPart(this.getCellValue(row[columnWithURISupplementNumber], encoding));

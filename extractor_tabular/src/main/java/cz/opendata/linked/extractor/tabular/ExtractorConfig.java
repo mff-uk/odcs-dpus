@@ -6,8 +6,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 public class ExtractorConfig extends DPUConfigObjectBase {
 
-	private static final long serialVersionUID = 6979581350385466975L;
-
 	private LinkedHashMap<String, String> columnPropertyMap;
 
 	private String baseURI;
@@ -21,6 +19,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	private String delimiterChar;
 	
 	private String eofSymbols;
+	
+	private int rowLimit;
 
 	private boolean isDBF;
 	
@@ -34,12 +34,13 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		this.quoteChar = null;
 		this.delimiterChar = null;
 		this.eofSymbols = null;
+		this.rowLimit = 0;
 		this.isCSV = false;
 		this.isDBF = false;
 	}
 
 	public ExtractorConfig(LinkedHashMap<String, String> columnPropertyMap,
-			String baseURI, String columnWithURISupplement, String encoding, String quoteChar, String delimiterChar, String eofSymbols, boolean isDBF, boolean isCSV) {
+			String baseURI, String columnWithURISupplement, String encoding, String quoteChar, String delimiterChar, String eofSymbols, int rowLimit, boolean isDBF, boolean isCSV) {
 		this.columnPropertyMap = columnPropertyMap;
 		this.baseURI = baseURI;
 		this.columnWithURISupplement = columnWithURISupplement;
@@ -47,6 +48,7 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		this.quoteChar = quoteChar;
 		this.delimiterChar = delimiterChar;
 		this.eofSymbols = eofSymbols;
+		this.rowLimit = rowLimit;
 		this.isCSV = isCSV;
 		this.isDBF = isDBF;
 	}
@@ -106,6 +108,14 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setEofSymbols(String eofSymbols) {
 		this.eofSymbols = eofSymbols;
+	}
+
+	public int getRowLimit() {
+		return rowLimit;
+	}
+
+	public void setRowLimit(int rowLimit) {
+		this.rowLimit = rowLimit;
 	}
 
 	public boolean isDBF() {
