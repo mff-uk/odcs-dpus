@@ -41,6 +41,7 @@ import org.apache.commons.io.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import org.openrdf.model.*;
@@ -158,7 +159,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 	
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
