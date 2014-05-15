@@ -1,5 +1,6 @@
 package cz.opendata.linked.geocoder;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.File;
 import java.util.Iterator;
 
@@ -55,7 +56,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
