@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -59,7 +60,7 @@ public class Extractor
 	}
 	
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		// zalozeni wrapu
 		final SimpleRDF contractsDataUnitWrap = new SimpleRDF(contractsDataUnit, ctx);
