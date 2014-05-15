@@ -28,10 +28,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.LazyQueryResult;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.odcs.rdf.simple.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -221,17 +218,18 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
             String query = "SELECT (count(distinct(?s)) as ?count ) where {?s <" + config.getInputPredicate() + "> ?o}";
             LOG.debug("Query for counting number of input files: {}", query);
             //get the number of files in the rdf data unit
-            TupleQueryResult executeSelectQueryAsTuplesCount = rdfInputWrap.executeSelectQuery(query);
             int resSize = 0;
-            try {
-                if (executeSelectQueryAsTuplesCount.hasNext()) {
-                    BindingSet solution = executeSelectQueryAsTuplesCount.next();
+            try (ConnectionPair<TupleQueryResult> executeSelectQueryAsTuplesCount = rdfInputWrap.executeSelectQuery(query)) {
+                TupleQueryResult res = executeSelectQueryAsTuplesCount.getObject();
+				
+				if (res.hasNext()) {
+                    BindingSet solution = res.next();
                     Binding b = solution.getBinding("count");
                     String resSizeString = b.getValue().stringValue();
                     resSize = Integer.parseInt(resSizeString);
                 }
 			} catch (QueryEvaluationException ex) {
-                throw new DPUException("Cannot evaluate query for counting number of triples" + ex.getLocalizedMessage());
+                throw new DPUException("Cannot evaluate query for counting number of triples,", ex);
             }
 
             if (resSize > 0) {
