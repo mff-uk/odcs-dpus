@@ -27,7 +27,7 @@ public class DPU extends ConfigurableBase<Configuration>
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public FileDataUnit input;
 
 	public DPU() {
