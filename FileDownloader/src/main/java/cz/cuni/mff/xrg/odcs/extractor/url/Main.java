@@ -24,7 +24,7 @@ public class Main extends ConfigurableBase<Configuration>
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 	
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public FileDataUnit output;	
 	
 	public Main() {
