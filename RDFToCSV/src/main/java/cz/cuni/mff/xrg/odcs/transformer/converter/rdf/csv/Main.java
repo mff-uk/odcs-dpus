@@ -35,10 +35,10 @@ public class Main extends ConfigurableBase<Configuration> implements
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 	
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public RDFDataUnit input;
 	
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public FileDataUnit output;	
 
 	public Main() {
