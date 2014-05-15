@@ -33,7 +33,8 @@ import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 import org.openrdf.model.ValueFactory;
@@ -49,10 +50,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit duICs;
 	
 	@OutputDataUnit(name = "Basic")
-	public RDFDataUnit outBasic;
+	public WritableRDFDataUnit outBasic;
 
 	@OutputDataUnit(name = "OR")
-	public RDFDataUnit outOR;
+	public WritableRDFDataUnit outOR;
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -121,7 +122,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		int lines = 0;
 		
-		SimpleRDF duICsWrap = new SimpleRDF(duICs, ctx);
+		SimpleRdfRead duICsWrap = new SimpleRdfRead(duICs, ctx);
 		final List<Statement> statements = duICsWrap.getStatements();
 		if (statements != null && !statements.isEmpty())
 		{
@@ -192,10 +193,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Iterator<String> li = ICs.iterator();
 		//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 
-		final SimpleRDF outBasicWrap = new SimpleRDF(outBasic, ctx);
+		final SimpleRdfWrite outBasicWrap = new SimpleRdfWrite(outBasic, ctx);
 		outBasicWrap.setPolicy(AddPolicy.BUFFERED);
 
-		final SimpleRDF outORWrap = new SimpleRDF(outOR, ctx);
+		final SimpleRdfWrite outORWrap = new SimpleRdfWrite(outOR, ctx);
 		outORWrap.setPolicy(AddPolicy.BUFFERED);
 
 		try {

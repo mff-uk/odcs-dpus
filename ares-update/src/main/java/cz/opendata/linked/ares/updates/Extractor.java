@@ -23,9 +23,8 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 import org.openrdf.rio.RDFFormat;
@@ -36,7 +35,7 @@ extends ConfigurableBase<ExtractorConfig>
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	@OutputDataUnit(name = "BEs")
-	public RDFDataUnit BEs;
+	public WritableRDFDataUnit BEs;
 
 	private final static Logger LOG = LoggerFactory.getLogger(DPU.class);
 
@@ -100,7 +99,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
         	LOG.info("Parsing done. Passing RDF to ODCS");
 			
-			SimpleRDF BEsWrap = new SimpleRDF(BEs, ctx);
+			SimpleRdfWrite BEsWrap = new SimpleRdfWrite(BEs, ctx);
 			BEsWrap.extract(new File(ICfilename), RDFFormat.TURTLE, null);
 		
 		} catch (IOException e) {

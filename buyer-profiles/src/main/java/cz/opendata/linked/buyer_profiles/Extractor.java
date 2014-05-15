@@ -28,10 +28,10 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
@@ -40,13 +40,13 @@ public class Extractor
         implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	
 	@OutputDataUnit(name = "contracts")
-	public RDFDataUnit contractsDataUnit;
+	public WritableRDFDataUnit contractsDataUnit;
 
 	@OutputDataUnit(name = "profiles")
-	public RDFDataUnit profilesDataUnit;
+	public WritableRDFDataUnit profilesDataUnit;
 
 	@OutputDataUnit(name = "profile_statistics")
-	public RDFDataUnit profileStatistics;
+	public WritableRDFDataUnit profileStatistics;
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
@@ -63,9 +63,9 @@ public class Extractor
 	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		// zalozeni wrapu
-		final SimpleRDF contractsDataUnitWrap = new SimpleRDF(contractsDataUnit, ctx);
-		final SimpleRDF profilesDataUnitWrap = new SimpleRDF(profilesDataUnit, ctx);
-		final SimpleRDF profileStatisticsWrap = new SimpleRDF(profileStatistics, ctx);
+		final SimpleRdfWrite contractsDataUnitWrap = new SimpleRdfWrite(contractsDataUnit, ctx);
+		final SimpleRdfWrite profilesDataUnitWrap = new SimpleRdfWrite(profilesDataUnit, ctx);
+		final SimpleRdfWrite profileStatisticsWrap = new SimpleRdfWrite(profileStatistics, ctx);
 		profileStatisticsWrap.setPolicy(AddPolicy.BUFFERED);		
 		
         // vytvorime si parser        

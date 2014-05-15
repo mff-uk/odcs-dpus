@@ -26,8 +26,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 
@@ -38,7 +39,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	@OutputDataUnit(name = "XMLNDFRT")
-	public RDFDataUnit rdfOutput;
+	public WritableRDFDataUnit rdfOutput;
 
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -150,7 +151,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         	return;
         }        
 		
-		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);
+		SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
 		// add triple into the pository
 		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		Resource subj = valueFactory.createURI(config.getNDFRTPrefix() + ndfrtFileName.substring(0, ndfrtFileName.length()-4));

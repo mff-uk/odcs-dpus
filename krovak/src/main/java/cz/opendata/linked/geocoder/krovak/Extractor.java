@@ -40,7 +40,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 
@@ -55,7 +57,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit gmlPoints;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -72,9 +74,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		final SimpleRDF gmlPointsWrap = new SimpleRDF(gmlPoints, ctx);	
+		final SimpleRdfRead gmlPointsWrap = new SimpleRdfRead(gmlPoints, ctx);	
 		
-		final SimpleRDF geoValueFacWrap = new SimpleRDF(outGeo, ctx);		
+		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
 		final ValueFactory geoValueFactory = geoValueFacWrap.getValueFactory();
 		
 		URI gmlPoint = geoValueFactory.createURI("http://www.opengis.net/ont/gml#Point");

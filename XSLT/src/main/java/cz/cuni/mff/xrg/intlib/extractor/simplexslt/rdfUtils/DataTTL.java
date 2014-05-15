@@ -5,7 +5,8 @@
 package cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils;
 
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import org.openrdf.rio.RDFFormat;
 
@@ -15,7 +16,7 @@ import org.openrdf.rio.RDFFormat;
  */
 public class DataTTL extends RDFLoaderWrapper {
 
-    public DataTTL(SimpleRDF _du, File outputFile) {
+    public DataTTL(SimpleRdfWrite _du, File outputFile) {
         super(_du, outputFile);
     }
 

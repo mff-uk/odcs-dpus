@@ -40,7 +40,9 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import org.apache.commons.io.*;
 import org.openrdf.model.*;
@@ -61,7 +63,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -113,10 +115,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 		
-		SimpleRDF geoValueFacWrap = new SimpleRDF(outGeo, ctx);		
+		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		SimpleRDF addrValueFacWrap = new SimpleRDF(sAddresses, ctx);
+		final SimpleRdfRead addrValueFacWrap = new SimpleRdfRead(sAddresses, ctx);
 		final ValueFactory addrValueFac = addrValueFacWrap.getValueFactory();
 		
 		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");

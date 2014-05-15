@@ -15,8 +15,10 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +58,9 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
     public Extractor() {
         super(ExtractorConfig.class);
     }
-    @OutputDataUnit
-    public RDFDataUnit rdfOutput;
+	
+    @OutputDataUnit(name = "output")
+    public WritableRDFDataUnit rdfOutput;
 
     @Override
     public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {
@@ -67,8 +70,8 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);
-		ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+		final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
+		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 

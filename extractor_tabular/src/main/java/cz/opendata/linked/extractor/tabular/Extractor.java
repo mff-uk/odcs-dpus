@@ -43,8 +43,10 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import org.slf4j.Logger;
 import org.supercsv.io.CsvListReader;
@@ -63,7 +65,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	public FileDataUnit tableFile;
 	
 	@OutputDataUnit(name = "triplifiedTable")
-	public RDFDataUnit triplifiedTableT;
+	public WritableRDFDataUnit triplifiedTableT;
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -78,7 +80,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	public void execute(DPUContext context) throws DPUException,
 			DataUnitException {
 
-		SimpleRDF triplifiedTableWrap = new SimpleRDF(triplifiedTableT, context);
+		SimpleRdfWrite triplifiedTableWrap = new SimpleRdfWrite(triplifiedTableT, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		final ValueFactory valueFactory = triplifiedTableWrap.getValueFactory();

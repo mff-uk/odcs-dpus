@@ -27,9 +27,11 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.LazyQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,6 +83,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     public SimpleXSLT() {
         super(SimpleXSLTConfig.class);
     }
+	
     @InputDataUnit(name = "rdfInput", optional = true)
     public RDFDataUnit rdfInput;
 	
@@ -88,11 +91,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     public FileDataUnit fileInput;
     
 	@OutputDataUnit(name = "rdfOutput")
-    public RDFDataUnit rdfOutput;
+    public WritableRDFDataUnit rdfOutput;
     
-	private SimpleRDF rdfOutputWrap = null;
+	private SimpleRdfWrite rdfOutputWrap = null;
 	
-	private SimpleRDF rdfInputWrap = null;
+	private SimpleRdfRead rdfInputWrap = null;
 	
 	private ValueFactory outputValueFactory;
 	
@@ -173,11 +176,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 		// setup global wrappers
-		rdfOutputWrap = new SimpleRDF(rdfOutput, context);
+		rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
 		outputValueFactory = rdfOutputWrap.getValueFactory();
 
 		if (rdfInput != null) {
-			rdfInputWrap = new SimpleRDF(rdfInput, context);
+			rdfInputWrap = new SimpleRdfRead(rdfInput, context);
 		} else {
 			rdfInputWrap = null;
 		}
@@ -797,7 +800,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     }
 	
 	private Map<String, List<String>> getMetadataForFilePath(String filePath,
-				List<String> predicates, SimpleRDF rdfDataUnit) {
+				List<String> predicates, SimpleRdfRead rdfDataUnit) {
 
 		Map<String, List<String>> metadata = new HashMap<>();
 
@@ -845,7 +848,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 	}	
 	
 	private Map<String, List<String>> getMetadataForSubject(String subjectURI,
-			List<String> predicates, SimpleRDF rdfDataUnit) {
+			List<String> predicates, SimpleRdfRead rdfDataUnit) {
 
 		Map<String, List<String>> metadata = new HashMap<>();
 
@@ -862,7 +865,7 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 	}
 	
-	private List<String> getMetadataValue(String subjectURI, String predicateURI, SimpleRDF rdfDataUnit) {
+	private List<String> getMetadataValue(String subjectURI, String predicateURI, SimpleRdfRead rdfDataUnit) {
 
 		List<String> result = new ArrayList<>();
 

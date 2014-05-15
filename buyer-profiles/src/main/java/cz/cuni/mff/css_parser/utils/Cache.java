@@ -14,7 +14,7 @@ import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -36,7 +36,7 @@ public class Cache {
 	
     public static Logger logger;
     
-    public static SimpleRDF stats;
+    public static SimpleRdfWrite stats;
 	
     private static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
 	

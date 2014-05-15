@@ -13,7 +13,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import org.openrdf.model.ValueFactory;
@@ -26,7 +27,7 @@ import org.openrdf.model.ValueFactory;
 
 public class Scraper_parser extends ScrapingTemplate {
     
-	public SimpleRDF list, details;
+	public SimpleRdfWrite list, details;
 	private int numDetails;
 	private int current;
 	

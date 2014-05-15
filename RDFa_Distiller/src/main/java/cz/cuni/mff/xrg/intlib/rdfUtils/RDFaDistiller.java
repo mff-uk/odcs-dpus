@@ -12,6 +12,7 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,8 @@ import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 
@@ -47,7 +49,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 	public RDFDataUnit rdfInput;
 
 	@OutputDataUnit(name = "output")
-	public RDFDataUnit rdfOutput;
+	public WritableRDFDataUnit rdfOutput;
 
 	@Override
 	public AbstractConfigDialog<RDFaDistillerConfig> getConfigurationDialog() {
@@ -163,7 +165,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 				try {
 					LOG.info("Output file name is: {}", outputFilePath);
 					
-					SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+					final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
 					rdfOutputWrap.extract(new File(outputFilePath), RDFFormat.TURTLE, null);
 				} catch (OperationFailedException ex) {
 					LOG.error("OperationFailed", ex);

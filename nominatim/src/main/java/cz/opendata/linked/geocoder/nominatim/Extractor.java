@@ -42,8 +42,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 
@@ -60,7 +62,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -165,11 +167,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		long start = date.getTime();
 	    Gson gson = new GsonBuilder().registerTypeAdapter(Geo.class, new GeoInstanceCreator()).create();
 		
-		SimpleRDF geoValueFacWrap = new SimpleRDF(outGeo, ctx);
+		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);
 		geoValueFacWrap.setPolicy(AddPolicy.BUFFERED);
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		SimpleRDF sAddressesWrap = new SimpleRDF(sAddresses, ctx);
+		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
 		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();		
 		
 		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");

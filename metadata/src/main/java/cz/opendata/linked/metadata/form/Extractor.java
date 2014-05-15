@@ -24,9 +24,11 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.TupleQueryResult;
 
@@ -44,11 +46,11 @@ public class Extractor
 	public RDFDataUnit in;
 
 	@OutputDataUnit(name = "Metadata")
-	public RDFDataUnit out;
+	public WritableRDFDataUnit out;
 	
-	private SimpleRDF inWrap;
+	private SimpleRdfRead inWrap;
 	
-	private SimpleRDF outWrap;
+	private SimpleRdfWrite outWrap;
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -71,7 +73,7 @@ public class Extractor
 		String ns_void = "http://rdfs.org/ns/void#";
 		String ns_qb = "http://purl.org/linked-data/cube#";
 
-		outWrap = new SimpleRDF(out, ctx);
+		outWrap = new SimpleRdfWrite(out, ctx);
 		outWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		final ValueFactory valueFactory = outWrap.getValueFactory();
@@ -156,10 +158,10 @@ public class Extractor
 		
 		if (stats != null) {
 			ctx.sendMessage(MessageType.INFO, "Found statistics on input - copying");
-			stats.addAll(out);
+			out.addAll(stats);
 		}
 		else if (in != null) {
-			inWrap = new SimpleRDF(in, ctx);
+			inWrap = new SimpleRdfRead(in, ctx);
 			//Now compute statistics on input data
 			ctx.sendMessage(MessageType.INFO, "Starting statistics computation");
 			executeCountQuery("SELECT (COUNT (*) as ?count) WHERE {?s ?p ?o}", void_triples, datasetURI);

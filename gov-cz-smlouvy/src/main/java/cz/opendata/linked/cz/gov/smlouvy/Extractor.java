@@ -21,8 +21,10 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -52,13 +54,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public FileDataUnit outPlneniRoky;	
 
 	@OutputDataUnit(name = "Smlouvy-Metadata")
-	public RDFDataUnit outSmlouvyMeta;	
+	public WritableRDFDataUnit outSmlouvyMeta;	
 	
 	@OutputDataUnit(name = "Objednavky-Metadata")
-	public RDFDataUnit outObjednavkyMeta;	
+	public WritableRDFDataUnit outObjednavkyMeta;	
 
 	@OutputDataUnit(name = "Plneni-Metadata")
-	public RDFDataUnit outPlneniMeta;	
+	public WritableRDFDataUnit outPlneniMeta;	
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -72,13 +74,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
-		final SimpleRDF outSmlouvyMetaWrap = new SimpleRDF(outSmlouvyMeta, ctx);
+		final SimpleRdfWrite outSmlouvyMetaWrap = new SimpleRdfWrite(outSmlouvyMeta, ctx);
 		outSmlouvyMetaWrap.setPolicy(AddPolicy.BUFFERED);
 		
-		final SimpleRDF outObjednavkyMetaWrap = new SimpleRDF(outObjednavkyMeta, ctx);
+		final SimpleRdfWrite outObjednavkyMetaWrap = new SimpleRdfWrite(outObjednavkyMeta, ctx);
 		outObjednavkyMetaWrap.setPolicy(AddPolicy.BUFFERED);
 		
-		final SimpleRDF outPlneniMetaWrap = new SimpleRDF(outPlneniMeta, ctx);
+		final SimpleRdfWrite outPlneniMetaWrap = new SimpleRdfWrite(outPlneniMeta, ctx);
 		outPlneniMetaWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		Cache.setInterval(config.getInterval());

@@ -25,7 +25,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.opendata.linked.geocoder.lib.Geocoder;
 import cz.opendata.linked.geocoder.lib.Geocoder.GeoProvider;
 import cz.opendata.linked.geocoder.lib.Geocoder.GeoProviderFactory;
@@ -44,7 +46,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -61,10 +63,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		SimpleRDF geoValueFacWrap = new SimpleRDF(outGeo, ctx);		
+		SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		SimpleRDF sAddressesWrap = new SimpleRDF(sAddresses, ctx);
+		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
 		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();
 		
 		URI geoURI = geoValueFac.createURI("http://schema.org/geo");

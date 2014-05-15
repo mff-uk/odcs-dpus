@@ -7,7 +7,8 @@ package cz.mff.cuni.scraper.lib.template;
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import java.io.IOException;
 import java.net.URL;
@@ -52,7 +53,7 @@ public abstract class ScrapingTemplate {
     
     public Logger logger;
 
-    public SimpleRDF pstats;
+    public SimpleRdfWrite pstats;
     
     public int maxAttempts;
     

@@ -21,8 +21,10 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 @AsExtractor
 public class Extractor 
@@ -30,7 +32,7 @@ extends ConfigurableBase<ExtractorConfig>
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	@OutputDataUnit(name = "output")
-	public RDFDataUnit outputDataUnit;
+	public WritableRDFDataUnit outputDataUnit;
 	
 	@InputDataUnit(name = "input")
 	public RDFDataUnit inputDataUnit;
@@ -49,8 +51,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
-		final SimpleRDF inputWrap = new SimpleRDF(inputDataUnit, ctx);
-		final SimpleRDF outputWrap = new SimpleRDF(outputDataUnit, ctx);
+		final SimpleRdfRead inputWrap = new SimpleRdfRead(inputDataUnit, ctx);
+		final SimpleRdfWrite outputWrap = new SimpleRdfWrite(outputDataUnit, ctx);
 		outputWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		// vytvorime si parser

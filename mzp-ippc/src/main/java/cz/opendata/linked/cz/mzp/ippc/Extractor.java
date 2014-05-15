@@ -46,8 +46,10 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @AsExtractor
@@ -56,7 +58,7 @@ extends ConfigurableBase<ExtractorConfig>
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	@OutputDataUnit
-	public RDFDataUnit output;
+	public WritableRDFDataUnit output;
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
@@ -72,7 +74,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException, OperationFailedException
 	{
-		SimpleRDF outputWrap = new SimpleRDF(output, ctx);
+		final SimpleRdfWrite outputWrap = new SimpleRdfWrite(output, ctx);
 		
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());

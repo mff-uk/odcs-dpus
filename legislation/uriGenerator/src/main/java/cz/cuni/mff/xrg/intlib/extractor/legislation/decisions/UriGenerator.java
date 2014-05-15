@@ -20,7 +20,9 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
 
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import java.io.IOException;
 import net.lingala.zip4j.core.ZipFile;
@@ -57,7 +59,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
     
     //should be used when subject URI is needed in further DPUs (such as in XSLT producing result of the transformation in literal)
     @OutputDataUnit(name = "rdfOutput", optional = true)
-    public RDFDataUnit rdfOutput;
+    public WritableRDFDataUnit rdfOutput;
     
     //used for data when subject URI is further not needed.
     @OutputDataUnit(name = "fileOutput", optional = true)
@@ -96,7 +98,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
          //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 		
-		SimpleRDF rdfInputWrap = new SimpleRDF(rdfInput, context);
+		SimpleRdfRead rdfInputWrap = new SimpleRdfRead(rdfInput, context);
 		TupleQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeSelectQuery(query);
 
         //log.info(executeSelectQueryAsTuples.asList().)
@@ -148,7 +150,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 			   if (rdfOutput != null) {
 				    String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
 
-					SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+					SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
 					final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 					
 					Resource subj = valueFactory.createURI(subject);

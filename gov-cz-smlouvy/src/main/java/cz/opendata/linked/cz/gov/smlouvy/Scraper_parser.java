@@ -16,7 +16,8 @@ import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import org.openrdf.model.ValueFactory;
@@ -30,7 +31,7 @@ import org.openrdf.model.ValueFactory;
 public class Scraper_parser extends ScrapingTemplate{
     
 	public FileDataUnit smlouvy, objednavky, plneni, smlouvy_roky, objednavky_roky, plneni_roky;
-	public SimpleRDF smlouvy_meta, objednavky_meta, plneni_meta;
+	public SimpleRdfWrite smlouvy_meta, objednavky_meta, plneni_meta;
 	public int numSmlouvy = 0, numObjednavky = 0, numPlneni = 0;
 	public int numSmlouvyRoks = 0, numObjednavkyRoks = 0, numPlneniRoks = 0;
 	public int currentSmlouvy = 0, currentObjednavky = 0, currentPlneni = 0;

@@ -33,9 +33,11 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.*;
 import org.slf4j.Logger;
 
@@ -52,7 +54,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 	public FileDataUnit tableFiles;
 	
 	@OutputDataUnit(name = "triplifiedTables")
-	public RDFDataUnit triplifiedTables;
+	public WritableRDFDataUnit triplifiedTables;
 
 	public CZSOVDBExtractor() {
 		super(CZSOVDBExtractorConfig.class);
@@ -115,7 +117,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			columnWithURISupplement = 0;
 		}
 		
-		SimpleRDF triplifiedTableWrap = new SimpleRDF(triplifiedTables, context);
+		final SimpleRdfWrite triplifiedTableWrap = new SimpleRdfWrite(triplifiedTables, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
 		final ValueFactory valueFactory = triplifiedTableWrap.getValueFactory();
 		

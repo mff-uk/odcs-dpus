@@ -8,6 +8,7 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.NonConfigurableBase;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 
 @AsTransformer
 public class Main extends NonConfigurableBase {
@@ -16,7 +17,7 @@ public class Main extends NonConfigurableBase {
 	public RDFDataUnit rdfInput;
 	
 	@OutputDataUnit(name = "output")
-	public RDFDataUnit rdfOutput;
+	public WritableRDFDataUnit rdfOutput;
 	
 	public Main() {
 	}

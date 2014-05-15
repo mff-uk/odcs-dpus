@@ -36,9 +36,11 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.simple.LazyQueryResult;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.rio.RDFFormat;
 
@@ -62,7 +64,7 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
     public RDFDataUnit rdfInput;
 	
     @OutputDataUnit(name = "output")
-    public RDFDataUnit rdfOutput;
+    public WritableRDFDataUnit rdfOutput;
 
     @Override
     public AbstractConfigDialog<JTaggerAnnotatorConfig> getConfigurationDialog() {
@@ -71,8 +73,8 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
-		SimpleRDF rdfInputWrap = new SimpleRDF(rdfInput, context);
-		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);	
+		final SimpleRdfRead rdfInputWrap = new SimpleRdfRead(rdfInput, context);
+		final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
 		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
 		
