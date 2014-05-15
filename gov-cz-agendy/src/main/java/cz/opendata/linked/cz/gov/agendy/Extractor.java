@@ -1,5 +1,6 @@
 package cz.opendata.linked.cz.gov.agendy;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,7 +45,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
