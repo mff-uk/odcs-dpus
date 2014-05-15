@@ -1,5 +1,6 @@
 package cz.opendata.linked.metadata.form;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -59,7 +60,7 @@ public class Extractor
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
