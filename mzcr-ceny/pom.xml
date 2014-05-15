@@ -26,6 +26,6 @@
 			<artifactId>dataunit-rdf-simple</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>
-		</dependency>		 		 
+		</dependency>		 
  	</dependencies>
 </project>
