@@ -7,8 +7,7 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.NonConfigurableBase;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.ManagableRdfDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 @AsTransformer
 public class Main extends NonConfigurableBase {
@@ -20,16 +19,12 @@ public class Main extends NonConfigurableBase {
 	public RDFDataUnit rdfOutput;
 	
 	public Main() {
-
 	}
 
 	@Override
 	public void execute(DPUContext context)
 			throws DPUException, DataUnitException {
-		// merge rdf
-		if (rdfInput != null && rdfOutput != null){
-			((ManagableRdfDataUnit) rdfOutput).merge(rdfInput);
-		}
+		rdfOutput.addAll(rdfInput);
 	}
 	
 }
