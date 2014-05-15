@@ -24,7 +24,7 @@ public class SingleFilePickerTest {
 			extractor.configureDirectly(config);
 			
 			// prepare test environment, we use system tmp directory
-			TestEnvironment env = TestEnvironment.create();
+			TestEnvironment env = new TestEnvironment();
 			// prepare input and output data units
 			
 			//FileDataUnit extractedFiles = env.createRdfOutput("extractedFiles", false);
