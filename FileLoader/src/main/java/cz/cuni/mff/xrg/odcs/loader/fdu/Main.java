@@ -28,7 +28,7 @@ public class Main extends ConfigurableBase<Configuration> implements
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public FileDataUnit input;
 
 	public Main() {
