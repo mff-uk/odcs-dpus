@@ -28,7 +28,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 public class Main extends ConfigurableBase<Configuration> implements
 		ConfigDialogProvider<Configuration> {
 
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public FileDataUnit output;
 
 	public Main() {
