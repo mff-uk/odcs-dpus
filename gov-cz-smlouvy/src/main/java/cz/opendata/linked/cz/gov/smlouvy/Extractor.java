@@ -1,5 +1,6 @@
 package cz.opendata.linked.cz.gov.smlouvy;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -69,7 +70,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		final SimpleRDF outSmlouvyMetaWrap = new SimpleRDF(outSmlouvyMeta, ctx);
 		outSmlouvyMetaWrap.setPolicy(AddPolicy.BUFFERED);
