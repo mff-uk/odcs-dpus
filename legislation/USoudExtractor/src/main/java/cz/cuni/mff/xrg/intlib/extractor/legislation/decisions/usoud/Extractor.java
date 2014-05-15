@@ -14,7 +14,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +29,8 @@ import net.lingala.zip4j.exception.ZipException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.rio.RDFFormat;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -36,9 +40,6 @@ import org.slf4j.LoggerFactory;
  * TODO adjust fileName, so that expression may be constructed, generuje txt convertor nejake names?
  * 
  * TODO: jak ziskat data pro zvolene od-do -> problem se strankou nalus.usoud.cz - nejde vybrat data!
- * 
- * 
- * 
  *
  * @author tomasknap
  */
@@ -49,6 +50,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
             Extractor.class);
     
     private String dateFrom;
+	
     private String dateTo;
 
     public Extractor() {
@@ -65,6 +67,9 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
+		SimpleRDF rdfOutputWrap = new SimpleRDF(rdfOutput, context);
+		ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+		
         //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 
         //get working dir
@@ -158,9 +163,9 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
             }
 
             //use the expression
-            Resource subj = rdfOutput.createURI(expressionURI);
-            URI pred = rdfOutput.createURI(config.getOutputPredicate());
-            Value obj = rdfOutput.createLiteral(output);
+            Resource subj = valueFactory.createURI(expressionURI);
+            URI pred = valueFactory.createURI(config.getOutputPredicate());
+            Value obj = valueFactory.createLiteral(output);
 
             String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
             log.debug("Prepared triple {}", preparedTriple);
@@ -170,16 +175,13 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
             DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
             
             try {
-                rdfOutput.addFromTurtleFile(new File(tempFileLoc));
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
                 log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-
-            } catch(cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException e) {
+            } catch(OperationFailedException e) {
                 log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
                 log.info("Continues with the next file");
             }
 
-            
-         
             if (context.canceled()) {
                 log.info("DPU cancelled");
                 return;
