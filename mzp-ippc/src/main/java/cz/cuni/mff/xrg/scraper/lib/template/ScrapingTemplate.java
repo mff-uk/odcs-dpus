@@ -5,7 +5,8 @@
 package cz.cuni.mff.xrg.scraper.lib.template;
 
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
+import org.openrdf.model.ValueFactory;
 
 /**
  * Abstract class of common scraper.
@@ -32,7 +34,9 @@ public abstract class ScrapingTemplate {
     
     public DPUContext ctx;
     
-    public RDFDataUnit outputDataUnit;
+    public SimpleRDF outputDataUnit;
+	
+	public ValueFactory valueFactory;
 	
 	/** 
      * This method looks for links in actual document and create entries with URL and document type.
@@ -49,7 +53,7 @@ public abstract class ScrapingTemplate {
      * @param doc Input JSoup document.
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      */
-    protected abstract void parse(Document doc, String docType, URL url);    
+    protected abstract void parse(Document doc, String docType, URL url) throws OperationFailedException;
     
     /**
      * Run scraping on given URL and given document type.
@@ -58,7 +62,7 @@ public abstract class ScrapingTemplate {
      * @param type Initial document type.
      * @throws InterruptedException 
      */
-    public void parse(URL initUrl, String type) throws InterruptedException {
+    public void parse(URL initUrl, String type) throws InterruptedException, OperationFailedException {
         LinkedList<ParseEntry> toParse = new LinkedList<>();
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type));

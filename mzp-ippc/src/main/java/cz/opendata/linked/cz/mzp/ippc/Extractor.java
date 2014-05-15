@@ -45,8 +45,9 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRDF;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @AsExtractor
@@ -54,14 +55,10 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
 	@OutputDataUnit
-	public RDFDataUnit outputDataUnit;
+	public RDFDataUnit output;
 
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -73,27 +70,30 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, OperationFailedException
 	{
+		SimpleRDF outputWrap = new SimpleRDF(output, ctx);
+		
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
 		Cache.rewriteCache = config.isRewriteCache();
-		Cache.logger = logger;
+		Cache.logger = LOG;
 
 		try {
 			Cache.setTrustAllCerts();
 		} catch (Exception e) {
-			logger.error("Unexpected error when setting trust to all certificates.",e );
+			LOG.error("Unexpected error when setting trust to all certificates.",e );
 		}
 		
 		Parser s = new Parser();
-		s.logger = logger;
+		s.logger = LOG;
 		s.ctx = ctx;
-		s.outputDataUnit = outputDataUnit;
+		s.outputDataUnit = outputWrap;
+		s.valueFactory = outputWrap.getValueFactory();
 
-		logger.info("Starting extraction.");
+		LOG.info("Starting extraction.");
 		
 			java.util.Date date = new java.util.Date();
 			long start = date.getTime();
@@ -109,7 +109,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			    System.out.println(viewid);
 				
 			} catch (IOException e1) {
-				logger.error(e1.getLocalizedMessage(),e1);
+				LOG.error(e1.getLocalizedMessage(),e1);
 			}
 			int i = 0;
 			while (true) {
@@ -141,25 +141,25 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						    EntityUtils.consume(entity2);
 						    break;
 						} catch (UnsupportedEncodingException e1) {
-							logger.error(e1.getLocalizedMessage(),e1);
+							LOG.error(e1.getLocalizedMessage(),e1);
 						} catch (ClientProtocolException e1) {
-							logger.error(e1.getLocalizedMessage(),e1);
+							LOG.error(e1.getLocalizedMessage(),e1);
 						} catch (IOException e1) {
-							logger.error(e1.getLocalizedMessage(),e1);
+							LOG.error(e1.getLocalizedMessage(),e1);
 						} finally {
 						    try {
 								if (response2 != null) response2.close();
 							} catch (IOException e) {
-								logger.error(e.getLocalizedMessage(),e);
+								LOG.error(e.getLocalizedMessage(),e);
 							}
 						}
 						
 				    	attempt++;
-						logger.info("Warning (retrying) " + attempt);
+						LOG.info("Warning (retrying) " + attempt);
 						try {
 							Thread.sleep(config.getInterval());
 						} catch (InterruptedException e1) {
-							logger.warn(e1.getLocalizedMessage(), e1);
+							LOG.warn(e1.getLocalizedMessage(), e1);
 						}
 				    	
 					}
@@ -169,14 +169,14 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				try {
 					doc = Jsoup.parse(currentFile, "UTF-8");
 				} catch (IOException e1) {
-					logger.error(e1.getLocalizedMessage(),e1);
+					LOG.error(e1.getLocalizedMessage(),e1);
 				}
 			    for (Element e : doc.select("a.xspLinkViewColumn"))
 			    {
 			    	try {
 						s.parse(new URL("http://www.mzp.cz" + e.attr("href")), "docview");
 					} catch (MalformedURLException | InterruptedException e1) {
-						logger.error(e1.getLocalizedMessage(),e1);
+						LOG.error("Parsing failed", e1);
 					}
 			    }
 			    if (doc.getElementById("view:_id1:_id2:facetMiddle:tabPanel1:dataView1:_id20:pager__Next__lnk") == null) break;
@@ -188,7 +188,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			
 			ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
         	
-			logger.info("Parsing done.");
+			LOG.info("Parsing done.");
 	}
 
 }
