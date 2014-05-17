@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Auto closeable wrap for {@link RepositoryConnection}.
+ * Auto closeable wrap for {@link RepositoryConnection}. Enable usage of 
+ * {@link RepositoryConnection} as a try-catch resource.
  *
  * @author Škoda Petr
  */
