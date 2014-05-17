@@ -25,11 +25,9 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.odcs.rdf.simple.*;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 
 @AsTransformer
@@ -184,20 +182,19 @@ public class Extractor
 	void executeCountQuery(String countQuery, URI property, URI datasetURI) throws OperationFailedException
 	{
 		final ValueFactory valueFactory = inWrap.getValueFactory();		
-		
 		URI xsd_integer = valueFactory.createURI("http://www.w3.org/2001/XMLSchema#integer");
-		TupleQueryResult res;
 		int number;
-		
-		try {
-			res = inWrap.executeSelectQuery(countQuery);
-			number = Integer.parseInt(res.next().getValue("count").stringValue());
-			outWrap.add(datasetURI, property, valueFactory.createLiteral(Integer.toString(number), xsd_integer));
-		} catch (Exception e) {
+
+		try (ConnectionPair<TupleQueryResult> res = inWrap.executeSelectQuery(countQuery)) {
+			number = Integer.parseInt(res.getObject().next().getValue("count")
+					.stringValue());
+			outWrap.add(datasetURI, property, valueFactory.createLiteral(Integer
+					.toString(number), xsd_integer));
+		} catch (QueryEvaluationException e) {
 			LOG.error("Failed to execute query", e);
 		}
 	}
-
+		
 	@Override
 	public void cleanUp() {	}
 
