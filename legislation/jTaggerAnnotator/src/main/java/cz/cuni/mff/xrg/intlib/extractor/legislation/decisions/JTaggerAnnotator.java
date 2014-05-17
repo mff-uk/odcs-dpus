@@ -37,11 +37,12 @@ import org.openrdf.query.BindingSet;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.LazyQueryResult;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.odcs.rdf.simple.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQueryResult;
 import org.openrdf.rio.RDFFormat;
 
 
@@ -133,153 +134,131 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
 
         //prepare inputs, call xslt for each input
         //String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o}";
-         String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
+        String query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o} ORDER BY ?s ?o";
         LOG.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
         //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
         //OrderTupleQueryResult executeSelectQueryAsTuples = rdfInput.executeOrderSelectQueryAsTuples(query);
         
-		LazyQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeLazyQuery(query);
-
-        int i = 0;
-		
-        try {
-            
-            while (executeSelectQueryAsTuples.hasNext()) {
-                i++;
-                //process the inputs
-                BindingSet solution = executeSelectQueryAsTuples.next();
-                Binding b = solution.getBinding("o");
-                String fileContent = b.getValue().toString();
-                String subject = solution.getBinding("s").getValue().toString();
-                LOG.info("Processing new file for subject {}", subject);
-                //log.debug("Processing file {}", fileContent);
-
-
-                String inputFilePath = pathToWorkingDir + File.separator + "input" + File.separator + String.valueOf(i) + ".txt";
-                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "input" + File.separator);
-         
-                //TODO temp hack because there is a problem with perl scritp
-                if (subject.contains("5-Tdo-271-2013")) {
-                    LOG.warn("Skipping {}", subject);
-                    continue;
-                }
-                
-                File file;
-                if (config.getMode().equals("nscr")) {
-                    //store the input content to file, inputs are xml files!
-                    file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
-                } else if (config.getMode().equals("uscr")){
-                    file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("UTF-8"));
-
-                } else {
-                    throw new DPUException("Unsupported Mode " + config.getMode());
-                }
-                    
-                if (file == null) {
-                    LOG.warn("Problem processing object for subject {}", subject);
-                    continue;
-                }
-
-                //run jTagger
-                String outputJTaggerFilename = pathToWorkingDir + File.separator + "outJTagger" + File.separator + String.valueOf(i) + ".xml";
-                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outJTagger" + File.separator);
-                if (config.getMode().equals("nscr")) {
-                    runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("Cp1250"));
-                } 
-                else if (config.getMode().equals("uscr")){
-                    runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("UTF-8"));
-
-                }
-                else {
-                    throw new DPUException("Unsupported Mode " + config.getMode());
-                }
-
-                //check output
-                if (!outputGenerated(outputJTaggerFilename)) {
-                    continue;
-                }
-
-                 LOG.info("Jtagger annotator finished successfully");
-
-                //////////////////////
-                //add meta and content elements to body
-                //////////////////////
-                String outputMetadataElement = pathToWorkingDir + File.separator + "outMetaElem" + File.separator + String.valueOf(i) + ".xml";
-                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outMetaElem" + File.separator);
-                
-                try {
-                    addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement,config.getMode());
-                } catch(MetadataCreationException me) {
-                    LOG.error("Problem when adding meta section, skipping file {}", subject);
-                    LOG.debug(me.getLocalizedMessage());
-                    continue;
-                }
-
-                //check output
-                if (!outputGenerated(outputMetadataElement)) {
-                    continue;
-                }
-
-
-                //////////////////////
-                //add paragraph elements
-                //////////////////////
-                LOG.debug("About add paragraphs elements");
-                String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + String.valueOf(i) + ".xml";
-                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGenPara");
-            
-                runParagraphAdjustment(outputMetadataElement, outputURIGeneratorFilenameWithParagraphs);
-
-                //check output
-                if (!outputGenerated(outputURIGeneratorFilenameWithParagraphs)) {
-                    continue;
-                }
-
-                   LOG.info("Metadata and paragraph elements generated, about to create output");
-               
-                
-               //OUTPUT
-               String outputString = DataUnitUtils.readFile(outputURIGeneratorFilenameWithParagraphs);
-               
-			   
-               Resource subj = valueFactory.createURI(subject);
-               URI pred = valueFactory.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
-               //TODO config has still textVal, why???
-                //URI pred = rdfOutput.createURI(config.getOutputPredicate());
-               Value obj = valueFactory.createLiteral(outputString); 
-                           
-               String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-               
-               DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-               String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
-                           
-               //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-                         
-               DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-			   rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-               
-               LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);                
-               LOG.info("Output created successfully");
-                     
-                if (context.canceled()) {
-                    LOG.info("DPU cancelled");
-                    return;
-                }
-            }
-        } catch (OperationFailedException ex) {
-            context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
-            LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
-            LOG.debug(ex.getLocalizedMessage());
-        }
-
-        
-        LOG.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
-
-        
+//		LazyQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeLazyQuery(query);		
+		try (ConnectionPair<TupleQueryResult> result = rdfInputWrap.executeSelectQuery(query)) {
+			process(result.getObject(), pathToWorkingDir,
+				unzipedJarPathString, valueFactory, rdfOutputWrap, context);
+		}
+		        
         LOG.info("\n ****************************************************** \n FINISHING JTAGGER ANNOTATOR \n *****************************************************");
     }
+
+	private void process(TupleQueryResult executeSelectQueryAsTuples,
+			String pathToWorkingDir, String unzipedJarPathString,
+			final ValueFactory valueFactory, final SimpleRdfWrite rdfOutputWrap,
+			DPUContext context) throws DPUException {
+		int i = 0;
+		try {
+			while (executeSelectQueryAsTuples.hasNext()) {
+				i++;
+				//process the inputs
+				BindingSet solution = executeSelectQueryAsTuples.next();
+				Binding b = solution.getBinding("o");
+				String fileContent = b.getValue().toString();
+				String subject = solution.getBinding("s").getValue().toString();
+				LOG.info("Processing new file for subject {}", subject);
+				//log.debug("Processing file {}", fileContent);
+				String inputFilePath = pathToWorkingDir + File.separator + "input" + File.separator + String.valueOf(i) + ".txt";
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "input" + File.separator);
+				//TODO temp hack because there is a problem with perl scritp
+				if (subject.contains("5-Tdo-271-2013")) {
+					LOG.warn("Skipping {}", subject);
+					continue;
+				}
+				File file;
+				if (config.getMode().equals("nscr")) {
+					//store the input content to file, inputs are xml files!
+					file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("Cp1250"));
+				} else if (config.getMode().equals("uscr")){
+					file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath, Charset.forName("UTF-8"));
+					
+				} else {
+					throw new DPUException("Unsupported Mode " + config.getMode());
+				}
+				if (file == null) {
+					LOG.warn("Problem processing object for subject {}", subject);
+					continue;
+				}
+				//run jTagger
+				String outputJTaggerFilename = pathToWorkingDir + File.separator + "outJTagger" + File.separator + String.valueOf(i) + ".xml";
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outJTagger" + File.separator);
+				if (config.getMode().equals("nscr")) {
+					runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("Cp1250"));
+				}
+				else if (config.getMode().equals("uscr")){
+					runJTagger(inputFilePath, outputJTaggerFilename, unzipedJarPathString, pathToWorkingDir, Charset.forName("UTF-8"));
+					
+				}
+				else {
+					throw new DPUException("Unsupported Mode " + config.getMode());
+				}
+				//check output
+				if (!outputGenerated(outputJTaggerFilename)) {
+					continue;
+				}
+				LOG.info("Jtagger annotator finished successfully");
+				//////////////////////
+				//add meta and content elements to body
+				//////////////////////
+				String outputMetadataElement = pathToWorkingDir + File.separator + "outMetaElem" + File.separator + String.valueOf(i) + ".xml";
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outMetaElem" + File.separator);
+				try {
+					addMetaAndContentElements(outputJTaggerFilename, outputMetadataElement,config.getMode());
+				} catch(MetadataCreationException me) {
+					LOG.error("Problem when adding meta section, skipping file {}", subject);
+					LOG.debug(me.getLocalizedMessage());
+					continue;
+				}
+				//check output
+				if (!outputGenerated(outputMetadataElement)) {
+					continue;
+				}
+				//////////////////////
+				//add paragraph elements
+				//////////////////////
+				LOG.debug("About add paragraphs elements");
+				String outputURIGeneratorFilenameWithParagraphs = pathToWorkingDir + File.separator + "outURIGenPara" + File.separator + String.valueOf(i) + ".xml";
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGenPara");
+				runParagraphAdjustment(outputMetadataElement, outputURIGeneratorFilenameWithParagraphs);
+				//check output
+				if (!outputGenerated(outputURIGeneratorFilenameWithParagraphs)) {
+					continue;
+				}
+				LOG.info("Metadata and paragraph elements generated, about to create output");
+				//OUTPUT
+				String outputString = DataUnitUtils.readFile(outputURIGeneratorFilenameWithParagraphs);
+				Resource subj = valueFactory.createURI(subject);
+				URI pred = valueFactory.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
+				//TODO config has still textVal, why???
+				//URI pred = rdfOutput.createURI(config.getOutputPredicate());
+				Value obj = valueFactory.createLiteral(outputString);
+				String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+				String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
+				//String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
+				DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+				LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+				LOG.info("Output created successfully");
+				if (context.canceled()) {
+					LOG.info("DPU cancelled");
+					return;
+				}
+			}
+		} catch (OperationFailedException | QueryEvaluationException ex) {
+			context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+			LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+			LOG.debug(ex.getLocalizedMessage());
+		}
+		LOG.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
+	}
 
     private void runParagraphAdjustment(String outputURIGeneratorFilename, String outputURIGeneratorFilenameWithParagraphs) {
         String input_text = null;
@@ -298,7 +277,6 @@ public class JTaggerAnnotator extends ConfigurableBase<JTaggerAnnotatorConfig> i
         out.write(output);
         out.flush();
         out.close();
-
 
     }
 

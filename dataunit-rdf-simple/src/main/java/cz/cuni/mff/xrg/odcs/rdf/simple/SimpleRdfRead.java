@@ -128,17 +128,6 @@ public class SimpleRdfRead {
 			throw new OperationFailedException("Failed to execute construct query.", e);
 		}
 	}
-	
-	/**
-	 * Create a representation of lazy select query and return it.
-	 * 
-	 * @param query
-	 * @return
-	 * @throws OperationFailedException 
-	 */
-	public LazyQueryResult executeLazyQuery(String query) throws OperationFailedException {
-		return new LazyQueryResult(dataUnit, query);
-	}
 
 	/**
 	 * Return context for wrapped {@link RDFDataUnit} in form of array.

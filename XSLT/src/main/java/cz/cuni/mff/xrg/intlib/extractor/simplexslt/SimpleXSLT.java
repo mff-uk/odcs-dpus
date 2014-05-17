@@ -239,92 +239,20 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
                 //there are some files to be processed received in the input RDF data unit.        
                 query = "SELECT ?s ?o where {?s <" + config.getInputPredicate() + "> ?o } ORDER BY ?s ?o";
                 LOG.debug("Query for getting input files: {}", query);
-                LazyQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeLazyQuery(query);
 
-                //process all the rdf triples
-                int fileNumber = 0;
-                try {
-                    while (executeSelectQueryAsTuples.hasNext()) {
-
-                        fileNumber++;
-
-                        LOG.info("Processing file: {}/{} ", fileNumber, resSize);
-
-                        //process the inputs
-                        BindingSet solution = executeSelectQueryAsTuples.next();
-                        Binding b = solution.getBinding("o");
-                        String fileContent = b.getValue().stringValue();
-                        String subject = solution.getBinding("s").getValue().stringValue();
-
-                        LOG.info("The subject is {}", subject);
-                        //log.debug("The object is {}", fileContent);
-
-                        //store the input content to file, inputs are xml files!
-                        String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
-                        File inputFile = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
-                        if (inputFile == null) {
-                            LOG.warn("Problem processing object for subject {}", subject);
-                            continue;
-                        }
-                        
-                        //generate path to file with output
-                        //prepare the name of a file holding the output of XSLT
-                        String outputPathFileWithoutExtension = prepareOutputFileNameStub(pathToWorkingDir, fileNumber);
-                        File outputFile = new File(outputPathFileWithoutExtension);
-                        //String outputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
-
-
-                        //get metadata - XSLT params only
-                        List<String> predicates = new ArrayList<String>();
-                        predicates.add(OdcsTerms.XSLT_PARAM_PREDICATE);
-                        Map<String, List<String>> metadata = new HashMap<>();
-                       
-                        metadata = getMetadataForSubject(subject, predicates, rdfInputWrap);
-                        Map<String, String> xsltParams = getXsltParams(metadata);
-                       
-                        //CALL XSLT Template
-                        //TODO Collect XSLT params
-                        //Map<String, String> collectedXsltParams = collectXsltParams(xslTemplate,subject);
-                        //String outputString = executeXSLT(xslTemplate, file, xsltParams);
-                        if (!executeXSLT(templates, inputFile, outputFile, xsltParams)) {
-                            LOG.warn("Problem generating output of xslt transformation for subject {}. No output created. ", subject);
-                            continue;
-                        }
-
-                        //Prepares object being responsible for storing output of the XSLT to the output rdf data unit 
-                        if(!loadDataToTargetRDFDataUnit(outputFile, subject, outputPathFileWithoutExtension)) {
-                             LOG.warn("Problem adding output of xslt transformation for subject {} to rdf data unit. No output created. ", subject);
-                             continue;
-                        };
-
-                        LOG.info("XSLT executed successfully, output created successfully");
-                        
-                        //stores data to target rdf unit
-                        //loadDataToTargetRDFDataUnit(resultRDFDataLoader, String.valueOf(fileNumber), context);
-
-                        //if the DPU was cancelled, execution ends. 
-                        if (context.canceled()) {
-                            LOG.info("DPU cancelled");
-                            return;
-                        }
-
-                    }
-                } catch (OperationFailedException ex) {
-                    context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
-                    LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
-                    LOG.debug(ex.getLocalizedMessage());
-                }
-
-                context.sendMessage(MessageType.INFO, "Processed " + fileNumber + " files from " + resSize);
+				//process all the rdf triples
+//                LazyQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeLazyQuery(query);
+				try (ConnectionPair<TupleQueryResult> result = rdfInputWrap.executeSelectQuery(query)) {
+					processRdfTriples(result.getObject(), resSize,
+						pathToWorkingDir, templates, context);
+				}
+				
             } else {
-
                 context.sendMessage(MessageType.INFO, "NO files received via RDF INPUT");
-
             }
         }
         else {
              context.sendMessage(MessageType.INFO, "NO files received via RDF INPUT");
-
         }
 
         //------------------
@@ -341,6 +269,72 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
         }
 
     }
+
+	private boolean processRdfTriples(TupleQueryResult executeSelectQueryAsTuples,
+			int resSize, String pathToWorkingDir, Templates templates,
+			DPUContext context) {
+		
+		int fileNumber = 0;
+		try {
+			while (executeSelectQueryAsTuples.hasNext()) {
+				fileNumber++;
+				LOG.info("Processing file: {}/{} ", fileNumber, resSize);
+				//process the inputs
+				BindingSet solution = executeSelectQueryAsTuples.next();
+				Binding b = solution.getBinding("o");
+				String fileContent = b.getValue().stringValue();
+				String subject = solution.getBinding("s").getValue().stringValue();
+				LOG.info("The subject is {}", subject);
+				//log.debug("The object is {}", fileContent);
+				//store the input content to file, inputs are xml files!
+				String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
+				File inputFile = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
+				if (inputFile == null) {
+					LOG.warn("Problem processing object for subject {}", subject);
+					continue;
+				}
+				//generate path to file with output
+				//prepare the name of a file holding the output of XSLT
+				String outputPathFileWithoutExtension = prepareOutputFileNameStub(pathToWorkingDir, fileNumber);
+				File outputFile = new File(outputPathFileWithoutExtension);
+				//String outputFilePath = pathToWorkingDir + File.separator + String.valueOf(fileNumber) + ".xml";
+				//get metadata - XSLT params only
+				List<String> predicates = new ArrayList<String>();
+				predicates.add(OdcsTerms.XSLT_PARAM_PREDICATE);
+				Map<String, List<String>> metadata = new HashMap<>();
+				metadata = getMetadataForSubject(subject, predicates, rdfInputWrap);
+				Map<String, String> xsltParams = getXsltParams(metadata);
+				//CALL XSLT Template
+				//TODO Collect XSLT params
+				//Map<String, String> collectedXsltParams = collectXsltParams(xslTemplate,subject);
+				//String outputString = executeXSLT(xslTemplate, file, xsltParams);
+				if (!executeXSLT(templates, inputFile, outputFile, xsltParams)) {
+					LOG.warn("Problem generating output of xslt transformation for subject {}. No output created. ", subject);
+					continue;
+				}
+				//Prepares object being responsible for storing output of the XSLT to the output rdf data unit
+				if(!loadDataToTargetRDFDataUnit(outputFile, subject, outputPathFileWithoutExtension)) {
+					LOG.warn("Problem adding output of xslt transformation for subject {} to rdf data unit. No output created. ", subject);
+					continue;
+				}
+				;
+				LOG.info("XSLT executed successfully, output created successfully");
+				//stores data to target rdf unit
+				//loadDataToTargetRDFDataUnit(resultRDFDataLoader, String.valueOf(fileNumber), context);
+				//if the DPU was cancelled, execution ends.
+				if (context.canceled()) {
+					LOG.info("DPU cancelled");
+					return true;
+				}
+			}
+		}catch (QueryEvaluationException ex) {
+			context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+			LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+			LOG.debug(ex.getLocalizedMessage());
+		}
+		context.sendMessage(MessageType.INFO, "Processed " + fileNumber + " files from " + resSize);
+		return false;
+	}
 
     private ProcessedFilesCount processDirectory(DirectoryHandler directory, DPUContext context, Templates templates) throws DPUException {
 
@@ -808,17 +802,10 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 		LOG.debug(
 				"Query for getting information about the subject URI for file path: {}",
 				query);
-		LazyQueryResult subjects;
-		try {
-			subjects = rdfDataUnit.executeLazyQuery(query);
-		} catch (OperationFailedException ex) {
-			LOG.error("Internal error - invalid query: {}", query);
-			return metadata; //return empty map;
-		}
-
-		//process all the rdf triples
-		try {
-
+		
+		try (ConnectionPair<TupleQueryResult> queryWrap = rdfDataUnit.executeSelectQuery(query)) {
+			final TupleQueryResult subjects = queryWrap.getObject();
+		
 			while (subjects.hasNext()) {
 				//log.info("Processing subject: {} ", fileNumber);
 				//process the inputs
@@ -834,13 +821,49 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
 				//for the subject, try to get more metadata:
 				return getMetadataForSubject(subjectURI, predicates, rdfDataUnit);
-			}
+			}		
 		} catch (OperationFailedException ex) {
+			LOG.error("Internal error", ex);
+			return metadata;
+		} catch (QueryEvaluationException ex) {
 			LOG.error(
 					"Problem evaluating the query to obtain metadata " + query + ": " + ex
-					.getLocalizedMessage());
+					.getLocalizedMessage(), ex);
 			return metadata;
 		}
+				
+//		LazyQueryResult subjects;
+//		try {
+//			subjects = rdfDataUnit.executeLazyQuery(query);
+//		} catch (OperationFailedException ex) {
+//			LOG.error("Internal error - invalid query: {}", query);
+//			return metadata; //return empty map;
+//		}
+//		//process all the rdf triples
+//		try {
+//
+//			while (subjects.hasNext()) {
+//				//log.info("Processing subject: {} ", fileNumber);
+//				//process the inputs
+//				BindingSet solution = subjects.next();
+//				Binding b = solution.getBinding("s");
+//				String subjectURI = b.getValue().stringValue();
+//
+//				//adjust file name because it is in the form: http://file/name/input01.xml
+//				//object = object.substring(object.lastIndexOf("/")+1);
+//				//store the subjects to the map
+//				LOG.info("The subject {} is associated with file path {}",
+//						subjectURI, filePath);
+//
+//				//for the subject, try to get more metadata:
+//				return getMetadataForSubject(subjectURI, predicates, rdfDataUnit);
+//			}
+//		} catch (OperationFailedException ex) {
+//			LOG.error(
+//					"Problem evaluating the query to obtain metadata " + query + ": " + ex
+//					.getLocalizedMessage());
+//			return metadata;
+//		}
 		return metadata;
 
 	}	
@@ -870,19 +893,12 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 		String query = "SELECT ?o where {<" + subjectURI + "> <" + predicateURI + "> ?o } ORDER BY ?o";
 		LOG.debug("Query for getting information about the object value: {}",
 				query);
-		LazyQueryResult objects;
-		try {
-			objects = rdfDataUnit.executeLazyQuery(query);
-		} catch (OperationFailedException ex) {
-			LOG.error("Internal error - invalid query: {}", query);
-			return result; //return empty map;
-		}
-
-		//process all the rdf triples
+		
 		int count = 0;
-		try {
+		try (ConnectionPair<TupleQueryResult> queryWrap = rdfDataUnit.executeSelectQuery(query)) {
+			final TupleQueryResult objects = queryWrap.getObject();
+			
 			while (objects.hasNext()) {
-
 				count++;
 				//process the inputs
 				BindingSet solution = objects.next();
@@ -892,18 +908,48 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 				LOG.debug("For subject {}, the object is: {} ", subjectURI,
 						object);
 				result.add(object.trim());
-
-			}
+			}			
 		} catch (OperationFailedException ex) {
+			LOG.error("Internal error - invalid query: {}", query);
+			return result; //return empty map;
+		} catch (QueryEvaluationException ex) {
 			LOG.error("Problem evaluating the query " + query + ": " + ex
 					.getLocalizedMessage());
-			return result;
+			return result;			
 		}
 
+//		LazyQueryResult objects;
+//		try {
+//			objects = rdfDataUnit.executeLazyQuery(query);
+//		} catch (OperationFailedException ex) {
+//			LOG.error("Internal error - invalid query: {}", query);
+//			return result; //return empty map;
+//		}
+//
+//		//process all the rdf triples
+//		int count = 0;
+//		try {
+//			while (objects.hasNext()) {
+//
+//				count++;
+//				//process the inputs
+//				BindingSet solution = objects.next();
+//				Binding b = solution.getBinding("o");
+//				String object = b.getValue().stringValue();
+//
+//				LOG.debug("For subject {}, the object is: {} ", subjectURI,
+//						object);
+//				result.add(object.trim());
+//
+//			}
+//		} catch (OperationFailedException ex) {
+//			LOG.error("Problem evaluating the query " + query + ": " + ex
+//					.getLocalizedMessage());
+//			return result;
+//		}		
+		
 		LOG.debug("Found {} values", count);
-
 		return result;
-
 	}
 	
 }
