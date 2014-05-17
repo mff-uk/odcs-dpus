@@ -43,9 +43,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.odcs.rdf.simple.*;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 
@@ -174,20 +172,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
 		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();		
 		
-		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");
-		URI nominatimURI = geoValueFac.createURI("http://nominatim.openstreetmap.org");
-		URI geoURI = geoValueFac.createURI("http://schema.org/geo");
-		URI geocoordsURI = geoValueFac.createURI("http://schema.org/GeoCoordinates");
-		URI postalAddressURI = addrValueFac.createURI("http://schema.org/PostalAddress");
-		URI streetAddressURI = addrValueFac.createURI("http://schema.org/streetAddress");
-		URI addressRegionURI = addrValueFac.createURI("http://schema.org/addressRegion");
-		URI addressLocalityURI = addrValueFac.createURI("http://schema.org/addressLocality");
-		URI addressCountryURI = addrValueFac.createURI("http://schema.org/addressCountry");
-		URI postalCodeURI = addrValueFac.createURI("http://schema.org/postalCode");
-		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
-		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
-		URI longURI = geoValueFac.createURI("http://schema.org/longitude");
-		URI latURI = geoValueFac.createURI("http://schema.org/latitude");
 		String countQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
@@ -213,13 +197,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		LOG.debug("Geocoder init");
 		
 		int total = 0;
-		int ngc = 0;
-		int count = 0;
-		int failed = 0;
-		try {
-			TupleQueryResult countres = sAddressesWrap.executeSelectQuery(countQuery);
+		
+		
+		try (ConnectionPair<TupleQueryResult> countres = sAddressesWrap.executeSelectQuery(countQuery)) {
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
-			total = Integer.parseInt(countres.next().getValue("count").stringValue());
+			total = Integer.parseInt(countres.getObject().next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses");
 		} catch (NumberFormatException | QueryEvaluationException e) {
@@ -229,8 +211,40 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		//Schema.org addresses
 		LOG.debug("Executing Schema.org query: " + sOrgConstructQuery);
 		//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
-		Graph resGraph = sAddressesWrap.executeConstructQuery(sOrgConstructQuery);
+		try (ConnectionPair<Graph> resGraph = sAddressesWrap.executeConstructQuery(sOrgConstructQuery)) {
+			// geocode
+			geocode(geoValueFac, addrValueFac, resGraph.getObject(), ctx, total, date, gson, geoValueFacWrap, start);
+		}
+		
+		geoValueFacWrap.flushBuffer();
+		
+		if (ctx.canceled()) LOG.info("Cancelled");		
+		LOG.info("Geocoding done.");		
+	}
 
+	private void geocode(final ValueFactory geoValueFac,
+			final ValueFactory addrValueFac, Graph resGraph, DPUContext ctx,
+			int total, Date date, Gson gson,
+			final SimpleRdfWrite geoValueFacWrap, long start) throws OperationFailedException {
+		
+		int count = 0;
+		int failed = 0;
+		
+		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");
+		URI nominatimURI = geoValueFac.createURI("http://nominatim.openstreetmap.org");
+		URI geoURI = geoValueFac.createURI("http://schema.org/geo");
+		URI geocoordsURI = geoValueFac.createURI("http://schema.org/GeoCoordinates");
+		URI postalAddressURI = addrValueFac.createURI("http://schema.org/PostalAddress");
+		URI streetAddressURI = addrValueFac.createURI("http://schema.org/streetAddress");
+		URI addressRegionURI = addrValueFac.createURI("http://schema.org/addressRegion");
+		URI addressLocalityURI = addrValueFac.createURI("http://schema.org/addressLocality");
+		URI addressCountryURI = addrValueFac.createURI("http://schema.org/addressCountry");
+		URI postalCodeURI = addrValueFac.createURI("http://schema.org/postalCode");
+		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
+		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
+		URI longURI = geoValueFac.createURI("http://schema.org/longitude");
+		URI latURI = geoValueFac.createURI("http://schema.org/latitude");	
+		
 		LOG.debug("Starting geocoding.");
 
 		Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
@@ -252,12 +266,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
 			//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
 			//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
-
-			String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " " 
-			+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " " 
-			+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " " 
-			+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " " 
-			+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
+			
+			String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " "
+					+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " "
+					+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " "
+					+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " "
+					+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
 			LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
 
 			String file;
@@ -289,9 +303,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 				String url;
 				if (config.isStructured()) {
-					url = "http://nominatim.openstreetmap.org/search?format=json" 
-							+ (config.isUseStreet() ? "&street=" + streetAddress : "") 
-							+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
+					url = "http://nominatim.openstreetmap.org/search?format=json"
+							+ (config.isUseStreet() ? "&street=" + streetAddress : "")
+							+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" )
 							+ (config.getCountry().isEmpty() ? "" : "&state=" + config.getCountry()) 
 							+ (config.isUsePostalCode() ? "&postalcode=" + postalCode : "")
 							+ (config.isUseRegion() ? "&county=" + addressRegion : "");
@@ -362,18 +376,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}			
 		}
 		
-		geoValueFacWrap.flushBuffer();
-
-
-		if (ctx.canceled()) LOG.info("Cancelled");
-
-       	LOG.info("Geocoding done.");
-
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
 		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Nominatim: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
-
 	}
 
 	@Override
