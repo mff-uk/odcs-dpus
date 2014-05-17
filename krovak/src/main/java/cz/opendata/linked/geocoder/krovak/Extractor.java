@@ -41,6 +41,8 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.*;
@@ -78,20 +80,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
 		final ValueFactory geoValueFactory = geoValueFacWrap.getValueFactory();
-		
-		URI gmlPoint = geoValueFactory.createURI("http://www.opengis.net/ont/gml#Point");
-		URI gmlId = geoValueFactory.createURI("http://www.opengis.net/ont/gml#id");
-		URI gmlPos = geoValueFactory.createURI("http://www.opengis.net/ont/gml#pos");
-		URI gmlSRS = geoValueFactory.createURI("http://www.opengis.net/ont/gml#srsName");
-		URI krovak = geoValueFactory.createURI("urn:ogc:def:crs:EPSG::5514");
-
-		URI geoURI = geoValueFactory.createURI("http://schema.org/geo");
-		URI geocoordsURI = geoValueFactory.createURI("http://schema.org/GeoCoordinates");
-		//URI xsdDouble = geoValueFacory.createURI("http://www.w3.org/2001/XMLSchema#double");
-		//URI xsdDecimal = geoValueFacory.createURI("http://www.w3.org/2001/XMLSchema#decimal");
-		URI longURI = geoValueFactory.createURI("http://schema.org/longitude");
-		URI latURI = geoValueFactory.createURI("http://schema.org/latitude");
-		
+				
 		String countQuery = 
 				  "PREFIX s: <http://schema.org/> "
 				+ "PREFIX gml: <http://www.opengis.net/ont/gml#> "
@@ -123,13 +112,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		
 		int total = 0;
 		int ngc = 0;
-		int count = 0;
-		int failed = 0;
-		try {
-			TupleQueryResult countres = gmlPointsWrap.executeSelectQuery(countQuery);
-			TupleQueryResult countnotGC = gmlPointsWrap.executeSelectQuery(notGCcountQuery);
-			total = Integer.parseInt(countres.next().getValue("count").stringValue());
-			ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
+		
+		try (ConnectionPair<TupleQueryResult> countres = gmlPointsWrap.executeSelectQuery(countQuery);
+				ConnectionPair<TupleQueryResult> countnotGC = gmlPointsWrap.executeSelectQuery(notGCcountQuery)) {
+			total = Integer.parseInt(countres.getObject().next().getValue("count").stringValue());
+			ngc = Integer.parseInt(countnotGC.getObject().next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " points, " + ngc + " not transformed yet.");
 		} catch (NumberFormatException | QueryEvaluationException e) {
 			LOG.error("Failed to execute query and convert result.", e);
@@ -138,8 +125,30 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		//Schema.org addresses
 		LOG.debug("Getting point data via query: " + sOrgConstructQuery);
 		//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
-		Graph resGraph = gmlPointsWrap.executeConstructQuery(sOrgConstructQuery);
+		try (ConnectionPair<Graph> resGraph = gmlPointsWrap.executeConstructQuery(sOrgConstructQuery)) {
+			transform(geoValueFactory, ngc, resGraph.getObject(), ctx, geoValueFacWrap, start);
+		}
+	}
 
+	private void transform(final ValueFactory geoValueFactory, int ngc,
+			Graph resGraph, DPUContext ctx, final SimpleRdfWrite geoValueFacWrap,
+			long start) throws OperationFailedException {
+		int count = 0;
+		int failed = 0;
+		
+		URI gmlPoint = geoValueFactory.createURI("http://www.opengis.net/ont/gml#Point");
+		URI gmlId = geoValueFactory.createURI("http://www.opengis.net/ont/gml#id");
+		URI gmlPos = geoValueFactory.createURI("http://www.opengis.net/ont/gml#pos");
+		URI gmlSRS = geoValueFactory.createURI("http://www.opengis.net/ont/gml#srsName");
+		URI krovak = geoValueFactory.createURI("urn:ogc:def:crs:EPSG::5514");
+
+		URI geoURI = geoValueFactory.createURI("http://schema.org/geo");
+		URI geocoordsURI = geoValueFactory.createURI("http://schema.org/GeoCoordinates");
+		//URI xsdDouble = geoValueFacory.createURI("http://www.w3.org/2001/XMLSchema#double");
+		//URI xsdDecimal = geoValueFacory.createURI("http://www.w3.org/2001/XMLSchema#decimal");
+		URI longURI = geoValueFactory.createURI("http://schema.org/longitude");
+		URI latURI = geoValueFactory.createURI("http://schema.org/latitude");		
+		
 		int expectedNumOfBlocks = ngc/config.getNumofrecords() + 1;
 
 		LOG.debug("Starting transformation, estimating " + expectedNumOfBlocks + " blocks. ");
@@ -164,13 +173,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (resGraph.match(currentPointURI, gmlSRS, krovak).hasNext())
 				{
 					currentBlock++;
-
-					Iterator<Statement> it1 = resGraph.match(currentPointURI, gmlId, null); 
-
+					
+					Iterator<Statement> it1 = resGraph.match(currentPointURI, gmlId, null);
+					
 					Value id = it1.next().getObject();
-
-					it1 = resGraph.match(currentPointURI, gmlPos, null); 
-
+					
+					it1 = resGraph.match(currentPointURI, gmlPos, null);
+					
 					Value pos = it1.next().getObject();
 
 					String posString = pos.stringValue();
@@ -206,7 +215,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				LOG.debug("Try " + tries);
 				goodresponse = false;
 				try {
-
+					
 					MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();        
 					multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 					multipartEntity.setBoundary("----WebKitFormBoundaryCYQR5wAfAoAP7BrE");
@@ -233,7 +242,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					} catch (InterruptedException e1) {
 
 					}
-				continue;
+					continue;
 				} catch (IOException e) {
 					LOG.error(e.getLocalizedMessage());
 					try {
@@ -252,7 +261,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						continue;
 					}
 				}
-
+				
 				HttpEntity resEntity = response.getEntity();				
 				LOG.debug("Got response");
 
@@ -293,7 +302,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				for (String currentLine : resultLines)
 				{
 					String[] columns = currentLine.split("\\s");
-
+					
 					String currentPointUri = uriMap.get(columns[0]); 
 					BigDecimal latitude, longitude;
 					try {
@@ -321,7 +330,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					geoValueFacWrap.add(coordURI, longURI, geoValueFactory.createLiteral(longitude.toString()/*, xsdDecimal*/));
 					geoValueFacWrap.add(coordURI, latURI, geoValueFactory.createLiteral(latitude.toString()/*, xsdDecimal*/));
 				}
-
+				
 				if (linesok) 
 				{
 					goodresponse = true;
@@ -331,14 +340,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
 		}
 		if (ctx.canceled()) LOG.info("Cancelled");
-
-       	LOG.info("Transformation done.");
-
+		
+		LOG.info("Transformation done.");
+		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
 		ctx.sendMessage(MessageType.INFO, "Transformed: " + count + " in " + (end-start) + "ms, failed attempts: " + failed);
-
 	}
 
 	@Override
