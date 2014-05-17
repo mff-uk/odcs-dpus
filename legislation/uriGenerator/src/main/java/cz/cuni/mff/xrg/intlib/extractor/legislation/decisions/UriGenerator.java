@@ -21,6 +21,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
 
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import java.io.File;
@@ -77,7 +78,6 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         File workingDir = context.getWorkingDir();
         workingDir.mkdirs();
 
-
         String pathToWorkingDir = null;
         try {
             pathToWorkingDir = workingDir.getCanonicalPath();
@@ -96,110 +96,105 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         LOG.debug("Query for getting input files: {}", query);
         //get the return values
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
-         //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
+        //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 		
 		SimpleRdfRead rdfInputWrap = new SimpleRdfRead(rdfInput, context);
-		TupleQueryResult executeSelectQueryAsTuples = rdfInputWrap.executeSelectQuery(query);
+		try (ConnectionPair<TupleQueryResult> queryRes = rdfInputWrap.executeSelectQuery(query)) {
+			processQueryResult(queryRes.getObject(), context,	pathToWorkingDir);
+		} catch (QueryEvaluationException ex) {
+			context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
+			LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
+			LOG.debug(ex.getLocalizedMessage());
+		}
+    }
 
-        //log.info(executeSelectQueryAsTuples.asList().)
-        int i = 0;
-        try {
-           		
-            while (executeSelectQueryAsTuples.hasNext()) {
+	private void processQueryResult(
+			TupleQueryResult executeSelectQueryAsTuples, DPUContext context,
+			String pathToWorkingDir) throws DataUnitException, QueryEvaluationException {
+		//log.info(executeSelectQueryAsTuples.asList().)
+		int i = 0;
 
-               if (context.canceled()) {
-                    LOG.info("DPU cancelled");
-                    return;
-               }
-                
-                i++;
-                //process the inputs
-                BindingSet solution = executeSelectQueryAsTuples.next();
-                Binding b = solution.getBinding("o");
-                String fileContent = b.getValue().stringValue();
-                String subject = solution.getBinding("s").getValue().stringValue();
-                LOG.info("Processing new file for subject {}", subject);
-                //log.debug("Processing file {}", fileContent);
+		while (executeSelectQueryAsTuples.hasNext()) {
+			if (context.canceled()) {
+				LOG.info("DPU cancelled");
+				return;
+			}
+			i++;
+			//process the inputs
+			BindingSet solution = executeSelectQueryAsTuples.next();
+			Binding b = solution.getBinding("o");
+			String fileContent = b.getValue().stringValue();
+			String subject = solution.getBinding("s").getValue().stringValue();
+			LOG.info("Processing new file for subject {}", subject);
+			//log.debug("Processing file {}", fileContent);
+			String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
+			//store the input content to file, inputs are xml files!
+			File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
+			if (file == null) {
+				LOG.warn("Problem processing object for subject {}", subject);
+				continue;
+			}
+			//run URI Generator
+			String outputURIGeneratorFilename = pathToWorkingDir + File.separator + "outURIGen" + File.separator + String.valueOf(i) + ".xml";
+			DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGen" + File.separator);
+			runURIGenerator(inputFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
+			//check output
+			if (!outputGenerated(outputURIGeneratorFilename)) {
+				continue;
+			}
+			LOG.info("URI generator successfully executed, creating output");
+			//RDF DataUnit OUTPUT
+			if (rdfOutput != null) {
+				String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
 
+				SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
+				final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 
-                String inputFilePath = pathToWorkingDir + File.separator + String.valueOf(i) + ".xml";
+				Resource subj = valueFactory.createURI(subject);
+				URI pred = valueFactory.createURI(config.getOutputPredicate());
+				Value obj = valueFactory.createLiteral(outputString);
 
-                //store the input content to file, inputs are xml files!
-                File file = DataUnitUtils.storeStringToTempFile(removeTrailingQuotes(fileContent), inputFilePath);
-                if (file == null) {
-                    LOG.warn("Problem processing object for subject {}", subject);
-                    continue;
-                }
-                
-                //run URI Generator
-                 String outputURIGeneratorFilename = pathToWorkingDir + File.separator + "outURIGen" + File.separator + String.valueOf(i) + ".xml";
-                 DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGen" + File.separator);
-           
-                 
-                 runURIGenerator(inputFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
-            
-                //check output
-                if (!outputGenerated(outputURIGeneratorFilename)) {
-                    continue;
-                }
-                
+				String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
 
-               LOG.info("URI generator successfully executed, creating output");
-              
-               //RDF DataUnit OUTPUT 
-			   if (rdfOutput != null) {
-				    String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
+				DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+				String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
 
-					SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
-					final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
-					
-					Resource subj = valueFactory.createURI(subject);
-					URI pred = valueFactory.createURI(config.getOutputPredicate());
-					Value obj = valueFactory.createLiteral(outputString); 
+				DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+			}
+			//log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+			LOG.info("RF Output successfully created");
+			//End of output creation
+			//FILE DataUnit OUTPUT
+			if (fileOutput != null) {
+				DirectoryHandler rootDir = fileOutput.getRootDir();
+				FileHandler addedFile = rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
+				//add(new File(outputURIGeneratorFilename), false);
 
-					String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+				LOG.info("File Output successfully created");
+				//End of output creation
+			}
 
-					DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-					String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
-
-					DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-					rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-			   }
-               //log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-                
-               LOG.info("RF Output successfully created");
-               //End of output creation
-                
-               //FILE DataUnit OUTPUT
-			   if (fileOutput != null) {
-					DirectoryHandler rootDir = fileOutput.getRootDir();
-					FileHandler addedFile = rootDir.addExistingFile(new File(outputURIGeneratorFilename), new OptionsAdd(false));
-					//add(new File(outputURIGeneratorFilename), false);
-
-				   LOG.info("File Output successfully created");
-               //End of output creation
-			   }
-               
-               //Add metadata triples 
+			//Add metadata triples 
 //               <http://file/i> <http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath> "/input01.xml" .
 //               <http://xxx> <http://linked.opendata.cz/ontology/odcs/dataunit/file/fileURI> <http://linked.opendata.cz/resource/file/legislation/cz/decision/2013/8-Tdo-873-2013> .
-	       //to put metadata about the processed files (subject URIs) for XSLT -> used by RDFa XSLT 
-               
-               
+			//to put metadata about the processed files (subject URIs) for XSLT -> used by RDFa XSLT
+
+
 //               Resource  subj = rdfOutput.createURI("http://file/" + i);
 //               URI pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_FILE_PATH_PREDICATE);
-//               Value obj = rdfOutput.createLiteral(addedFile.getRootedPath()); 
+//               Value obj = rdfOutput.createLiteral(addedFile.getRootedPath());
 //               
 //               rdfOutput.addTriple(subj, pred, obj);
 //               
 //               subj = rdfOutput.createURI("http://file/" + i);
 //               pred = rdfOutput.createURI(OdcsTerms.DATA_UNIT_FILE_URI_PREDICATE);
 //                String subjectURI = subjectURIPrefix + year + "/" + spZn;
-//               obj = rdfOutput.createLiteral(subject); 
+//               obj = rdfOutput.createLiteral(subject);
 //               
 //                rdfOutput.addTriple(subj, pred, obj);
 //               //end of adding metadata triples
-               
+
 //               String subjectURIPrefix = "http://linked.opendata.cz/resource/file/legislation/cz/decision/";
 //               String year = null;
 //               String spZn = null;
@@ -212,7 +207,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //                XPath xpath = xPathfactory.newXPath();
 //                XPathExpression expr = xpath.compile("normalize-space(substring-after(substring-after(document/metadata/table//td[preceding-sibling::node()[contains(text(),'Datum podání')]]/normalize-space(text()),'.'),'.'))"); 
 //                year = (String) expr.evaluate(doc, XPathConstants.STRING);
-//            
+//
 //                if (year.matches("[0-9]{4}")) {  
 //                    log.debug("Building subject URI for the file, year is: {}", year);
 //                }  
@@ -221,13 +216,13 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //                    log.warn("No metadata is stored for this file");
 //                    continue;
 //                }
-//                
-//                
-//                
-//                
+//
+//
+//
+//
 //                  XPathExpression expr2 = xpath.compile("replace(replace(replace(replace(document/metadata/table//td[preceding-sibling::node()[contains(text(),'Spisová značka')]]/normalize-space(text()),'\\.','-'),' ','-'),'Ú','U'),'/','-')"); 
 //                spZn = (String) expr2.evaluate(doc, XPathConstants.STRING);
-//                
+//
 //                if (spZn.matches("[0-9]{4}")) {  
 //                    log.debug("Building subject URI for the file, spZn is: {}", spZn);
 //                }  
@@ -236,7 +231,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //                    log.warn("No metadata is stored for this file");
 //                    continue;
 //                }
-//                    
+//
 //                    
 //                } catch (XPathExpressionException ex) {
 //                    log.error(ex.getLocalizedMessage());
@@ -248,18 +243,12 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 //                    log.error(ex.getLocalizedMessage());
 //                }
 //
-//               
+//
 //               
 //              
-            }
-        } catch (QueryEvaluationException ex) {
-            context.sendMessage(MessageType.ERROR, "Problem evaluating the query to obtain files to be processed. Processing ends.", ex.getLocalizedMessage());
-            LOG.error("Problem evaluating the query to obtain values of the {} literals. Processing ends.", config.getInputPredicate());
-            LOG.debug(ex.getLocalizedMessage());
-        }
-        
-        LOG.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
-    }
+		}
+		LOG.info("Processed {} files - values of predicate {}", i, config.getInputPredicate());
+	}
 
 	private void runURIGenerator(String file, String output, String configURiGen,
 			DPUContext context) {
@@ -267,7 +256,6 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 		IntLibLink.processFiles(file, output, configURiGen, context);
 
 	}
-
 
     private boolean outputGenerated(String output) {
         File f = new File(output);
