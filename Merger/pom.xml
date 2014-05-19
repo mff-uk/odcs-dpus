@@ -6,11 +6,11 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>MergerRDF</artifactId>
+	<artifactId>Merger</artifactId>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>RDF Merger</name>
-	<description>Just redirect input to output.</description>
+	<name>Merger</name>
+	<description>Deprecated, use specialized Rdf of File merger instead.</description>
     
 	<properties>
 		<dpu.package>cz.cuni.mff.xrg.odcs.transformer.merger.rdf</dpu.package>
