@@ -33,4 +33,25 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
+
+	<build>	
+        <plugins>
+            <plugin> <!-- main build plugin for modules -->
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+				<configuration>
+					<instructions>
+						<!-- manualy exclude: org.apache.xml.resolver,org.apache.xml.resolver.readers 
+							as they are not located in direct dependency nor used in a program directly -->
+                        <Import-Package>
+                            cz.cuni.mff.xrg.odcs.*;version="${odcs.version}",com.vaadin.*;version="[${vaadin.version.min},
+                            ${vaadin.version.max})",!org.apache.xml.resolver,!org.apache.xml.resolver.readers,*
+                        </Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
 </project>
