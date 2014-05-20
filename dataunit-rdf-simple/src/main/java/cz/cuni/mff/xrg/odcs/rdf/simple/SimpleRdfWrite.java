@@ -131,7 +131,8 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	}
 
 	/**
-	 *
+	 * If the extracted data are inconsistent then the extraction fail.
+	 * 
 	 * @param file
 	 * @param format
 	 * @param defaultURI
@@ -148,16 +149,21 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 
 		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
 			// add all in a single transaction
+			LOG.trace("Extraction begins from: {}", file.toString());
 			conn.c().begin();
 			conn.c().add(file, defaultURI, format, writableDataUnit
 					.getWriteContext());
 			conn.c().commit();
+			LOG.trace("Extraction done");
 		} catch (RepositoryException ex) {
 			throw new OperationFailedException(
 					"Extraction failed.", ex);
 		} catch (IOException | RDFParseException ex) {
 			throw new OperationFailedException(
 					"Extraction failed.", ex);
+		} catch (RuntimeException ex) {
+			throw new OperationFailedException(
+					"Extraction failed for RuntimeException.", ex);
 		}
 	}
 
