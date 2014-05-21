@@ -11,7 +11,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnitException;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
+import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -63,6 +65,17 @@ public class DPU extends ConfigurableBase<Configuration>
 		final File dumpFile = dir.addNewFile(outFileName).asFile();
 
 		load(dumpFile, format, context);
+		
+		// create .graph file
+		if (config.isGenGraphFile()) {
+			final FileHandler graphFile = dir.addNewFile(outFileName + ".graph");
+			try {
+				graphFile.setContent(config.getGraphUri());
+			} catch (FileDataUnitException ex) {
+				LOG.error("Failed to write content of .graph file.", ex);
+				context.sendMessage(MessageType.ERROR, "Failed to write .graph file.");
+			}
+		}		
 	}
 
 	/**
