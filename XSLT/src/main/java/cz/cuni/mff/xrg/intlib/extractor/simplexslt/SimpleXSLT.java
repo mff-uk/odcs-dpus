@@ -45,6 +45,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+
+import cz.opendata.linked.saxon.extensions.UUIDGenerator;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -53,6 +56,9 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.slf4j.LoggerFactory;
+
+import net.sf.saxon.Configuration;
+import net.sf.saxon.TransformerFactoryImpl;
 
 /**
  * Simple XSLT Extractor
@@ -188,6 +194,12 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
 
         //try to compile XSLT
         TransformerFactory tfactory = new net.sf.saxon.TransformerFactoryImpl(); //TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null);
+
+	    // register extension function
+	    TransformerFactoryImpl tFactoryImpl = (TransformerFactoryImpl) tfactory;
+	    Configuration saxonConfig = tFactoryImpl.getConfiguration();
+	    saxonConfig.registerExtensionFunction(new UUIDGenerator());
+
         Templates templates;
         try {
             templates = tfactory.newTemplates(new StreamSource(xslTemplate));
