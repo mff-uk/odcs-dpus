@@ -59,6 +59,7 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
 	public void setOutputXSLTMethod(String outputXSLTMethod) {
 		this.outputXSLTMethod = outputXSLTMethod;
 	}
+
     
 //    //not used, but needed for backward compatibility
 //    private String storedXsltFilePath = "";
@@ -75,11 +76,19 @@ public class SimpleXSLTConfig extends DPUConfigObjectBase {
     
     //INPUT PREDICATE IN RDF DATA UNIT HOLDING URI which should be used as a subject for the given file 
     //when OutputType.Literal is used
-    public static final String DATA_UNIT_RESULTING_SUBJECT_PREDICATE = "http://linked.opendata.cz/ontology/odcs/resultingSubject";
+    public static String DATA_UNIT_RESULTING_SUBJECT_PREDICATE = "http://linked.opendata.cz/ontology/odcs/resultingSubject";
     //predicate holding path to the file data unit. 
     //Object is used to map subject with the particular file in file data unit. 
     //Subject is an arbitrary URI, which may be used to define other properties of the file in the file data unit. 
-    public static final String FILE_DATAUNIT_PATH = "http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath";
+    public static String FILE_DATAUNIT_PATH = "http://linked.opendata.cz/ontology/odcs/dataunit/file/filePath";
+
+	public void setDATA_UNIT_RESULTING_SUBJECT_PREDICATE(String s) {
+		DATA_UNIT_RESULTING_SUBJECT_PREDICATE = s;
+	}
+
+	public void setFILE_DATAUNIT_PATH(String s) {
+		FILE_DATAUNIT_PATH = s;
+	}
 
     public String getResultingSubjectPredicate() {
         return DATA_UNIT_RESULTING_SUBJECT_PREDICATE;
