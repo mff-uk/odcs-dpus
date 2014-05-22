@@ -1,9 +1,5 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.WorkType;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,8 +8,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.WorkType;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 /**
  * 

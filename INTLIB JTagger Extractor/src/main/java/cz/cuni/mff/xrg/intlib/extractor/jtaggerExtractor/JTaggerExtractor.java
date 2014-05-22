@@ -3,21 +3,6 @@ package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTagger;
 //import cz.cuni.mff.ksi.intlib.jtagger.JTaggerResult;
 //import cz.cuni.mff.ksi.intlib.jtagger.LineJoiner;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTagger;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTaggerResult;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.LineJoiner;
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
-import cz.cuni.xrg.intlib.commons.data.DataUnitCreateException;
-import cz.cuni.xrg.intlib.commons.dpu.DPU;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-import cz.cuni.xrg.intlib.commons.dpu.DPUException;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.AsExtractor;
-import cz.cuni.xrg.intlib.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.xrg.intlib.commons.module.dpu.ConfigurableBase;
-import cz.cuni.xrg.intlib.commons.web.AbstractConfigDialog;
-import cz.cuni.xrg.intlib.commons.web.ConfigDialogProvider;
-import cz.cuni.xrg.intlib.rdf.exceptions.RDFException;
-import cz.cuni.xrg.intlib.rdf.interfaces.RDFDataUnit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,7 +22,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
+
 import javax.xml.transform.stream.StreamSource;
+
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.sf.saxon.s9api.Processor;
@@ -51,6 +38,21 @@ import net.sf.saxon.s9api.XsltTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTagger;
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.JTaggerResult;
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.jTagger.LineJoiner;
+import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.IntLibLink;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
+
 /**
  * Simple XSLT Extractor
  * 
@@ -63,7 +65,7 @@ public class JTaggerExtractor
 
     private static final Logger logger = LoggerFactory.getLogger(JTaggerExtractor.class);
 
-    @OutputDataUnit
+    @OutputDataUnit(name = "output")
     private RDFDataUnit outputRepository;
     
     public JTaggerExtractor(){
