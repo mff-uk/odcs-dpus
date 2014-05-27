@@ -24,13 +24,6 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>dataunit-rdf-impl</artifactId>
-			<version>${odcs.version}</version>
-			<type>jar</type>
-			<scope>provided</scope>
-		</dependency>	
-		<dependency>
 			<groupId>cz.cuni.mff.xrg.odcs</groupId>
 			<artifactId>dataunit-rdf-simple</artifactId>
 			<version>1.0.0</version>
