@@ -36,7 +36,7 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	 * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)}
 	 * is called then the buffer is flushed by {@link #flushBuffer()}.
 	 */
-	protected int toAddBufferFlushSize = 5000;
+	protected int toAddBufferFlushSize = 100000;
 
 	/**
 	 * Buffer for triples that should be added into wrapped {@link #dataUnit}.
@@ -84,6 +84,7 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 							toAddBuffer.size());
 					flushBuffer();
 				}
+				break;
 			case IMMEDIATE:
 				// flush in evry case
 				flushBuffer();
