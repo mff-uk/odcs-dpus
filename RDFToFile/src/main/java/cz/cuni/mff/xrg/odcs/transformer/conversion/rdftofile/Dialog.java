@@ -1,17 +1,17 @@
 package cz.cuni.mff.xrg.odcs.transformer.conversion.rdftofile;
 
+import java.util.Collection;
+
 import com.vaadin.data.Property;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
-import java.util.Collection;
-import java.util.List;
-import org.openrdf.rio.RDFFormat;
 
 /**
  * Configuration dialog.
@@ -63,9 +63,9 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		
 		mainLayout.addComponent(new Label("Use '/' in file name to denote directory."));
 		
-		Collection<RDFFormat> formatTypes = RDFFormat.values();
-        for (RDFFormat formatType : formatTypes) {
-            String formatValue = formatType.getName();
+		Collection<RDFFormatType> formatTypes = RDFFormatType.getListOfRDFType();
+        for (RDFFormatType formatType : formatTypes) {
+            String formatValue = RDFFormatType.getStringValue(formatType);
 			cmbFormat.addItem(formatValue);
 		}
 		
@@ -97,7 +97,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 
 	@Override
 	protected void setConfiguration(Configuration c) throws ConfigException {
-		cmbFormat.setValue(c.getRDFFileFormat().getName());
+		cmbFormat.setValue(RDFFormatType.getStringValue(c.getRDFFileFormat()));
 		txtFileName.setValue(c.getFileName());
 		chbGenerateGraphFile.setValue(c.isGenGraphFile());
 		if (c.isGenGraphFile()) {
@@ -117,7 +117,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		Configuration cnf = new Configuration();
 		
 		String formatValue = (String) cmbFormat.getValue();
-		cnf.setRDFFileFormat(RDFFormat.valueOf(formatValue));
+		cnf.setRDFFileFormat( RDFFormatType.getTypeByString(formatValue));
 		cnf.setFileName(getFilePath());
 		
 		if (chbGenerateGraphFile.getValue()) {

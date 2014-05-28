@@ -15,8 +15,11 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnitException;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
+
 import java.io.*;
 import java.nio.charset.Charset;
+
 import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -52,7 +55,7 @@ public class DPU extends ConfigurableBase<Configuration>
 
 	@Override
 	public void execute(DPUContext context) throws DPUException, DataUnitException, InterruptedException {
-		final RDFFormat format = config.getRDFFileFormat();
+		final RDFFormat format = RDFFormatType.getRDFFormatByType(config.getRDFFileFormat());
 
 		// create output file
 		// prepare output file in denoted directories

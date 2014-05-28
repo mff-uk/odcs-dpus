@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.odcs.transformer.conversion.rdftofile;
 
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-import org.openrdf.rio.RDFFormat;
+import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 
 /**
  * DPU's configuration class.
@@ -9,24 +9,24 @@ import org.openrdf.rio.RDFFormat;
  * @author Škoda Petr
  */
 public class Configuration extends DPUConfigObjectBase {
-	
-	private RDFFormat RDFFileFormat;
+
+	private RDFFormatType RDFFileFormat;
 
 	private String fileName = "data";
-	
+
 	private boolean genGraphFile = true;
-	
+
 	private String graphUri = "";
-	
+
 	public Configuration() {
-		this.RDFFileFormat = RDFFormat.TURTLE;
+		this.RDFFileFormat = RDFFormatType.TTL;
 	}
-	
-	public RDFFormat  getRDFFileFormat() {
+
+	public RDFFormatType getRDFFileFormat() {
 		return RDFFileFormat;
 	}
 
-	public void setRDFFileFormat(RDFFormat  RDFFileFormat) {
+	public void setRDFFileFormat(RDFFormatType RDFFileFormat) {
 		this.RDFFileFormat = RDFFileFormat;
 	}
 
@@ -53,5 +53,5 @@ public class Configuration extends DPUConfigObjectBase {
 	public void setGraphUri(String graphUri) {
 		this.graphUri = graphUri;
 	}
-	
+
 }
