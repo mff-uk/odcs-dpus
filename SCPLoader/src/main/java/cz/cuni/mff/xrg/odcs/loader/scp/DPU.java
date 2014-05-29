@@ -58,9 +58,9 @@ public class DPU extends ConfigurableBase<Configuration>
 			final String msg = ex.getMessage();
 			
 			if (config.isSoftFail()) {
-				context.sendMessage(MessageType.WARNING, msg, "See logs for more details.");
+				context.sendMessage(MessageType.WARNING, msg, "See logs for more details.", ex);
 			} else {
-				context.sendMessage(MessageType.ERROR, msg, "See logs for more details.");
+				context.sendMessage(MessageType.ERROR, msg, "See logs for more details.", ex);
 			}
 		}
 	}
