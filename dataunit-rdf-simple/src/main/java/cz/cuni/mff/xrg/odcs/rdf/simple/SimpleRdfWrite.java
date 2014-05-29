@@ -121,8 +121,10 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 			return;
 		}
 		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
+			conn.c().begin();
 			// add to repository
 			conn.c().add(toAddBuffer, writableDataUnit.getWriteContext());
+			conn.c().commit();
 			// clear buffer
 			toAddBuffer.clear();
 		} catch (RepositoryException ex) {
