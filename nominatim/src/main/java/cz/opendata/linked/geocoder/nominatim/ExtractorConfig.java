@@ -9,17 +9,17 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	private static final long serialVersionUID = 8719241993054209502L;
-
 	private int limit = 2400;
 	
 	private int interval = 1000;
 	
-    private int hoursToCheck = 24;
+    private int limitPeriod = 24;
     
-    private boolean structured = false;
+    private boolean isStructured = false;
 	
     private boolean stripNumFromLocality = true;
+
+    private boolean generateMapUrl = false;
     
     private String country = "";
     
@@ -30,8 +30,9 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     private boolean useLocality = true;
     
     private boolean usePostalCode = false;
+    private boolean useCountry;
 
-	public int getLimit() {
+    public int getLimit() {
 		return limit;
 	}
 
@@ -47,20 +48,20 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 		this.interval = interval;
 	}
 
-	public int getHoursToCheck() {
-		return hoursToCheck;
+	public int getLimitPeriod() {
+		return limitPeriod;
 	}
 
-	public void setHoursToCheck(int hoursToCheck) {
-		this.hoursToCheck = hoursToCheck;
+	public void setLimitPeriod(int limitPeriod) {
+		this.limitPeriod = limitPeriod;
 	}
 
 	public boolean isStructured() {
-		return structured;
+		return isStructured;
 	}
 
 	public void setStructured(boolean structured) {
-		this.structured = structured;
+		this.isStructured = structured;
 	}
 
 	public boolean isStripNumFromLocality() {
@@ -110,5 +111,20 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 	public void setUsePostalCode(boolean usePostalCode) {
 		this.usePostalCode = usePostalCode;
 	}
-    
+
+    public boolean isGenerateMapUrl() {
+        return generateMapUrl;
+    }
+
+    public void setGenerateMapUrl(boolean generateMapUrl) {
+        this.generateMapUrl = generateMapUrl;
+    }
+
+    public boolean isUseCountry() {
+        return useCountry;
+    }
+
+    public void setUseCountry(boolean useCountry) {
+        this.useCountry = useCountry;
+    }
 }

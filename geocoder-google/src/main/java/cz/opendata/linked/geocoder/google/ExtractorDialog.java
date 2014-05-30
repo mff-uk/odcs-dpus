@@ -1,5 +1,6 @@
 package cz.opendata.linked.geocoder.google;
 
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
@@ -13,9 +14,8 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
-	private static final long serialVersionUID = 7003725620084616056L;
-
 	private GridLayout mainLayout;
+    private CheckBox generateMapUrl;
     private TextField interval;
     private TextField limit;
     private TextField hoursToCheck;
@@ -42,6 +42,11 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
+        generateMapUrl = new CheckBox("Generate schema:url property with direct link to map");
+        generateMapUrl.setDescription("Useful option for debugging results, URL to the service is constructed automatically and can be opened from SPARQL query result");
+        generateMapUrl.setWidth("100%");
+        mainLayout.addComponent(generateMapUrl);
+
         interval = new TextField();
         interval.setCaption("Interval between downloads:");
         mainLayout.addComponent(interval);
@@ -59,6 +64,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
      
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+        generateMapUrl.setValue(conf.isGenerateMapUrl());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		hoursToCheck.setValue(Integer.toString(conf.getHoursToCheck()));
 		limit.setValue(Integer.toString(conf.getLimit()));
@@ -68,7 +74,8 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
-		conf.setInterval(Integer.parseInt(interval.getValue()));
+        conf.setGenerateMapUrl(generateMapUrl.getValue());
+        conf.setInterval(Integer.parseInt(interval.getValue()));
 		conf.setHoursToCheck(Integer.parseInt(hoursToCheck.getValue()));
 		conf.setLimit(Integer.parseInt(limit.getValue()));
 		return conf;

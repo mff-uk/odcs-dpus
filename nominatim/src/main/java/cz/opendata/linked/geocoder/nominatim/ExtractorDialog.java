@@ -1,12 +1,11 @@
 package cz.opendata.linked.geocoder.nominatim;
 
 import com.vaadin.ui.*;
-import java.util.Collection;
-import java.util.LinkedList;
-
-
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+
+import java.util.Collection;
+import java.util.LinkedList;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
@@ -14,17 +13,16 @@ import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
  */
 public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	
-	private static final long serialVersionUID = 7003725620084616056L;
-	
 	private GridLayout mainLayout;
     private TextField interval;
     private TextField limit;
-    private TextField hoursToCheck;
-    private TextField tfCountry;
-    private CheckBox chkStructured;
-    private CheckBox chkStripNumFromLocality;
+    private TextField limitPeriod;
+    private TextField country;
+    private CheckBox isStructured;
+    private CheckBox stripNumFromLocality;
+    private CheckBox generateMapUrl;
     private TwinColSelect tcsProperties;
-    private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode"};
+    private String properties[] = {"s:streetAddress", "s:addressRegion", "s:addressLocality", "s:postalCode", "s:addressCountry"};
     
 	public ExtractorDialog() {
 		super(ExtractorConfig.class);
@@ -48,33 +46,37 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         setWidth("100%");
         setHeight("100%");
 
-        chkStructured = new CheckBox("Structured query (experimental):");
-        chkStructured.setDescription("When selected, Nominatim will be queried by structured queries.");
-        chkStructured.setWidth("100%");
-        
-        mainLayout.addComponent(chkStructured);
+        isStructured = new CheckBox("Structured query (experimental)");
+        isStructured.setDescription("When selected, Nominatim will be queried by structured queries.");
+        isStructured.setWidth("100%");
+        mainLayout.addComponent(isStructured);
 
-        chkStripNumFromLocality = new CheckBox("Strip number form Locality:");
-        chkStripNumFromLocality.setDescription("In structured query, replace Praha 6 => Praha, etc.");
-        chkStripNumFromLocality.setWidth("100%");
-        
-        mainLayout.addComponent(chkStripNumFromLocality);
+        stripNumFromLocality = new CheckBox("Strip number form Locality");
+        stripNumFromLocality.setDescription("In structured query, replace Praha 6 => Praha, etc.");
+        stripNumFromLocality.setWidth("100%");
+        mainLayout.addComponent(stripNumFromLocality);
 
-        tfCountry = new TextField();
-        tfCountry.setCaption("Country");
-        mainLayout.addComponent(tfCountry);
+        generateMapUrl = new CheckBox("Generate schema:url property with direct link to map");
+        generateMapUrl.setDescription("Useful option for debugging results, URL to the service is constructed automatically and can be opened from SPARQL query result");
+        generateMapUrl.setWidth("100%");
+        mainLayout.addComponent(generateMapUrl);
+
+        country = new TextField();
+        country.setCaption("Country");
+        country.setDescription("Fallback to schema:addressCountry property");
+        mainLayout.addComponent(country);
 
         interval = new TextField();
-        interval.setCaption("Interval between downloads:");
+        interval.setCaption("Interval between downloads (sec):");
         mainLayout.addComponent(interval);
 
         limit = new TextField();
-        limit.setCaption("Maximum amount of downloads:");
+        limit.setCaption("Maximum number of downloads:");
         mainLayout.addComponent(limit);
 
-        hoursToCheck = new TextField();
-        hoursToCheck.setCaption("Maximum amount interval:");
-        mainLayout.addComponent(hoursToCheck);
+        limitPeriod = new TextField();
+        limitPeriod.setCaption("Length of period for which the limit is applied (hrs):");
+        mainLayout.addComponent(limitPeriod);
 
         tcsProperties = new TwinColSelect("Select properties to use");
 		tcsProperties.setSizeFull();
@@ -92,17 +94,19 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		interval.setValue(Integer.toString(conf.getInterval()));
-		hoursToCheck.setValue(Integer.toString(conf.getHoursToCheck()));
+		limitPeriod.setValue(Integer.toString(conf.getLimitPeriod()));
 		limit.setValue(Integer.toString(conf.getLimit()));
-		tfCountry.setValue(conf.getCountry());
-		chkStructured.setValue(conf.isStructured());
-		chkStripNumFromLocality.setValue(conf.isStripNumFromLocality());
+		country.setValue(conf.getCountry());
+		isStructured.setValue(conf.isStructured());
+		generateMapUrl.setValue(conf.isGenerateMapUrl());
+		stripNumFromLocality.setValue(conf.isStripNumFromLocality());
 
 		LinkedList<String> values = new LinkedList<String>();
 		if (conf.isUseStreet()) values.add(properties[0]);
 		if (conf.isUseRegion()) values.add(properties[1]);
 		if (conf.isUseLocality()) values.add(properties[2]);
 		if (conf.isUsePostalCode()) values.add(properties[3]);
+		if (conf.isUseCountry()) values.add(properties[4]);
 		tcsProperties.setValue(values);
 	}
 
@@ -110,18 +114,20 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.setInterval(Integer.parseInt(interval.getValue()));
-		conf.setHoursToCheck(Integer.parseInt(hoursToCheck.getValue()));
-		conf.setCountry(tfCountry.getValue());
+		conf.setLimitPeriod(Integer.parseInt(limitPeriod.getValue()));
+		conf.setCountry(country.getValue());
 		conf.setLimit(Integer.parseInt(limit.getValue()));
-		conf.setStructured((boolean) chkStructured.getValue());
-		conf.setStripNumFromLocality((boolean) chkStripNumFromLocality.getValue());
-		
+		conf.setStructured(isStructured.getValue());
+		conf.setStripNumFromLocality(stripNumFromLocality.getValue());
+		conf.setGenerateMapUrl(generateMapUrl.getValue());
+
 		Collection<String> values = (Collection<String>)tcsProperties.getValue();
 		conf.setUseStreet(values.contains(properties[0])); 
 		conf.setUseRegion(values.contains(properties[1]));
 		conf.setUseLocality(values.contains(properties[2]));
 		conf.setUsePostalCode(values.contains(properties[3]));
-		
+		conf.setUseCountry(values.contains(properties[4]));
+
 		return conf;
 	}
 	

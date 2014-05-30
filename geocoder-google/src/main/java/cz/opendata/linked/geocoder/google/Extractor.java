@@ -1,32 +1,10 @@
 package cz.opendata.linked.geocoder.google;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-
-import org.openrdf.model.Graph;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.QueryEvaluationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.code.geocoder.Geocoder;
 import com.google.code.geocoder.GeocoderRequestBuilder;
 import com.google.code.geocoder.model.GeocodeResponse;
 import com.google.code.geocoder.model.GeocoderRequest;
 import com.google.code.geocoder.model.GeocoderStatus;
-
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -40,8 +18,19 @@ import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
 import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import org.apache.commons.io.FileUtils;
+import org.openrdf.model.*;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.QueryEvaluationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.commons.io.*;
+import java.io.*;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
 
 @AsExtractor
 public class Extractor 
@@ -123,6 +112,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
 		URI longURI = outGeo.createURI("http://schema.org/longitude");
 		URI latURI = outGeo.createURI("http://schema.org/latitude");
+        URI urlURI = outGeo.createURI("http://schema.org/url");
 		String countQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
@@ -137,24 +127,16 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
 				+  "}";*/ 
 		String sOrgConstructQuery = "PREFIX s: <http://schema.org/> "
-				+ "CONSTRUCT {?address ?p ?o}"
+				+ "CONSTRUCT {?address ?p ?o ; s:addressCountry ?country }"
 				+ "WHERE "
 				+ "{"
 					+ "?address a s:PostalAddress ;"
 					+ "			?p ?o . "
-//					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
-				+  "}"; 
-		/*String sOrgQuery = "PREFIX s: <http://schema.org/> "
-				+ "SELECT DISTINCT * "
-				+ "WHERE "
-				+ "{"
-					+ "{?address a s:PostalAddress . } "
-					+ "UNION { ?address s:streetAddress ?street . } "
-					+ "UNION { ?address s:addressRegion ?region . } "
-					+ "UNION { ?address s:addressLocality ?locality . } "
-					+ "UNION { ?address s:postalCode ?postal . } "
-					+ "UNION { ?address s:addressCountry ?country . } "
-				+ " }";*/
+                + " OPTIONAL {"
+                    + "?address s:addressCountry ?c ."
+                    + "?c s:name ?country ."
+                + "}"
+				+  "}";
 
 		LOG.debug("Geocoder init");
 		
@@ -205,11 +187,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					if (it1.hasNext())
 					{
 						Value currentValue = it1.next().getObject();
-						if (currentValue != null)
+						if (currentValue != null && !currentValue.stringValue().startsWith("http://"))
 						{
-							//logger.trace("Currently " + currentBinding);
 							String currentValueString = currentValue.stringValue();
-							//logger.trace("Value " + currentValueString);
 							addressToGeoCode.append(currentValueString);
 							addressToGeoCode.append(" ");
 						}
@@ -278,7 +258,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				} catch (IOException e) {
 					LOG.error(e.getLocalizedMessage());
 				}
-				
+
+                if (cachedFile == null) {
+                    LOG.error("Failed to load cached result for " + address);
+                    continue;
+                }
 				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
 				String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation)); 
 				
@@ -296,6 +280,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
 				outGeo.addTriple(coordURI, dcsource, googleURI);
+
+                if (config.isGenerateMapUrl()) {
+                    URI webURI = outGeo.createURI("http://google.com/maps?q=" + latitude.toString() + "," + longitude.toString());
+                    outGeo.addTriple(coordURI, urlURI, webURI);
+                }
 			}
 			if (ctx.canceled()) LOG.info("Cancelled");
 			
