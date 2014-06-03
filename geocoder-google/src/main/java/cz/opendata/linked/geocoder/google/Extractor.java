@@ -61,7 +61,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	private int geocodes = 0;
 	private int cacheHits = 0;
 	
-	@InputDataUnit(name = "Schema.org addresses")
+	@InputDataUnit(name = "Saddresses")
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")

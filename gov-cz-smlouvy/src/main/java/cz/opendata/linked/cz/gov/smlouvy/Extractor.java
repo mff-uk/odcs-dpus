@@ -116,21 +116,27 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			
 			if (config.isRewriteCache())
 			{
-				Path path_smlouvy = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10013/index.xml");
-				Path path_objednavky = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10014/index.xml");
-				Path path_plneni = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10015/index.xml");
-				LOG.info("Deleting " + path_smlouvy);
-				Files.deleteIfExists(path_smlouvy);
-				LOG.info("Deleting " + path_objednavky);
-				Files.deleteIfExists(path_objednavky);
-				LOG.info("Deleting " + path_plneni);
-				Files.deleteIfExists(path_plneni);
+				if (config.isSmlouvy()) {
+					Path path_smlouvy = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10013/index.xml");
+					LOG.info("Deleting " + path_smlouvy);
+					Files.deleteIfExists(path_smlouvy);
+				}
+				if (config.isObjednavky()) {
+					Path path_objednavky = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10014/index.xml");
+					LOG.info("Deleting " + path_objednavky);
+					Files.deleteIfExists(path_objednavky);
+				}
+				if (config.isPlneni()) {
+					Path path_plneni = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10015/index.xml");
+					LOG.info("Deleting " + path_plneni);
+					Files.deleteIfExists(path_plneni);
+				}
 			}
 			
 			try {
-				s.parse(init_smlouvy, "init-s");
-				s.parse(init_objednavky, "init-o");
-				s.parse(init_plneni, "init-p");
+				if (config.isSmlouvy()) s.parse(init_smlouvy, "init-s");
+				if (config.isObjednavky()) s.parse(init_objednavky, "init-o");
+				if (config.isPlneni()) s.parse(init_plneni, "init-p");
 			} catch (BannedException b) {
 				LOG.warn("Seems like we are banned for today");
 			}
