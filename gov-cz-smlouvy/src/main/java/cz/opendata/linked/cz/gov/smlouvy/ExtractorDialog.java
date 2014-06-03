@@ -22,6 +22,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
 	private CheckBox chkRewriteCache;
 
+	private CheckBox chkSmlouvy;
+	private CheckBox chkObjednavky;
+	private CheckBox chkPlneni;
 	private TextField interval;
 
 	private TextField timeout;
@@ -48,6 +51,18 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		setWidth("100%");
 		setHeight("100%");
 
+		chkSmlouvy = new CheckBox("Download smlouvy:");
+		chkSmlouvy.setWidth("100%");
+		mainLayout.addComponent(chkSmlouvy);
+
+		chkObjednavky = new CheckBox("Download objednávky:");
+		chkObjednavky.setWidth("100%");
+		mainLayout.addComponent(chkObjednavky);
+
+		chkPlneni = new CheckBox("Download plnění:");
+		chkPlneni.setWidth("100%");
+		mainLayout.addComponent(chkPlneni);
+
 		chkRewriteCache = new CheckBox("Rewrite cache:");
 		chkRewriteCache.setDescription("When selected, cache will be ignored.");
 		chkRewriteCache.setWidth("100%");
@@ -69,6 +84,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	@Override
 	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
 		chkRewriteCache.setValue(conf.isRewriteCache());
+		chkSmlouvy.setValue(conf.isSmlouvy());
+		chkObjednavky.setValue(conf.isObjednavky());
+		chkPlneni.setValue(conf.isPlneni());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		timeout.setValue(Integer.toString(conf.getTimeout()));
 
@@ -78,6 +96,9 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.setRewriteCache((boolean) chkRewriteCache.getValue());
+		conf.setSmlouvy((boolean) chkSmlouvy.getValue());
+		conf.setObjednavky((boolean) chkObjednavky.getValue());
+		conf.setPlneni((boolean) chkPlneni.getValue());
 		try {
 			conf.setInterval(Integer.parseInt(interval.getValue()));
 		} catch (InvalidValueException e) {

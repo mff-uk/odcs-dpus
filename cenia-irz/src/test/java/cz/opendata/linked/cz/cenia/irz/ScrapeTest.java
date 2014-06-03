@@ -34,7 +34,7 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			out.loadToFile("C:\\temp\\irz.ttl", RDFFormatType.TTL);
+			out.loadToFile("C:\\temp\\mzp.ttl", RDFFormatType.TTL);
 
 			// verify result
 		} catch (Exception e) {
