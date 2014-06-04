@@ -89,6 +89,7 @@
 						<section typeof="sdo:Section" >
 							<xsl:attribute name="about" select="$decisionExpressionSection" />
 							<span xmlns:sdo="http://salt.semanticauthoring.org/ontologies/sdo#" property="sdo:hasOrderNumber"><xsl:attribute  name="content" select="1"></xsl:attribute></span>
+							<span property="dcterms:identifier"><xsl:attribute  name="content" select="1"></xsl:attribute></span>
 							<xsl:apply-templates mode="section" />
 						</section>
 						
@@ -113,7 +114,7 @@
 		
 		<span rel="sdo:hasParagraph">
 		<paragraph typeof="sdo:Paragraph" property="dcterms:description">
-			<xsl:attribute name="about" select="concat($decisionExpressionParagraph-prefix, $id)" /><span xmlns:sdo="http://salt.semanticauthoring.org/ontologies/sdo#" property="sdo:hasOrderNumber"><xsl:attribute  name="content" select="$id"></xsl:attribute></span><xsl:apply-templates mode="section" /></paragraph>		
+			<xsl:attribute name="about" select="concat($decisionExpressionParagraph-prefix, $id)" /><span xmlns:sdo="http://salt.semanticauthoring.org/ontologies/sdo#" property="sdo:hasOrderNumber"><xsl:attribute  name="content" select="$id"></xsl:attribute></span><span property="dcterms:identifier"><xsl:attribute  name="content" select="$id"></xsl:attribute></span><xsl:apply-templates mode="section" /></paragraph>		
 		</span>
 	</xsl:template>
 		
