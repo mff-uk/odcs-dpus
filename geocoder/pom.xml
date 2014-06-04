@@ -21,5 +21,11 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.0</version>
 		</dependency>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf-simple</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
     </dependencies>
 </project>

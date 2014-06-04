@@ -12,13 +12,13 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -28,8 +28,11 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
 public class Extractor 
@@ -37,13 +40,13 @@ public class Extractor
         implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	
 	@OutputDataUnit(name = "contracts")
-	public RDFDataUnit contractsDataUnit;
+	public WritableRDFDataUnit contractsDataUnit;
 
 	@OutputDataUnit(name = "profiles")
-	public RDFDataUnit profilesDataUnit;
+	public WritableRDFDataUnit profilesDataUnit;
 
 	@OutputDataUnit(name = "profile_statistics")
-	public RDFDataUnit profileStatistics;
+	public WritableRDFDataUnit profileStatistics;
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
@@ -57,18 +60,25 @@ public class Extractor
 	}
 	
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
-        // vytvorime si parser
-        
+		// zalozeni wrapu
+		final SimpleRdfWrite contractsDataUnitWrap = new SimpleRdfWrite(contractsDataUnit, ctx);
+		final SimpleRdfWrite profilesDataUnitWrap = new SimpleRdfWrite(profilesDataUnit, ctx);
+		final SimpleRdfWrite profileStatisticsWrap = new SimpleRdfWrite(profileStatistics, ctx);
+		profileStatisticsWrap.setPolicy(AddPolicy.BUFFERED);		
+		
+        // vytvorime si parser        
     	Cache.logger = LOG;
     	Cache.rewriteCache = config.isRewriteCache();
     	Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
     	Cache.setTimeout(config.getTimeout());
     	Cache.setInterval(config.getInterval());
-    	Cache.stats = profileStatistics;
+    	Cache.stats = profileStatisticsWrap;
     	Cache.validate = config.isValidateXSD();
     	
+		profileStatisticsWrap.flushBuffer();
+		
     	/*set up xsd validation*/
 		// create a SchemaFactory capable of understanding WXS schemas
 		SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -83,9 +93,8 @@ public class Extractor
 		
 			// create a Validator instance, which can be used to validate an instance document
 			Cache.validator = schema.newValidator();    	
-		} catch (SAXException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SAXException e) {
+			LOG.error("Failed to create validator", e);
 		}
 		/*end of set up xsd validation*/
     	
@@ -134,7 +143,8 @@ public class Extractor
 
         s.ps.println(prefixes);
         s.zak_ps.println(prefixes);
-        s.pstats = profileStatistics;
+        s.pstats = profileStatisticsWrap;
+		s.valueFactory = profileStatisticsWrap.getValueFactory();
         // a spustim na vychozi stranku
         
 	    java.util.Date date = new java.util.Date();
@@ -149,10 +159,10 @@ public class Extractor
 		        
 	        	LOG.info("Parsing done. Passing RDF to ODCS");
 		        try {
-		        	contractsDataUnit.addFromTurtleFile(new File(zakazkyname));
-		        	profilesDataUnit.addFromTurtleFile(new File(profilyname));
+		        	contractsDataUnitWrap.extract(new File(zakazkyname), RDFFormat.TURTLE, null);
+					profilesDataUnitWrap.extract(new File(profilyname), RDFFormat.TURTLE, null);
 		        }
-		        catch (RDFException e)
+		        catch (OperationFailedException e)
 		        {
 		        	LOG.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
 		        	throw new DPUException("Cannot put TTL to repository.", e);
@@ -168,6 +178,9 @@ public class Extractor
 	    s.ps.close();
         s.zak_ps.close();
         
+		// store triples
+		profileStatisticsWrap.flushBuffer();
+		
         java.util.Date date2 = new java.util.Date();
 	    long end = date2.getTime();
 	    ctx.sendMessage(MessageType.INFO, "");

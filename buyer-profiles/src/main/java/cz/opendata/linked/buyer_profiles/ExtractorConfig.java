@@ -9,8 +9,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	private static final long serialVersionUID = 3509477277481754571L;
-
 	private boolean rewriteCache = false;
 	
 	private boolean accessProfiles = true;

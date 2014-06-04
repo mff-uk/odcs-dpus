@@ -3,7 +3,7 @@ import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.opendata.linked.metadata.form.Extractor;
 import cz.opendata.linked.metadata.form.ExtractorConfig;
 
@@ -13,13 +13,12 @@ public class ScrapeTest {
 	public void constructAllTest() throws Exception {
 		// prepare dpu instance and configure it
 		Extractor extractor = new Extractor();
-		ExtractorConfig config = new ExtractorConfig();
-		
+		ExtractorConfig config = new ExtractorConfig();		
 		
 		extractor.configureDirectly(config);
 		
 		// prepare test environment, we use system tmp directory
-		TestEnvironment env = TestEnvironment.create();
+		TestEnvironment env = new TestEnvironment();
 		// prepare input and output data units
 		
 		RDFDataUnit input = env.createRdfInput("Statistics", false);
@@ -33,7 +32,7 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-			metadata.loadToFile("C:\\temp\\meta.ttl", RDFFormatType.TTL);
+//			metadata.loadToFile("C:\\temp\\meta.ttl", RDFFormatType.TTL);
 			
 			// verify result
 		}

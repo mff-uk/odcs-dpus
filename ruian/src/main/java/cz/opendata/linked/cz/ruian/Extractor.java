@@ -105,8 +105,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
         	LOG.info("Download done.");
 		
 		} catch (IOException e) {
-			LOG.error(e.getLocalizedMessage());
-			e.printStackTrace();
+			LOG.error("IOException", e);
 		} catch (InterruptedException e) {
 			LOG.error("Interrupted");
 		}
@@ -117,8 +116,5 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
 
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

@@ -7,17 +7,17 @@ import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 public class ExtractorTest {
 
 	@BeforeClass
 	public static void virtuoso() {
 		// Adjust this to your virtuoso configuration.
-		TestEnvironment.virtuosoConfig.host = "localhost";
-		TestEnvironment.virtuosoConfig.port = "1111";
-		TestEnvironment.virtuosoConfig.user = "dba";
-		TestEnvironment.virtuosoConfig.password = "dba";
+//		TestEnvironment.virtuosoConfig.host = "localhost";
+//		TestEnvironment.virtuosoConfig.port = "1111";
+//		TestEnvironment.virtuosoConfig.user = "dba";
+//		TestEnvironment.virtuosoConfig.password = "dba";
 	}
 
 	//@Test
@@ -33,7 +33,7 @@ public class ExtractorTest {
 		trans.configureDirectly(config);
 
 		// prepare test environment
-		TestEnvironment env = TestEnvironment.create();
+		TestEnvironment env = new TestEnvironment();
 		// prepare data units
 //		RDFDataUnit input = env.createRdfInputFromResource("input", false,
 //				"metadata.ttl", RDFFormat.TURTLE);

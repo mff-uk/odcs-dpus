@@ -1,16 +1,13 @@
 package cz.opendata.linked.cz.mzp.ippc;
 
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
-import org.jsoup.select.Elements;
 import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.DCTERMS;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.SKOS;
 import org.slf4j.Logger;
@@ -111,45 +108,45 @@ public class Parser extends ScrapingTemplate{
     }
     
     @Override
-    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) {
-        URI s_Organization = outputDataUnit.createURI(schemaorg + "Organization");
-        URI gr_BusinessEntity = outputDataUnit.createURI(gr + "BusinessEntity");
-        URI gr_legalName = outputDataUnit.createURI(gr + "legalName");
-        URI adms_Identifier = outputDataUnit.createURI(adms + "Identifier");
-        URI adms_identifier = outputDataUnit.createURI(adms + "identifier");
-        URI s_Place = outputDataUnit.createURI(schemaorg + "Place");
-        URI s_name = outputDataUnit.createURI(schemaorg + "name");
-        URI s_hasPOS = outputDataUnit.createURI(schemaorg + "hasPOS");
-        URI s_CheckAction = outputDataUnit.createURI(schemaorg + "CheckAction");
-        URI s_PostalAddress = outputDataUnit.createURI(schemaorg + "PostalAddress");
-        URI s_object = outputDataUnit.createURI(schemaorg + "object");
-        URI s_geo = outputDataUnit.createURI(schemaorg + "geo");
-        URI s_result = outputDataUnit.createURI(schemaorg + "result");
-        URI s_address = outputDataUnit.createURI(schemaorg + "address");
-        URI s_addressLocality = outputDataUnit.createURI(schemaorg + "addressLocality");
-        URI s_addressRegion = outputDataUnit.createURI(schemaorg + "addressRegion");
-        URI s_postalCode = outputDataUnit.createURI(schemaorg + "postalCode");
-        URI s_streetAddress = outputDataUnit.createURI(schemaorg + "streetAddress");
-        URI s_longitude = outputDataUnit.createURI(schemaorg + "longitude");
-        URI s_latitude = outputDataUnit.createURI(schemaorg + "latitude");
-        URI s_GeoCoordinates = outputDataUnit.createURI(schemaorg + "GeoCoordinates");
-        URI s_location = outputDataUnit.createURI(schemaorg + "location");
-        URI s_actionStatus = outputDataUnit.createURI(schemaorg + "actionStatus");
-        URI s_startTime = outputDataUnit.createURI(schemaorg + "startTime");
-        URI s_endTime = outputDataUnit.createURI(schemaorg + "endTime");
-        URI s_instrument = outputDataUnit.createURI(schemaorg + "instrument");
-        URI s_additionalType = outputDataUnit.createURI(schemaorg + "additionalType");
-        URI owl_sameAs = outputDataUnit.createURI(owl + "sameAs");
-        URI xsd_decimal = outputDataUnit.createURI(xsd + "decimal");
-        URI xsd_dateTime = outputDataUnit.createURI(xsd + "dateTime");
-        URI xsd_gYear = outputDataUnit.createURI(xsd + "gYear");
-        //URI dcterms_source = outputDataUnit.createURI(dcterms + "source");
-        URI ICScheme = outputDataUnit.createURI("http://linked.opendata.cz/resource/concept-scheme/CZ-ICO");
-        URI catScheme = outputDataUnit.createURI(mzponto + "categories/ConceptScheme");
-    	URI s_ActionStatusType = outputDataUnit.createURI(schemaorg + "ActionStatusType");
+    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws OperationFailedException {
+        URI s_Organization = valueFactory.createURI(schemaorg + "Organization");
+        URI gr_BusinessEntity = valueFactory.createURI(gr + "BusinessEntity");
+        URI gr_legalName = valueFactory.createURI(gr + "legalName");
+        URI adms_Identifier = valueFactory.createURI(adms + "Identifier");
+        URI adms_identifier = valueFactory.createURI(adms + "identifier");
+        URI s_Place = valueFactory.createURI(schemaorg + "Place");
+        URI s_name = valueFactory.createURI(schemaorg + "name");
+        URI s_hasPOS = valueFactory.createURI(schemaorg + "hasPOS");
+        URI s_CheckAction = valueFactory.createURI(schemaorg + "CheckAction");
+        URI s_PostalAddress = valueFactory.createURI(schemaorg + "PostalAddress");
+        URI s_object = valueFactory.createURI(schemaorg + "object");
+        URI s_geo = valueFactory.createURI(schemaorg + "geo");
+        URI s_result = valueFactory.createURI(schemaorg + "result");
+        URI s_address = valueFactory.createURI(schemaorg + "address");
+        URI s_addressLocality = valueFactory.createURI(schemaorg + "addressLocality");
+        URI s_addressRegion = valueFactory.createURI(schemaorg + "addressRegion");
+        URI s_postalCode = valueFactory.createURI(schemaorg + "postalCode");
+        URI s_streetAddress = valueFactory.createURI(schemaorg + "streetAddress");
+        URI s_longitude = valueFactory.createURI(schemaorg + "longitude");
+        URI s_latitude = valueFactory.createURI(schemaorg + "latitude");
+        URI s_GeoCoordinates = valueFactory.createURI(schemaorg + "GeoCoordinates");
+        URI s_location = valueFactory.createURI(schemaorg + "location");
+        URI s_actionStatus = valueFactory.createURI(schemaorg + "actionStatus");
+        URI s_startTime = valueFactory.createURI(schemaorg + "startTime");
+        URI s_endTime = valueFactory.createURI(schemaorg + "endTime");
+        URI s_instrument = valueFactory.createURI(schemaorg + "instrument");
+        URI s_additionalType = valueFactory.createURI(schemaorg + "additionalType");
+        URI owl_sameAs = valueFactory.createURI(owl + "sameAs");
+        URI xsd_decimal = valueFactory.createURI(xsd + "decimal");
+        URI xsd_dateTime = valueFactory.createURI(xsd + "dateTime");
+        URI xsd_gYear = valueFactory.createURI(xsd + "gYear");
+        //URI dcterms_source = valueFactory.createURI(dcterms + "source");
+        URI ICScheme = valueFactory.createURI("http://linked.opendata.cz/resource/concept-scheme/CZ-ICO");
+        URI catScheme = valueFactory.createURI(mzponto + "categories/ConceptScheme");
+    	URI s_ActionStatusType = valueFactory.createURI(schemaorg + "ActionStatusType");
     	
-		URI mainCategoryURI = outputDataUnit.createURI(mzponto + "hlavniKategorie");
-		URI additionalCategoryURI = outputDataUnit.createURI(mzponto + "vedlejsiKategorie");
+		URI mainCategoryURI = valueFactory.createURI(mzponto + "hlavniKategorie");
+		URI additionalCategoryURI = valueFactory.createURI(mzponto + "vedlejsiKategorie");
 		
 		logger.trace("Processing: " + url.toString());
 		
@@ -167,25 +164,25 @@ public class Parser extends ScrapingTemplate{
             String object = doc.getElementById("view:_id1:_id2:facetMiddle:check_subject").text();
             String text = doc.getElementById("view:_id1:_id2:facetMiddle:Body").text();
             
-    		URI bURI = outputDataUnit.createURI(mzpbr + bCode);
-    		URI checkURI = outputDataUnit.createURI(mzpbr + bCode + "/checks/" + checkCode);
+    		URI bURI = valueFactory.createURI(mzpbr + bCode);
+    		URI checkURI = valueFactory.createURI(mzpbr + bCode + "/checks/" + checkCode);
             
-            outputDataUnit.addTriple(checkURI, RDF.TYPE, s_CheckAction);
-    		outputDataUnit.addTriple(checkURI, s_location, bURI);
+            outputDataUnit.add(checkURI, RDF.TYPE, s_CheckAction);
+    		outputDataUnit.add(checkURI, s_location, bURI);
     		
     		
     		String starttime = getDate(start) + "T00:00:00";
     		String endtime = getDate(end) + "T23:59:59";
-    		outputDataUnit.addTriple(checkURI, s_startTime, outputDataUnit.createLiteral(starttime, xsd_dateTime));
-    		outputDataUnit.addTriple(checkURI, s_endTime, outputDataUnit.createLiteral(endtime, xsd_dateTime));
-    		if (!object.isEmpty()) outputDataUnit.addTriple(checkURI, s_instrument, outputDataUnit.createLiteral(object));
+    		outputDataUnit.add(checkURI, s_startTime, valueFactory.createLiteral(starttime, xsd_dateTime));
+    		outputDataUnit.add(checkURI, s_endTime, valueFactory.createLiteral(endtime, xsd_dateTime));
+    		if (!object.isEmpty()) outputDataUnit.add(checkURI, s_instrument, valueFactory.createLiteral(object));
     		if (!state.isEmpty()) {
-    			URI actionStatus = outputDataUnit.createURI(mzponto + "action-states/" + uriSlug(state));
-    			outputDataUnit.addTriple(checkURI, s_actionStatus, actionStatus);
-    			outputDataUnit.addTriple(actionStatus, RDF.TYPE, s_ActionStatusType);
-    			outputDataUnit.addTriple(actionStatus, s_name, outputDataUnit.createLiteral(state));
+    			URI actionStatus = valueFactory.createURI(mzponto + "action-states/" + uriSlug(state));
+    			outputDataUnit.add(checkURI, s_actionStatus, actionStatus);
+    			outputDataUnit.add(actionStatus, RDF.TYPE, s_ActionStatusType);
+    			outputDataUnit.add(actionStatus, s_name, valueFactory.createLiteral(state));
     		}
-    		if (!text.isEmpty()) outputDataUnit.addTriple(checkURI, s_result, outputDataUnit.createLiteral(text));
+    		if (!text.isEmpty()) outputDataUnit.add(checkURI, s_result, valueFactory.createLiteral(text));
     		
 			break;
         case "doc":
@@ -222,68 +219,68 @@ public class Parser extends ScrapingTemplate{
             String kontrolniOrgany[] = kontrolniOrganyConcat.split(";");
             //String povolovaciUrad = doc.getElementById("view:_id1:_id2:facetMiddle:computedField27").text();
             
-    		URI entityURI = outputDataUnit.createURI(ldbe + provozovatelIC);
-    		URI entityIDURI = outputDataUnit.createURI(entityURI.toString() + "/identifier/mzp.cz");
-    		URI entityAddressURI = outputDataUnit.createURI(mzpbe + provozovatelIC + "/adresa");
-    		URI branchURI = outputDataUnit.createURI(mzpbr + regCode);
-    		URI branchAddressURI = outputDataUnit.createURI(branchURI.toString() + "/adresa");
-    		URI branchGeoURI = outputDataUnit.createURI(branchURI.toString() + "/geo");
+    		URI entityURI = valueFactory.createURI(ldbe + provozovatelIC);
+    		URI entityIDURI = valueFactory.createURI(entityURI.toString() + "/identifier/mzp.cz");
+    		URI entityAddressURI = valueFactory.createURI(mzpbe + provozovatelIC + "/adresa");
+    		URI branchURI = valueFactory.createURI(mzpbr + regCode);
+    		URI branchAddressURI = valueFactory.createURI(branchURI.toString() + "/adresa");
+    		URI branchGeoURI = valueFactory.createURI(branchURI.toString() + "/geo");
             
-            outputDataUnit.addTriple(entityURI, RDF.TYPE, s_Organization);
-    		outputDataUnit.addTriple(entityURI, RDF.TYPE, gr_BusinessEntity);
-    		outputDataUnit.addTriple(entityURI, s_name, outputDataUnit.createLiteral(provozovatelName));
-    		outputDataUnit.addTriple(entityURI, gr_legalName, outputDataUnit.createLiteral(provozovatelName));
-    		outputDataUnit.addTriple(entityURI, adms_identifier, entityIDURI);
-    		outputDataUnit.addTriple(entityURI, s_hasPOS, branchURI);
+            outputDataUnit.add(entityURI, RDF.TYPE, s_Organization);
+    		outputDataUnit.add(entityURI, RDF.TYPE, gr_BusinessEntity);
+    		outputDataUnit.add(entityURI, s_name, valueFactory.createLiteral(provozovatelName));
+    		outputDataUnit.add(entityURI, gr_legalName, valueFactory.createLiteral(provozovatelName));
+    		outputDataUnit.add(entityURI, adms_identifier, entityIDURI);
+    		outputDataUnit.add(entityURI, s_hasPOS, branchURI);
 
-    		outputDataUnit.addTriple(entityIDURI, RDF.TYPE, adms_Identifier);
-    		outputDataUnit.addTriple(entityIDURI, SKOS.NOTATION, outputDataUnit.createLiteral(provozovatelIC));
-    		outputDataUnit.addTriple(entityIDURI, SKOS.PREF_LABEL, outputDataUnit.createLiteral(provozovatelIC));
-    		outputDataUnit.addTriple(entityIDURI, SKOS.IN_SCHEME, ICScheme);
+    		outputDataUnit.add(entityIDURI, RDF.TYPE, adms_Identifier);
+    		outputDataUnit.add(entityIDURI, SKOS.NOTATION, valueFactory.createLiteral(provozovatelIC));
+    		outputDataUnit.add(entityIDURI, SKOS.PREF_LABEL, valueFactory.createLiteral(provozovatelIC));
+    		outputDataUnit.add(entityIDURI, SKOS.IN_SCHEME, ICScheme);
 
-    		outputDataUnit.addTriple(entityURI, s_address, entityAddressURI);
-    		outputDataUnit.addTriple(entityAddressURI, RDF.TYPE, s_PostalAddress);
-    		if (!p_uliceCislo.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_streetAddress, outputDataUnit.createLiteral(p_uliceCislo));
-    		if (!p_psc.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_postalCode, outputDataUnit.createLiteral(p_psc));
-    		if (!p_kraj.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_addressRegion, outputDataUnit.createLiteral(p_kraj));
-    		if (!p_mesto.isEmpty()) outputDataUnit.addTriple(entityAddressURI, s_addressLocality, outputDataUnit.createLiteral(p_mesto));
+    		outputDataUnit.add(entityURI, s_address, entityAddressURI);
+    		outputDataUnit.add(entityAddressURI, RDF.TYPE, s_PostalAddress);
+    		if (!p_uliceCislo.isEmpty()) outputDataUnit.add(entityAddressURI, s_streetAddress, valueFactory.createLiteral(p_uliceCislo));
+    		if (!p_psc.isEmpty()) outputDataUnit.add(entityAddressURI, s_postalCode, valueFactory.createLiteral(p_psc));
+    		if (!p_kraj.isEmpty()) outputDataUnit.add(entityAddressURI, s_addressRegion, valueFactory.createLiteral(p_kraj));
+    		if (!p_mesto.isEmpty()) outputDataUnit.add(entityAddressURI, s_addressLocality, valueFactory.createLiteral(p_mesto));
 
-    		outputDataUnit.addTriple(branchURI, RDF.TYPE, s_Place);
-    		outputDataUnit.addTriple(branchURI, s_name, outputDataUnit.createLiteral(name));
+    		outputDataUnit.add(branchURI, RDF.TYPE, s_Place);
+    		outputDataUnit.add(branchURI, s_name, valueFactory.createLiteral(name));
     		
-    		outputDataUnit.addTriple(branchURI, s_address, branchAddressURI);
-    		outputDataUnit.addTriple(branchAddressURI, RDF.TYPE, s_PostalAddress);
-    		if (!z_uliceCislo.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_streetAddress, outputDataUnit.createLiteral(z_uliceCislo));
-    		if (!z_psc.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_postalCode, outputDataUnit.createLiteral(z_psc));
-    		if (!z_kraj.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_addressRegion, outputDataUnit.createLiteral(z_kraj));
-    		if (!z_mesto.isEmpty()) outputDataUnit.addTriple(branchAddressURI, s_addressLocality, outputDataUnit.createLiteral(z_mesto));
+    		outputDataUnit.add(branchURI, s_address, branchAddressURI);
+    		outputDataUnit.add(branchAddressURI, RDF.TYPE, s_PostalAddress);
+    		if (!z_uliceCislo.isEmpty()) outputDataUnit.add(branchAddressURI, s_streetAddress, valueFactory.createLiteral(z_uliceCislo));
+    		if (!z_psc.isEmpty()) outputDataUnit.add(branchAddressURI, s_postalCode, valueFactory.createLiteral(z_psc));
+    		if (!z_kraj.isEmpty()) outputDataUnit.add(branchAddressURI, s_addressRegion, valueFactory.createLiteral(z_kraj));
+    		if (!z_mesto.isEmpty()) outputDataUnit.add(branchAddressURI, s_addressLocality, valueFactory.createLiteral(z_mesto));
     		
     		if (!x.isEmpty() && !y.isEmpty()) {
-	    		outputDataUnit.addTriple(branchURI, s_geo, branchGeoURI);
-	    		outputDataUnit.addTriple(branchGeoURI, RDF.TYPE, s_GeoCoordinates);
-	    		outputDataUnit.addTriple(branchGeoURI, s_latitude, outputDataUnit.createLiteral(x));
-	    		outputDataUnit.addTriple(branchGeoURI, s_longitude, outputDataUnit.createLiteral(y));
+	    		outputDataUnit.add(branchURI, s_geo, branchGeoURI);
+	    		outputDataUnit.add(branchGeoURI, RDF.TYPE, s_GeoCoordinates);
+	    		outputDataUnit.add(branchGeoURI, s_latitude, valueFactory.createLiteral(x));
+	    		outputDataUnit.add(branchGeoURI, s_longitude, valueFactory.createLiteral(y));
     		}
     		
     		//categories
     		
     		if (mainCategory != null && !mainCategory.isEmpty()) {
-	    		URI mCategory = outputDataUnit.createURI(mzponto + "categories/" + mainCategory);
-	    		outputDataUnit.addTriple(branchURI, mainCategoryURI, mCategory);
-	    		outputDataUnit.addTriple(mCategory, RDF.TYPE, SKOS.CONCEPT);
-	    		if (mainCategoryLabel != null && !mainCategoryLabel.isEmpty()) outputDataUnit.addTriple(mCategory, SKOS.PREF_LABEL, outputDataUnit.createLiteral(mainCategoryLabel.substring(mainCategoryLabel.lastIndexOf(':') + 2, mainCategoryLabel.length() - 2)));
-	    		outputDataUnit.addTriple(mCategory, SKOS.NOTATION, outputDataUnit.createLiteral(mainCategory));
+	    		URI mCategory = valueFactory.createURI(mzponto + "categories/" + mainCategory);
+	    		outputDataUnit.add(branchURI, mainCategoryURI, mCategory);
+	    		outputDataUnit.add(mCategory, RDF.TYPE, SKOS.CONCEPT);
+	    		if (mainCategoryLabel != null && !mainCategoryLabel.isEmpty()) outputDataUnit.add(mCategory, SKOS.PREF_LABEL, valueFactory.createLiteral(mainCategoryLabel.substring(mainCategoryLabel.lastIndexOf(':') + 2, mainCategoryLabel.length() - 2)));
+	    		outputDataUnit.add(mCategory, SKOS.NOTATION, valueFactory.createLiteral(mainCategory));
 	    		if (mainCategory.contains(".")) {
-	    			URI broader = outputDataUnit.createURI(mzponto + "categories/" + mainCategory.substring(0, mainCategory.indexOf('.')));
-	    			outputDataUnit.addTriple(mCategory, SKOS.BROADER_TRANSITIVE, broader);
+	    			URI broader = valueFactory.createURI(mzponto + "categories/" + mainCategory.substring(0, mainCategory.indexOf('.')));
+	    			outputDataUnit.add(mCategory, SKOS.BROADER_TRANSITIVE, broader);
 	    		}
-	    		outputDataUnit.addTriple(mCategory, SKOS.IN_SCHEME, catScheme);
+	    		outputDataUnit.add(mCategory, SKOS.IN_SCHEME, catScheme);
     		}
     		
     		for (int i = 0; i < additionalCategories.length; i++) {
-        		URI aCategory = outputDataUnit.createURI(mzponto + "categories/" + additionalCategories[i]);
-        		outputDataUnit.addTriple(branchURI, additionalCategoryURI, aCategory);
-        		outputDataUnit.addTriple(aCategory, RDF.TYPE, SKOS.CONCEPT);
+        		URI aCategory = valueFactory.createURI(mzponto + "categories/" + additionalCategories[i]);
+        		outputDataUnit.add(branchURI, additionalCategoryURI, aCategory);
+        		outputDataUnit.add(aCategory, RDF.TYPE, SKOS.CONCEPT);
         		if (additionalCategoriesLabels != null) {
         			String currentlabel = null;
         			for (String lbl: additionalCategoriesLabels)
@@ -294,14 +291,14 @@ public class Parser extends ScrapingTemplate{
         				}
         				
         			}
-        			if (currentlabel != null) outputDataUnit.addTriple(aCategory, SKOS.PREF_LABEL, outputDataUnit.createLiteral(currentlabel));
+        			if (currentlabel != null) outputDataUnit.add(aCategory, SKOS.PREF_LABEL, valueFactory.createLiteral(currentlabel));
         		}
-        		outputDataUnit.addTriple(aCategory, SKOS.NOTATION, outputDataUnit.createLiteral(additionalCategories[i]));
+        		outputDataUnit.add(aCategory, SKOS.NOTATION, valueFactory.createLiteral(additionalCategories[i]));
 	    		if (additionalCategories[i].contains(".")) {
-	    			URI broader = outputDataUnit.createURI(mzponto + "categories/" + additionalCategories[i].substring(0, additionalCategories[i].indexOf('.')));
-	    			outputDataUnit.addTriple(aCategory, SKOS.BROADER_TRANSITIVE, broader);
+	    			URI broader = valueFactory.createURI(mzponto + "categories/" + additionalCategories[i].substring(0, additionalCategories[i].indexOf('.')));
+	    			outputDataUnit.add(aCategory, SKOS.BROADER_TRANSITIVE, broader);
 	    		}
-        		outputDataUnit.addTriple(aCategory, SKOS.IN_SCHEME, catScheme);
+        		outputDataUnit.add(aCategory, SKOS.IN_SCHEME, catScheme);
     		}
     		
             break;

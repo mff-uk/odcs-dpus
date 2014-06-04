@@ -32,10 +32,10 @@ public class DPU extends ConfigurableBase<Configuration>
 	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(
 			DPU.class);
 	
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public FileDataUnit input;
 	
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public FileDataUnit output;
 	
 	public DPU() {

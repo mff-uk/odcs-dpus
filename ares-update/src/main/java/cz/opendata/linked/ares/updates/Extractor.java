@@ -1,5 +1,6 @@
 package cz.opendata.linked.ares.updates;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,24 +23,21 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
+import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
 	@OutputDataUnit(name = "BEs")
-	public RDFDataUnit BEs;
+	public WritableRDFDataUnit BEs;
 
-	private Logger LOG = LoggerFactory.getLogger(DPU.class);
+	private final static Logger LOG = LoggerFactory.getLogger(DPU.class);
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -51,7 +49,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
@@ -100,14 +98,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			s.ps.close();
 
         	LOG.info("Parsing done. Passing RDF to ODCS");
-	        try {
-	        	BEs.addFromTurtleFile(new File(ICfilename));
-	        }
-	        catch (RDFException e)
-	        {
-	        	LOG.error("Cannot put TTL to repository.");
-	        	throw new DPUException("Cannot put TTL to repository.", e);
-	        }
+			
+			SimpleRdfWrite BEsWrap = new SimpleRdfWrite(BEs, ctx);
+			BEsWrap.extract(new File(ICfilename), RDFFormat.TURTLE, null);
 		
 		} catch (IOException e) {
 			LOG.error("IOException", e);
@@ -115,7 +108,6 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			LOG.error("Interrupted");
 			s.ps.close();
 		}
-
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();

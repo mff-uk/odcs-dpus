@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -23,16 +24,19 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	@OutputDataUnit
-	public RDFDataUnit outputDataUnit;
+	@OutputDataUnit(name = "output")
+	public WritableRDFDataUnit outputDataUnit;
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
@@ -46,7 +50,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
@@ -60,12 +64,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			LOG.error("Failed to write stream into file", e);
 		}
 
 		s.ps.println(
@@ -114,25 +114,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
         	
 			LOG.info("Parsing done. Passing RDF to ODCS");
-			//give ttl to odcs
-			try {
-				outputDataUnit.addFromTurtleFile(new File(tempfilename));
-			}
-			catch (RDFException e)
-			{
-				LOG.error("Cannot put TTL to repository. Error: {}", e.getLocalizedMessage());
-				throw new DPUException("Cannot put TTL to repository.");
-			}
-		} catch (InterruptedException intex) {
+			SimpleRdfWrite outputWrap = new SimpleRdfWrite(outputDataUnit, ctx);
+			outputWrap.extract(new File(tempfilename), RDFFormat.TURTLE, null);
+		} catch (InterruptedException e) {
 			LOG.error("Interrupted");
 		}
 
 		s.ps.close();
-
-
 	}
-
-	@Override
-	public void cleanUp() {	}
 
 }

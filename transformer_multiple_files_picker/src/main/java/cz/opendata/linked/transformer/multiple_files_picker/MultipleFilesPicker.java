@@ -71,7 +71,7 @@ public class MultipleFilesPicker extends ConfigurableBase<MultipleFilesPickerCon
 		
 		DirectoryHandler inputRootHandler = inputFiles.getRootDir();
 
-		ArrayList<File> pickedFilesPhysical = new ArrayList<File>();
+		ArrayList<File> pickedFilesPhysical = new ArrayList<>();
 		int filesCounter = 0;
 		for (Handler handler : inputRootHandler) {
     		if (handler instanceof FileHandler) {
@@ -84,7 +84,7 @@ public class MultipleFilesPicker extends ConfigurableBase<MultipleFilesPickerCon
     		}
     	}
 		log.debug(filesCounter + " files found on the input.");
-		if ( pickedFilesPhysical.size() == 0 )	{
+		if ( pickedFilesPhysical.isEmpty())	{
 			log.warn("No files found in the input file data unit on the base of the pattern " + path);
         	return;
 		}
@@ -96,7 +96,6 @@ public class MultipleFilesPicker extends ConfigurableBase<MultipleFilesPickerCon
 
        	if (context.canceled()) {
        		log.info("DPU cancelled");
-       		return;
        	}
         
 	}

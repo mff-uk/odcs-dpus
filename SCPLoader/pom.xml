@@ -8,9 +8,9 @@
 		<version>1.0.0</version>
 	</parent>  
 	<artifactId>SCPLoader</artifactId>
-	<name>SCPLoader</name>
+	<name>SCP Loader</name>
 	<packaging>bundle</packaging>
-	<description>Load content of input file data unit into given ftp.</description>
+	<description>Load content of input file data unit using SCP.</description>
 
 	<properties>       
 		<dpu.package>cz.cuni.mff.xrg.odcs.loader.scp</dpu.package>

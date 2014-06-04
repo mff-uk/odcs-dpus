@@ -32,7 +32,13 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import org.openrdf.model.*;
 import org.slf4j.Logger;
 
 @AsExtractor
@@ -48,7 +54,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 	public FileDataUnit tableFiles;
 	
 	@OutputDataUnit(name = "triplifiedTables")
-	public RDFDataUnit triplifiedTables;
+	public WritableRDFDataUnit triplifiedTables;
 
 	public CZSOVDBExtractor() {
 		super(CZSOVDBExtractorConfig.class);
@@ -59,7 +65,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		return new CZSOVDBExtractorDialog();
 	}
 
-	private void processTabularFile(File tableFile, DPUContext context)	{
+	private void processTabularFile(File tableFile, DPUContext context) throws OperationFailedException {
 		
 		if ( tableFile == null )	{
 			context.sendMessage(MessageType.ERROR, "No file found in the input file data unit.");
@@ -71,10 +77,10 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		LinkedHashMap<Integer, String> propertyMap = this.config.getColumnPropertyMap();
 		if ( propertyMap == null )	{
 			LOG.warn("No mapping of table columns to RDF properties has been specified.");
-			propertyMap = new LinkedHashMap<Integer, String>();
+			propertyMap = new LinkedHashMap<>();
 		}
 		LinkedHashMap<Coordinates, String> fixedValueMap = this.config.getFixedValueMap();
-		HashMap<Integer, HashMap<Integer, String>> optimizedFixedValueMap = new HashMap<Integer, HashMap<Integer, String>>(); 
+		HashMap<Integer, HashMap<Integer, String>> optimizedFixedValueMap = new HashMap<>(); 
 		if ( fixedValueMap == null )	{
 			LOG.warn("No mapping of cells to fixed value properties has been specified.");
 		} else {
@@ -87,14 +93,14 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 					if ( optimizedFixedValueMap.containsKey(row) )	{
 						rowMap = optimizedFixedValueMap.get(row);
 					} else {
-						rowMap = new HashMap<Integer, String>();
+						rowMap = new HashMap<>();
 						optimizedFixedValueMap.put(row, rowMap);
 					}
 					rowMap.put(column, fixedValueMap.get(coordinates));
 				}
 			}
 		}
-		ArrayList<String[]> fixedPropertyValueTypeTriples = new ArrayList<String[]>();
+		ArrayList<String[]> fixedPropertyValueTypeTriples = new ArrayList<>();
 		String baseURI = this.config.getBaseURI();
 		if ( baseURI == null || "".equals(baseURI) )	{
 			LOG.warn("No base for URIs of resources extracted from rows of the table has been specified. Default base will be applied (http://linked.opendata.cz/resource/odcs/tabular/" + tableFileName + "/row/)");
@@ -111,21 +117,20 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			columnWithURISupplement = 0;
 		}
 		
-		try	{
+		final SimpleRdfWrite triplifiedTableWrap = new SimpleRdfWrite(triplifiedTables, context);
+		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
+		final ValueFactory valueFactory = triplifiedTableWrap.getValueFactory();
 		
-			Workbook wb = WorkbookFactory.create(tableFile);
-			
+		try	{		
+			Workbook wb = WorkbookFactory.create(tableFile);			
 			int numberOfSheets = wb.getNumberOfSheets();
 			
 			for ( int i = 0; i < numberOfSheets; i++ )	{
-			
+				
 				Sheet sheet = wb.getSheetAt(0);
-				
 				String sheetURI = "sheet/" + i + "/";
-				
 				int dataEndAtRow = sheet.getLastRowNum();
-			
-				URI propertyRow = triplifiedTables.createURI(baseODCSPropertyURI + "row");
+				URI propertyRow = valueFactory.createURI(baseODCSPropertyURI + "row");
 				
 				for ( int rowCounter = 0; rowCounter <= dataEndAtRow; rowCounter++ )	{
 					
@@ -150,10 +155,8 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 								}
 							} else {
 								suffixURI = (new Integer(rowCounter)).toString();
-							}
-							
-							subj = triplifiedTables.createURI(baseURI + sheetURI + "row/" + suffixURI);
-														
+							}							
+							subj = valueFactory.createURI(baseURI + sheetURI + "row/" + suffixURI);														
 						}
 						
 						for ( int columnCounter = 0; columnCounter <= columnEnd; columnCounter++ )	{
@@ -175,14 +178,14 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 										propertyURI = baseODCSPropertyURI + "column" + key.toString();
 									}
 									
+									Value obj;
 									if ( value[0] == null || "".equals(value[0]) )	{
-										URI obj = triplifiedTables.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
-										triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
+										obj = valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/tabular/blank-cell");
 									} else {
-								        Value obj = triplifiedTables.createLiteral(value[0], triplifiedTables.createURI(value[1]));
-								        triplifiedTables.addTriple(subj, triplifiedTables.createURI(propertyURI), obj);
+								        obj = valueFactory.createLiteral(value[0], valueFactory.createURI(value[1]));
 									}
 									
+									triplifiedTableWrap.add(subj, valueFactory.createURI(propertyURI), obj);
 								}
 								
 								if ( value[0] != null && !"".equals(value[0]) && rowMapWithDimensionValues != null )	{
@@ -194,27 +197,23 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 										globalPropertyValueTriple[0] = propertyURI;
 										globalPropertyValueTriple[1] = value[0];
 										globalPropertyValueTriple[2] = value[1];
-										fixedPropertyValueTypeTriples.add(globalPropertyValueTriple);
-										
-									}
-									
-								}
-								
-							}
+										fixedPropertyValueTypeTriples.add(globalPropertyValueTriple);										
+									}									
+								}								
+							}							
+						}
+						
+						if ( subj != null )	{						
+							Value rowvalue = valueFactory.createLiteral(new Integer(rowCounter).toString(), valueFactory.createURI("http://www.w3.org/2001/XMLSchema#int"));
+					        triplifiedTableWrap.add(subj, propertyRow, rowvalue);
 							
-						}
-						
-						if ( subj != null )	{
-						
-							Value rowvalue = triplifiedTables.createLiteral(new Integer(rowCounter).toString(), triplifiedTables.createURI("http://www.w3.org/2001/XMLSchema#int"));
-					        triplifiedTables.addTriple(subj, propertyRow, rowvalue);
-
 					        for (String[] globalPropertyValueTriple : fixedPropertyValueTypeTriples) {
-								triplifiedTables.addTriple(subj, triplifiedTables.createURI(globalPropertyValueTriple[0]), triplifiedTables.createLiteral(globalPropertyValueTriple[1], triplifiedTables.createURI(globalPropertyValueTriple[2])));
-							}
-					        
-						}
-				        
+								triplifiedTableWrap.add(
+										subj, 
+										valueFactory.createURI(globalPropertyValueTriple[0]),
+										valueFactory.createLiteral(globalPropertyValueTriple[1], valueFactory.createURI(globalPropertyValueTriple[2])));
+							}							
+						}				        
 					}
 				        
 					if ( (rowCounter % 1000) == 1 )	{
@@ -222,29 +221,22 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 					}
 					
 					if (context.canceled()) {
-			       		LOG.info("DPU cancelled");
-			       		
+			       		LOG.info("DPU cancelled");			       		
 			       		return;
-			       	}
-					
-				}
-				
-				LOG.debug("All " + dataEndAtRow + " rows of sheet " + i + " processed.");
-			}
-			
+			       	}					
+				}				
+				LOG.debug("All " + dataEndAtRow + " rows of sheet " + i + " processed.");			
+			}			
 			LOG.debug("All sheets processed.");
-			
 		} catch (IOException e)	{
 			context.sendMessage(MessageType.ERROR, "I/O exception when creating a workbook from the file with a table " + tableFile.getName() + ".");
-        	return;
 		} catch (InvalidFormatException e)	{
 			context.sendMessage(MessageType.ERROR, "Invalid format of the file with a table " + tableFile.getName() + " (it is not a XLS or XLSX file).");
-        	return;
 		} catch (IllegalArgumentException e)	{
 			context.sendMessage(MessageType.ERROR, e.getMessage());
-        	return;
 		}
 		
+		triplifiedTableWrap.flushBuffer();
 	}
 	
 	@Override
@@ -252,7 +244,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			DataUnitException {
 		
 		DirectoryHandler rootHandler = tableFiles.getRootDir();
-		File tableFile = null;
+		File tableFile;
 		for (Handler handler : rootHandler) {
 			if ( handler instanceof FileHandler )	{
 				FileHandler fileHandler = (FileHandler) handler;
@@ -260,9 +252,6 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 				this.processTabularFile(tableFile, context);
 			}
 		}
-		
-		
-
 	}
 	
 	/**
@@ -311,8 +300,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
             return result;
         case Cell.CELL_TYPE_FORMULA:
             throw new IllegalArgumentException("The cell contains a formula " + cell.getCellFormula());
-		}
-		
+		}		
 		return result;
 	}
 	

@@ -26,6 +26,7 @@ import com.google.code.geocoder.GeocoderRequestBuilder;
 import com.google.code.geocoder.model.GeocodeResponse;
 import com.google.code.geocoder.model.GeocoderRequest;
 import com.google.code.geocoder.model.GeocoderStatus;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
@@ -38,10 +39,16 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
-import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import org.apache.commons.io.*;
+import org.openrdf.model.*;
+import org.openrdf.query.TupleQueryResult;
 
 @AsExtractor
 public class Extractor 
@@ -54,11 +61,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	private int geocodes = 0;
 	private int cacheHits = 0;
 	
-	@InputDataUnit(name = "Schema.org addresses")
+	@InputDataUnit(name = "Saddresses")
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -104,25 +111,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return count;
 	}
 	
-	public void execute(DPUContext ctx) throws DPUException
+	@Override
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
+		
+		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
+		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
+		
+		final SimpleRdfRead addrValueFacWrap = new SimpleRdfRead(sAddresses, ctx);
+		final ValueFactory addrValueFac = addrValueFacWrap.getValueFactory();
 
-		URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
-		URI googleURI = outGeo.createURI("https://developers.google.com/maps/documentation/javascript/geocoding");
-		URI geoURI = outGeo.createURI("http://schema.org/geo");
-		URI geocoordsURI = outGeo.createURI("http://schema.org/GeoCoordinates");
-		URI postalAddressURI = sAddresses.createURI("http://schema.org/PostalAddress");
-		URI streetAddressURI = sAddresses.createURI("http://schema.org/streetAddress");
-		URI addressRegionURI = sAddresses.createURI("http://schema.org/addressRegion");
-		URI addressLocalityURI = sAddresses.createURI("http://schema.org/addressLocality");
-		URI addressCountryURI = sAddresses.createURI("http://schema.org/addressCountry");
-		URI postalCodeURI = sAddresses.createURI("http://schema.org/postalCode");
-		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
-		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
-		URI longURI = outGeo.createURI("http://schema.org/longitude");
-		URI latURI = outGeo.createURI("http://schema.org/latitude");
 		String countQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
@@ -155,153 +155,33 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					+ "UNION { ?address s:postalCode ?postal . } "
 					+ "UNION { ?address s:addressCountry ?country . } "
 				+ " }";*/
-
 		LOG.debug("Geocoder init");
 		
 		int total = 0;
 		int ngc = 0;
-		int count = 0;
 		int failed = 0;
-		try {
-			MyTupleQueryResultIf countres = sAddresses.executeSelectQueryAsTuples(countQuery);
+		try (ConnectionPair<TupleQueryResult> query = addrValueFacWrap.executeSelectQuery(countQuery))		
+		{
+			final TupleQueryResult countres = query.getObject();
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
 			total = Integer.parseInt(countres.next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses"/* + ngc + " not geocoded yet."*/);
-		} catch (InvalidQueryException e1) {
-			LOG.error(e1.getLocalizedMessage());
-		} catch (NumberFormatException e) {
-			LOG.error(e.getLocalizedMessage());
-		} catch (QueryEvaluationException e) {
-			LOG.error(e.getLocalizedMessage());
+		} catch (NumberFormatException | QueryEvaluationException e) {
+			LOG.error("Failed to query and parse value.", e);
 		}
 
-		try {
-			
-			//Schema.org addresses
-			LOG.debug("Executing Schema.org query: " + sOrgConstructQuery);
-			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
-			Graph resGraph = sAddresses.executeConstructQuery(sOrgConstructQuery);
-			
-			LOG.debug("Starting geocoding.");
-			
-			URI[] propURIs = new URI [] {streetAddressURI, addressLocalityURI, addressRegionURI, postalCodeURI, addressCountryURI};
-			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
-			
-			int cachedToday = countTodaysCacheFiles(ctx);
-			int toCache = (config.getLimit() - cachedToday);
-
-			long lastDownload = 0;
-			while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
-			{
-				count++;
-				Resource currentAddressURI = it.next().getSubject();
-				StringBuilder addressToGeoCode = new StringBuilder();
-				
-				for (URI currentPropURI : propURIs)
-				{
-					Iterator<Statement> it1 = resGraph.match(currentAddressURI, currentPropURI, null); 
-					
-					if (it1.hasNext())
-					{
-						Value currentValue = it1.next().getObject();
-						if (currentValue != null)
-						{
-							//logger.trace("Currently " + currentBinding);
-							String currentValueString = currentValue.stringValue();
-							//logger.trace("Value " + currentValueString);
-							addressToGeoCode.append(currentValueString);
-							addressToGeoCode.append(" ");
-						}
-					}
-				}				
-				
-				String address = addressToGeoCode.toString();
-				LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
-								
-				//CACHE
-				String file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");
-				File hPath = ctx.getGlobalDirectory();
-				File hFile = new File(hPath, file);
-				GeocoderRequest geocoderRequest = null;
-				GeocodeResponse geocoderResponse = null;
-				
-				if (!hFile.exists())
-				{
-					long curTS = date.getTime();
-					if (lastDownload + config.getInterval() > curTS)
-					{
-						LOG.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
-						try {
-							Thread.sleep(lastDownload + config.getInterval() - curTS);
-						} catch (InterruptedException e) {
-							LOG.info("Interrupted while sleeping");
-						}
-					}
-					
-					geocoderRequest = new GeocoderRequestBuilder().setAddress(address).setLanguage("en").getGeocoderRequest();
-					geocoderResponse = geocoder.geocode(geocoderRequest);
-					lastDownload = date.getTime();
-					
-					geocodes++;
-					GeocoderStatus s = geocoderResponse.getStatus();
-					if (s == GeocoderStatus.OK) {
-						LOG.debug("Googled (" + geocodes + "): " + address);
-						
-						try {
-							BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-							fw.append(geocoderResponse.toString());
-							fw.close();
-						} catch (Exception e) {
-							LOG.error(e.getLocalizedMessage());
-						}
-						//CACHED
-					}
-					else if (s == GeocoderStatus.ZERO_RESULTS) {
-						LOG.warn("Zero results for: " + address);
-						continue;
-					}
-					else {
-						LOG.error("Status: " + geocoderResponse.getStatus() + " " + address);
-						break;
-					}
-				}
-				else {
-					cacheHits++;
-					LOG.debug("From cache (" + cacheHits + "): " + address);
-				}
-				
-				//READ FROM FILE - NOW IT EXISTS
-				String cachedFile = null;
-				try {
-					cachedFile = FileUtils.readFileToString(hFile);
-				} catch (IOException e) {
-					LOG.error(e.getLocalizedMessage());
-				}
-				
-				int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
-				String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation)); 
-				
-				BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
-				BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
-				
-				LOG.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
-				
-				String uri = currentAddressURI.stringValue();
-				URI addressURI = outGeo.createURI(uri);
-				URI coordURI = outGeo.createURI(uri+"/geocoordinates/google");
-				
-				outGeo.addTriple(addressURI, geoURI , coordURI);
-				outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
-				outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
-				outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
-				outGeo.addTriple(coordURI, dcsource, googleURI);
-			}
-			if (ctx.canceled()) LOG.info("Cancelled");
-			
-		} catch (InvalidQueryException e) {
-			LOG.error(e.getLocalizedMessage());
+		//Schema.org addresses
+		LOG.debug("Executing Schema.org query: " + sOrgConstructQuery);
+		//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
+		int count;
+		
+		// we use try catch resource for query handlig
+		try (ConnectionPair<Graph> resGraphWrap = addrValueFacWrap.executeConstructQuery(sOrgConstructQuery)) {
+			count = geocode(ctx, total, date, geoValueFac, addrValueFac, geoValueFacWrap, resGraphWrap.getObject());
 		}
+		
+		if (ctx.canceled()) LOG.info("Cancelled");
 
        	LOG.info("Geocoding done.");
 
@@ -310,6 +190,143 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Googled: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
 
+	}
+
+	private int geocode(DPUContext ctx, int total,
+			Date date, final ValueFactory geoValueFac, 
+			final ValueFactory addrValueFac,
+			final SimpleRdfWrite geoValueFacWrap, 
+			final Graph resGraph) throws OperationFailedException {
+		
+		int count = 0;
+		
+		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");
+		URI googleURI = geoValueFac.createURI("https://developers.google.com/maps/documentation/javascript/geocoding");
+		URI geoURI = geoValueFac.createURI("http://schema.org/geo");
+		URI geocoordsURI = geoValueFac.createURI("http://schema.org/GeoCoordinates");
+		URI postalAddressURI = addrValueFac.createURI("http://schema.org/PostalAddress");
+		URI streetAddressURI = addrValueFac.createURI("http://schema.org/streetAddress");
+		URI addressRegionURI = addrValueFac.createURI("http://schema.org/addressRegion");
+		URI addressLocalityURI = addrValueFac.createURI("http://schema.org/addressLocality");
+		URI addressCountryURI = addrValueFac.createURI("http://schema.org/addressCountry");
+		URI postalCodeURI = addrValueFac.createURI("http://schema.org/postalCode");
+		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
+		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
+		URI longURI = geoValueFac.createURI("http://schema.org/longitude");
+		URI latURI = geoValueFac.createURI("http://schema.org/latitude");		
+		
+		LOG.debug("Starting geocoding.");
+		URI[] propURIs = new URI [] {streetAddressURI, addressLocalityURI, addressRegionURI, postalCodeURI, addressCountryURI};
+		Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
+		int cachedToday = countTodaysCacheFiles(ctx);
+		int toCache = (config.getLimit() - cachedToday);
+		long lastDownload = 0;
+		while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
+		{
+			count++;
+			Resource currentAddressURI = it.next().getSubject();
+			StringBuilder addressToGeoCode = new StringBuilder();
+
+			for (URI currentPropURI : propURIs)
+			{
+				Iterator<Statement> it1 = resGraph.match(currentAddressURI, currentPropURI, null);
+				
+				if (it1.hasNext())
+				{
+					Value currentValue = it1.next().getObject();
+					if (currentValue != null)
+					{
+						//logger.trace("Currently " + currentBinding);
+						String currentValueString = currentValue.stringValue();
+						//logger.trace("Value " + currentValueString);
+						addressToGeoCode.append(currentValueString);
+						addressToGeoCode.append(" ");
+					}
+				}
+			}
+			
+			String address = addressToGeoCode.toString();
+			LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
+
+			//CACHE
+			String file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");
+			File hPath = ctx.getGlobalDirectory();
+			File hFile = new File(hPath, file);
+			GeocoderRequest geocoderRequest;
+			GeocodeResponse geocoderResponse;
+
+			if (!hFile.exists())
+			{
+				long curTS = date.getTime();
+				if (lastDownload + config.getInterval() > curTS)
+				{
+					LOG.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
+					try {
+						Thread.sleep(lastDownload + config.getInterval() - curTS);
+					} catch (InterruptedException e) {
+						LOG.info("Interrupted while sleeping");
+					}
+				}
+
+				geocoderRequest = new GeocoderRequestBuilder().setAddress(address).setLanguage("en").getGeocoderRequest();
+				geocoderResponse = geocoder.geocode(geocoderRequest);
+				lastDownload = date.getTime();
+
+				geocodes++;
+				GeocoderStatus s = geocoderResponse.getStatus();
+				if (s == GeocoderStatus.OK) {
+					LOG.debug("Googled (" + geocodes + "): " + address);
+
+					try {
+						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+						fw.append(geocoderResponse.toString());
+						fw.close();
+					} catch (IOException e) {
+						LOG.error("Failed to write data.", e);
+					}
+					//CACHED
+				}
+				else if (s == GeocoderStatus.ZERO_RESULTS) {
+					LOG.warn("Zero results for: " + address);
+					continue;
+				}
+				else {
+					LOG.error("Status: " + geocoderResponse.getStatus() + " " + address);
+					break;
+				}
+			}
+			else {
+				cacheHits++;
+				LOG.debug("From cache (" + cacheHits + "): " + address);
+			}
+
+			//READ FROM FILE - NOW IT EXISTS
+			String cachedFile = null;
+			try {
+				cachedFile = FileUtils.readFileToString(hFile);
+			} catch (IOException e) {
+				LOG.error(e.getLocalizedMessage());
+			}
+
+			int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
+			String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation));
+			
+			BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
+			BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
+
+			LOG.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
+
+			String uri = currentAddressURI.stringValue();
+			URI addressURI = geoValueFac.createURI(uri);
+			URI coordURI = geoValueFac.createURI(uri+"/geocoordinates/google");
+
+			geoValueFacWrap.add(addressURI, geoURI , coordURI);
+			geoValueFacWrap.add(coordURI, RDF.TYPE, geocoordsURI);
+			geoValueFacWrap.add(coordURI, longURI, geoValueFac.createLiteral(longitude.toString()/*, xsdDecimal*/));
+			geoValueFacWrap.add(coordURI, latURI, geoValueFac.createLiteral(latitude.toString()/*, xsdDecimal*/));
+			geoValueFacWrap.add(coordURI, dcsource, googleURI);
+		}
+		return count;
 	}
 
 	@Override

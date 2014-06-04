@@ -34,26 +34,25 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 
 import org.apache.commons.io.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
-import cz.cuni.mff.xrg.odcs.rdf.help.MyTupleQueryResultIf;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.*;
+import org.openrdf.model.*;
+import org.openrdf.query.TupleQueryResult;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	private Logger logger = LoggerFactory.getLogger(DPU.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 	private int geocodes = 0;
 	private int cacheHits = 0;
 	
@@ -61,7 +60,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public RDFDataUnit sAddresses;
 
 	@OutputDataUnit(name = "Geocoordinates")
-	public RDFDataUnit outGeo;	
+	public WritableRDFDataUnit outGeo;	
 	
 	public Extractor() {
 		super(ExtractorConfig.class);
@@ -86,6 +85,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 	
 	public class GeoInstanceCreator implements InstanceCreator<Geo> {
+	   @Override
 	   public Geo createInstance(Type type) {
 	     return new Geo();
 	   }
@@ -114,7 +114,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				try {
 					modified = sdf.parse(sdf.format(currentFile.lastModified()));
 				} catch (ParseException e) {
-					logger.error(e.getLocalizedMessage());
+					LOG.error(e.getLocalizedMessage());
 				}
 				long diff = (now.getTime() - modified.getTime()) / 1000;
 				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
@@ -122,7 +122,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
 			}
 		}
-		logger.info("Total of " + count + " positions cached in last " + config.getHoursToCheck() + " hours. " + (config.getLimit() - count) + " remaining.");
+		LOG.info("Total of " + count + " positions cached in last " + config.getHoursToCheck() + " hours. " + (config.getLimit() - count) + " remaining.");
 		return count;
 	}
 	
@@ -138,7 +138,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
         }
         catch (Exception e)
         {
-        	e.printStackTrace();
+        	LOG.error("String conversion failed", e);
         }
 
 	    return sResponse;
@@ -158,26 +158,20 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		return currentValueString;
 	}
 	
-	public void execute(DPUContext ctx) throws DPUException
+	@Override
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 	    Gson gson = new GsonBuilder().registerTypeAdapter(Geo.class, new GeoInstanceCreator()).create();
-
-		URI dcsource = outGeo.createURI("http://purl.org/dc/terms/source");
-		URI nominatimURI = outGeo.createURI("http://nominatim.openstreetmap.org");
-		URI geoURI = outGeo.createURI("http://schema.org/geo");
-		URI geocoordsURI = outGeo.createURI("http://schema.org/GeoCoordinates");
-		URI postalAddressURI = sAddresses.createURI("http://schema.org/PostalAddress");
-		URI streetAddressURI = sAddresses.createURI("http://schema.org/streetAddress");
-		URI addressRegionURI = sAddresses.createURI("http://schema.org/addressRegion");
-		URI addressLocalityURI = sAddresses.createURI("http://schema.org/addressLocality");
-		URI addressCountryURI = sAddresses.createURI("http://schema.org/addressCountry");
-		URI postalCodeURI = sAddresses.createURI("http://schema.org/postalCode");
-		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
-		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
-		URI longURI = outGeo.createURI("http://schema.org/longitude");
-		URI latURI = outGeo.createURI("http://schema.org/latitude");
+		
+		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);
+		geoValueFacWrap.setPolicy(AddPolicy.BUFFERED);
+		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
+		
+		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
+		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();		
+		
 		String countQuery = "PREFIX s: <http://schema.org/> "
 				+ "SELECT (COUNT (*) as ?count) "
 				+ "WHERE "
@@ -200,178 +194,192 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 //					+ "FILTER NOT EXISTS {?address s:geo ?geo}"
 				+  "}"; 
 
-		logger.debug("Geocoder init");
+		LOG.debug("Geocoder init");
 		
 		int total = 0;
-		int ngc = 0;
-		int count = 0;
-		int failed = 0;
-		try {
-			MyTupleQueryResultIf countres = sAddresses.executeSelectQueryAsTuples(countQuery);
+		
+		
+		try (ConnectionPair<TupleQueryResult> countres = sAddressesWrap.executeSelectQuery(countQuery)) {
 			//MyTupleQueryResult countnotGC = sAddresses.executeSelectQueryAsTuples(notGCcountQuery);
-			total = Integer.parseInt(countres.next().getValue("count").stringValue());
+			total = Integer.parseInt(countres.getObject().next().getValue("count").stringValue());
 			//ngc = Integer.parseInt(countnotGC.next().getValue("count").stringValue());
 			ctx.sendMessage(MessageType.INFO, "Found " + total + " addresses");
-		} catch (InvalidQueryException e1) {
-			logger.error(e1.getLocalizedMessage());
-		} catch (NumberFormatException e) {
-			logger.error(e.getLocalizedMessage());
-		} catch (QueryEvaluationException e) {
-			logger.error(e.getLocalizedMessage());
+		} catch (NumberFormatException | QueryEvaluationException e) {
+			LOG.error("Failed to query and parse data", e);
 		}
 
-		try {
-			
-			//Schema.org addresses
-			logger.debug("Executing Schema.org query: " + sOrgConstructQuery);
-			//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
-			Graph resGraph = sAddresses.executeConstructQuery(sOrgConstructQuery);
-			
-			logger.debug("Starting geocoding.");
-			
-			Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
-			
-			int cachedToday = countTodaysCacheFiles(ctx);
-			int toCache = (config.getLimit() - cachedToday);
+		//Schema.org addresses
+		LOG.debug("Executing Schema.org query: " + sOrgConstructQuery);
+		//MyTupleQueryResult res = sAddresses.executeSelectQueryAsTuples(sOrgQuery);
+		try (ConnectionPair<Graph> resGraph = sAddressesWrap.executeConstructQuery(sOrgConstructQuery)) {
+			// geocode
+			geocode(geoValueFac, addrValueFac, resGraph.getObject(), ctx, total, date, gson, geoValueFacWrap, start);
+		}
+		
+		geoValueFacWrap.flushBuffer();
+		
+		if (ctx.canceled()) LOG.info("Cancelled");		
+		LOG.info("Geocoding done.");		
+	}
 
-			long lastDownload = 0;
-			while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
+	private void geocode(final ValueFactory geoValueFac,
+			final ValueFactory addrValueFac, Graph resGraph, DPUContext ctx,
+			int total, Date date, Gson gson,
+			final SimpleRdfWrite geoValueFacWrap, long start) throws OperationFailedException {
+		
+		int count = 0;
+		int failed = 0;
+		
+		URI dcsource = geoValueFac.createURI("http://purl.org/dc/terms/source");
+		URI nominatimURI = geoValueFac.createURI("http://nominatim.openstreetmap.org");
+		URI geoURI = geoValueFac.createURI("http://schema.org/geo");
+		URI geocoordsURI = geoValueFac.createURI("http://schema.org/GeoCoordinates");
+		URI postalAddressURI = addrValueFac.createURI("http://schema.org/PostalAddress");
+		URI streetAddressURI = addrValueFac.createURI("http://schema.org/streetAddress");
+		URI addressRegionURI = addrValueFac.createURI("http://schema.org/addressRegion");
+		URI addressLocalityURI = addrValueFac.createURI("http://schema.org/addressLocality");
+		URI addressCountryURI = addrValueFac.createURI("http://schema.org/addressCountry");
+		URI postalCodeURI = addrValueFac.createURI("http://schema.org/postalCode");
+		//URI xsdDouble = outGeo.createURI("http://www.w3.org/2001/XMLSchema#double");
+		//URI xsdDecimal = outGeo.createURI("http://www.w3.org/2001/XMLSchema#decimal");
+		URI longURI = geoValueFac.createURI("http://schema.org/longitude");
+		URI latURI = geoValueFac.createURI("http://schema.org/latitude");	
+		
+		LOG.debug("Starting geocoding.");
+
+		Iterator<Statement> it = resGraph.match(null, RDF.TYPE, postalAddressURI);
+
+		int cachedToday = countTodaysCacheFiles(ctx);
+		int toCache = (config.getLimit() - cachedToday);
+
+		long lastDownload = 0;
+		while (it.hasNext() && !ctx.canceled() && geocodes <= toCache)
+		{
+			count++;
+			Resource currentAddressURI = it.next().getSubject();
+
+			String streetAddress, addressLocality, addressRegion, postalCode, addressCountry;
+
+			streetAddress = getAddressPart(currentAddressURI, streetAddressURI, resGraph);
+			addressLocality = getAddressPart(currentAddressURI, addressLocalityURI, resGraph);
+			addressRegion = getAddressPart(currentAddressURI, addressRegionURI, resGraph);
+			postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
+			//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
+			//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
+			
+			String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " "
+					+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " "
+					+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " "
+					+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " "
+					+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
+			LOG.debug("Address to geocode (" + count + "/" + total + "): " + address);
+
+			String file;
+			if (config.isStructured())
 			{
-				count++;
-				Resource currentAddressURI = it.next().getSubject();
-				
-				String streetAddress, addressLocality, addressRegion, postalCode, addressCountry;
-				
-				streetAddress = getAddressPart(currentAddressURI, streetAddressURI, resGraph);
-				addressLocality = getAddressPart(currentAddressURI, addressLocalityURI, resGraph);
-				addressRegion = getAddressPart(currentAddressURI, addressRegionURI, resGraph);
-				postalCode = getAddressPart(currentAddressURI, postalCodeURI, resGraph);
-				//TODO: address can be either 2letter country code or link to s:Country. so far it is manual.
-				//addressCountry = getAddressPart(currentAddressURI, addressCountryURI, resGraph);
-				
-				String address = (config.getCountry().isEmpty() ? "" : config.getCountry()) + " " 
-				+ ((config.isUsePostalCode() && postalCode != null) ? postalCode : "")  + " " 
-				+ ((config.isUseRegion() && addressRegion != null) ? addressRegion : "") + " " 
-				+ ((config.isUseStreet() && streetAddress != null) ? streetAddress : "") + " " 
-				+ ((config.isUseLocality() && addressLocality != null) ? (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "");
-				logger.debug("Address to geocode (" + count + "/" + total + "): " + address);
-								
-				String file;
-				if (config.isStructured())
+				file = "structured-" + address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
+			}
+			else
+			{
+				file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
+			}
+			//CACHE
+
+			File hPath = ctx.getGlobalDirectory();
+			File hFile = new File(hPath, file);
+
+			if (!hFile.exists())
+			{
+				long curTS = date.getTime();
+				if (lastDownload + config.getInterval() > curTS)
 				{
-					file = "structured-" + address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
-				}
-				else
-				{
-					file = address.replace(" ", "-").replace("?", "-").replace("/", "-").replace("\\", "-");	
-				}
-				//CACHE
-				
-				File hPath = ctx.getGlobalDirectory();
-				File hFile = new File(hPath, file);
-				
-				if (!hFile.exists())
-				{
-					long curTS = date.getTime();
-					if (lastDownload + config.getInterval() > curTS)
-					{
-						logger.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
-						try {
-							Thread.sleep(lastDownload + config.getInterval() - curTS);
-						} catch (InterruptedException e) {
-							logger.info("Interrupted while sleeping");
-						}
-					}
-					
-					String url;
-					if (config.isStructured()) {
-						url = "http://nominatim.openstreetmap.org/search?format=json" 
-								+ (config.isUseStreet() ? "&street=" + streetAddress : "") 
-								+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" ) 
-								+ (config.getCountry().isEmpty() ? "" : "&state=" + config.getCountry()) 
-								+ (config.isUsePostalCode() ? "&postalcode=" + postalCode : "")
-								+ (config.isUseRegion() ? "&county=" + addressRegion : "");
-						//url = url.replace(" ", "+");
-					}
-					else {
-						url = "http://nominatim.openstreetmap.org/search?format=json&q=" + address.replace(" ", "+");
-					}
-					
-					String out = null;
+					LOG.debug("Sleeping: " + (lastDownload + config.getInterval() - curTS));
 					try {
-						out = getURLContent(url.toString());
-					} catch (IOException e1) {
-						logger.error(e1.getLocalizedMessage() +" while geocoding " +  address);
+						Thread.sleep(lastDownload + config.getInterval() - curTS);
+					} catch (InterruptedException e) {
+						LOG.info("Interrupted while sleeping");
 					}
-					lastDownload = date.getTime();
-					
-					geocodes++;
-					logger.debug("Queried Nominatim (" + geocodes + "): " + address);
-					
-					try {
-						BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-						fw.append(out);
-						fw.close();
-					} catch (Exception e) {
-						logger.error(e.getLocalizedMessage());
-						e.printStackTrace();
-					}
-					//CACHED
+				}
+
+				String url;
+				if (config.isStructured()) {
+					url = "http://nominatim.openstreetmap.org/search?format=json"
+							+ (config.isUseStreet() ? "&street=" + streetAddress : "")
+							+ (config.isUseLocality() ? "&city=" + (config.isStripNumFromLocality() ? addressLocality.replaceAll("[0-9]",  "").replace(" (I)+", "") : addressLocality) : "" )
+							+ (config.getCountry().isEmpty() ? "" : "&state=" + config.getCountry()) 
+							+ (config.isUsePostalCode() ? "&postalcode=" + postalCode : "")
+							+ (config.isUseRegion() ? "&county=" + addressRegion : "");
+					//url = url.replace(" ", "+");
 				}
 				else {
-					cacheHits++;
-					logger.debug("From cache (" + cacheHits + "): " + address);
+					url = "http://nominatim.openstreetmap.org/search?format=json&q=" + address.replace(" ", "+");
 				}
-				
-				//READ FROM FILE - NOW IT EXISTS
-				String cachedFile = null;
+
+				String out = null;
 				try {
-					cachedFile = FileUtils.readFileToString(hFile);
-				} catch (IOException e) {
-					logger.error(e.getLocalizedMessage());
+					out = getURLContent(url.toString());
+				} catch (IOException e1) {
+					LOG.error(e1.getLocalizedMessage() +" while geocoding " +  address);
 				}
-				
+				lastDownload = date.getTime();
+
+				geocodes++;
+				LOG.debug("Queried Nominatim (" + geocodes + "): " + address);
+
 				try {
-					Geo[] gs = gson.fromJson(cachedFile, Geo[].class);
-					if (gs == null || gs.length == 0) {
-						failed++;
-						logger.debug("Failed to geolocate (" + failed + "): " + address);
-						continue;
-					}
-					
-					BigDecimal latitude = new BigDecimal(gs[0].lat);
-					BigDecimal longitude = new BigDecimal(gs[0].lon);
-					
-					logger.debug("Located: " + address + " Possibilities: " + gs.length + " Latitude: " + latitude + " Longitude: " + longitude);
-					
-					String uri = currentAddressURI.stringValue();
-					URI addressURI = outGeo.createURI(uri);
-					URI coordURI = outGeo.createURI(uri+"/geocoordinates/nominatim");
-					
-					outGeo.addTriple(addressURI, geoURI , coordURI);
-					outGeo.addTriple(coordURI, RDF.TYPE, geocoordsURI);
-					outGeo.addTriple(coordURI, longURI, outGeo.createLiteral(longitude.toString()/*, xsdDecimal*/));
-					outGeo.addTriple(coordURI, latURI, outGeo.createLiteral(latitude.toString()/*, xsdDecimal*/));
-					outGeo.addTriple(coordURI, dcsource, nominatimURI);
+					BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
+					fw.append(out);
+					fw.close();
 				} catch (Exception e) {
-					logger.warn(e.getLocalizedMessage());
-					e.printStackTrace();
+					LOG.error("Failed to write data.", e);
 				}
-				
+				//CACHED
 			}
-			if (ctx.canceled()) logger.info("Cancelled");
-			
-		} catch (InvalidQueryException e) {
-			logger.error(e.getLocalizedMessage());
+			else {
+				cacheHits++;
+				LOG.debug("From cache (" + cacheHits + "): " + address);
+			}
+
+			//READ FROM FILE - NOW IT EXISTS
+			String cachedFile = null;
+			try {
+				cachedFile = FileUtils.readFileToString(hFile);
+			} catch (IOException e) {
+				LOG.error(e.getLocalizedMessage());
+			}
+
+			try {
+				Geo[] gs = gson.fromJson(cachedFile, Geo[].class);
+				if (gs == null || gs.length == 0) {
+					failed++;
+					LOG.debug("Failed to geolocate (" + failed + "): " + address);
+					continue;
+				}
+
+				BigDecimal latitude = new BigDecimal(gs[0].lat);
+				BigDecimal longitude = new BigDecimal(gs[0].lon);
+
+				LOG.debug("Located: " + address + " Possibilities: " + gs.length + " Latitude: " + latitude + " Longitude: " + longitude);
+
+				String uri = currentAddressURI.stringValue();
+				URI addressURI = geoValueFac.createURI(uri);
+				URI coordURI = geoValueFac.createURI(uri+"/geocoordinates/nominatim");
+
+				geoValueFacWrap.add(addressURI, geoURI , coordURI);
+				geoValueFacWrap.add(coordURI, RDF.TYPE, geocoordsURI);
+				geoValueFacWrap.add(coordURI, longURI, geoValueFac.createLiteral(longitude.toString()/*, xsdDecimal*/));
+				geoValueFacWrap.add(coordURI, latURI, geoValueFac.createLiteral(latitude.toString()/*, xsdDecimal*/));
+				geoValueFacWrap.add(coordURI, dcsource, nominatimURI);
+
+			} catch (Exception e) {
+				LOG.warn("Exception", e);
+			}			
 		}
-
-       	logger.info("Geocoding done.");
-
+		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
 
 		ctx.sendMessage(MessageType.INFO, "Geocoded " + count + ": Nominatim: "+ geocodes +" From cache: " + cacheHits + " in " + (end-start) + "ms, failed attempts: " + failed);
-
 	}
 
 	@Override

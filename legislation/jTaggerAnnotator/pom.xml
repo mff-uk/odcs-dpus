@@ -24,13 +24,12 @@
             <version>1.0.0</version>
             <type>jar</type>
         </dependency>
-        <dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>dataunit-rdf-impl</artifactId>
-			<version>${odcs.version}</version>
-			<type>jar</type>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf-simple</artifactId>
+			<version>1.0.0</version>
 			<scope>provided</scope>
-		</dependency>		
+		</dependency>
     </dependencies>
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>

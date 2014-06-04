@@ -1,10 +1,7 @@
 package cz.opendata.linked.cz.cenia.irz;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
 import org.slf4j.Logger;
@@ -19,8 +16,11 @@ import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @AsExtractor
@@ -28,12 +28,8 @@ public class Extractor
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	@OutputDataUnit
-	public RDFDataUnit outputDataUnit;
+	@OutputDataUnit(name = "output")
+	public WritableRDFDataUnit output;
 
 	private Logger LOG = LoggerFactory.getLogger(DPU.class);
 
@@ -47,8 +43,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
+		SimpleRdfWrite outputWrap = new SimpleRdfWrite(output, ctx);
+		outputWrap.setPolicy(AddPolicy.BUFFERED);
+		
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
@@ -65,7 +64,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Parser s = new Parser();
 		s.logger = LOG;
 		s.ctx = ctx;
-		s.outputDataUnit = outputDataUnit;
+		s.outputDataUnit = outputWrap;
+		s.valueFactory = outputWrap.getValueFactory();
 
 		LOG.info("Starting extraction.");
 		
@@ -91,6 +91,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				LOG.error("IOException", e);
 			}
         	
+			outputWrap.flushBuffer();
+			
 			LOG.info("Parsing done.");
 		} catch (InterruptedException intex) {
 			LOG.error("Interrupted");

@@ -6,7 +6,9 @@ package cz.mff.cuni.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 import java.io.IOException;
 import java.net.URL;
@@ -14,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.jsoup.nodes.Document;
+import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 
 /**
@@ -36,7 +39,7 @@ public abstract class ScrapingTemplate {
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      * @return List of entries for additional scraping.
      */
-    protected abstract LinkedList<ParseEntry> getLinks(Document doc, String docType);
+    protected abstract LinkedList<ParseEntry> getLinks(Document doc, String docType) throws OperationFailedException;
     
     /**
      * This method parses given document with document type and do something
@@ -44,13 +47,13 @@ public abstract class ScrapingTemplate {
      * @param doc Input JSoup document.
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      */
-    protected abstract void parse(Document doc, String docType, URL uri);    
+    protected abstract void parse(Document doc, String docType, URL uri) throws OperationFailedException;    
     
     public DPUContext ctx;
     
     public Logger logger;
 
-    public RDFDataUnit pstats;
+    public SimpleRdfWrite pstats;
     
     public int maxAttempts;
     
@@ -66,8 +69,10 @@ public abstract class ScrapingTemplate {
      * @param type Initial document type.
      * @throws InterruptedException 
      */
-    public void parse(URL initUrl, String type) throws InterruptedException {
-        LinkedList<ParseEntry> toParse = new LinkedList<>();
+    public void parse(URL initUrl, String type) throws InterruptedException, OperationFailedException {
+        ValueFactory valueFactory = pstats.getValueFactory();
+		
+		LinkedList<ParseEntry> toParse = new LinkedList<>();
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type, "html"));
         
@@ -87,7 +92,9 @@ public abstract class ScrapingTemplate {
                 }
                 else {
                 	logger.warn("Skipped: " + p.url.toString());
-                	pstats.addTriple(pstats.createURI(p.url.toString()), pstats.createURI(BPOprefix + "found"), pstats.createLiteral("false", pstats.createURI(xsdPrefix + "boolean")));
+                	pstats.add(valueFactory.createURI(p.url.toString()), 
+							valueFactory.createURI(BPOprefix + "found"), 
+							valueFactory.createLiteral("false", valueFactory.createURI(xsdPrefix + "boolean")));
                 }
             } catch (IOException ex) {
             	logger.warn("Exception: " + ex.getLocalizedMessage());

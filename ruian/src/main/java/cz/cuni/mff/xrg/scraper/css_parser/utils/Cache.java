@@ -30,7 +30,7 @@ public class Cache {
 	    String sResponse = null;
 
         oURL = new URL(p_sURL);
-        oURL.openConnection();
+//        oURL.openConnection();
         try	{
         	sResponse = IOUtils.toString(oURL, "UTF-8");
         }
@@ -48,7 +48,7 @@ public class Cache {
 	    byte[] sResponse = null;
 
         oURL = new URL(p_sURL);
-        oURL.openConnection();
+//        oURL.openConnection();
        	
         sResponse = IOUtils.toByteArray(oURL);
 
@@ -57,12 +57,19 @@ public class Cache {
 	
 	private static void download_and_gunzip(String fromURL, File toFile) throws IOException
 	{
-	    URL oURL = new URL(fromURL);
-	    OutputStream fos = new FileOutputStream(toFile);
-        InputStream is = oURL.openStream();
-        GZIPInputStream gis = new GZIPInputStream(is);
-        
-        IOUtils.copy(gis, fos);
+		GZIPInputStream gis = null;
+		try {
+		    URL oURL = new URL(fromURL);
+		    OutputStream fos = new FileOutputStream(toFile);
+	        InputStream is = oURL.openStream();
+	        gis = new GZIPInputStream(is);
+	        
+	        IOUtils.copy(gis, fos);
+		} finally {
+			if (gis != null) {
+				gis.close();
+			}
+		}
 	}
 	
 	private static String getURLContentAsUnGzippedString(String p_sURL) throws IOException

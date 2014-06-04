@@ -1,13 +1,13 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor;
 
-import cz.cuni.xrg.intlib.commons.configuration.DPUConfigObject;
+import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class JTaggerExtractorConfig implements DPUConfigObject {
+public class JTaggerExtractorConfig extends DPUConfigObjectBase {
     
     
     private String dateTo;
@@ -42,6 +42,6 @@ public class JTaggerExtractorConfig implements DPUConfigObject {
     public boolean isValid() {
         return true;
     }
-    
+
 
 }

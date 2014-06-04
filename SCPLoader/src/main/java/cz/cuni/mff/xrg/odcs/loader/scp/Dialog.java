@@ -1,8 +1,6 @@
 package cz.cuni.mff.xrg.odcs.loader.scp;
 
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 
@@ -25,14 +23,16 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 	
 	private TextField txtDestination;
 	
+	private CheckBox chbSoftFail;
+	
 	public Dialog() {
 		super(Configuration.class);
-		buildMainLayout();
+		buildLayout();
 	}
 	
-	private void buildMainLayout() {
+	private void buildLayout() {
 		mainLayout = new VerticalLayout();
-		mainLayout.setImmediate(false);
+		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
 		
@@ -72,11 +72,21 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		txtDestination = new TextField();
 		txtDestination.setWidth("100%");
 		txtDestination.setHeight("-1px");
-		txtDestination.setCaption("Destination: (must not end with '/')");
+		txtDestination.setCaption("Destination: (must exist and not end with '/')");
 		txtDestination.setRequired(true);
 		txtDestination.setNullRepresentation("");
 		mainLayout.addComponent(txtDestination);
 		
+		mainLayout.addComponent(new Label("Note: You need rights to access the target directory and all its parent directories"));
+		
+		chbSoftFail = new CheckBox();
+		chbSoftFail.setCaption("Soft failure");
+		mainLayout.addComponent(chbSoftFail);
+
+		mainLayout.addComponent(new Label(
+				"If 'Soft failure' is checked and upload failed, "
+				+ "then pipeline continue, otherwise the pipeline is stopped."));
+
 		setCompositionRoot(mainLayout);
 	}
 
@@ -87,6 +97,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		txtUser.setValue(c.getUsername());
 		txtPassword.setValue(c.getPassword());
 		txtDestination.setValue(c.getDestination());
+		chbSoftFail.setValue(c.isSoftFail());
 	}
 
 	@Override
@@ -104,14 +115,8 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		}
 		cnf.setUsername(txtUser.getValue());
 		cnf.setPassword(txtPassword.getValue());
-		
-		// update path
-		String dest = txtDestination.getValue().replace('\\', '/');
-		if (dest.endsWith("/")) {
-			dest = dest.substring(0, dest.length() - 1);
-		}		
-		cnf.setDestination(dest);
-		
+		cnf.setDestination(getDestination());
+		cnf.setSoftFail(chbSoftFail.getValue());
 		return cnf;
 	}
 
@@ -124,9 +129,17 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		desc.append("@");
 		desc.append(txtHost.getValue());
 		desc.append(":");
-		desc.append(txtDestination.getValue());
+		desc.append(getDestination());
 		
 		return desc.toString();
 	}
+
+	private String getDestination() {
+		String dest = txtDestination.getValue().replace('\\', '/');
+		if (dest.endsWith("/")) {
+			dest = dest.substring(0, dest.length() - 1);
+		}
+		return dest;
+	}	
 	
 }

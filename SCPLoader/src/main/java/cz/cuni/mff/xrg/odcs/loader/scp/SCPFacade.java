@@ -105,10 +105,12 @@ class SCPFacade {
 				final String serverPath = handler.getRootedPath().substring(0,
 						handler.getRootedPath().lastIndexOf('/'));
 				
+				final String fileDest = destination + serverPath + "/" + handler.getName();
+						
 				LOG.debug("Uploading '{}' into '{}'", handler.getRootedPath(),
-						destination + serverPath);
+						fileDest);
 				
-				upload(handler, destination + serverPath);
+				upload(handler, fileDest);
 			} catch (SCPPException ex) {
 				final String msg = "Failed to upload: " + handler
 						.getRootedPath();

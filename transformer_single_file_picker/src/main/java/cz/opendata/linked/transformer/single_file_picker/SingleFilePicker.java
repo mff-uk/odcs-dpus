@@ -72,7 +72,6 @@ public class SingleFilePicker extends ConfigurableBase<SingleFilePickerConfig> i
 
        	if (context.canceled()) {
        		log.info("DPU cancelled");
-       		return;
        	}
         
 	}

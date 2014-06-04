@@ -1,18 +1,22 @@
 package cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator;
 
-import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.JTaggerExtractor;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+//import java.util.logging.Handler;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
+
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Configuration;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.LawDocument;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.SparqlLoader;
 import cz.cuni.mff.xrg.intlib.extractor.jtaggerExtractor.uriGenerator.shortcut.ValidityMap;
-import cz.cuni.xrg.intlib.commons.dpu.DPUContext;
-
-import java.io.*;
-//import java.util.logging.Handler;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
-import org.slf4j.LoggerFactory;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 /**
  * 

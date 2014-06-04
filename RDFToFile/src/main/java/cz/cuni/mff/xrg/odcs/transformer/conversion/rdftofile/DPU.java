@@ -11,11 +11,22 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
+import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnitException;
 import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
+import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
-import java.io.File;
+
+import java.io.*;
+import java.nio.charset.Charset;
+
+import org.openrdf.model.URI;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFWriter;
+import org.openrdf.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +41,12 @@ public class DPU extends ConfigurableBase<Configuration>
 
 	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
-	@InputDataUnit
+	private static final String FILE_ENCODE = "UTF-8";
+	
+	@InputDataUnit(name = "input")
 	public RDFDataUnit input;
 
-	@OutputDataUnit
+	@OutputDataUnit(name = "output")
 	public FileDataUnit output;
 
 	public DPU() {
@@ -42,50 +55,72 @@ public class DPU extends ConfigurableBase<Configuration>
 
 	@Override
 	public void execute(DPUContext context) throws DPUException, DataUnitException, InterruptedException {
-		final RDFFormatType formatType = config.getRDFFileFormat();
+		final RDFFormat format = RDFFormatType.getRDFFormatByType(config.getRDFFileFormat());
 
-		// get file extension
-		final String ext;
-		switch (formatType) {
-			case N3:
-				ext = ".n3";
-				break;
-			case NT:
-				ext = ".nt";
-				break;
-			case RDFXML:
-				ext = ".rdf";
-				break;
-			case TRIG:
-				ext = ".trig";
-				break;
-			case TRIX:
-				ext = ".trix";
-				break;
-			case TTL:
-				ext = ".ttl";
-				break;
-			default:
-				throw new DPUException("Unwnown format: " + formatType.toString());
-		}
-		
 		// create output file
 		// prepare output file in denoted directories
 		DirectoryHandler dir = output.getRootDir();
-		final String [] filePath = config.getFileName().split("/");
+		final String[] filePath = config.getFileName().split("/");
 		for (int i = 0; i < filePath.length - 1; i++) {
 			dir = dir.addNewDirectory(filePath[i]);
-		} 		
-		File dumpFile = dir.addNewFile(filePath[filePath.length - 1] + ext).asFile();
+		}
+		final String outFileName = filePath[filePath.length - 1];
+		final File dumpFile = dir.addNewFile(outFileName).asFile();
 
-		final long triplesCount = input.getTripleCount();
-		LOG.info("Loading {} triples", triplesCount);
+		load(dumpFile, format, context);
+		
+		// create .graph file
+		if (config.isGenGraphFile()) {
+			final FileHandler graphFile = dir.addNewFile(outFileName + ".graph");
+			try {
+				graphFile.setContent(config.getGraphUri());
+			} catch (FileDataUnitException ex) {
+				LOG.error("Failed to write content of .graph file.", ex);
+				context.sendMessage(MessageType.ERROR, "Failed to write .graph file.");
+			}
+		}		
+	}
 
-		try {
-			input.loadToFile(dumpFile, formatType);
-		} catch (RDFException ex) {
-			context.sendMessage(MessageType.ERROR, ex.getMessage(), ex
-					.fillInStackTrace().toString());
+	/**
+	 *
+	 * @return Array of input contexts.
+	 */
+	private URI[] getInputContexts() {
+		return input.getContexts().toArray(new URI[0]);
+	}
+
+	/**
+	 * Load data from {@link #input} data unit into given file.
+	 *
+	 * @param targetFile
+	 * @param format
+	 * @param context
+	 */
+	private void load(File targetFile, RDFFormat format, DPUContext context) {
+		RepositoryConnection connection = null;
+		try (FileOutputStream out = new FileOutputStream(targetFile);
+				OutputStreamWriter os = new OutputStreamWriter(out, Charset
+						.forName(FILE_ENCODE));) {
+			connection = input.getConnection();
+
+			long triplesCount = connection.size(getInputContexts());
+			LOG.info("Loading {} triples into file {}", triplesCount, targetFile
+					.toString());
+
+			RDFWriter rdfWriter = Rio.createWriter(format, os);
+			connection.export(rdfWriter, getInputContexts());
+		} catch (RepositoryException | IOException | RDFHandlerException e) {
+			LOG.error("Failed to write content of .graph file.", e);
+			context.sendMessage(MessageType.ERROR,
+					"Failed to write .graph file.");
+		} finally {
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (RepositoryException e) {
+					LOG.warn("Failed to close repository", e);
+				}
+			}
 		}
 	}
 

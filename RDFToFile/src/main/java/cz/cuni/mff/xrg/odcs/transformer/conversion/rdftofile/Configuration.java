@@ -9,15 +9,19 @@ import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
  * @author Škoda Petr
  */
 public class Configuration extends DPUConfigObjectBase {
-	
+
 	private RDFFormatType RDFFileFormat;
 
 	private String fileName = "data";
-	
+
+	private boolean genGraphFile = true;
+
+	private String graphUri = "";
+
 	public Configuration() {
 		this.RDFFileFormat = RDFFormatType.TTL;
 	}
-	
+
 	public RDFFormatType getRDFFileFormat() {
 		return RDFFileFormat;
 	}
@@ -33,5 +37,21 @@ public class Configuration extends DPUConfigObjectBase {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
-		
+
+	public boolean isGenGraphFile() {
+		return genGraphFile;
+	}
+
+	public void setGenGraphFile(boolean genGraphFile) {
+		this.genGraphFile = genGraphFile;
+	}
+
+	public String getGraphUri() {
+		return graphUri;
+	}
+
+	public void setGraphUri(String graphUri) {
+		this.graphUri = graphUri;
+	}
+
 }

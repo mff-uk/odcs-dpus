@@ -1,5 +1,6 @@
 package cz.opendata.linked.cz.gov.smlouvy;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -19,7 +20,11 @@ import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -49,13 +54,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	public FileDataUnit outPlneniRoky;	
 
 	@OutputDataUnit(name = "Smlouvy-Metadata")
-	public RDFDataUnit outSmlouvyMeta;	
+	public WritableRDFDataUnit outSmlouvyMeta;	
 	
 	@OutputDataUnit(name = "Objednavky-Metadata")
-	public RDFDataUnit outObjednavkyMeta;	
+	public WritableRDFDataUnit outObjednavkyMeta;	
 
 	@OutputDataUnit(name = "Plneni-Metadata")
-	public RDFDataUnit outPlneniMeta;	
+	public WritableRDFDataUnit outPlneniMeta;	
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -67,8 +72,17 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
+		final SimpleRdfWrite outSmlouvyMetaWrap = new SimpleRdfWrite(outSmlouvyMeta, ctx);
+		outSmlouvyMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
+		final SimpleRdfWrite outObjednavkyMetaWrap = new SimpleRdfWrite(outObjednavkyMeta, ctx);
+		outObjednavkyMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
+		final SimpleRdfWrite outPlneniMetaWrap = new SimpleRdfWrite(outPlneniMeta, ctx);
+		outPlneniMetaWrap.setPolicy(AddPolicy.BUFFERED);
+		
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
 		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
@@ -83,15 +97,18 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		s.smlouvy_roky = outSmlouvyRoky;
 		s.objednavky_roky = outObjednavkyRoky;
 		s.plneni_roky = outPlneniRoky;
-		s.smlouvy_meta = outSmlouvyMeta;
-		s.objednavky_meta = outObjednavkyMeta;
-		s.plneni_meta = outPlneniMeta;
+		s.smlouvy_meta = outSmlouvyMetaWrap;
+		s.objednavky_meta = outObjednavkyMetaWrap;
+		s.plneni_meta = outPlneniMetaWrap;
 
+		outSmlouvyMetaWrap.flushBuffer();
+		outObjednavkyMetaWrap.flushBuffer();
+		outPlneniMetaWrap.flushBuffer();
+		
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
 		//Download
-
 		try {
 			URL init_smlouvy = new URL("https://portal.gov.cz/portal/rejstriky/data/10013/index.xml");
 			URL init_objednavky = new URL("https://portal.gov.cz/portal/rejstriky/data/10014/index.xml");
@@ -99,21 +116,27 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			
 			if (config.isRewriteCache())
 			{
-				Path path_smlouvy = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10013/index.xml");
-				Path path_objednavky = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10014/index.xml");
-				Path path_plneni = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10015/index.xml");
-				LOG.info("Deleting " + path_smlouvy);
-				Files.deleteIfExists(path_smlouvy);
-				LOG.info("Deleting " + path_objednavky);
-				Files.deleteIfExists(path_objednavky);
-				LOG.info("Deleting " + path_plneni);
-				Files.deleteIfExists(path_plneni);
+				if (config.isSmlouvy()) {
+					Path path_smlouvy = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10013/index.xml");
+					LOG.info("Deleting " + path_smlouvy);
+					Files.deleteIfExists(path_smlouvy);
+				}
+				if (config.isObjednavky()) {
+					Path path_objednavky = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10014/index.xml");
+					LOG.info("Deleting " + path_objednavky);
+					Files.deleteIfExists(path_objednavky);
+				}
+				if (config.isPlneni()) {
+					Path path_plneni = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/portal.gov.cz/portal/rejstriky/data/10015/index.xml");
+					LOG.info("Deleting " + path_plneni);
+					Files.deleteIfExists(path_plneni);
+				}
 			}
 			
 			try {
-				s.parse(init_smlouvy, "init-s");
-				s.parse(init_objednavky, "init-o");
-				s.parse(init_plneni, "init-p");
+				if (config.isSmlouvy()) s.parse(init_smlouvy, "init-s");
+				if (config.isObjednavky()) s.parse(init_objednavky, "init-o");
+				if (config.isPlneni()) s.parse(init_plneni, "init-p");
 			} catch (BannedException b) {
 				LOG.warn("Seems like we are banned for today");
 			}

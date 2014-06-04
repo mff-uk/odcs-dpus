@@ -19,6 +19,11 @@ public class Configuration extends DPUConfigObjectBase {
 
 	private String destination = "/";
 
+	/**
+	 * If true and upload failed, then only warning is published.
+	 */
+	private boolean softFail = true;
+	
 	public String getHostname() {
 		return hostname;
 	}
@@ -57,6 +62,14 @@ public class Configuration extends DPUConfigObjectBase {
 
 	public void setDestination(String upDestination) {
 		this.destination = upDestination;
+	}
+
+	public boolean isSoftFail() {
+		return softFail;
+	}
+
+	public void setSoftFail(boolean softFail) {
+		this.softFail = softFail;
 	}
 	
 }

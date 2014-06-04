@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-core</artifactId>
+        <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
     <artifactId>Krovak</artifactId>
@@ -42,8 +42,9 @@
 		</dependency>
 		<dependency>
 			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-impl</artifactId>
+			<artifactId>dataunit-rdf-simple</artifactId>
 			<version>1.0.0</version>
-		</dependency>		
+			<scope>provided</scope>
+		</dependency>
     </dependencies>
 </project>

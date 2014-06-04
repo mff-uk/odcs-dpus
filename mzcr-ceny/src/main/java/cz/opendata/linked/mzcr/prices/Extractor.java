@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
@@ -19,21 +20,21 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.interfaces.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
 
 @AsExtractor
 public class Extractor 
 extends ConfigurableBase<ExtractorConfig> 
 implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	/**
-	 * DPU's configuration.
-	 */
-
-	@OutputDataUnit
-	public RDFDataUnit outputDataUnit;
+	@OutputDataUnit(name = "output")
+	public WritableRDFDataUnit outputDataUnit;
 	
-	@InputDataUnit
+	@InputDataUnit(name = "input")
 	public RDFDataUnit inputDataUnit;
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
@@ -48,8 +49,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	}
 
 	@Override
-	public void execute(DPUContext ctx) throws DPUException
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
+		final SimpleRdfRead inputWrap = new SimpleRdfRead(inputDataUnit, ctx);
+		final SimpleRdfWrite outputWrap = new SimpleRdfWrite(outputDataUnit, ctx);
+		outputWrap.setPolicy(AddPolicy.BUFFERED);
+		
 		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
@@ -60,7 +65,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Parser s = new Parser();
 		s.logger = LOG;
 		s.ctx = ctx;
-		s.output = outputDataUnit;
+		s.output = outputWrap;
 		
 		LOG.info("Starting extraction.");
 		
@@ -68,13 +73,12 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 		
-		if (inputDataUnit.getTripleCount() > 0)
+		List<Statement> statements = inputWrap.getStatements();
+		if (!statements.isEmpty())
 		{
-			List<Statement> statements = inputDataUnit.getTriples();
-			
 			int total = statements.size();
 			
-			URL notationPredicate = null;
+			URL notationPredicate;
 			try {
 				notationPredicate = new URL("http://www.w3.org/2004/02/skos/core#notation");
 				for (Statement stmt : statements)
@@ -99,6 +103,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				
 			}
 		}
+		
+		outputWrap.flushBuffer();
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();
