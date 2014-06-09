@@ -15,8 +15,6 @@ target/
 bin/
 
 # working dirs #
-
 user/
 working/
 global/
-
