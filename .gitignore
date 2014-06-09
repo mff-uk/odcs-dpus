@@ -3,7 +3,7 @@
 
 # Eclipse Project Files #
 .project
-.settings/
+.settings
 .classpath
 
 # Netbeans files #
