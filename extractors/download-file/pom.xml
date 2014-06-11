@@ -6,10 +6,10 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>FileDownloader</artifactId>
+	<artifactId>extractor_file_downloader</artifactId>
+	<name>ext. file downloader</name>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>File Downloader</name>
 	<description>Download file from given URL and save it into output.</description>
     
 	<properties>

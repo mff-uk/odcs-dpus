@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_ruian</artifactId>
+    <artifactId>extractor_ruian</artifactId>
+	<name>ext. ruian</name>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
 	<description>This extractor scrapes RUIAN from http://vdp.cuzk.cz/vdp/ruian/vymennyformat/vyhledej</description>

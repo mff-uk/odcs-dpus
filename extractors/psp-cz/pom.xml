@@ -7,10 +7,11 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_psp_cz_metadata</artifactId>
+    <artifactId>extractor_psp_cz_metadata</artifactId>
+	<name>ext. psp cz metadata</name>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
-	<description>This extractor scrapes law metadata from psp.cz and creates a Turtle file</description>
+	<description>This extractor scrapes law metadata from psp.cz and creates a Turtle file.</description>
     <properties>    
         <dpu.package>cz.opendata.linked.psp_cz.metadata</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    

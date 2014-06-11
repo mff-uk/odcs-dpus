@@ -7,7 +7,8 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>Legislation_USoud_Extractor</artifactId>
+	<artifactId>extractor_legislation_uSoud</artifactId>
+	<name>ext. legislation uSoud</name>
 	<packaging>bundle</packaging>
 	<description>Module which is able to extract decisions from nsoud. Requires catdoc utility being available on the target system. </description>
 	<version>1.0.0</version>
@@ -35,19 +36,16 @@
 		<dpu.mainClass>Extractor</dpu.mainClass>    
 	</properties>
         
-	<build>
-        
+	<build>        
 		<resources>
 			<resource>
 				<directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
 				<targetPath>src/main/resources</targetPath>
 				<includes>
 					<include>**/*</include>
-                   
-				</includes>
+ 				</includes>
 			</resource>
- 
-		</resources>
+ 		</resources>
 	</build>
  	
 </project>

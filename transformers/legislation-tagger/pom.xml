@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Legislation_Decisions_jTagger</artifactId>
+    <artifactId>transformer_legislation_decisions_jTagger</artifactId>
+	<name>trans. legislation decisions jTagger</name>
     <packaging>bundle</packaging>
 	<version>1.0.0</version>
 	<description>Module which annotates extracted decisions. The input is formed by triples "x ...hasTextContent y" where y is the unzipped decision. 
@@ -43,11 +44,9 @@
                 <directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
                 <targetPath>src/main/resources</targetPath>
                 <includes>
-                    <include>**/*</include>
-                   
+                    <include>**/*</include>                   
                 </includes>
-            </resource>
- 
+            </resource> 
         </resources>
     </build>
  	

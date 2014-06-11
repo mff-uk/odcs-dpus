@@ -6,10 +6,10 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>MergerFile</artifactId>
+	<artifactId>transformer_file_merger</artifactId>
+	<name>trans. file merger</name>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>File Merger</name>
 	<description>Just redirect input to output.</description>
     
 	<properties>

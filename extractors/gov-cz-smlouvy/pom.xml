@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_gov_cz_smlouvy</artifactId>
+    <artifactId>extractor_gov_cz_smlouvy</artifactId>
+	<name>ext. gov cz smlouvy</name>
     <packaging>bundle</packaging>
     <version>1.0.1</version>
 	<description>This extractor scrapes Smlouvy from portal.gov.cz</description>

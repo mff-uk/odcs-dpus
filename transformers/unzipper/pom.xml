@@ -6,11 +6,11 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>Unzipper</artifactId>
+	<artifactId>transformer_unzipper</artifactId>
+	<name>trans. unzipper</name>
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>Unzipper</name>
 	<description>Recursively scan input for zip files ie. file with 'zip' extension. 
 		Unpack each zipe file into /{archive_name}.</description>
     

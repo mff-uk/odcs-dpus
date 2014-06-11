@@ -7,16 +7,14 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-    
 	<artifactId>transformer_multiple_files_picker</artifactId>
-    
-	<version>1.0.0</version>
-    
+	<name>trans. multiple files picker</name>    
+	<version>1.0.0</version>    
 	<packaging>bundle</packaging>
     
 	<description>
     This transformer works only for file data units. It outputs a file data unit with a multiple files on the base of the supplied file path. The file name at the end of the file can be a regular expression. All files with names matching the expression are returned.
-  </description>
+	</description>
     
 	<properties>
 		<dpu.package>cz.opendata.linked.transformer.multiple_files_picker</dpu.package>

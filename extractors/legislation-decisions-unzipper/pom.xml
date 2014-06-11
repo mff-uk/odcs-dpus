@@ -7,7 +7,8 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>Legislation_Decisions_Unzipper</artifactId>
+	<artifactId>extractor_legislation_decisions_unzipper</artifactId>
+	<name>ext. legislation decisions unzipper</name>
 	<packaging>bundle</packaging>
 	<description>Module which is able to unzip decisions from nsoud. The output is formed by tripels "x ...hasTextContent y", where y is the unzipped file</description>
 	<version>0.0.1</version>

@@ -3,12 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<!-- <artifactId>module-core</artifactId> -->
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>  
-	<artifactId>FTPLoader</artifactId>
-	<name>FTP Loader</name>
+	<artifactId>loader_ftp</artifactId>
+	<name>load. ftp</name>
 	<packaging>bundle</packaging>
 	<description>Load content of input file data unit into given FTP server.</description>
 

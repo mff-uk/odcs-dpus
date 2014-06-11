@@ -7,18 +7,12 @@
             <artifactId>module-base</artifactId>
             <version>1.0.0</version>
     </parent>    
-    <artifactId>Simple_XSLT</artifactId>
+    <artifactId>transformer_simple_xslt</artifactId>
+	<name>trans. simple xslt</name>
     <packaging>bundle</packaging>
 	<version>1.0.0</version>
 	<description>Module which is able to apply selected XSLT transformation to the XML file. The output of the XSLT must be RDF data.</description>
     <dependencies>
-<!--        <dependency>
-             <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <version>9.5.1-2</version>  9.5.1-3 does not contain javax.xml.xquery 
-            <type>jar</type>
-        </dependency>-->
-        
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>

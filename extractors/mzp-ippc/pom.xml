@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_mzp_cz_ippc</artifactId>
+    <artifactId>extractor_mzp_cz_ippc</artifactId>
+	<name>ext. mzp cz ippc</name>
     <packaging>bundle</packaging>
     <version>1.0.1</version>
 	<description>This extractor scrapes environmental info from http://www.mzp.cz/www/ippc4.nsf/appliances.xsp</description>

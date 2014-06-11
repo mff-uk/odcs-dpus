@@ -9,14 +9,13 @@
 	</parent>    
     
 	<artifactId>extractor_unzipper</artifactId>
-    
-	<version>1.0.0</version>
-    
+	<name>ext. unzipper</name>    
+	<version>1.0.0</version>    
 	<packaging>bundle</packaging>
     
 	<description>
     This extractor downloads a ZIP archive and extracts files from it to an output data file unit.
-  </description>
+	</description>
     
 	<properties>
 		<dpu.package>cz.opendata.linked.extractor.unzipper</dpu.package>

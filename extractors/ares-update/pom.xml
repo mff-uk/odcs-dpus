@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_ares_updates</artifactId>
+    <artifactId>extractor_ares_updates</artifactId>
+	<name>ext. ares updates</name>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
 	<description>This extractor scrapes ARES XML records about updates to Czech business entities and registers their ICs to be updated</description>

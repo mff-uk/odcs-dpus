@@ -6,10 +6,10 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>MergerRDF</artifactId>
+	<artifactId>transformer_rdf_merger</artifactId>
+	<name>trans. rdf merger</name>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>RDF Merger</name>
 	<description>Just redirect input to output.</description>
     
 	<properties>

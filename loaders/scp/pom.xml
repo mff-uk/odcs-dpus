@@ -3,12 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<!-- <artifactId>module-core</artifactId> -->
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>  
-	<artifactId>SCPLoader</artifactId>
-	<name>SCP Loader</name>
+	<artifactId>loader_scp</artifactId>
+	<name>load. scp</name>
 	<packaging>bundle</packaging>
 	<description>Load content of input file data unit using SCP.</description>
 

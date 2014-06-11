@@ -7,7 +7,8 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>ehealth_ndf_rt_extractor</artifactId>   
+	<artifactId>extractor_ehealth_ndf_rt</artifactId>
+	<name>ext. ehealth ndf rt</name>   
 	<version>1.0.0</version>    
 	<packaging>bundle</packaging>    
 	<description>

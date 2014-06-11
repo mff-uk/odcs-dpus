@@ -7,7 +7,8 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>Legislation_decisions_uriGenerator</artifactId>
+	<artifactId>transformer_legislation_decisions_uriGenerator</artifactId>
+	<name>trans. legislation decisions uriGenerator</name>
 	<packaging>bundle</packaging>
 	<version>1.0.0</version>
 	<description>Module which generates URI for the decisions annotated by jTagger annotator. The input is formed by triples "x ...xmlText y" where y is the annotated decision. 
@@ -57,11 +58,9 @@
 				<directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
 				<targetPath>src/main/resources</targetPath>
 				<includes>
-					<include>**/*</include>
-                   
+					<include>**/*</include>                   
 				</includes>
-			</resource>
- 
+			</resource> 
 		</resources>
 	</build>
  	

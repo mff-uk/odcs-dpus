@@ -3,12 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<!-- <artifactId>module-core</artifactId> -->
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>  
-	<artifactId>RDFToCSV</artifactId>
-	<name>RDF to CSV</name>
+	<artifactId>transformer_rdf_to_csv</artifactId>
+	<name>trans. rdf to csv</name>
 	<packaging>bundle</packaging>
 	<description>Save content of given input RDFDataUnit as csv file.</description>
 

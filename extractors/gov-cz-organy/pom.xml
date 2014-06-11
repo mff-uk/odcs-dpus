@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_gov_cz_organy</artifactId>
+    <artifactId>extractor_gov_cz_organy</artifactId>
+	<name>ext. gov cz organy</name>
     <packaging>bundle</packaging>
     <version>1.0.1</version>
 	<description>This extractor scrapes Organy from portal.gov.cz</description>

@@ -6,12 +6,12 @@
 		<artifactId>module-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
-	<artifactId>Extractor_isvav</artifactId>
+	<artifactId>extractor_isvav</artifactId>
+	<name>ext. isvav</name>
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>Extractor isvav</name>
-	<description>Extract data from isvav. Extraction of results utilize current system time (year) to determine last period for extraction.</description>
+		<description>Extract data from isvav. Extraction of results utilize current system time (year) to determine last period for extraction.</description>
     
 	<properties>
 		<dpu.package>cz.cuni.mff.xrg.uv.extractor.isvav</dpu.package>

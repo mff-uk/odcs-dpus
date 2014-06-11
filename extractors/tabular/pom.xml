@@ -9,16 +9,15 @@
 	</parent>    
     
 	<artifactId>extractor_tabular</artifactId>
-    
-	<version>1.0.0</version>
-    
-	<packaging>bundle</packaging>
+	<name>ext. tabular</name>
+    <version>1.0.0</version>
+    <packaging>bundle</packaging>
     
 	<description>
         This extractor downloads a tabular file in one of the supported formats. Currently, DBF files are supported and CSV files are planned in the near future.
         
         It then extracts its rows as RDF resources.
-        </description>
+	</description>
     
 	<properties>
 		<dpu.package>cz.opendata.linked.extractor.tabular</dpu.package>

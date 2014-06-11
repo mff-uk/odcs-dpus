@@ -7,7 +7,8 @@
         <artifactId>module-base</artifactId>
         <version>1.0.0</version>
     </parent>    
-    <artifactId>Extractor_mzcr_prices</artifactId>
+    <artifactId>extractor_mzcr_prices</artifactId>
+	<name>ext. mzcr prices</name>
     <packaging>bundle</packaging>
     <version>0.0.3</version>
 	<description>This extractor scrapes average drug prices from MZCR</description>

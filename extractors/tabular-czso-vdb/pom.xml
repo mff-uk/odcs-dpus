@@ -7,6 +7,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>extractor_tabular_czso_vdb</artifactId>
+	<name>ext. tabular czso vdb</name>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
 	<description>This extractor transforms an input XLS file which was exported from the public database of Czech Statistical Office. The output is an RDF representation structured according to given parameters.</description>
