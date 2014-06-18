@@ -31,6 +31,8 @@ public class ExtractorConfig extends DPUConfigObjectBase {
     private boolean downloadOR = true;
     
     private boolean downloadBasic = true;
+    
+    private boolean downloadRZP = true;
 	
 	@Override
     public boolean isValid() {
@@ -123,6 +125,14 @@ public class ExtractorConfig extends DPUConfigObjectBase {
 
 	public void setDownloadBasic(boolean downloadBasic) {
 		this.downloadBasic = downloadBasic;
+	}
+
+	public boolean isDownloadRZP() {
+		return downloadRZP;
+	}
+
+	public void setDownloadRZP(boolean downloadRZP) {
+		this.downloadRZP = downloadRZP;
 	}	
 	
 }

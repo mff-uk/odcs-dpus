@@ -192,6 +192,8 @@ public class Cache {
 						//return null;
 						if (ex.getMessage().equals("HTTP error fetching URL")) errorsFetchingURL++;
 						
+						if (errorsFetchingURL > 10 ) throw new BannedException();
+						
 					}
 					Thread.sleep(interval);
 				}
