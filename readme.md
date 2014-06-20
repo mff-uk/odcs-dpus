@@ -54,10 +54,10 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 ####Deprecated
 |Name      |Type      |Location   |
 |----------|----------|-----------|
-|trans. single file picker|Transformer|Yes|dpu-deprecated/file-picker|
-|ext. jTagger old|Extractor|Yes|dpu-deprecated/intlib-tagger|
-|trans. multiple files picker|Transformer|Yes|dpu-deprecated/multiple-files-picker|
-|trans. simple xslt|Transformer|Yes|dpu-deprecated/xslt|
+|trans. single file picker|Transformer|dpu-deprecated/file-picker|
+|ext. jTagger old|Extractor|dpu-deprecated/intlib-tagger|
+|trans. multiple files picker|Transformer|dpu-deprecated/multiple-files-picker|
+|trans. simple xslt|Transformer|dpu-deprecated/xslt|
 
 ##For contributors
 
