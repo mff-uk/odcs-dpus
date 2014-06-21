@@ -64,9 +64,11 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 ###Libs
 The Libs directory contains useful project that can be used by DPUs:
 * Simple RDF - made work with RDF easier.
+* External services - provides classes for manipulation with external services (query http sparql).
+* Test boost - load/store methods for RdfDataUnit.
 
 ###Dependencies
-Contains DPU's dependencies (jar libraries - osgi bundles). If DPU need some osgi-library then the library should be located here and there shold be lib/libs.txt file (line oriented) that contains list of required dependencies.
+Contains DPU's dependencies (jar libraries - osgi bundles). If DPU need some osgi-library then the library should be located here and there should be lib/libs.txt file (line oriented) that contains list of required dependencies.
 
 ###DPU template
 Two templates are located here. They must be installed in maven repository before use. Once presented in maven repository, they can be used as a templates (create project from archeotype).
@@ -76,7 +78,7 @@ Templates are for:
 
 ###New DPUs
 There are three directories, where the DPUs are stored:
-* dpu-deprecated - this DPUs should not be used and should be replaced by other DPUs as they are no longer mantained.
+* dpu-deprecated - this DPUs should not be used and should be replaced by other DPUs as they are no longer maintained.
 * dpu-domain-specific - domain specific DPUs, mostly extractors. 
 * dpu - general DPUs. If DPU is located here then is should have potential to be used in multiple pipelines across different domains.
 
