@@ -16,6 +16,8 @@ import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.ErrorLogger;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.QueryCreator;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.QueryException;
 import org.openrdf.model.Value;
@@ -91,12 +93,19 @@ public class Main extends ConfigurableBase<Configuration>
     }
 
     private void execute() {
+        
+        final ErrorLogger errorLogger = new ErrorLogger();
+        final KnowledgeBase knowledgeBase = null; // TODO create knowledge base here
+        
+        QueryCreator creator = new QueryCreator(rdfPostalAddress, errorLogger, 
+                knowledgeBase);
+        
         try (ConnectionPair<TupleQueryResult> addresses = rdfPostalAddress.
                 executeSelectQuery(SELECT_POSTAL_ADDRESS)) {
             while (addresses.getObject().hasNext()) {
                 final BindingSet binding = addresses.getObject().next();
                 // map single address
-                processPostalAddress(binding.getValue("s"));
+                processPostalAddress(creator, binding.getValue("s"));
             }
         } catch (OperationFailedException | QueryEvaluationException ex) {
             context.sendMessage(MessageType.ERROR, "Dpu failed",
@@ -115,11 +124,9 @@ public class Main extends ConfigurableBase<Configuration>
         }
     }
 
-    private void processPostalAddress(Value addr) throws OperationFailedException, QueryEvaluationException {
-        String connectQuery = "not-created";
-        QueryCreator creator = new QueryCreator(context.isDebugging(),
-                rdfPostalAddress);
-
+    private void processPostalAddress(QueryCreator creator, Value addr) 
+            throws OperationFailedException, QueryEvaluationException {
+        String connectQuery = "not-created";        
         // get all triples related to the given address
         try {
             // prepare query into ruian that gives use statement for mapping
@@ -132,7 +139,6 @@ public class Main extends ConfigurableBase<Configuration>
             // log the state
             LOG.warn("Failed to map: '{}'", addr.stringValue(), ex);
             LOG.info("Query: {}", connectQuery);
-            LOG.info("QueryCreator dump: {}", creator.getDump());
             // and increase fail counter
             failCounter++;
         }

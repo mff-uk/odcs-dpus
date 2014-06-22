@@ -25,6 +25,11 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>external-services</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>module-test</artifactId>
             <version>1.0.0</version>

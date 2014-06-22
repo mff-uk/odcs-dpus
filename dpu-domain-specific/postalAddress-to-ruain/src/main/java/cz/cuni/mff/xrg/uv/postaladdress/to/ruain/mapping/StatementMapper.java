@@ -11,11 +11,17 @@ import java.util.List;
  */
 public abstract class StatementMapper {
     
+    protected ErrorLogger errorLogger;
+
+    public StatementMapper(ErrorLogger errorLogger) {
+        this.errorLogger = errorLogger;
+    }
+        
     /**
      *
      * @param predicate
-     * @return True if statement with given predicate can be mapd by this
-         mapr.
+     * @return True if statement with given predicate can be mapped by this
+         mapper.
      */
     public abstract boolean canMap(String predicate);
 
@@ -25,9 +31,7 @@ public abstract class StatementMapper {
      * @param predicate
      * @param object
      * @return Template of triples that will be required by select query.
-     * @throws MappingException
      */
-    public abstract List<Requirement> map(String predicate, String object)
-            throws MappingException;
+    public abstract List<Requirement> map(String predicate, String object);
 
 }

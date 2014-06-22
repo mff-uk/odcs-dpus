@@ -31,7 +31,8 @@ public class AddressRegionMapper extends StatementMapper {
 
     private final Map<String, String> vuscMap = new HashMap<>();
 
-    public AddressRegionMapper() {
+    public AddressRegionMapper(ErrorLogger errorLogger) {
+        super(errorLogger);
         // we convert vuscSource into vuscMap
         // so we can map in lowerCase
         for (String item : vuscSource) {
@@ -45,7 +46,7 @@ public class AddressRegionMapper extends StatementMapper {
     }
 
     @Override
-    public List<Requirement> map(String predicate, String object) throws MappingException {
+    public List<Requirement> map(String predicate, String object) {
         final List<Requirement> results = new LinkedList<>();
 
         if (vuscMap.containsKey(object.toLowerCase())) {
@@ -66,8 +67,7 @@ public class AddressRegionMapper extends StatementMapper {
             }
         }
 
-        // we do not know what to map ..
-        
+        // we do not know what to map ..        
         return results;
     }
 

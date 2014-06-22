@@ -3,7 +3,8 @@ package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 import java.util.*;
 
 /**
- * Convert list of {@link Requirement} into string query.
+ * Convert list of {@link Requirement} into string query. Also add
+ * limit clause to 12 - to restrict possible result size.
  *
  * @author Škoda Petr
  */
@@ -15,7 +16,7 @@ public class RequirementsToQuery {
     
     private final static String SELECT_WHERE = " WHERE {\n";
 
-    private final static String SELECT_END = "}";
+    private final static String SELECT_END = "} LIMIT 12";
     
     private class PredicatObject {
 

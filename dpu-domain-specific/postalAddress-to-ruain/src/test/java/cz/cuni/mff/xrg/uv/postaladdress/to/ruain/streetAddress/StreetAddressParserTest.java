@@ -220,3 +220,4 @@ public class StreetAddressParserTest {
 // Josefská 427/14 14/427
 // U Tří mostů 844/2 2
 // Komenského 384 (hotel Centrum)"  // remove "
+// Brněnec, Moravská Chrastová 10
