@@ -1,0 +1,3 @@
+org.apache.poi-bundle-3.10.0
+// depednency of org.apache.poi-bundle-3.10.0
+org.junit-bundle-4.11.0

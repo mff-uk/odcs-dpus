@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<groupId>cz.cuni.mff.xrg.odcs</groupId>
+	<artifactId>dataunit-rdf-simple</artifactId>
+	<version>1.0.0</version>
+	<packaging>bundle</packaging>
+	<name>dataunit-rdf-simple</name>
+	
+	<dependencies>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>		
+	</dependencies>	
+	
+	<build>
+		<!-- add license from LICENSE.md to the generated JAR file -->
+		<resources>
+			<resource>
+				<directory>${basedir}</directory> <!-- this is default dir-->
+				<includes>
+					<include>LICENSE.md</include>
+				</includes>
+			</resource>
+		</resources>
+            
+		<!-- create bundle -->
+		<plugins>
+			<plugin> <!-- generate manifest file -->
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Name>${project.artifactId}</Bundle-Name>
+						<Bundle-Version>${project.version}</Bundle-Version>
+						<!-- export just packages under cz.cuni.mff.xrg.odcs.commons.module
+						by changing this we may let maven plugin to embeed dependencies -->
+						<Export-Package>cz.cuni.mff.xrg.odcs.rdf.simple;version="${odcs.version}"</Export-Package>
+						<!-- import vaadin, commons, web, RDF -->
+						<Import-Package>cz.cuni.mff.xrg.odcs.commons.*;version="${odcs.version}",cz.cuni.mff.xrg.odcs.rdf.*;version="${odcs.version}",*"</Import-Package>
+						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+					</instructions>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>	
+	
+</project>

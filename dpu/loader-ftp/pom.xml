@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>  
+	<artifactId>loader_ftp</artifactId>
+	<name>load. ftp</name>
+	<packaging>bundle</packaging>
+	<description>Load content of input file data unit into given FTP server.</description>
+
+	<properties>       
+		<dpu.package>cz.cuni.mff.xrg.odcs.loader.ftp</dpu.package>
+		<dpu.mainClass>Main</dpu.mainClass>
+	</properties>
+		
+	<dependencies>
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.3</version>
+		</dependency>
+	</dependencies>            
+		
+</project>

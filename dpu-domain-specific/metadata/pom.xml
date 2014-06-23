@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.odcs</groupId>
+		<artifactId>module-base</artifactId>
+		<version>1.0.0</version>
+	</parent>    
+	<artifactId>transformer_metadataForm</artifactId>
+	<name>trans. metadataForm</name>
+	<packaging>bundle</packaging>
+	<version>1.0.0</version>
+	<description>This extractor can be used to store metadata in ODCS pipelines</description>
+    
+	<properties>    
+		<dpu.package>cz.opendata.linked.metadata.form</dpu.package>
+		<dpu.mainClass>Extractor</dpu.mainClass>    
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf-simple</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>		
+	</dependencies>
+</project>

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.odcs</groupId>
+        <artifactId>module-base</artifactId>
+        <version>1.0.0</version>
+    </parent>    
+    <artifactId>transformer_legislation_decisions_jTagger</artifactId>
+	<name>trans. legislation decisions jTagger</name>
+    <packaging>bundle</packaging>
+	<version>1.0.0</version>
+	<description>Module which annotates extracted decisions. The input is formed by triples "x ...hasTextContent y" where y is the unzipped decision. 
+            The output is formed by triples "x ...hasXMLContent y", where y is the annotated file, with supplemented metadata/content elements and paragraphs</description>
+    <dependencies>
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>ontology</artifactId>
+            <version>1.0.0</version>
+            <type>jar</type>
+        </dependency>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>dataunit-rdf-simple</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+    </dependencies>
+    <properties>    
+        <dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions</dpu.package>
+        <dpu.mainClass>JTaggerAnnotator</dpu.mainClass>    
+    </properties>
+    
+    <build>
+        
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
+                <targetPath>src/main/resources</targetPath>
+                <includes>
+                    <include>**/*</include>                   
+                </includes>
+            </resource> 
+        </resources>
+    </build>
+ 	
+</project>

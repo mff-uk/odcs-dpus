@@ -3,7 +3,7 @@
 
 # Eclipse Project Files #
 .project
-.settings/
+.settings
 .classpath
 
 # Netbeans files #
@@ -15,8 +15,6 @@ target/
 bin/
 
 # working dirs #
-
 user/
 working/
 global/
-
