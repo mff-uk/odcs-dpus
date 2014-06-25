@@ -17,6 +17,7 @@
     xmlns:skos="http://www.w3.org/2004/02/skos/core#"
     xmlns:void="http://rdfs.org/ns/void#"
     xmlns:lodares="http://linked.opendata.cz/ontology/ares#"
+    xmlns:ruianlink="http://ruian.linked.opendata.cz/ontology/links/"
     xmlns:foaf="http://xmlns.com/foaf/0.1/"
     version="2.0">
     
@@ -35,6 +36,7 @@
     <xsl:variable name="funkceVDozorciRadeScheme">concept-scheme/funkce-v-dozorci-rade</xsl:variable>
     <xsl:variable name="funkceVStatutarnimOrganuScheme">concept-scheme/funkce-v-statutarnim-organu</xsl:variable>
     <xsl:variable name="kodAngmScheme">concept-scheme/kod-angm</xsl:variable>
+	<xsl:variable name="ruianPrefix">http://ruian.linked.opendata.cz/resource/</xsl:variable>
     <xsl:strip-space elements="*"/>
     
     <xsl:output encoding="UTF-8" indent="yes" method="xml" normalization-form="NFC"/>
@@ -740,6 +742,7 @@
 			<xsl:if test="d:ns">
 				<schema:addressCountry><xsl:value-of select="normalize-space(d:ns/text())"/></schema:addressCountry>
 			</xsl:if>
+			<xsl:apply-templates mode="linked"/>
 		</schema:PostalAddress>
     </xsl:template>
 
@@ -948,8 +951,88 @@
 			<xsl:if test="d:ns">
 				<schema:addressCountry><xsl:value-of select="normalize-space(d:ns/text())"/></schema:addressCountry>
 			</xsl:if>
+			<xsl:apply-templates mode="linked"/>
 		</schema:PostalAddress>
     </xsl:template>
+
+<!-- RUIAN START -->
+    <xsl:template mode="linked" match="d:au">
+        <!-- Adresa RUIAN -->
+        <xsl:apply-templates mode="linked"/>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:ka">
+        <!-- Adresni misto RUIAN -->
+        <ruianlink:adresni-misto>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'adresni-misto/', text())"/>
+        </ruianlink:adresni-misto>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kob">
+        <!-- Objekt RUIAN -->
+        <ruianlink:stavebni-objekt>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'stavebni-objekty/', text())"/>
+        </ruianlink:stavebni-objekt>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kul">
+        <!-- Ulice RUIAN -->
+        <ruianlink:ulice>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'ulice/', text())"/>
+        </ruianlink:ulice>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:ko">
+        <!-- Obec RUIAN -->
+        <ruianlink:obec>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'obce/', text())"/>
+        </ruianlink:obec>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kco">
+        <!-- Část obce RUIAN -->
+        <ruianlink:cast-obce>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'casti-obci/', text())"/>
+        </ruianlink:cast-obce>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kok">
+        <!-- Okres RUIAN -->
+        <ruianlink:okres>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'okresy/', text())"/>
+        </ruianlink:okres>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kmc">
+        <!-- MOMC RUIAN -->
+        <ruianlink:momc>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'momc/', text())"/>
+        </ruianlink:momc>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kk">
+        <!-- VUSC RUIAN -->
+        <ruianlink:vusc>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'vusc/', text())"/>
+        </ruianlink:vusc>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kol">
+        <!-- RS RUIAN -->
+        <ruianlink:region-soudrznosti>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'regiony-soudrznosti/', text())"/>
+        </ruianlink:region-soudrznosti>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kso">
+        <!-- Správní obvod RUIAN -->
+        <ruianlink:spravni-obvod>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'spravni-obvody/', text())"/>
+        </ruianlink:spravni-obvod>
+    </xsl:template>
+
+ <!-- RUIAN END -->
+
 
     <xsl:template mode="linked" match="d:pfo[not(d:pfo)]">
         <!-- Právní forma -->
