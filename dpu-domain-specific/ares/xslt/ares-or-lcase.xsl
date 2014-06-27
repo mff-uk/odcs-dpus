@@ -964,7 +964,7 @@
     <xsl:template mode="linked" match="u:ka">
         <!-- Adresni misto RUIAN -->
         <ruianlink:adresni-misto>
-			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'adresni-misto/', text())"/>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'adresni-mista/', text())"/>
         </ruianlink:adresni-misto>
     </xsl:template>
 
