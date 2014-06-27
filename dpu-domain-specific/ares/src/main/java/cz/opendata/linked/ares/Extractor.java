@@ -260,7 +260,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 				if (config.isDownloadOR()) {
 					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
 
-					final ValueFactory valueFactory = outRZPWrap.getValueFactory();
+					final ValueFactory valueFactory = outORWrap.getValueFactory();
 					if (!Cache.isCached(current) && !config.isUseCacheOnly())
 					{
 						Document doc = Cache.getDocument(current, 10, "xml");
@@ -268,7 +268,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						if (doc != null)
 						{
 							if (config.isGenerateOutput()) {
-								outRZPWrap.add( 
+								outORWrap.add( 
 										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
 										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
 										valueFactory.createLiteral(doc.outerHtml()));
@@ -287,7 +287,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						if (doc != null)
 						{
 							if (config.isGenerateOutput()) {
-								outRZPWrap.add( 
+								outORWrap.add( 
 										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
 										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
 										valueFactory.createLiteral(doc.outerHtml()));
