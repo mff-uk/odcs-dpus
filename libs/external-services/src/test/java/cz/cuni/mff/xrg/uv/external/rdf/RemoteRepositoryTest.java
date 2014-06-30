@@ -9,7 +9,7 @@ import org.junit.Test;
 /**
  * Test suite for {@link RemoteRepository}.
  *
- * @author Škoda Petr
+ * @author Å koda Petr
  */
 public class RemoteRepositoryTest {
 

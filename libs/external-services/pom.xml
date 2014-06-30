@@ -2,6 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-base</artifactId>
+        <version>1.0.0</version>
+    </parent>    
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>external-services</artifactId>
     <version>1.0.0</version>
@@ -10,7 +15,6 @@
     
     <properties>
         <interface.version>1.0.0</interface.version>
-        <project.java.version>1.7</project.java.version>
     </properties>
 
     <dependencies>
@@ -58,15 +62,6 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
-                    <configuration>
-                        <source>${project.java.version}</source>
-                        <target>${project.java.version}</target>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>2.3.7</version>
@@ -77,7 +72,10 @@
                             <Bundle-Name>${project.artifactId}</Bundle-Name>
                             <Bundle-Version>${project.version}</Bundle-Version>
                             <Export-Package>cz.cuni.mff.xrg.uv.external;version="${interface.version}"</Export-Package>
-                            <Import-Package>cz.cuni.mff.xrg.odcs.*;version="[1.0.0,2.0.0)",cz.cuni.mff.xrg.odcs.rdf.simple;version="[1.0.0,2.0.0)",*</Import-Package>
+                            <Import-Package>
+                                cz.cuni.mff.xrg.odcs.*;version="[1.0.0,2.0.0)",
+                                cz.cuni.mff.xrg.uv.rdf.simple;version="[1.0.0,2.0.0)",*
+                            </Import-Package>
                         </instructions>
                     </configuration>
                 </plugin>

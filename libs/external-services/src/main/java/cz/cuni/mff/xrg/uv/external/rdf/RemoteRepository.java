@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * }</pre>
  * 
  * 
- * @author Škoda Petr
+ * @author Å koda Petr
  */
 public class RemoteRepository implements AutoCloseable {
 

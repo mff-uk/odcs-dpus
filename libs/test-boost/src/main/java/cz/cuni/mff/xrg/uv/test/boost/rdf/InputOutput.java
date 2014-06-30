@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Škoda Petr
+ * @author Å koda Petr
  */
 public final class InputOutput {
 

@@ -6,7 +6,7 @@ import cz.cuni.mff.xrg.uv.external.rdf.RemoteRepository;
 /**
  * General purpose factory. Use this class to create classes from this module.
  * 
- * @author Škoda Petr
+ * @author Å koda Petr
  */
 public class Factory {
     
