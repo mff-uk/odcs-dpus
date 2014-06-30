@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.odcs.rdf.simple;
+package cz.cuni.mff.xrg.uv.rdf.simple;
 
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.rdf.CleverDataset;

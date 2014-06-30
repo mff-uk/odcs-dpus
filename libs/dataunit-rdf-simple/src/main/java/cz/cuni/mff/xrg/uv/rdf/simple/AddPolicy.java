@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.odcs.rdf.simple;
+package cz.cuni.mff.xrg.uv.rdf.simple;
 
 /**
  * Add policy for {@link SimpleRdfWrite}.

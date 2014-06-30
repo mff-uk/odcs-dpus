@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.odcs.rdf.simple;
+package cz.cuni.mff.xrg.uv.rdf.simple;
 
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
