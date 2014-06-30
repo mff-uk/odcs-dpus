@@ -6,8 +6,8 @@ Repository for DPUs (Data processing units) for UnifiedViews ETL tool (https://g
 ###DPU List
 
 ####Domain specific
-|Name      |Type      |Location   |
-|----------|----------|-----------|
+|Name      |Type      |Location   |Description |
+|----------|----------|-----------|------------|
 |ext. ares updates|Extractor|dpu-domain-specific/ares-update|
 |ext. ares|Extractor|dpu-domain-specific/ares|
 |ext. buyer profiles cz|Extractor|dpu-domain-specific/buyer-profiles|
@@ -36,13 +36,13 @@ Repository for DPUs (Data processing units) for UnifiedViews ETL tool (https://g
 |ext. unzipper|Extractor|dpu-domain-specific/unzipper|
 
 #####General
-|Name      |Type      |Location   |
-|----------|----------|-----------|
+|Name      |Type      |Location   |Description |
+|----------|----------|-----------|------------|
 |ext. file downloader|Extractor|dpu/extractor-download-file|
 |ext. file local|Extractor|dpu/extractor-local-file|
 |load. ftp|Loader|dpu/loader-ftp|
 |load. file local|Loader|dpu/loader-local-file|
-|load. scp|Loader|Loader|dpu/loader-scp|
+|load. scp|Loader|dpu/loader-scp|
 |trans. file filter|Transformer|dpu/transformer-file-filter|
 |trans. file merger|Transformer|dpu/transformer-file-merger|
 |trans. rdf to csv|Transformer|dpu/transformer-rdf-csv|
