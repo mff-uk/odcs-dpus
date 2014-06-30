@@ -174,6 +174,7 @@
 		<xsl:param name="ico"/>
 
 		<lodares:Zivnost rdf:about="{f:icoBasedURI($ico,concat('zivnost/',d:vznik, '/', d:s, '/', d:druh, '/', encode-for-uri(normalize-space(d:pp))))}">
+			<dcterms:title><xsl:value-of select="d:pp"/></dcterms:title>
 			<xsl:apply-templates>
 				<xsl:with-param name="ico" select="$ico"/>
 			</xsl:apply-templates>
