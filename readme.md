@@ -71,7 +71,7 @@ The Libs directory contains useful project that can be used by DPUs:
 * Test boost - load/store methods for RdfDataUnit.
 
 ###Dependencies
-Contains DPU's dependencies (jar libraries - osgi bundles). If DPU need some osgi-library then the library should be located here and there should be lib/libs.txt file (line oriented) that contains list of required dependencies.
+Contains DPU's dependencies (jar libraries - osgi bundles). If DPU needs some osgi-library then the library should be located here and there should be lib/libs.txt file (line oriented) that contains list of required dependencies in the DPU folder, e.g., as here: https://github.com/mff-uk/DPUs/tree/master/dpu/loader-scp.
 
 ###DPU template
 Two templates are located here. They must be installed in maven repository before use. Once presented in maven repository, they can be used as a templates (create project from archeotype).
