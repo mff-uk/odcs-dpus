@@ -1,5 +1,5 @@
 ##Introduction
-Repository for DPUs (Data processing units) for ETL tool (https://github.com/UnifiedViews/Core) for RDF data.
+Repository for DPUs (Data processing units) for UnifiedViews ETL tool (https://github.com/UnifiedViews/Core).
 
 ##For Users
 
@@ -59,7 +59,7 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 |trans. multiple files picker|Transformer|dpu-deprecated/multiple-files-picker|
 |trans. simple xslt|Transformer|dpu-deprecated/xslt|
 
-##For contributors
+##For contributors (Please READ before contributing)
 
 ###Base
 Contains parent project for other projects in this repository.
