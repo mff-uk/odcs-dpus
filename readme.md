@@ -61,6 +61,9 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 
 ##For contributors
 
+###Base
+Contains parent project for other projects in this repository.
+
 ###Libs
 The Libs directory contains useful project that can be used by DPUs:
 * Simple RDF - made work with RDF easier.

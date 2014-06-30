@@ -12,9 +12,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import org.openrdf.model.ValueFactory;

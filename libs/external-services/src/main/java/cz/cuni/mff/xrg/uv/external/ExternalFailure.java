@@ -2,7 +2,7 @@ package cz.cuni.mff.xrg.uv.external;
 
 /**
  *
- * @author Škoda Petr
+ * @author Å koda Petr
  */
 public class ExternalFailure extends Exception {
 

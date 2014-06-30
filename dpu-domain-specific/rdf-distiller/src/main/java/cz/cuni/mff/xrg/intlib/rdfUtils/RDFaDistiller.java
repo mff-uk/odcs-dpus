@@ -23,9 +23,9 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 

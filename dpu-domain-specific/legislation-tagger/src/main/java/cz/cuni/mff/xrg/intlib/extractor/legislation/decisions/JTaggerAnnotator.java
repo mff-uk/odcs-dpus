@@ -1,5 +1,9 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
+import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.JTagger;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.JTaggerResult;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.jTaggerCode.LineJoiner;
@@ -37,7 +41,6 @@ import org.openrdf.query.BindingSet;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openrdf.model.ValueFactory;

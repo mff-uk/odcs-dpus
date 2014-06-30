@@ -3,30 +3,27 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-base</artifactId>
-        <version>1.0.0</version>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
+		<version>1.0.0</version>
     </parent>    
     <artifactId>extractor_gov_cz_agendy</artifactId>
 	<name>ext. gov cz agendy</name>
     <packaging>bundle</packaging>
     <version>1.0.1</version>
 	<description>This extractor scrapes Agendy from https://rpp-ais.egon.gov.cz/gen/agendy-detail/</description>
+
     <properties>    
         <dpu.package>cz.opendata.linked.cz.gov.agendy</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
- 	<dependencies>
+
+    <dependencies>
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>1.7.3</version>
 		</dependency>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
  	</dependencies>
+    
 </project>

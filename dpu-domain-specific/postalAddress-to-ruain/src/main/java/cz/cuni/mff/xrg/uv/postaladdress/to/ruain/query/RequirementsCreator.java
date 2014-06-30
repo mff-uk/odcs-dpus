@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.*;
 import java.util.LinkedList;
@@ -18,13 +18,11 @@ import org.openrdf.query.TupleQueryResult;
  *
  * @author Škoda Petr
  */
-public class QueryCreator {
+public class RequirementsCreator {
         
     private final List<StatementMapper> parsers;
 
     private final SimpleRdfRead rdfPostalAddress;
-
-    private final RequirementsToQuery reqConvertor;
 
     private final ErrorLogger errorLogger;
     
@@ -34,10 +32,9 @@ public class QueryCreator {
      * @param errorLogger
      * @param knowledgeBase
      */
-    public QueryCreator(SimpleRdfRead rdfPostalAddress, 
+    public RequirementsCreator(SimpleRdfRead rdfPostalAddress, 
             ErrorLogger errorLogger, KnowledgeBase knowledgeBase) {
         this.rdfPostalAddress = rdfPostalAddress;
-        this.reqConvertor = new RequirementsToQuery();
         this.errorLogger = errorLogger;
         // add parsers
         this.parsers = new LinkedList<>();
@@ -46,7 +43,7 @@ public class QueryCreator {
         this.parsers.add(new AddressRegionMapper(errorLogger));
     }
     
-    public String createQuery(Value addr) throws QueryEvaluationException,
+    public List<Requirement> createRequirements(Value addr) throws QueryEvaluationException,
             QueryException, OperationFailedException {
         final List<Requirement> requirements = new LinkedList<>();
         
@@ -59,7 +56,7 @@ public class QueryCreator {
             throw new EmptyQueryException();
         }        
         // build string query
-        return reqConvertor.convert(requirements);
+        return requirements;
     }
     
     /**

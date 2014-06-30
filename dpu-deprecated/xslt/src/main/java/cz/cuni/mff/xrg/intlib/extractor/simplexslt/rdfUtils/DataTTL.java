@@ -4,9 +4,9 @@
  */
 package cz.cuni.mff.xrg.intlib.extractor.simplexslt.rdfUtils;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import org.openrdf.rio.RDFFormat;
 

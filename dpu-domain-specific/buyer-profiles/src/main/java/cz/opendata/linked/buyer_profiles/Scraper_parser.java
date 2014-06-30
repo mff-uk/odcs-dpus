@@ -1,6 +1,6 @@
 package cz.opendata.linked.buyer_profiles;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 

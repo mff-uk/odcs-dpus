@@ -31,10 +31,10 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 import org.openrdf.model.ValueFactory;
@@ -54,6 +54,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	@OutputDataUnit(name = "OR")
 	public WritableRDFDataUnit outOR;
+
+	@OutputDataUnit(name = "RZP")
+	public WritableRDFDataUnit outRZP;
 
 	public Extractor(){
 		super(ExtractorConfig.class);
@@ -199,6 +202,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		final SimpleRdfWrite outORWrap = new SimpleRdfWrite(outOR, ctx);
 		outORWrap.setPolicy(AddPolicy.BUFFERED);
 
+		final SimpleRdfWrite outRZPWrap = new SimpleRdfWrite(outRZP, ctx);
+		outRZPWrap.setPolicy(AddPolicy.BUFFERED);
+
 		try {
 			while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
 				String currentIC = li.next();
@@ -294,6 +300,53 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 						}
 					}
 				}
+
+				if (ctx.canceled()) break;
+
+				if (config.isDownloadRZP()) {
+					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_rzp.cgi?ico=" + currentIC + "&rozsah=2");
+
+					final ValueFactory valueFactory = outRZPWrap.getValueFactory();
+					if (!Cache.isCached(current) && !config.isUseCacheOnly())
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							if (config.isGenerateOutput()) {
+								outRZPWrap.add( 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
+							}
+							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+						}
+						else
+						{
+							LOG.warn("Document null: {}", current);
+						}
+					}
+					else if (Cache.isCached(current))
+					{
+						Document doc = Cache.getDocument(current, 10, "xml");
+						cachedEarlier++;
+						if (doc != null)
+						{
+							if (config.isGenerateOutput()) {
+								outRZPWrap.add( 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
+										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
+										valueFactory.createLiteral(doc.outerHtml()));
+							}
+							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
+						}
+						else
+						{
+							LOG.warn("Document null: {}", current);
+						}
+					}
+				}
+			
 			}
 			if (ctx.canceled()) LOG.error("Interrupted");
 		} catch (BannedException e) {

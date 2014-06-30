@@ -3,8 +3,8 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<artifactId>module-base</artifactId>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
 	<artifactId>transformer_single_file_picker</artifactId>

@@ -16,6 +16,8 @@
     xmlns:schema="http://schema.org/"
     xmlns:skos="http://www.w3.org/2004/02/skos/core#"
     xmlns:void="http://rdfs.org/ns/void#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:ruianlink="http://ruian.linked.opendata.cz/ontology/links/"
     version="2.0">
     
     <!--
@@ -25,6 +27,8 @@
     
     <xsl:param name="namespace">http://linked.opendata.cz/resource/</xsl:param>
 	<xsl:variable name="beURIprefix">http://linked.opendata.cz/resource/business-entity/</xsl:variable>
+	<xsl:variable name="nacePrefix">http://ec.europa.eu/eurostat/ramon/rdfdata/nace_r2/</xsl:variable>
+	<xsl:variable name="ruianPrefix">http://ruian.linked.opendata.cz/resource/</xsl:variable>
     <xsl:variable name="baseURI" select="concat($namespace, 'domain/ares/')"/>
     <xsl:variable name="icoScheme" select="concat($namespace, 'concept-scheme/CZ-ICO')"/>
     <xsl:strip-space elements="*"/>
@@ -226,6 +230,84 @@
         </schema:PostalAddress>
     </xsl:template>
     
+<!-- RUIAN START -->
+    <xsl:template mode="linked" match="d:au">
+        <!-- Adresa RUIAN -->
+        <xsl:apply-templates mode="linked"/>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:ka">
+        <!-- Adresni misto RUIAN -->
+        <ruianlink:adresni-misto>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'adresni-mista/', text())"/>
+        </ruianlink:adresni-misto>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kob">
+        <!-- Objekt RUIAN -->
+        <ruianlink:stavebni-objekt>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'stavebni-objekty/', text())"/>
+        </ruianlink:stavebni-objekt>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kul">
+        <!-- Ulice RUIAN -->
+        <ruianlink:ulice>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'ulice/', text())"/>
+        </ruianlink:ulice>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:ko">
+        <!-- Obec RUIAN -->
+        <ruianlink:obec>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'obce/', text())"/>
+        </ruianlink:obec>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kco">
+        <!-- Část obce RUIAN -->
+        <ruianlink:cast-obce>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'casti-obci/', text())"/>
+        </ruianlink:cast-obce>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kok">
+        <!-- Okres RUIAN -->
+        <ruianlink:okres>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'okresy/', text())"/>
+        </ruianlink:okres>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kmc">
+        <!-- MOMC RUIAN -->
+        <ruianlink:momc>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'momc/', text())"/>
+        </ruianlink:momc>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kk">
+        <!-- VUSC RUIAN -->
+        <ruianlink:vusc>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'vusc/', text())"/>
+        </ruianlink:vusc>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kol">
+        <!-- RS RUIAN -->
+        <ruianlink:region-soudrznosti>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'regiony-soudrznosti/', text())"/>
+        </ruianlink:region-soudrznosti>
+    </xsl:template>
+
+    <xsl:template mode="linked" match="u:kso">
+        <!-- Správní obvod RUIAN -->
+        <ruianlink:spravni-obvod>
+			<xsl:attribute name="rdf:resource" select="concat($ruianPrefix, 'spravni-obvody/', text())"/>
+        </ruianlink:spravni-obvod>
+    </xsl:template>
+
+ <!-- RUIAN END -->
+
     <xsl:template mode="linked" match="d:at[parent::d:aa]">
         <!-- Adresa textem -->
         <schema:description><xsl:value-of select="normalize-space(./text())"/></schema:description>    
@@ -289,8 +371,19 @@
     <xsl:template mode="linked" match="d:nace[not(d:nace)]">
         <!-- NACE kód -->
         <xsl:param name="ico" tunnel="yes"/>
+        <xsl:variable name="NACEURI">
+			<xsl:if test="string-length(text()) &lt; 3">
+				<xsl:value-of select="concat($nacePrefix, text())"/>
+			</xsl:if>
+			<xsl:if test="string-length(text()) &gt; 2">
+				<xsl:value-of select="concat($nacePrefix, replace(text(), '([0-9][0-9])([0-9][0-9]?).*', '$1.$2'))"/>
+			</xsl:if>
+        </xsl:variable>
         <skos:Concept rdf:about="{f:pathIdURIWithICOFallback($ico, 'concept-scheme/nace', text(), .)}">
             <skos:inScheme rdf:resource="http://ec.europa.eu/eurostat/ramon/rdfdata/nace_r2"/>
+            <owl:sameAs>
+				<xsl:attribute name="rdf:resource" select="$NACEURI"/>
+            </owl:sameAs>
             <xsl:apply-templates mode="linked"/>
         </skos:Concept>  
     </xsl:template>

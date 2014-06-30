@@ -3,8 +3,8 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<artifactId>module-base</artifactId>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
 		<version>1.0.0</version>
 	</parent>    
 	<artifactId>extractor_buyer_profiles_cz</artifactId>
@@ -12,10 +12,13 @@
 	<packaging>bundle</packaging>
 	<version>1.0.0</version>
 	<description>This extractor scrapes buyer profiles and public contracts published on them and creates Turtle files</description>
-	<properties>    
+	
+    <properties>    
 		<dpu.package>cz.opendata.linked.buyer_profiles</dpu.package>
 		<dpu.mainClass>Extractor</dpu.mainClass>    
+        <osgi.packages>!org.apache.xml.resolver,!org.apache.xml.resolver.readers,</osgi.packages>
 	</properties>
+    
 	<dependencies>
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -27,32 +30,6 @@
 			<artifactId>xercesImpl</artifactId>
 			<version>2.11.0</version>
 		</dependency>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
-
-	<build>	
-        <plugins>
-            <plugin> <!-- main build plugin for modules -->
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.3.7</version>
-				<configuration>
-					<instructions>
-						<!-- manualy exclude: org.apache.xml.resolver,org.apache.xml.resolver.readers 
-							as they are not located in direct dependency nor used in a program directly -->
-                        <Import-Package>
-                            cz.cuni.mff.xrg.odcs.*;version="${odcs.version}",com.vaadin.*;version="[${vaadin.version.min},
-                            ${vaadin.version.max})",!org.apache.xml.resolver,!org.apache.xml.resolver.readers,*
-                        </Import-Package>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	
+	</dependencies>	
+    
 </project>

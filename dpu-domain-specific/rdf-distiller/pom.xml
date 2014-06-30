@@ -3,23 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-	<groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-base</artifactId>
-        <version>1.0.0</version>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
+		<version>1.0.0</version>
     </parent>    
     <artifactId>extractor_rdfa_distiller</artifactId>
 	<name>ext. rdfa distiller</name>
     <packaging>bundle</packaging>
 	<version>1.0.0</version>
 	<description>Module which is able to distill RDF data from RDFa</description>
-	<dependencies>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
+
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.rdfUtils</dpu.package>
         <dpu.mainClass>RDFaDistiller</dpu.mainClass>    

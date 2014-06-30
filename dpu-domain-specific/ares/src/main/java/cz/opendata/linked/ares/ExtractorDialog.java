@@ -21,6 +21,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	private CheckBox chkUseCacheOnly;
 	private CheckBox chkBasic;
 	private CheckBox chkOR;
+	private CheckBox chkRZP;
 	private CheckBox chkStdAdr;
 	private CheckBox chkActive;
 	private CheckBox chkGenerateOutput;
@@ -76,6 +77,12 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         
         mainLayout.addComponent(chkOR);
 
+        chkRZP = new CheckBox("Download RZP:");
+        chkRZP.setDescription("When selected, downloads will include RZP registry.");
+        chkRZP.setWidth("100%");
+        
+        mainLayout.addComponent(chkRZP);
+
         chkStdAdr = new CheckBox("Include OR stdadr:");
         chkStdAdr.setDescription("When selected, downloads will include standardized address.");
         chkStdAdr.setWidth("100%");
@@ -119,6 +126,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		chkUseCacheOnly.setValue(conf.isUseCacheOnly());
 		chkGenerateOutput.setValue(conf.isGenerateOutput());
 		chkOR.setValue(conf.isDownloadOR());
+		chkRZP.setValue(conf.isDownloadRZP());
 		chkBasic.setValue(conf.isDownloadBasic());
 		chkPuvAdr.setValue(conf.isBas_puvadr());
 		chkActive.setValue(conf.isBas_active());
@@ -136,6 +144,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 		conf.setBas_puvadr(chkPuvAdr.getValue());
 		conf.setOr_stdadr(chkStdAdr.getValue());
 		conf.setDownloadOR(chkOR.getValue());
+		conf.setDownloadRZP(chkRZP.getValue());
 		conf.setDownloadBasic(chkBasic.getValue());
 		conf.setBas_active(chkActive.getValue());
 		conf.setUseCacheOnly(chkUseCacheOnly.getValue());
