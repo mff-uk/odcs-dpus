@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-	    <groupId>cz.cuni.mff.xrg.odcs</groupId>
-            <artifactId>module-base</artifactId>
-            <version>1.0.0</version>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
+		<version>1.0.0</version>
     </parent>    
     <artifactId>transformer_simple_xslt</artifactId>
 	<name>trans. simple xslt</name>
@@ -24,13 +24,8 @@
             <artifactId>xml-resolver</artifactId>
             <version>1.2</version>
         </dependency>
- 		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
     </dependencies>
+
     <properties>    
         <dpu.package>cz.cuni.mff.xrg.intlib.extractor.simplexslt</dpu.package>
         <dpu.mainClass>SimpleXSLT</dpu.mainClass>    

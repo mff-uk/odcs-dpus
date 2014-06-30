@@ -3,8 +3,8 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>cz.cuni.mff.xrg.odcs</groupId>
-		<artifactId>module-base</artifactId>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>extractor_legislation_uSoud</artifactId>
@@ -12,34 +12,24 @@
 	<packaging>bundle</packaging>
 	<description>Module which is able to extract decisions from nsoud. Requires catdoc utility being available on the target system. </description>
 	<version>1.0.0</version>
+    
+    <properties>    
+		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud</dpu.package>
+		<dpu.mainClass>Extractor</dpu.mainClass>    
+	</properties>
+    
 	<dependencies>
 		<dependency>
 			<groupId>net.lingala.zip4j</groupId>
 			<artifactId>zip4j</artifactId>
 			<version>1.2.3</version>
 		</dependency>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>ontology</artifactId>
-			<version>1.0.0</version>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>		
-	</dependencies>
-	<properties>    
-		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud</dpu.package>
-		<dpu.mainClass>Extractor</dpu.mainClass>    
-	</properties>
-        
+	</dependencies>    
+            
 	<build>        
 		<resources>
 			<resource>
-				<directory>${basedir}/src/main/resources</directory> <!-- this is default dir-->
+				<directory>${basedir}/src/main/resources</directory>
 				<targetPath>src/main/resources</targetPath>
 				<includes>
 					<include>**/*</include>

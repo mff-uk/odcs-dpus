@@ -1,6 +1,6 @@
 package cz.opendata.linked.cz.mzp.ippc;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;

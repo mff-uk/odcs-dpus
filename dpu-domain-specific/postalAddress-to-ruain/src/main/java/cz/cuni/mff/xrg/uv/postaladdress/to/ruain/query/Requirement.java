@@ -11,7 +11,7 @@ public class Requirement {
     private final String predicate;
     
     private final String object;
-
+    
     public Requirement(Subject subject, String predicate, String object) {
         this.subject = subject;
         this.predicate = predicate;

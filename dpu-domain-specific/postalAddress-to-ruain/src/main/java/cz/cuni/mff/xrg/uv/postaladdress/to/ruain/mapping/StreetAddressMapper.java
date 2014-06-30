@@ -6,9 +6,7 @@ import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Subject;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.StreetAddressParser;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.WrongAddressFormatException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -89,10 +87,12 @@ public class StreetAddressMapper extends StatementMapper {
     private void mapWithoutKnowledge(String townName, String streetName, 
             List<Requirement> results) {
         if (townName != null) {
-            results.add(createRequirementTownName(townName));
+            results.addAll(createRequirementTownName(
+                    Arrays.asList(townName)));
         }
         if (streetName != null) {
-            results.add(createRequirementStreetName(streetName));
+            results.addAll(createRequirementStreetName(
+                    Arrays.asList(streetName)));
         }        
     }
 
@@ -106,29 +106,28 @@ public class StreetAddressMapper extends StatementMapper {
     private void mapWithKnowledge(String townName, String streetName, 
             List<Requirement> results) {
         
-        String checkedTownName = knowledgeBase.checkTownName(townName);
-        String checkedStreetName = knowledgeBase.checkStreetName(streetName);
+        List<String> checkedTownName = knowledgeBase.checkTownName(townName);
+        List<String> checkedStreetName = knowledgeBase.checkStreetName(streetName);
         
         if (checkedStreetName != null) {
             // it's street name
-            results.add(createRequirementStreetName(checkedStreetName));
+            results.addAll(createRequirementStreetName(checkedStreetName));
         }
         
         if (checkedTownName != null) {
             // it's town name
-            results.add(createRequirementTownName(checkedTownName));
+            results.addAll(createRequirementTownName(checkedTownName));
         }
         
         // if checked town or street name is null, we check for
-        // switch
-        
+        // switch        
         if (checkedStreetName == null) {
-            final String streetAsTown = knowledgeBase.checkTownName(streetName);
+            List<String> streetAsTown = knowledgeBase.checkTownName(streetName);
             if (streetAsTown != null) {
                 if (checkedTownName == null) {
                     // street name is in fact town name, and original town name
                     // is missing
-                    results.add(createRequirementTownName(streetAsTown));
+                    results.addAll(createRequirementTownName(streetAsTown));
                 } else {
                     // TODO street name is twice here
                 }
@@ -136,11 +135,11 @@ public class StreetAddressMapper extends StatementMapper {
         }
         
         if (checkedTownName == null) {
-            final String townAsStreet = knowledgeBase.checkStreetName(townName);
+            List<String> townAsStreet = knowledgeBase.checkStreetName(townName);
             if (townAsStreet != null) {
                 if (checkedTownName == null) {
                     // town name is street name
-                    results.add(createRequirementStreetName(townAsStreet));
+                    results.addAll(createRequirementStreetName(townAsStreet));
                 } else {
                     // TODO town name is twice here
                 }
@@ -148,14 +147,22 @@ public class StreetAddressMapper extends StatementMapper {
         }        
     }    
     
-    private Requirement createRequirementTownName(String townName) {
-        return new Requirement(Subject.OBEC, "s:name", 
-                    String.format("\"%s\"", townName));
+    private List<Requirement> createRequirementTownName(List<String> townName) {
+        List<Requirement> result = new ArrayList<>(townName.size());
+        for (String item : townName) {
+            result.add(new Requirement(Subject.OBEC, "s:name", 
+                    String.format("\"%s\"", item)));
+        }
+        return result;
     }
     
-    private Requirement createRequirementStreetName(String streetName) {
-        return new Requirement(Subject.ULICE, "s:name", 
-                    String.format("\"%s\"", streetName));
+    private List<Requirement> createRequirementStreetName(List<String> streetName) {
+        List<Requirement> result = new ArrayList<>(streetName.size());
+        for (String item : streetName) {
+            result.add(new Requirement(Subject.ULICE, "s:name", 
+                    String.format("\"%s\"", item)));
+        }
+        return result;        
     }
     
     

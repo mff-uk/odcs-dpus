@@ -1,5 +1,10 @@
 package cz.opendata.linked.geocoder.nominatim;
 
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,7 +48,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.*;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 

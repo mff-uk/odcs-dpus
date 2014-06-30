@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cz.cuni.mff.xrg.odcs</groupId>
-        <artifactId>module-base</artifactId>
-        <version>1.0.0</version>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
+		<version>1.0.0</version>
     </parent>    
     <artifactId>extractor_geocoder_google</artifactId>
 	<name>ext. geocoder google</name>
@@ -17,6 +17,7 @@
         <dpu.package>cz.opendata.linked.geocoder.google</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
+    
  	<dependencies>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -38,11 +39,6 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.8</version>
 		</dependency>
-		<dependency>
-			<groupId>cz.cuni.mff.xrg.odcs</groupId>
-			<artifactId>dataunit-rdf-simple</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
 	 </dependencies>
+     
 </project>

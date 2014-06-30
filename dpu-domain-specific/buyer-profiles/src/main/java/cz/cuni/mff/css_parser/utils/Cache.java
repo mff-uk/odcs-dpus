@@ -1,6 +1,6 @@
 package cz.cuni.mff.css_parser.utils;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -14,7 +14,7 @@ import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;

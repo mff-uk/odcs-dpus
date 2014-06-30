@@ -8,9 +8,9 @@ import org.slf4j.Logger;
 import cz.cuni.mff.scraper.lib.selector.CssSelector;
 import cz.cuni.mff.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.scraper.lib.template.ScrapingTemplate;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
 
 /**

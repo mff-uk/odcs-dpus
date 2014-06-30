@@ -12,14 +12,15 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.odcs.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.odcs.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.ErrorLogger;
-import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.QueryCreator;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.RequirementsCreator;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.QueryException;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.RequirementsToQuery;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
@@ -97,7 +98,7 @@ public class Main extends ConfigurableBase<Configuration>
         final ErrorLogger errorLogger = new ErrorLogger();
         final KnowledgeBase knowledgeBase = null; // TODO create knowledge base here
         
-        QueryCreator creator = new QueryCreator(rdfPostalAddress, errorLogger, 
+        RequirementsCreator creator = new RequirementsCreator(rdfPostalAddress, errorLogger, 
                 knowledgeBase);
         
         try (ConnectionPair<TupleQueryResult> addresses = rdfPostalAddress.
@@ -124,13 +125,17 @@ public class Main extends ConfigurableBase<Configuration>
         }
     }
 
-    private void processPostalAddress(QueryCreator creator, Value addr) 
+    private void processPostalAddress(RequirementsCreator creator, Value addr) 
             throws OperationFailedException, QueryEvaluationException {
         String connectQuery = "not-created";        
         // get all triples related to the given address
         try {
             // prepare query into ruian that gives use statement for mapping
-            connectQuery = creator.createQuery(addr);
+            RequirementsToQuery reqToQuery = new RequirementsToQuery();
+            
+            creator.createRequirements(addr);
+            
+//            connectQuery = reqToQuery.convert(creator.createRequirements(addr));
             // we ask query into rdfRuain and use result to mapp
             // the source and add the triple into output
 
