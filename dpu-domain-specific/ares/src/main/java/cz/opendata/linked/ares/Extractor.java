@@ -360,6 +360,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		// add the triples in repositories
 		outBasicWrap.flushBuffer();
 		outORWrap.flushBuffer();
+		outRZPWrap.flushBuffer();
 		
 		java.util.Date date2 = new java.util.Date();
 		long end = date2.getTime();

@@ -1,13 +1,13 @@
 ##Introduction
-Repository for DPUs (Data processing units) for ETL tool (https://github.com/UnifiedViews/Core) for RDF data.
+Repository for DPUs (Data processing units) for UnifiedViews ETL tool (https://github.com/UnifiedViews/Core).
 
 ##For Users
 
 ###DPU List
 
 ####Domain specific
-|Name      |Type      |Location   |
-|----------|----------|-----------|
+|Name      |Type      |Location   |Description |
+|----------|----------|-----------|------------|
 |ext. ares updates|Extractor|dpu-domain-specific/ares-update|
 |ext. ares|Extractor|dpu-domain-specific/ares|
 |ext. buyer profiles cz|Extractor|dpu-domain-specific/buyer-profiles|
@@ -36,13 +36,13 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 |ext. unzipper|Extractor|dpu-domain-specific/unzipper|
 
 #####General
-|Name      |Type      |Location   |
-|----------|----------|-----------|
+|Name      |Type      |Location   |Description |
+|----------|----------|-----------|------------|
 |ext. file downloader|Extractor|dpu/extractor-download-file|
 |ext. file local|Extractor|dpu/extractor-local-file|
 |load. ftp|Loader|dpu/loader-ftp|
 |load. file local|Loader|dpu/loader-local-file|
-|load. scp|Loader|Loader|dpu/loader-scp|
+|load. scp|Loader|dpu/loader-scp|
 |trans. file filter|Transformer|dpu/transformer-file-filter|
 |trans. file merger|Transformer|dpu/transformer-file-merger|
 |trans. rdf to csv|Transformer|dpu/transformer-rdf-csv|
@@ -59,7 +59,10 @@ Repository for DPUs (Data processing units) for ETL tool (https://github.com/Uni
 |trans. multiple files picker|Transformer|dpu-deprecated/multiple-files-picker|
 |trans. simple xslt|Transformer|dpu-deprecated/xslt|
 
-##For contributors
+##For contributors (Please READ before contributing)
+
+###Base
+Contains parent project for other projects in this repository.
 
 ###Libs
 The Libs directory contains useful project that can be used by DPUs:
@@ -68,7 +71,7 @@ The Libs directory contains useful project that can be used by DPUs:
 * Test boost - load/store methods for RdfDataUnit.
 
 ###Dependencies
-Contains DPU's dependencies (jar libraries - osgi bundles). If DPU need some osgi-library then the library should be located here and there should be lib/libs.txt file (line oriented) that contains list of required dependencies.
+Contains DPU's dependencies (jar libraries - osgi bundles). If DPU needs some osgi-library then the library should be located here and there should be lib/libs.txt file (line oriented) that contains list of required dependencies in the DPU folder, e.g., as here: https://github.com/mff-uk/DPUs/tree/master/dpu/loader-scp.
 
 ###DPU template
 Two templates are located here. They must be installed in maven repository before use. Once presented in maven repository, they can be used as a templates (create project from archeotype).
