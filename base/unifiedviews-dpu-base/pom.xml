@@ -1,0 +1,115 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-base</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <artifactId>unifiedviews-dpu-base</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>unifiedviews dpu base</name>
+    <description>Commons base project for DPU's.</description>
+    <properties>
+        <vaadin.version.min>7.1.8</vaadin.version.min>
+        <vaadin.version.max>8.0.0</vaadin.version.max>
+        <!-- must end with comma -->
+        <osgi.packages></osgi.packages>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- unifiedviews -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>module-test</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>commons-module</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>dataunit-rdf</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>dataunit-file</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>commons-web</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>dataunit-rdf-simple</artifactId>
+            <version>[1.0.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin> <!-- main build plugin for modules -->
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Bundle-Description>${project.description}</Bundle-Description>
+                        <Import-Package>
+                            cz.cuni.mff.xrg.odcs.*;version="[1.0.0,2.0.0)",
+                            cz.cuni.mff.xrg.uv.rdf.simple.*;version="[1.0.0,2.0.0)",                                
+                            com.vaadin.*;version="[${vaadin.version.min},${vaadin.version.max})",
+                            ${osgi.packages}
+                            *
+                        </Import-Package>
+                        <!-- dependencies embedding -->
+                        <Embed-Dependency>*;scope=compile|system</Embed-Dependency>
+                        <Embed-Directory>dependency</Embed-Directory>
+                        <Embed-StripGroup>false</Embed-StripGroup>
+                        <!-- unifiedviews properties -->
+                        <DPU-Package>${dpu.package}</DPU-Package>
+                        <DPU-MainClass>${dpu.mainClass}</DPU-MainClass>
+                        <Build-Time>${maven.build.timestamp}</Build-Time>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
