@@ -58,9 +58,10 @@ public class Cache {
 	private static void download_and_gunzip(String fromURL, File toFile) throws IOException
 	{
 		GZIPInputStream gis = null;
+        OutputStream fos = null;
 		try {
 		    URL oURL = new URL(fromURL);
-		    OutputStream fos = new FileOutputStream(toFile);
+		    fos = new FileOutputStream(toFile);
 	        InputStream is = oURL.openStream();
 	        gis = new GZIPInputStream(is);
 	        
@@ -68,6 +69,9 @@ public class Cache {
 		} finally {
 			if (gis != null) {
 				gis.close();
+			}
+            if (fos != null) {
+				fos.close();
 			}
 		}
 	}
