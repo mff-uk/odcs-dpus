@@ -15,7 +15,7 @@
     <properties>
         <vaadin.version.min>7.1.8</vaadin.version.min>
         <vaadin.version.max>8.0.0</vaadin.version.max>
-        <!-- must end with comma -->
+        <!-- must end with comma if not empty -->
         <osgi.packages></osgi.packages>
     </properties>
     <dependencies>
