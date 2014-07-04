@@ -16,12 +16,12 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>module-test</artifactId>
-            <version>1.0.0</version>
+            <version>[1.2.1,2.0.0)</version>
         </dependency>		
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>dataunit-rdf-simple</artifactId>
-            <version>1.0.0</version>
+            <version>[1.0.0,2.0.0)</version>
         </dependency>		
     </dependencies>
 	

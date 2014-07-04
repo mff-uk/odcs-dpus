@@ -13,8 +13,9 @@
     <name>unifiedviews dpu base</name>
     <description>Commons base project for DPU's.</description>
     <properties>
-        <vaadin.version.min>7.1.8</vaadin.version.min>
-        <vaadin.version.max>8.0.0</vaadin.version.max>
+        <!-- libs -->        
+        <vaadin.version>7.1.8</vaadin.version>
+        <simple.rdf.version>1.0.0</simple.rdf.version>
         <!-- must end with comma if not empty -->
         <osgi.packages></osgi.packages>
     </properties>
@@ -35,35 +36,35 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>module-test</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${unifiedviews.version},2.0.0)</version>
             <type>jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>commons-module</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${unifiedviews.version},2.0.0)</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>dataunit-rdf</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${unifiedviews.version},2.0.0)</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>dataunit-file</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${unifiedviews.version},2.0.0)</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>commons-web</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${unifiedviews.version},2.0.0)</version>
             <type>jar</type>
             <scope>provided</scope>
             <!--<optional>true</optional>-->
@@ -71,7 +72,7 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>dataunit-rdf-simple</artifactId>
-            <version>[1.0.0,2.0.0)</version>
+            <version>[${simple.rdf.version},2.0.0)</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
@@ -90,9 +91,9 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Description>${project.description}</Bundle-Description>
                         <Import-Package>
-                            cz.cuni.mff.xrg.odcs.*;version="[1.0.0,2.0.0)",
-                            cz.cuni.mff.xrg.uv.rdf.simple.*;version="[1.0.0,2.0.0)",                                
-                            com.vaadin.*;version="[${vaadin.version.min},${vaadin.version.max})",
+                            cz.cuni.mff.xrg.odcs.*;version="[${unifiedviews.version},2.0.0)",
+                            cz.cuni.mff.xrg.uv.rdf.simple.*;version="[${simple.rdf.version},2.0.0)",                                
+                            com.vaadin.*;version="[${vaadin.version},8.0.0)",
                             ${osgi.packages}
                             *
                         </Import-Package>
