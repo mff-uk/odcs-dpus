@@ -1,9 +1,8 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping;
 
-import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.StreetAddress;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
-import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Subject;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.StreetAddressParser;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.WrongAddressFormatException;
 import java.util.*;
@@ -14,24 +13,16 @@ import java.util.*;
  */
 public class StreetAddressMapper extends StatementMapper {
 
+    public static final String NAME = "jméno ulice";
+    
     private final StreetAddressParser parser = new StreetAddressParser();
-    
-    private final KnowledgeBase knowledgeBase;
-    
-    public StreetAddressMapper(ErrorLogger errorLogger) {
-        super(errorLogger);
-        this.knowledgeBase = null;
-    }
 
-    public StreetAddressMapper(ErrorLogger errorLogger, KnowledgeBase knowledgeBase) {
-        super(errorLogger);
-        this.knowledgeBase = knowledgeBase;
-    }
+    StreetAddressMapper() { }
     
     @Override
-    public boolean canMap(String predicate) {
-        return predicate.compareTo("http://schema.org/streetAddress") == 0;
-    }
+    public String getName() {
+        return NAME;
+    }    
 
     @Override
     public List<Requirement> map(String predicate, String object) {

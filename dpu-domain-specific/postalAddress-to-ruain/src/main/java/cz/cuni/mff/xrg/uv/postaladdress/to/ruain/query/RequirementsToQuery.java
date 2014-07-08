@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import java.util.*;
 
 /**
@@ -65,9 +66,11 @@ public class RequirementsToQuery {
         queries.addAll(alternataLandAndHouseNumber(queries));
         queries.addAll(alternativeHouseNumber(queries));
         queries.addAll(alternativePsc(queries));
-
         // add connection between triples in query
         for (Query q : queries) {
+            if (q.getContent().isEmpty()) {
+                continue;
+            }
             addConnections(q);
         }
         return queries;
@@ -165,8 +168,11 @@ public class RequirementsToQuery {
                     if (newQuery.getContent().get(subject).isEmpty()) {
                         newQuery.getContent().remove(subject);
                     }
-                    // add to the list
-                    toAdd.add(newQuery);
+                    
+                    if (!newQuery.getContent().isEmpty()) {
+                        // add only if not empty
+                        toAdd.add(newQuery);
+                    }
                 }
             }
         }

@@ -1,14 +1,13 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Represents content as a {
- *
- * @limk Map} of {@link Requirement}s.
+ * Represents content as {@link Map} of {@link Requirement}s.
  *
  * @author Škoda Petr
  */
@@ -34,14 +33,11 @@ public class Query {
         }
     }
 
-//    Query(Map<Subject, List<PredicatObject>> query) {
-//        this.content = query;
-//    }
     Map<Subject, List<PredicatObject>> getContent() {
         return content;
     }
 
-    Subject getMainSubject() {
+    public Subject getMainSubject() {
         if (content.isEmpty()) {
             return null;
         }

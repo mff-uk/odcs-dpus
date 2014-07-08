@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
 import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
@@ -7,6 +8,7 @@ import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -20,7 +22,7 @@ import org.openrdf.query.TupleQueryResult;
  */
 public class RequirementsCreator {
         
-    private final List<StatementMapper> parsers;
+    private final List<StatementMapper> mapper;
 
     private final SimpleRdfRead rdfPostalAddress;
 
@@ -31,18 +33,25 @@ public class RequirementsCreator {
      * @param rdfPostalAddress
      * @param errorLogger
      * @param knowledgeBase
+     * @param mapperConfig
      */
     public RequirementsCreator(SimpleRdfRead rdfPostalAddress, 
-            ErrorLogger errorLogger, KnowledgeBase knowledgeBase) {
+            ErrorLogger errorLogger, KnowledgeBase knowledgeBase,
+            Map<String, List<String>> mapperConfig) throws ConfigException {
         this.rdfPostalAddress = rdfPostalAddress;
         this.errorLogger = errorLogger;
         // add parsers
-        this.parsers = new LinkedList<>();
-        this.parsers.add(new PostalCodeMapper(errorLogger));
-        this.parsers.add(new StreetAddressMapper(errorLogger, knowledgeBase));
-        this.parsers.add(new AddressRegionMapper(errorLogger));
+        this.mapper = MapperFactory.construct(errorLogger, knowledgeBase, mapperConfig);
     }
     
+    /**
+     * 
+     * @param addr
+     * @return Can return empty collection.
+     * @throws QueryEvaluationException
+     * @throws QueryException
+     * @throws OperationFailedException 
+     */
     public List<Requirement> createRequirements(Value addr) throws QueryEvaluationException,
             QueryException, OperationFailedException {
         final List<Requirement> requirements = new LinkedList<>();
@@ -51,10 +60,7 @@ public class RequirementsCreator {
         errorLogger.start(addr.toString());
         prepareRequirements(addr, requirements);        
         errorLogger.end();
-        
-        if (requirements.isEmpty()) {
-            throw new EmptyQueryException();
-        }        
+              
         // build string query
         return requirements;
     }
@@ -83,7 +89,7 @@ public class RequirementsCreator {
                         .stringValue();
                 
                 boolean hasBeenUsed = false;
-                for (StatementMapper parser : parsers) {
+                for (StatementMapper parser : mapper) {
                     if (parser.canMap(predicate)) {
                         // add requirements
                         List<Requirement> toAdd = parser.map(predicate, object);

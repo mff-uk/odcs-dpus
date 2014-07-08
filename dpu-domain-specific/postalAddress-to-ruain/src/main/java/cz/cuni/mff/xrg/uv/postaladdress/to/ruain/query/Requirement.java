@@ -1,5 +1,7 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
+
 /**
  *
  * @author Škoda Petr

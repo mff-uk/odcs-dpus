@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping;
 
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
-import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Subject;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,14 +12,14 @@ import java.util.List;
  */
 public class PostalCodeMapper extends StatementMapper {
 
-    public PostalCodeMapper(ErrorLogger errorLogger) {
-        super(errorLogger);
-    }
+    public static final String NAME = "psč";
+        
+    PostalCodeMapper() {}
     
     @Override
-    public boolean canMap(String predicate) {
-        return predicate.compareTo("http://schema.org/postalCode") == 0;
-    }
+    public String getName() {
+        return NAME;
+    }    
 
     @Override
     public List<Requirement> map(String predicate, String object) {

@@ -1,5 +1,7 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
+
 /**
  * Convert {@link Query} to {@link String}.
  *
@@ -19,6 +21,10 @@ public class QueryToString {
     }
 
     public static String convert(Query query, int resultLimit) {
+        if (query.getContent().isEmpty()) {
+            return null;
+        }
+        
         StringBuilder result = new StringBuilder(SELECT_PREAMBLE);
         // put name of the result in the query
         result.append(query.getMainSubject().getText());

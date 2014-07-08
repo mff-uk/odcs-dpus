@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ public class StreetAddressParserTestList {
 
     private final Set<String> obce = new HashSet<>();
 
-    private StreetAddressParser pareser = new StreetAddressParser();
+    private final StreetAddressParser parser = new StreetAddressParser();
 
     public StreetAddressParserTestList() {
         // load cache
@@ -59,7 +58,7 @@ public class StreetAddressParserTestList {
 
     }
 
-    @Test
+    //@Test
     public void listTest() throws WrongAddressFormatException {
         int total = 0;
         int ok = 0;
@@ -70,8 +69,8 @@ public class StreetAddressParserTestList {
         int nullName = 0;
         String fileName = 
 //                "streetAddress-ares"
-                "streetAddress-cenia.cz"
-                //"streetAddress-coi.cz"
+                //"streetAddress-cenia.cz"
+                "streetAddress-coi.cz"
                 //"streetAddress-mzp.cz"
                 //"streetAddress-seznam.gov.cz"                
                 ;
@@ -89,7 +88,7 @@ public class StreetAddressParserTestList {
                         StreetAddress streetAddress;
 
                         try {
-                            streetAddress = pareser.parse(line);
+                            streetAddress = parser.parse(line);
                         } catch (WrongAddressFormatException e) {
                             failed++;
 //                    LOG.info("{} -> ?\t{}", line, e.getMessage());
