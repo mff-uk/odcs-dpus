@@ -113,9 +113,6 @@ public class ErrorLogger {
             Value value = valueFactory.createLiteral(item);
             logRdf.add(address, predParseFailed, value);
         }
-        if (!parseFaield.isEmpty()) {
-            throw new RuntimeException();
-        }
     }
     
     public boolean hasFailed() {

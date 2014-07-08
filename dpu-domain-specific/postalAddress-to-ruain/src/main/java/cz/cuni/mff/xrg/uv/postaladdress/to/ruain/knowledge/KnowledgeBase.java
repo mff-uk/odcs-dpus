@@ -80,15 +80,15 @@ public class KnowledgeBase {
     public void loadStreetNames(SimpleRdfRead rdf, boolean genAlternatives)
             throws Exception {
         loadCache(rdf, streets);
-        LOG.info("Street name cache size: {}", streets.size());
+        LOG.info("Street name cache size: {}++", streets.size());
         if (genAlternatives) {
             generateStreetNameAlternatives();
         }
     }
 
     public void loadTownNames(SimpleRdfRead rdf) throws Exception {
-        LOG.info("Town name cache size: {}", towns.size());
         loadCache(rdf, towns);
+        LOG.info("Town name cache size: {}", towns.size());
     }
 
     public void loadRegionNames(SimpleRdfRead rdf) throws Exception {
