@@ -7,7 +7,13 @@
 	<packaging>maven-archetype</packaging> 
 	<name>dpu template nonconfigurable</name> 
 	<description>Template for DPU without configuration.</description>
-	<build>
+	
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>    
+    
+    <build>
 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.archetype</groupId>
@@ -24,4 +30,5 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+    
 </project>
