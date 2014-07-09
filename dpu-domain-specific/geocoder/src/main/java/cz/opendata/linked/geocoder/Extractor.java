@@ -26,10 +26,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import cz.opendata.linked.geocoder.lib.Geocoder;
 import cz.opendata.linked.geocoder.lib.Geocoder.GeoProvider;
 import cz.opendata.linked.geocoder.lib.Geocoder.GeoProviderFactory;
@@ -65,10 +62,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
+		SimpleRdfWrite geoValueFacWrap = SimpleRdfFactory.create(outGeo, ctx);		
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
+		SimpleRdfRead sAddressesWrap = SimpleRdfFactory.create(sAddresses, ctx);
 		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();
 		
 		String geoCache = new File(ctx.getGlobalDirectory(), "cache/geocoder.cache").getAbsolutePath();

@@ -13,10 +13,9 @@ import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -155,7 +154,7 @@ public class Unzipper extends ConfigurableBase<UnzipperConfig> implements Config
         //OUTPUT
         int i = 0;
 		
-		final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
+		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);	
 		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         for (File file : (new File(tmpCourtFiles)).listFiles()) {

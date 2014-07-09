@@ -23,6 +23,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 
@@ -51,8 +52,8 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 	@Override
 	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
-		final SimpleRdfRead inputWrap = new SimpleRdfRead(inputDataUnit, ctx);
-		final SimpleRdfWrite outputWrap = new SimpleRdfWrite(outputDataUnit, ctx);
+		final SimpleRdfRead inputWrap = SimpleRdfFactory.create(inputDataUnit, ctx);
+		final SimpleRdfWrite outputWrap = SimpleRdfFactory.create(outputDataUnit, ctx);
 		outputWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		// vytvorime si parser

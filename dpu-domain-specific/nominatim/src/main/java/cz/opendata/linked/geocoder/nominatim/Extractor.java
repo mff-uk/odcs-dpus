@@ -48,6 +48,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
 import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 
@@ -169,11 +170,11 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		long start = date.getTime();
 	    Gson gson = new GsonBuilder().registerTypeAdapter(Geo.class, new GeoInstanceCreator()).create();
 		
-		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);
+		final SimpleRdfWrite geoValueFacWrap = SimpleRdfFactory.create(outGeo, ctx);
 		geoValueFacWrap.setPolicy(AddPolicy.BUFFERED);
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		SimpleRdfRead sAddressesWrap = new SimpleRdfRead(sAddresses, ctx);
+		SimpleRdfRead sAddressesWrap = SimpleRdfFactory.create(sAddresses, ctx);
 		final ValueFactory addrValueFac = sAddressesWrap.getValueFactory();		
 		
 		String countQuery = "PREFIX s: <http://schema.org/> "

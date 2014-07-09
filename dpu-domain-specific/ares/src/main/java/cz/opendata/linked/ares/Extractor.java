@@ -37,6 +37,7 @@ import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import org.openrdf.model.ValueFactory;
 
 @AsExtractor
@@ -125,7 +126,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 		int lines = 0;
 		
-		SimpleRdfRead duICsWrap = new SimpleRdfRead(duICs, ctx);
+		SimpleRdfRead duICsWrap = SimpleRdfFactory.create(duICs, ctx);
 		final List<Statement> statements = duICsWrap.getStatements();
 		if (statements != null && !statements.isEmpty())
 		{
@@ -196,13 +197,13 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		Iterator<String> li = ICs.iterator();
 		//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 
-		final SimpleRdfWrite outBasicWrap = new SimpleRdfWrite(outBasic, ctx);
+		final SimpleRdfWrite outBasicWrap = SimpleRdfFactory.create(outBasic, ctx);
 		outBasicWrap.setPolicy(AddPolicy.BUFFERED);
 
-		final SimpleRdfWrite outORWrap = new SimpleRdfWrite(outOR, ctx);
+		final SimpleRdfWrite outORWrap = SimpleRdfFactory.create(outOR, ctx);
 		outORWrap.setPolicy(AddPolicy.BUFFERED);
 
-		final SimpleRdfWrite outRZPWrap = new SimpleRdfWrite(outRZP, ctx);
+		final SimpleRdfWrite outRZPWrap = SimpleRdfFactory.create(outRZP, ctx);
 		outRZPWrap.setPolicy(AddPolicy.BUFFERED);
 
 		try {

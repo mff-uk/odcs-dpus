@@ -41,10 +41,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 
 import org.apache.commons.io.*;
 import org.openrdf.model.*;
@@ -117,10 +114,10 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 		
-		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
+		final SimpleRdfWrite geoValueFacWrap = SimpleRdfFactory.create(outGeo, ctx);		
 		final ValueFactory geoValueFac = geoValueFacWrap.getValueFactory();
 		
-		final SimpleRdfRead addrValueFacWrap = new SimpleRdfRead(sAddresses, ctx);
+		final SimpleRdfRead addrValueFacWrap = SimpleRdfFactory.create(sAddresses, ctx);
 		final ValueFactory addrValueFac = addrValueFacWrap.getValueFactory();
 
 		String countQuery = "PREFIX s: <http://schema.org/> "

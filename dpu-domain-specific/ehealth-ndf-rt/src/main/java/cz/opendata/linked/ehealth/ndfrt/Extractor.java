@@ -27,7 +27,7 @@ import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
@@ -151,7 +151,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
         	return;
         }        
 		
-		SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
+		SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
 		// add triple into the pository
 		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		Resource subj = valueFactory.createURI(config.getNDFRTPrefix() + ndfrtFileName.substring(0, ndfrtFileName.length()-4));

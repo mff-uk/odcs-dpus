@@ -26,6 +26,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
@@ -114,7 +115,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 			}
         	
 			LOG.info("Parsing done. Passing RDF to ODCS");
-			SimpleRdfWrite outputWrap = new SimpleRdfWrite(outputDataUnit, ctx);
+			SimpleRdfWrite outputWrap = SimpleRdfFactory.create(outputDataUnit, ctx);
 			outputWrap.extract(new File(tempfilename), RDFFormat.TURTLE, null);
 		} catch (InterruptedException e) {
 			LOG.error("Interrupted");

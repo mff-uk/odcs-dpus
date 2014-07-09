@@ -31,6 +31,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
 
@@ -63,9 +64,9 @@ public class Extractor
 	public void execute(DPUContext ctx) throws DPUException, DataUnitException
 	{
 		// zalozeni wrapu
-		final SimpleRdfWrite contractsDataUnitWrap = new SimpleRdfWrite(contractsDataUnit, ctx);
-		final SimpleRdfWrite profilesDataUnitWrap = new SimpleRdfWrite(profilesDataUnit, ctx);
-		final SimpleRdfWrite profileStatisticsWrap = new SimpleRdfWrite(profileStatistics, ctx);
+		final SimpleRdfWrite contractsDataUnitWrap = SimpleRdfFactory.create(contractsDataUnit, ctx);
+		final SimpleRdfWrite profilesDataUnitWrap = SimpleRdfFactory.create(profilesDataUnit, ctx);
+		final SimpleRdfWrite profileStatisticsWrap = SimpleRdfFactory.create(profileStatistics, ctx);
 		profileStatisticsWrap.setPolicy(AddPolicy.BUFFERED);		
 		
         // vytvorime si parser        

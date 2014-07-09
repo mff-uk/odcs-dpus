@@ -41,10 +41,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import org.openrdf.model.*;
 import org.openrdf.query.TupleQueryResult;
 
@@ -76,9 +73,9 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 		java.util.Date date = new java.util.Date();
 		long start = date.getTime();
 
-		final SimpleRdfRead gmlPointsWrap = new SimpleRdfRead(gmlPoints, ctx);	
+		final SimpleRdfRead gmlPointsWrap = SimpleRdfFactory.create(gmlPoints, ctx);	
 		
-		final SimpleRdfWrite geoValueFacWrap = new SimpleRdfWrite(outGeo, ctx);		
+		final SimpleRdfWrite geoValueFacWrap = SimpleRdfFactory.create(outGeo, ctx);		
 		final ValueFactory geoValueFactory = geoValueFacWrap.getValueFactory();
 				
 		String countQuery = 

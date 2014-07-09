@@ -32,6 +32,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.exceptions.InvalidQueryException;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -176,11 +177,11 @@ public class SimpleXSLT extends ConfigurableBase<SimpleXSLTConfig> implements Co
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 		// setup global wrappers
-		rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
+		rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
 		outputValueFactory = rdfOutputWrap.getValueFactory();
 
 		if (rdfInput != null) {
-			rdfInputWrap = new SimpleRdfRead(rdfInput, context);
+			rdfInputWrap = SimpleRdfFactory.create(rdfInput, context);
 		} else {
 			rdfInputWrap = null;
 		}

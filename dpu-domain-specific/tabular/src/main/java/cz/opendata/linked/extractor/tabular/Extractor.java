@@ -36,6 +36,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.util.*;
 
@@ -71,7 +72,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	public void execute(DPUContext context) throws DPUException,
 			DataUnitException {
 
-		SimpleRdfWrite triplifiedTableWrap = new SimpleRdfWrite(triplifiedTableT, context);
+		SimpleRdfWrite triplifiedTableWrap = SimpleRdfFactory.create(triplifiedTableT, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		// do we found at least one file?

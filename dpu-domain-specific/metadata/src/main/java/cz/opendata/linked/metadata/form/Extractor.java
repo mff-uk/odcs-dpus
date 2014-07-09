@@ -30,6 +30,7 @@ import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.*;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
@@ -75,7 +76,7 @@ public class Extractor
 		String ns_void = "http://rdfs.org/ns/void#";
 		String ns_qb = "http://purl.org/linked-data/cube#";
 
-		outWrap = new SimpleRdfWrite(out, ctx);
+		outWrap = SimpleRdfFactory.create(out, ctx);
 		outWrap.setPolicy(AddPolicy.BUFFERED);
 		
 		final ValueFactory valueFactory = outWrap.getValueFactory();
@@ -163,7 +164,7 @@ public class Extractor
 			out.addAll(stats);
 		}
 		else if (in != null) {
-			inWrap = new SimpleRdfRead(in, ctx);
+			inWrap = SimpleRdfFactory.create(in, ctx);
 			//Now compute statistics on input data
 			ctx.sendMessage(MessageType.INFO, "Starting statistics computation");
 			executeCountQuery("SELECT (COUNT (*) as ?count) WHERE {?s ?p ?o}", void_triples, datasetURI);

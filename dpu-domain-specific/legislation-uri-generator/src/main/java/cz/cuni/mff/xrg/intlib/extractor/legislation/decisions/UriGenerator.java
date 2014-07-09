@@ -22,6 +22,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.File;
@@ -98,7 +99,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
         //Map<String, List<String>> executeSelectQuery = rdfInput.executeSelectQuery(query);
         //        TupleQueryResult executeSelectQueryAsTuples = rdfInput.executeSelectQueryAsTuples(query);
 		
-		SimpleRdfRead rdfInputWrap = new SimpleRdfRead(rdfInput, context);
+		SimpleRdfRead rdfInputWrap = SimpleRdfFactory.create(rdfInput, context);
 		try (ConnectionPair<TupleQueryResult> queryRes = rdfInputWrap.executeSelectQuery(query)) {
 			processQueryResult(queryRes.getObject(), context,	pathToWorkingDir);
 		} catch (QueryEvaluationException ex) {
@@ -147,7 +148,7 @@ public class UriGenerator extends ConfigurableBase<UriGeneratorConfig> implement
 			if (rdfOutput != null) {
 				String outputString = DataUnitUtils.readFile(outputURIGeneratorFilename);
 
-				SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
+				SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);	
 				final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 
 				Resource subj = valueFactory.createURI(subject);

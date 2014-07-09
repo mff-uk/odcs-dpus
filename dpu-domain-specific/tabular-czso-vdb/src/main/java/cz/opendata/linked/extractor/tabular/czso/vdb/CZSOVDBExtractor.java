@@ -34,6 +34,7 @@ import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.util.*;
 import org.openrdf.model.*;
@@ -110,7 +111,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 			columnWithURISupplement = 0;
 		}
 		
-		final SimpleRdfWrite triplifiedTableWrap = new SimpleRdfWrite(triplifiedTables, context);
+		final SimpleRdfWrite triplifiedTableWrap = SimpleRdfFactory.create(triplifiedTables, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
 		final ValueFactory valueFactory = triplifiedTableWrap.getValueFactory();
 		

@@ -27,6 +27,7 @@ import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import org.openrdf.rio.RDFFormat;
 
 @AsExtractor
@@ -99,7 +100,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
         	LOG.info("Parsing done. Passing RDF to ODCS");
 			
-			SimpleRdfWrite BEsWrap = new SimpleRdfWrite(BEs, ctx);
+			SimpleRdfWrite BEsWrap = SimpleRdfFactory.create(BEs, ctx);
 			BEsWrap.extract(new File(ICfilename), RDFFormat.TURTLE, null);
 		
 		} catch (IOException e) {

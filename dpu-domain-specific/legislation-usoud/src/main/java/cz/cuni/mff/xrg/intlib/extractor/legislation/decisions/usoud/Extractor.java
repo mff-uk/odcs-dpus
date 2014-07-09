@@ -8,16 +8,14 @@ import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
 import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
 import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
 import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
 import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.BufferedReader;
 import java.io.File;
@@ -70,7 +68,7 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
     @Override
     public void execute(DPUContext context) throws DPUException, DataUnitException {
 
-		final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);
+		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
 		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");

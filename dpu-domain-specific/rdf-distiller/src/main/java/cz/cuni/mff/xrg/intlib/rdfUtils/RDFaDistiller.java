@@ -24,7 +24,7 @@ import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.odcs.rdf.help.OrderTupleQueryResult;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
@@ -165,7 +165,7 @@ public class RDFaDistiller extends ConfigurableBase<RDFaDistillerConfig>
 				try {
 					LOG.info("Output file name is: {}", outputFilePath);
 					
-					final SimpleRdfWrite rdfOutputWrap = new SimpleRdfWrite(rdfOutput, context);	
+					final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);	
 					rdfOutputWrap.extract(new File(outputFilePath), RDFFormat.TURTLE, null);
 				} catch (OperationFailedException ex) {
 					LOG.error("OperationFailed", ex);
