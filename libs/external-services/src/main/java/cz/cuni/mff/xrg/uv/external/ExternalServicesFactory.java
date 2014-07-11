@@ -8,9 +8,9 @@ import cz.cuni.mff.xrg.uv.external.rdf.RemoteRepository;
  * 
  * @author Škoda Petr
  */
-public class Factory {
+public class ExternalServicesFactory {
     
-    private Factory() { }
+    private ExternalServicesFactory() { }
         
     public static RemoteRepository remoteRepository(String uri, 
             DPUContext context, int delay) throws ExternalFailure {
