@@ -7,7 +7,7 @@
     <artifactId>unifiedviews-base</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
-    <name>unifiedviews-base</name>
+    <name>unifiedviews base</name>
 
     <developers>
         <developer>
@@ -17,17 +17,11 @@
         </developer>
     </developers>
 
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License, Version 3</name>
-            <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
     <properties>
         <!-- min. odcs version - version of libs. during development -->
         <unifiedviews.version>1.2.1</unifiedviews.version>
+        <!-- used bundle plugin version -->
+        <bundle.plugin.version>2.3.7</bundle.plugin.version>
         <!-- system properties -->
         <project.java.version>1.7</project.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

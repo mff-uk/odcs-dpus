@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-base</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <artifactId>unifiedviews-lib-base</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>unifiedviews lib base</name>
+
+    <properties>
+        <!-- must end with comma if not empty -->
+        <osgi.import></osgi.import>
+        <!-- value used for maven-bundle-plugin.Export-Package -->
+        <osgi.export>${groupId}.*;version="${project.version}"</osgi.export>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${basedir}</directory>
+                <includes>
+                    <include>license.md</include>
+                </includes>
+            </resource>
+        </resources>        
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${bundle.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Export-Package>${osgi.export}</Export-Package>
+                        <Import-Package>
+                            cz.cuni.mff.xrg.odcs.*;version="[${unifiedviews.version},2.0.0)",
+                            ${osgi.import}
+                            *
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>        
+    </build>
+
+</project>
