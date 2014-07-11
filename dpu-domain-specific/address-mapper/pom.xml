@@ -26,8 +26,15 @@
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>external-services</artifactId>
             <version>1.0.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope> <!---->
         </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>dataunit-rdf-simple</artifactId>
+            <version>[${simple.rdf.version},2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope> <!---->
+        </dependency>        
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>test-boost</artifactId>

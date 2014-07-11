@@ -206,7 +206,6 @@ public class Main extends ConfigurableBase<Configuration>
                     ++failCounter;
                     logFailure(errorLogger); 
                 }
-                break;
             }
         } catch (QueryException | OperationFailedException | QueryEvaluationException ex) {
             context.sendMessage(MessageType.ERROR, "Repository failure",

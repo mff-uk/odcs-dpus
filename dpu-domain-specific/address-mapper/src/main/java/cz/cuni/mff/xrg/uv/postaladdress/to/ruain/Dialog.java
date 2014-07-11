@@ -39,13 +39,13 @@ public class Dialog extends BaseConfigDialog<Configuration> {
     private void buildMainLayout() {
         setWidth("100%");
         setHeight("100%");
-
+       
         mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");
-
+        
         txtQuery = new TextArea();
         txtQuery.setWidth("100%");
         txtQuery.setHeight("100%");
@@ -139,7 +139,12 @@ public class Dialog extends BaseConfigDialog<Configuration> {
         mainLayout.addComponent(tableMappers);
         mainLayout.setExpandRatio(tableMappers, 0.3f);
 
-        setCompositionRoot(mainLayout);
+        Panel mainPanel = new Panel();
+        mainPanel.setWidth("100%");
+        mainPanel.setHeight("100%");
+        mainPanel.setContent(this);
+        
+        setCompositionRoot(mainPanel);
     }
 
     @Override
