@@ -142,7 +142,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
         Panel mainPanel = new Panel();
         mainPanel.setWidth("100%");
         mainPanel.setHeight("100%");
-        mainPanel.setContent(this);
+        mainPanel.setContent(mainLayout);
         
         setCompositionRoot(mainPanel);
     }

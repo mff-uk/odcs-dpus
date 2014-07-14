@@ -85,7 +85,7 @@ public class StreetAddressMapper extends StatementMapper {
                         // TODO: Add some must not be set condition ?
                     } else {
                         results.add(new Requirement(Subject.ADRESNI_MISTO, 
-                        "r:cidsoOrientacniPismeno", houseNumberLetter));
+                        "r:cisloOrientacniPismeno", houseNumberLetter));
                     }
                 }
             }
