@@ -63,7 +63,7 @@ public class RequirementsToQuery {
             }
         }
         // generate alternative
-        queries.addAll(alternataLandAndHouseNumber(queries));
+        queries.addAll(alternativeLandAndHouseNumber(queries));
         queries.addAll(alternativeHouseNumber(queries));
         queries.addAll(alternativePsc(queries));
         // add connection between triples in query
@@ -87,7 +87,7 @@ public class RequirementsToQuery {
         return alternativeRemove(queries, Subject.ADRESNI_MISTO, "r:psc");
     }
 
-    private List<Query> alternataLandAndHouseNumber(List<Query> queries) {
+    private List<Query> alternativeLandAndHouseNumber(List<Query> queries) {
         final List<Query> toAdd = new LinkedList<>();
         for (Query q : queries) {
             if (q.getContent().containsKey(Subject.ADRESNI_MISTO)) {
