@@ -26,6 +26,7 @@ public class QueryToString {
         }
         
         StringBuilder result = new StringBuilder(SELECT_PREAMBLE);
+        StringBuilder notExistFilter = null;
         // put name of the result in the query
         result.append(query.getMainSubject().getText());
         result.append(SELECT_WHERE);
@@ -37,14 +38,32 @@ public class QueryToString {
             result.append(key.getType());
 
             for (PredicatObject predObj : query.getContent().get(key)) {
-                result.append(";\n");
-                result.append("    ");
-                result.append(predObj.predicate);
-                result.append(" ");
-                result.append(predObj.object);
+                if (predObj.object == null) {
+                    // NOT EXISTS filter
+                    if (notExistFilter == null) {
+                        notExistFilter = new StringBuilder();
+                    }
+                    notExistFilter.append(" ");
+                    notExistFilter.append(key.getText());
+                    notExistFilter.append(" ");
+                    notExistFilter.append(predObj.predicate);
+                    notExistFilter.append(" [].");
+                } else {
+                    result.append(";\n");
+                    result.append("    ");
+                    result.append(predObj.predicate);
+                    result.append(" ");
+                    result.append(predObj.object);
+                }
             }
             result.append(".\n");
         }
+        // add filters if included 
+        if (notExistFilter != null) {
+            result.append("FILTER NOT EXISTS {");
+            result.append(notExistFilter);
+            result.append(" }\n");
+        }        
         // return string
         result.append(SELECT_END);
         result.append(resultLimit);

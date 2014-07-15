@@ -12,6 +12,9 @@ public class Requirement {
     
     private final String predicate;
     
+    /**
+     * If null then is consider as "not presented" requirement.
+     */
     private final String object;
     
     public Requirement(Subject subject, String predicate, String object) {

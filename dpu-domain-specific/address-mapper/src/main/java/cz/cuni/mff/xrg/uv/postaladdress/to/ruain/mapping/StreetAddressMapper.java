@@ -81,12 +81,10 @@ public class StreetAddressMapper extends StatementMapper {
                 } else {
                     results.add(new Requirement(Subject.ADRESNI_MISTO, 
                         "r:cisloOrientacni", number.toString()));
-                    if (houseNumberLetter == null) {
-                        // TODO: Add some must not be set condition ?
-                    } else {
-                        results.add(new Requirement(Subject.ADRESNI_MISTO, 
+                    // if houseNumberLetter is null then this is considered
+                    // to be not exist condition
+                    results.add(new Requirement(Subject.ADRESNI_MISTO, 
                         "r:cisloOrientacniPismeno", houseNumberLetter));
-                    }
                 }
             }
         }        

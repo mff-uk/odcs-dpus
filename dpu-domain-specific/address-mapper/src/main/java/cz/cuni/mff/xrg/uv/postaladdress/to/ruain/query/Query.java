@@ -8,6 +8,9 @@ import java.util.Map;
 
 /**
  * Represents content as {@link Map} of {@link Requirement}s.
+ * 
+ * The NOT EXIST requirements are represented in a same way as in 
+ * {@link Requirement} class. 
  *
  * @author Škoda Petr
  */
