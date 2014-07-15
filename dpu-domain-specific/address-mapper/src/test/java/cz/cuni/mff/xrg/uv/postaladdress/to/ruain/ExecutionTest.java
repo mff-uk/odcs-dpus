@@ -29,7 +29,7 @@ public class ExecutionTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             ExecutionTest.class);
 
-    @Test
+    //@Test
     public void test() throws OperationFailedException, QueryEvaluationException, ExternalFailure, RDFException, ConfigException {
         configLogger();
         parse("d:/Temp/01/input-test.ttl");
