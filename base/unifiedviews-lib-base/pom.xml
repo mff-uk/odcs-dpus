@@ -4,11 +4,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-base</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>unifiedviews-lib-base</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
     <name>unifiedviews lib base</name>
 
@@ -16,7 +16,7 @@
         <!-- must end with comma if not empty -->
         <osgi.import></osgi.import>
         <!-- value used for maven-bundle-plugin.Export-Package -->
-        <osgi.export>${groupId}.*;version="${project.version}"</osgi.export>
+        <osgi.export>${project.groupId}.*;version="${project.version}"</osgi.export>
     </properties>
 
     <build>
@@ -45,6 +45,10 @@
                             ${osgi.import}
                             *
                         </Import-Package>
+                        <!-- dependencies embedding -->
+                        <Embed-Dependency>*;scope=compile|system</Embed-Dependency>
+                        <Embed-Directory>dependency</Embed-Directory>
+                        <Embed-StripGroup>false</Embed-StripGroup>                        
                     </instructions>
                 </configuration>
             </plugin>
