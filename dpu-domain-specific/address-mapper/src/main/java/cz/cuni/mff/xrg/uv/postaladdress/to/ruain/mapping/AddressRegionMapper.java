@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping;
 
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import java.util.HashMap;
@@ -39,8 +40,7 @@ public class AddressRegionMapper extends StatementMapper {
         final List<Requirement> results = new LinkedList<>();
 
         if (vuscMap.containsKey(object.toLowerCase())) {
-            results.add(new Requirement(Subject.VUSC, "s:name", "\""
-                    + vuscMap.get(object.toLowerCase()) + "\""));
+            results.add(createRequirement(vuscMap.get(object.toLowerCase())));
             return results;
         } else {
             // iterate over list and search for match
@@ -49,14 +49,18 @@ public class AddressRegionMapper extends StatementMapper {
             String objectLowerCase = object.toLowerCase();
             for (String key : vuscMap.keySet()) {
                 if (key.contains(objectLowerCase)) {
-                    results.add(new Requirement(Subject.VUSC, "s:name", "\""
-                        + vuscMap.get(key) + "\""));
+                    results.add(createRequirement(vuscMap.get(key)));
                     return results;
                 }
             }
         }
         // we do not know what to map ..        
         return results;
+    }
+    
+    private Requirement createRequirement(String value) {
+        return new Requirement(Subject.VUSC, "<" + Ruian.P_NAME + ">", 
+                "\"" + value + "\"");
     }
 
 }

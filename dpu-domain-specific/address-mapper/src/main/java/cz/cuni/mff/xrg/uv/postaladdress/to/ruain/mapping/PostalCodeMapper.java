@@ -1,9 +1,10 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,9 +32,8 @@ public class PostalCodeMapper extends StatementMapper {
             return Collections.EMPTY_LIST;
         }
         
-        final List<Requirement> results = new LinkedList<>();
-        results.add(new Requirement(Subject.ADRESNI_MISTO, "r:psc", value.toString()));
-        return results;
+        return Arrays.asList(new Requirement(Subject.ADRESNI_MISTO, 
+                "<" + Ruian.P_PSC + ">", value.toString()));
     }
 
 }

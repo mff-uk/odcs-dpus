@@ -6,7 +6,6 @@ import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
 import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
@@ -24,15 +23,13 @@ import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.knowledge.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.ErrorLogger;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Output;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.UriTranslator;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.*;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
+import org.openrdf.model.*;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
@@ -48,9 +45,12 @@ public class Main extends ConfigurableBase<Configuration>
     @InputDataUnit(name = "seznamUlic", optional = true, description = "Trojice s s:name názvy ulic.")
     public RDFDataUnit inRdfUlice;
 
-    @InputDataUnit(name = "seznamMestObci", optional = true, description = "Trojice s s:name názvy měst a obcí.")
-    public RDFDataUnit inRdfObceMesta;
+    @InputDataUnit(name = "seznamObci", optional = true, description = "Trojice s s:name názvy obcí.")
+    public RDFDataUnit inRdfObce;
 
+    @InputDataUnit(name = "seznamCastiObci", optional = true, description = "Trojice s s:name názvy částí obcí.")
+    public RDFDataUnit inRdfCastiObci;    
+    
     @InputDataUnit(name = "seznamKraju", optional = true, description = "Trojice s s:name názvy krajů.")
     public RDFDataUnit inRdfKraje;
 
@@ -74,8 +74,6 @@ public class Main extends ConfigurableBase<Configuration>
     private SimpleRdfWrite rdfLog;
 
     private DPUContext context;
-
-    private final Map<Subject, URI> rdfRelations = new HashMap<>();
 
     public Main() {
         super(Configuration.class);
@@ -112,14 +110,22 @@ public class Main extends ConfigurableBase<Configuration>
         rdfMappingFactory = rdfMapping.getValueFactory();
         rdfLog = SimpleRdfFactory.create(outRdfLog, context);
         rdfLogFactory = rdfLog.getValueFactory();
-        // prepare predicates for ontology
-        rdfRelations.clear();
-        final Subject[] possibleValues = Subject.values();
-        final String baseUri = config.getBaseUri();
-        for (Subject s : possibleValues) {
-            rdfRelations.put(s, 
-                    rdfMappingFactory.createURI(baseUri + s.getRelation()));
-        }
+        // init UriTranslator
+        UriTranslator.add(rdfMappingFactory, Output.O_ALTERNATIVE);
+        UriTranslator.add(rdfMappingFactory, Output.O_CLASS);
+        UriTranslator.add(rdfMappingFactory, Output.O_REDUCTION);
+        UriTranslator.add(rdfMappingFactory, Output.P_PROPERTY);
+        UriTranslator.add(rdfMappingFactory, Output.P_SOURCE);
+        UriTranslator.add(rdfMappingFactory, Output.P_TARGET);
+        UriTranslator.add(rdfMappingFactory, Output.P_TYPE);
+        UriTranslator.add(rdfMappingFactory, Output.P_MAPPING_TYPE);
+        // ruian
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_ADRESNI_MISTO);
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_ULICE);
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_OBEC);
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_ORP);
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_POU);
+        UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_VUSC);
     }
 
     protected void execute() {
@@ -139,18 +145,30 @@ public class Main extends ConfigurableBase<Configuration>
                 return;
             }
         }
-        if (inRdfObceMesta != null) {
-            SimpleRdfRead rdfObceMesta = SimpleRdfFactory.create(inRdfObceMesta,
+        if (inRdfObce != null) {
+            SimpleRdfRead rdfObce = SimpleRdfFactory.create(inRdfObce,
                     context);
             try {
-                knowledgeBase.loadTownNames(rdfObceMesta);
+                knowledgeBase.loadTownNames(rdfObce);
             } catch (Exception ex) {
                 context.sendMessage(MessageType.ERROR,
                         "Knowledge base problem.",
-                        "Failed to 'jména měst' into knowledge base.", ex);
+                        "Failed to 'jména obcí' into knowledge base.", ex);
                 return;
             }
         }
+        if (inRdfCastiObci != null) {
+            SimpleRdfRead rdfCastiObci = SimpleRdfFactory.create(inRdfCastiObci,
+                    context);
+            try {
+                knowledgeBase.loadTownPartNames(rdfCastiObci);
+            } catch (Exception ex) {
+                context.sendMessage(MessageType.ERROR,
+                        "Knowledge base problem.",
+                        "Failed to 'jména částí obcí' into knowledge base.", ex);
+                return;
+            }
+        }        
         if (inRdfKraje != null) {
             SimpleRdfRead rdfKraje = SimpleRdfFactory.create(inRdfKraje,
                     context);
@@ -216,8 +234,7 @@ public class Main extends ConfigurableBase<Configuration>
         }
         context.sendMessage(MessageType.INFO,
                 String.format("Ok/Failed to parse %d/%d streetAddresses", 
-                        okCounter, failCounter));
-        
+                        okCounter, failCounter));        
     }
 
     @Override
@@ -271,16 +288,12 @@ public class Main extends ConfigurableBase<Configuration>
             if (ruainData.size() == 1) {
                 // we got it !!!
                 final Subject mainSubject = query.getMainSubject();
-                final String bindingName = mainSubject.getText().substring(1);
+                final String bindingName = mainSubject.getValueName().substring(1);
                 final Value ruainValue = ruainData.get(0).
                         getBinding(bindingName).getValue();
                 // add mapping
-                addMapping(addr, mainSubject, ruainValue);
-                
-                if (context.isDebugging()) {
-                    // log data about used query
-                    logMappingInfo(reqList, query);
-                }
+                addMapping(addr, ruainValue, query);
+
                 return true;
             }
         }
@@ -296,14 +309,33 @@ public class Main extends ConfigurableBase<Configuration>
      * @param ruianValue
      * @throws OperationFailedException 
      */
-    private void addMapping(Value postalAddress, Subject ruianType,
-            Value ruianValue) throws OperationFailedException {
-        final URI usedUri = rdfRelations.get(ruianType);
-        final Resource resource = rdfMappingFactory.createURI(
-                postalAddress.stringValue());
-        // add triple        
-        LOG.debug("+ {} {} {}", resource.stringValue(), usedUri.stringValue(), ruianValue.stringValue());
-        rdfMapping.add(resource, usedUri, ruianValue);
+    private void addMapping(Value postalAddress, Value ruianValue, 
+            Query usedQuery) throws OperationFailedException {
+        final String relUriString = usedQuery.getMainSubject().getRelation();
+        
+        final BNode node = rdfMappingFactory.createBNode();        
+        final Resource address = rdfMappingFactory.createURI(
+               postalAddress.stringValue());
+        
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_TYPE),
+                UriTranslator.toUri(Output.O_CLASS));
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_SOURCE),
+                address);
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_TARGET), 
+                ruianValue);
+        
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_MAPPING_TYPE), 
+                UriTranslator.toUri(relUriString));
+        
+        // add basic metadata
+        if (usedQuery.isAlternative()) {
+            rdfMapping.add(node, UriTranslator.toUri(Output.P_PROPERTY),
+                    UriTranslator.toUri(Output.O_ALTERNATIVE));
+        }
+        if (usedQuery.isReduction()) {
+            rdfMapping.add(node, UriTranslator.toUri(Output.P_PROPERTY),
+                    UriTranslator.toUri(Output.O_REDUCTION));
+        }
     }
 
     /**
@@ -313,16 +345,6 @@ public class Main extends ConfigurableBase<Configuration>
      */
     private void logFailure(ErrorLogger errorLogger) throws OperationFailedException {
         errorLogger.report(rdfLog);
-    }
-
-    /**
-     * Log information about used query.
-     * 
-     * @param requirements
-     * @param usedQuery 
-     */
-    private void logMappingInfo(List<Requirement> requirements, Query usedQuery) {
-        
     }
      
 }

@@ -17,9 +17,15 @@ import java.util.Map;
 public class Query {
 
     private final Map<Subject, List<PredicatObject>> content;
-
+    
+    private final boolean reduction;
+    
+    private final boolean alternative;
+    
     Query() {
         content = new HashMap<>();
+        reduction = false;
+        alternative = false;
     }
 
     /**
@@ -27,13 +33,15 @@ public class Query {
      *
      * @param q
      */
-    Query(Query q) {
+    Query(Query q, boolean reduction, boolean alternative) {
         content = new HashMap<>();
         for (Subject s : q.content.keySet()) {
             List<PredicatObject> poList = new LinkedList<>();
             poList.addAll(q.content.get(s));
             content.put(s, poList);
         }
+        this.reduction = reduction || q.reduction;
+        this.alternative = alternative || q.alternative;
     }
 
     Map<Subject, List<PredicatObject>> getContent() {
@@ -46,12 +54,24 @@ public class Query {
         }
         // find minimal subject
         Subject minSubject = content.keySet().iterator().next();
+        
+        
+        
         for (Subject subject : content.keySet()) {
-            if (subject.getLevel() < minSubject.getLevel()) {
+            if (minSubject.getLevel() == null || (subject.getLevel() != null &&
+                    subject.getLevel() < minSubject.getLevel())) {
                 minSubject = subject;
             }
         }
         return minSubject;
     }
 
+    public boolean isReduction() {
+        return reduction;
+    }
+
+    public boolean isAlternative() {
+        return alternative;
+    }    
+    
 }

@@ -24,6 +24,8 @@ public class KnowledgeBase {
 
     private final Map<String, List<String>> towns = new HashMap<>();
 
+    private final Map<String, List<String>> townParts = new HashMap<>();
+    
     private final List<String> regions = new LinkedList<>();
     
     public KnowledgeBase() {
@@ -69,6 +71,13 @@ public class KnowledgeBase {
         return towns.get(townName.toLowerCase());
     }
 
+    public List<String> checkTownPartName(String townPartName) {
+        if (townParts == null) {
+            return null;
+        }
+        return townParts.get(townPartName.toLowerCase());
+    }
+    
     /**
      *
      * @param rdf
@@ -106,6 +115,11 @@ public class KnowledgeBase {
         LOG.info("Region name cache size: {}", regions.size());
     }
 
+    public void loadTownPartNames(SimpleRdfRead rdf) throws Exception {
+        loadCache(rdf, townParts);
+        LOG.info("Town-parts name cache size: {}", townParts.size());
+    }    
+    
     public List<String> getRegions() {
         return regions;
     }

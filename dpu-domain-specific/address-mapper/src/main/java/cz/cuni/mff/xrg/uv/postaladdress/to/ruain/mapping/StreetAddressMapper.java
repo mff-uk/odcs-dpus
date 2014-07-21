@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.streetAddress.StreetAddress;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query.Requirement;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
@@ -53,7 +54,7 @@ public class StreetAddressMapper extends StatementMapper {
                 number = Integer.parseInt(address.getLandRegistryNumber()
                         .replaceAll("\\s", ""));
                 results.add(new Requirement(Subject.ADRESNI_MISTO, 
-                        "r:cisloDomovni", number.toString()));
+                        "<" + Ruian.P_CISLO_DOMOVNI + ">", number.toString()));
             } catch (NumberFormatException ex) {
                 errorLogger.failedToMap(predicate, object, "Failed to parse 'číslo popisené'");
             }
@@ -77,14 +78,16 @@ public class StreetAddressMapper extends StatementMapper {
                 }                
                 Integer number = parseNumber(houseNumber);
                 if (number == null) {
-                    errorLogger.failedToMap(predicate, object, "Failed to parse 'číslo orientační'");
+                    errorLogger.failedToMap(predicate, object, 
+                            "Failed to parse 'číslo orientační'");
                 } else {
                     results.add(new Requirement(Subject.ADRESNI_MISTO, 
-                        "r:cisloOrientacni", number.toString()));
+                        "<" + Ruian.P_CISLO_ORIENTACNI + ">", number.toString()));
                     // if houseNumberLetter is null then this is considered
                     // to be not exist condition
                     results.add(new Requirement(Subject.ADRESNI_MISTO, 
-                        "r:cisloOrientacniPismeno", houseNumberLetter));
+                        "<" + Ruian.P_CISLO_ORIENTACNI_PISMENO + ">", 
+                        houseNumberLetter));
                 }
             }
         }        
@@ -92,7 +95,7 @@ public class StreetAddressMapper extends StatementMapper {
     }
 
     /**
-     * Parse given psc.
+     * Parse given string as a number.
      * 
      * @param psc
      * @return Null in case of an error.
@@ -171,7 +174,7 @@ public class StreetAddressMapper extends StatementMapper {
     private List<Requirement> createRequirementTownName(List<String> townName) {
         List<Requirement> result = new ArrayList<>(townName.size());
         for (String item : townName) {
-            result.add(new Requirement(Subject.OBEC, "s:name", 
+            result.add(new Requirement(Subject.OBEC, "<" + Ruian.P_NAME + ">",
                     String.format("\"%s\"", item)));
         }
         return result;
@@ -180,7 +183,7 @@ public class StreetAddressMapper extends StatementMapper {
     private List<Requirement> createRequirementStreetName(List<String> streetName) {
         List<Requirement> result = new ArrayList<>(streetName.size());
         for (String item : streetName) {
-            result.add(new Requirement(Subject.ULICE, "s:name", 
+            result.add(new Requirement(Subject.ULICE, "<" + Ruian.P_NAME + ">",
                     String.format("\"%s\"", item)));
         }
         return result;        

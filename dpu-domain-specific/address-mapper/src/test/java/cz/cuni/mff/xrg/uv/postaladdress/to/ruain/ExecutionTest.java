@@ -75,7 +75,8 @@ public class ExecutionTest {
 
         // create data units
         WritableRDFDataUnit inUlice = env.createRdfInput("seznamUlic", false);
-        WritableRDFDataUnit inMestaUlice = env.createRdfInput("seznamMestObci", false);
+        WritableRDFDataUnit inObce = env.createRdfInput("seznamObci", false);
+        WritableRDFDataUnit inCastiObci = env.createRdfInput("seznamCastiObci", false);
         WritableRDFDataUnit inKraj = env.createRdfInput("seznamKraju", false);        
         WritableRDFDataUnit address = env.createRdfInput("postalAddress", false);        
         WritableRDFDataUnit output = env.createRdfOutput("mapping", false);
@@ -86,7 +87,9 @@ public class ExecutionTest {
             InputOutput.extractFromFile(new File("d:/Temp/02/ulice.ttl"),
                     RDFFormat.TURTLE, inUlice);
             InputOutput.extractFromFile(new File("d:/Temp/02/obce.ttl"),
-                    RDFFormat.TURTLE, inMestaUlice);
+                    RDFFormat.TURTLE, inObce);
+            InputOutput.extractFromFile(new File("d:/Temp/02/castiObci.ttl"),
+                    RDFFormat.TURTLE, inCastiObci);
             InputOutput.extractFromFile(new File("d:/Temp/02/vusc.ttl"),
                     RDFFormat.TURTLE, inKraj);
             // test based data

@@ -34,6 +34,7 @@ public class RequirementsCreator {
      * @param errorLogger
      * @param knowledgeBase
      * @param mapperConfig
+     * @throws cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException
      */
     public RequirementsCreator(SimpleRdfRead rdfPostalAddress, 
             ErrorLogger errorLogger, KnowledgeBase knowledgeBase,
@@ -76,7 +77,7 @@ public class RequirementsCreator {
      */
     private void prepareRequirements(Value addr, List<Requirement> requirements)
             throws QueryEvaluationException, QueryException, OperationFailedException {
-        final String query = String.format("select ?p ?o where {<%s> ?p ?o}",
+        final String query = String.format("SELECT ?p ?o WHERE {<%s> ?p ?o}",
                 addr);
         try (ConnectionPair<TupleQueryResult> triples = rdfPostalAddress
                 .executeSelectQuery(query)) {

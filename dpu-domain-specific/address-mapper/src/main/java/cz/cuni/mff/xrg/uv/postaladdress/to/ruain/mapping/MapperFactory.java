@@ -20,7 +20,8 @@ public class MapperFactory {
     private static final StatementMapper [] MAPPERS = {
         new AddressRegionMapper(), 
         new PostalCodeMapper(), 
-        new StreetAddressMapper()};
+        new StreetAddressMapper(),
+        new AddressLocality()};
     
     private MapperFactory() { }
     

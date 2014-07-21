@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 import java.util.*;
 
@@ -72,6 +73,7 @@ public class RequirementsToQuery {
                 continue;
             }
             addConnections(q);
+            continue;
         }
         return queries;
     }
@@ -84,7 +86,7 @@ public class RequirementsToQuery {
      * @return
      */
     private List<Query> alternativePsc(List<Query> queries) {
-        return alternativeRemove(queries, Subject.ADRESNI_MISTO, "r:psc");
+        return alternativeRemove(queries, Subject.ADRESNI_MISTO, "<" + Ruian.P_PSC + ">");
     }
 
     private List<Query> alternativeLandAndHouseNumber(List<Query> queries) {
@@ -97,17 +99,17 @@ public class RequirementsToQuery {
                 PredicatObject houseNumber = null;
                 for (PredicatObject item : predObjList) {
                     // TODO move remove somehow the direct string
-                    if (item.predicate.compareTo("r:cisloDomovni") == 0) {
+                    if (item.predicate.compareTo("<" + Ruian.P_CISLO_DOMOVNI + ">") == 0) {
                         landNumber = item;
                     }
-                    if (item.predicate.compareTo("r:cisloOrientacni") == 0) {
+                    if (item.predicate.compareTo("<" + Ruian.P_CISLO_ORIENTACNI + ">") == 0) {
                         houseNumber = item;
                     }
                     
                 }
                 if (landNumber != null && houseNumber != null) {
                     // modify - switch land and house 
-                    Query newQuery = new Query(q);
+                    Query newQuery = new Query(q, false, true);
                     // remove old
                     newQuery.getContent().get(Subject.ADRESNI_MISTO).remove(
                             landNumber);
@@ -122,12 +124,12 @@ public class RequirementsToQuery {
                     toAdd.add(newQuery);
                 } else if (landNumber != null) {
                     // but houseNumber is null
-                    Query newQuery = new Query(q);
+                    Query newQuery = new Query(q, false, true);
                     // remove old
                     newQuery.getContent().get(Subject.ADRESNI_MISTO).remove(
                             landNumber);
                     addToQuery(newQuery, Subject.ADRESNI_MISTO, 
-                            "r:cisloOrientacni", landNumber.object);
+                            "<" + Ruian.P_CISLO_ORIENTACNI + ">", landNumber.object);
                     // add to the list
                     toAdd.add(newQuery);                   
                 }
@@ -138,7 +140,7 @@ public class RequirementsToQuery {
 
     private List<Query> alternativeHouseNumber(List<Query> queries) {
         return alternativeRemove(queries, Subject.ADRESNI_MISTO, 
-                "r:cisloOrientacni");
+                "<" + Ruian.P_CISLO_ORIENTACNI + ">");
     }
     
     /**
@@ -163,7 +165,7 @@ public class RequirementsToQuery {
                 }
                 if (houseNumberObject != null) {
                     // modify 
-                    Query newQuery = new Query(q);
+                    Query newQuery = new Query(q, true, false);
                     newQuery.getContent().get(subject).remove(houseNumberObject);
                     if (newQuery.getContent().get(subject).isEmpty()) {
                         newQuery.getContent().remove(subject);
@@ -179,10 +181,16 @@ public class RequirementsToQuery {
         return toAdd;
     }    
     
+    /**
+     * Create deep copy. Copy as non alternatives and non variants.
+     * 
+     * @param qList
+     * @return 
+     */
     private List<Query> deepCopy(List<Query> qList) {
         final List<Query> newQList = new LinkedList<>();
         for (Query q : qList) {
-            newQList.add(new Query(q));
+            newQList.add(new Query(q, false, false));
         }
         return newQList;
     }
@@ -194,7 +202,7 @@ public class RequirementsToQuery {
     }
 
     private void addToQuery(Query q, Subject s, String p, Subject o) {
-        addToQuery(q, s, p, o.getText());
+        addToQuery(q, s, p, o.getValueName());
     }
 
     private void addToQuery(Query q, Subject s, String p, String o) {
@@ -209,7 +217,12 @@ public class RequirementsToQuery {
         int minLevel = Integer.MAX_VALUE;
         int maxLevel = Integer.MIN_VALUE;
         for (Subject s : q.getContent().keySet()) {
-            final int level = s.getLevel();
+            final Integer level = s.getLevel();
+            
+            if (level == null) {
+                continue;
+            }
+            
             if (minLevel > level) {
                 minLevel = level;
             }
@@ -221,21 +234,37 @@ public class RequirementsToQuery {
         for (int level = minLevel; level < maxLevel; ++level) {
             // goes level = min level up to maxLevel - 1            
             switch (level) {
-                case 0:
-                    addToQuery(q, Subject.ADRESNI_MISTO, "r:ulice",
+                case 0: // ADRESNI_MISTO --> ULICE, STAVEBNI_OBJEKT
+                    if (q.getContent().containsKey(Subject.ULICE)) { 
+                        // connecto to ulice
+                        addToQuery(q, Subject.ADRESNI_MISTO, 
+                                "<" + Ruian.P_ULICE + ">",
                             Subject.ULICE);
+                    } else {
+                        // use stavebniObjekt
+                        addToQuery(q, Subject.ADRESNI_MISTO, 
+                                "<" + Ruian.P_STAVEBNI_OBJEKT + ">",
+                                Subject.STAVEBNI_OBJEKT);
+                    }                    
                     break;
-                case 1:
-                    addToQuery(q, Subject.ULICE, "r:obec", Subject.OBEC);
+                case 1: // ULICE --> OBEC, STAVEBNI_OBJEKT --> CASTI_OBCE --> OBEC
+                    if (q.getContent().containsKey(Subject.ULICE)) {
+                        // use ulice to bind to obec
+                        addToQuery(q, Subject.ULICE, "<" + Ruian.P_OBEC + ">", Subject.OBEC);
+                    } else {
+                        // use stavebni objekt
+                        addToQuery(q, Subject.STAVEBNI_OBJEKT, "<" + Ruian.P_CAST_OBCE + ">", Subject.CASTIOBCI);
+                        addToQuery(q, Subject.CASTIOBCI, "<" + Ruian.P_OBEC + ">", Subject.OBEC);
+                    }
                     break;
-                case 2:
-                    addToQuery(q, Subject.OBEC, "r:pou", Subject.POU);
+                case 2: // OBEC --> POU
+                    addToQuery(q, Subject.OBEC, "<" + Ruian.P_POU + ">", Subject.POU);
                     break;
-                case 3:
-                    addToQuery(q, Subject.POU, "r:orp", Subject.ORP);
+                case 3: // POU --> ORP
+                    addToQuery(q, Subject.POU, "<" + Ruian.P_ORP + ">", Subject.ORP);
                     break;
                 case 4:
-                    addToQuery(q, Subject.ORP, "r:vusc", Subject.VUSC);
+                    addToQuery(q, Subject.ORP, "<" + Ruian.P_VUSC + ">", Subject.VUSC);
                     break;
             }
         }

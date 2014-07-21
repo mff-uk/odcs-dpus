@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain.query;
 
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Ruian;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
 
 /**
@@ -9,9 +10,7 @@ import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
  */
 public class QueryToString {
 
-    private final static String SELECT_PREAMBLE = "PREFIX r: <http://ruian.linked.opendata.cz/ontology/>\n"
-            + "PREFIX s: <http://schema.org/>\n"
-            + "SELECT ";
+    private final static String SELECT_PREAMBLE = "SELECT ";
 
     private final static String SELECT_WHERE = " WHERE {\n";
 
@@ -28,14 +27,17 @@ public class QueryToString {
         StringBuilder result = new StringBuilder(SELECT_PREAMBLE);
         StringBuilder notExistFilter = null;
         // put name of the result in the query
-        result.append(query.getMainSubject().getText());
+        result.append(query.getMainSubject().getValueName());
         result.append(SELECT_WHERE);
 
         for (Subject key : query.getContent().keySet()) {
-            result.append(key.getText());
+            result.append(key.getValueName());
             // add type information
-            result.append(" rdf:type ");
-            result.append(key.getType());
+            result.append(" ");
+            result.append("<" + Ruian.P_TYPE + ">");
+            result.append(" <");
+            result.append(key.geClassName());
+            result.append(">");
 
             for (PredicatObject predObj : query.getContent().get(key)) {
                 if (predObj.object == null) {
@@ -44,7 +46,7 @@ public class QueryToString {
                         notExistFilter = new StringBuilder();
                     }
                     notExistFilter.append(" ");
-                    notExistFilter.append(key.getText());
+                    notExistFilter.append(key.getValueName());
                     notExistFilter.append(" ");
                     notExistFilter.append(predObj.predicate);
                     notExistFilter.append(" [].");

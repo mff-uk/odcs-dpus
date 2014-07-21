@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>cz.cuni.mff.xrg.uv</groupId>
 		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>extractor_address_mapper</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.4</version>
 	<packaging>bundle</packaging>
 	<name>ext. address mapper</name>
 	<description>Map address to ruian.</description>
@@ -24,8 +24,8 @@
 	<dependencies>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>external-services</artifactId>
-            <version>1.0.0</version>
+            <artifactId>service-external</artifactId>
+            <version>1.0.1</version>
             <scope>compile</scope> <!---->
         </dependency>
         <dependency>
@@ -37,8 +37,8 @@
         </dependency>        
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>test-boost</artifactId>
-            <version>1.0.0</version>
+            <artifactId>boost-test</artifactId>
+            <version>1.0.1</version>
             <scope>test</scope>
         </dependency>
 	</dependencies>
