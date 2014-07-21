@@ -32,6 +32,24 @@
             <version>[${unifiedviews.version},2.0.0)</version>
             <scope>provided</scope>
         </dependency>
+<!--        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.solr-solrj</artifactId>
+            <version>4.8.1_1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>  required by solr-solrj 
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient-osgi</artifactId>
+            <version>4.3.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>  required by solr-solrj, json parser 
+            <groupId>org.noggit</groupId>
+            <artifactId>noggit</artifactId>
+            <version>0.6</version>
+            <scope>provided</scope>
+        </dependency>-->
     </dependencies>
 
 </project>
