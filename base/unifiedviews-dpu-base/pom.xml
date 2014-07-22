@@ -91,7 +91,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Description>${project.description}</Bundle-Description>
                         <Import-Package>
-                            cz.cuni.mff.xrg.odcs.*;version="[${unifiedviews.version},2.0.0)",
+                            cz.cuni.mff.xrg.odcs.*;version="[1.0.0,2.0.0)",
                             cz.cuni.mff.xrg.uv.rdf.simple.*;version="[${simple.rdf.version},2.0.0)",                                
                             com.vaadin.*;version="[${vaadin.version},8.0.0)",
                             ${osgi.packages}
