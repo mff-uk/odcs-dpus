@@ -205,10 +205,6 @@ public class RequirementsToQuery {
         }
     }
 
-    private void addToQuery(Query q, Subject s, String p, Subject o) {
-        addToQuery(q, s, p, o.getValueName());
-    }
-
     private void addToQuery(Query q, Subject s, String p, String o) {
         if (!q.getContent().containsKey(s)) {
             q.getContent().put(s, new LinkedList<PredicatObject>());
@@ -236,6 +232,20 @@ public class RequirementsToQuery {
                 maxLevel = level;
             }
         }
+        
+        if (q.getContent().containsKey(Subject.CASTIOBCI)) {
+            // test for levels ..
+            if (maxLevel < 1) {
+                // we have only ADRESNI_MISTO 
+                // add mapping STAVEBNI_OBJEKT --> CASTI_OBCE                
+                addToQueries(result, Subject.STAVEBNI_OBJEKT, 
+                                "<" + Ruian.P_CAST_OBCE + ">",
+                                Subject.CASTIOBCI);
+                // then in case 0: mapping into STAVEBNI_OBJEKT
+                maxLevel = 1;
+            }
+        }
+        
         // add mapping, we are the only one who can ..
         for (int level = minLevel; level < maxLevel; ++level) {
             // goes level = min level up to maxLevel - 1            
