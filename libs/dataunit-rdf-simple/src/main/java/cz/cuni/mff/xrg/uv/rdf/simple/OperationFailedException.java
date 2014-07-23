@@ -1,6 +1,6 @@
 package cz.cuni.mff.xrg.uv.rdf.simple;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import eu.unifiedviews.dataunit.DataUnitException;
 
 /**
  * General exception used to report operation failure in {@link SimpleRdfRead}

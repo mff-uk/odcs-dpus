@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.rdf.simple;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dpu.DPUContext;
 
 /**
  *
@@ -14,11 +14,13 @@ public class SimpleRdfFactory {
         
     }
     
-    public static SimpleRdfRead create(RDFDataUnit dataUnit, DPUContext context) {
+    public static SimpleRdfRead create(RDFDataUnit dataUnit, DPUContext context) 
+            throws OperationFailedException {
         return new SimpleRdfRead(dataUnit, context);
     }
 
-    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit, DPUContext context) {
+    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit, 
+            DPUContext context) throws OperationFailedException {
         return new SimpleRdfWrite(dataUnit, context);
     }
     

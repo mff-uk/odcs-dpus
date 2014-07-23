@@ -1,10 +1,14 @@
 package cz.cuni.mff.xrg.uv.rdf.simple;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -48,14 +52,24 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	 */
 	protected final WritableRDFDataUnit writableDataUnit;
 
+    /**
+     * Current write set.
+     */
+    protected final Set<URI> currentWriteSet;
+    
 	/**
 	 * 
 	 * @param dataUnit
 	 * @param context 
+     * @throws cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException 
 	 */
-	public SimpleRdfWrite(WritableRDFDataUnit dataUnit, DPUContext context) {
+	SimpleRdfWrite(WritableRDFDataUnit dataUnit, DPUContext context) 
+            throws OperationFailedException {
 		super(dataUnit, context);
 		this.writableDataUnit = dataUnit;
+        this.currentWriteSet = new HashSet<>();
+        // set write content
+        setCurrentWriteSetToAll();
 	}
 
 	/**
@@ -123,7 +137,7 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
 			conn.c().begin();
 			// add to repository
-			conn.c().add(toAddBuffer, writableDataUnit.getWriteContext());
+			conn.c().add(toAddBuffer, getCurrentWriteContexts());
 			conn.c().commit();
 			// clear buffer
 			toAddBuffer.clear();
@@ -154,8 +168,7 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 			// add all in a single transaction
 			LOG.trace("Extraction begins from: {}", file.toString());
 			conn.c().begin();
-			conn.c().add(file, defaultURI, format, writableDataUnit
-					.getWriteContext());
+			conn.c().add(file, defaultURI, format, getCurrentWriteContexts());
 			conn.c().commit();
 			LOG.trace("Extraction done");
 		} catch (RepositoryException ex) {
@@ -169,5 +182,30 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 					"Extraction failed for RuntimeException.", ex);
 		}
 	}
+    
+    /**
+     * 
+     * @return array of current write {@likn URI}s
+     */
+    private URI[] getCurrentWriteContexts() {
+        return currentWriteSet.toArray(new URI[0]);
+    }
+    
+    /**
+     * Set {@link #currentWriteSet} to all graphs in {@link #writableDataUnit}.
+     */
+    private void setCurrentWriteSetToAll() throws OperationFailedException {
+        currentReadSet.clear();
+        try {
+            final RDFDataUnit.Iteration iter = 
+                    writableDataUnit.getIterationWritable();            
+            while (iter.hasNext()) {
+                currentReadSet.add(iter.next().getDataGraphname());
+            }
+        } catch (DataUnitException ex) {
+            throw new OperationFailedException(
+                    "Failed to get list of data graph names.", ex);
+        }
+    }
 
 }

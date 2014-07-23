@@ -5,7 +5,7 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>dataunit-rdf-simple</artifactId>
@@ -15,11 +15,19 @@
     
     <dependencies>
         <dependency>
-            <groupId>cz.cuni.mff.xrg.odcs</groupId>
-            <artifactId>dataunit-rdf</artifactId>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-rdf</artifactId>
             <version>[${unifiedviews.version},2.0.0)</version>
+            <type>jar</type>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>[${unifiedviews.version},2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>        
     </dependencies>
 	
 </project>

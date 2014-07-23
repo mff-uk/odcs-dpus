@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.rdf.simple;
 
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -22,9 +23,9 @@ class ClosableConnection implements AutoCloseable {
 	public ClosableConnection(RDFDataUnit rdf) throws OperationFailedException {
 		try {
 			connection = rdf.getConnection();
-		} catch (RepositoryException e) {
+		} catch (DataUnitException e) {
 			throw new OperationFailedException("Failed to get exception.", e);
-		}
+		} 
 	}
 
 	@Override
