@@ -130,6 +130,12 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
         return new String(result, Charset.forName("UTF-8"));
     }
 
+    @Override
+    public void setClassLoader(ClassLoader loader) {
+        this.xstream.setClassLoader(loader);
+        this.xstreamUTF.setClassLoader(loader);
+    }
+    
     /**
      * Copy values of certain fields from source to target.
      *

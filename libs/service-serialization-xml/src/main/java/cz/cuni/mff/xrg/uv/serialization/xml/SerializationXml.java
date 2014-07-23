@@ -21,4 +21,12 @@ public interface SerializationXml<T> {
     
     public String convert(T object) throws SerializationXmlFailure;
     
+    /**
+     * Set used class loader. May broke serialisation if wrong class loader
+     * is set, use with care.
+     * 
+     * @param loader 
+     */
+    public void setClassLoader(ClassLoader loader);
+    
 }

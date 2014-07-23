@@ -29,5 +29,4 @@ public class SerializationXmlFactory {
         return impl;
     }
     
-    
 }
