@@ -44,7 +44,7 @@ public abstract class ConfigurableBase<CONFIG> extends NonConfigurableBase
 
     @Override
     public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new MasterConfigurationDialog();
+        return null;
     }
 
 }
