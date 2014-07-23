@@ -3,7 +3,10 @@ package cz.cuni.mff.xrg.uv.boost.dpu.simple;
 import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXml;
 import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFailure;
+import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.dpu.config.DPUConfigurable;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
@@ -21,6 +24,8 @@ public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
      */
     protected CONFIG config = null;
 
+    protected DPUContext context;
+    
     private final SerializationXml<CONFIG> serializationService;
 
     public ConfigurableBase(Class<CONFIG> configClazz) {
@@ -47,4 +52,17 @@ public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
         }
     }
 
+    @Override
+    public void execute(DPUContext context) throws DPUException {
+        this.context = context;
+        try {
+            execute();
+        } catch (DataUnitException ex) {
+            throw new DPUException(ex);
+        }
+    }
+
+    public abstract void execute() throws DPUException, DataUnitException;
+        
+    
 }

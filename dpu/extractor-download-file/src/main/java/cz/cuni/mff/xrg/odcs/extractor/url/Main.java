@@ -29,7 +29,7 @@ public class Main extends ConfigurableBase<Configuration> {
     }
 
     @Override
-    public void execute(DPUContext context) throws DPUException {
+    public void execute() throws DPUException {
         // prepare source
         final URL sourceUrl = config.getURL();
         if (sourceUrl == null) {
