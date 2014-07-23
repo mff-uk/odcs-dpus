@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.postaladdress.to.ruain;
 
 import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.AddressLocality;
+import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.AddressLocalityMapper;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.AddressRegionMapper;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.PostalCodeMapper;
 import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.mapping.StreetAddressMapper;
@@ -41,7 +41,7 @@ public class Configuration extends DPUConfigObjectBase {
                     Arrays.asList("http://schema.org/postalCode"));
             mapperConfig.put(StreetAddressMapper.NAME, 
                     Arrays.asList("http://schema.org/streetAddress"));
-            mapperConfig.put(AddressLocality.NAME, 
+            mapperConfig.put(AddressLocalityMapper.NAME, 
                     Arrays.asList("http://schema.org/addressLocality"));
         }
     }

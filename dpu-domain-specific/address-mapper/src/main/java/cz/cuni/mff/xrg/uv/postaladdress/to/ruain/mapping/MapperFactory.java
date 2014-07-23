@@ -21,7 +21,7 @@ public class MapperFactory {
         new AddressRegionMapper(), 
         new PostalCodeMapper(), 
         new StreetAddressMapper(),
-        new AddressLocality()};
+        new AddressLocalityMapper()};
     
     private MapperFactory() { }
     

@@ -256,6 +256,9 @@ public class RequirementsToQuery {
                             Subject.ULICE);
                     } else {
                         // else stavebniObjekt is used
+                        addToQueries(result, Subject.ADRESNI_MISTO, 
+                                "<" + Ruian.P_STAVEBNI_OBJEKT + ">",
+                                Subject.STAVEBNI_OBJEKT);
                     }                    
                     break;
                 case 1: // ULICE --> OBEC, STAVEBNI_OBJEKT --> CASTI_OBCE --> OBEC
@@ -270,7 +273,7 @@ public class RequirementsToQuery {
                     }
                     
                     if (!q.getContent().containsKey(Subject.ULICE) && 
-                            q.getContent().containsKey(Subject.CASTIOBCI)) {
+                            !q.getContent().containsKey(Subject.CASTIOBCI)) {
                         // CASTIOBCE is not presented
                         // but we do not know it they are not used to map 
                         // for obec or not -> so ve create two alternatives

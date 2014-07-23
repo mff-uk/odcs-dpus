@@ -10,11 +10,11 @@ import java.util.List;
  *
  * @author Škoda Petr
  */
-public class AddressLocality extends StatementMapper {
+public class AddressLocalityMapper extends StatementMapper {
     
     public static final String NAME = "adresa regionu";
         
-    AddressLocality() {}
+    AddressLocalityMapper() {}
     
     @Override
     public String getName() {
