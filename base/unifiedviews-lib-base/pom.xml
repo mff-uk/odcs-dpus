@@ -19,6 +19,21 @@
         <osgi.export>${project.groupId}.*;version="${project.version}"</osgi.export>
     </properties>
 
+    <dependencies>
+        <dependency> <!-- logback as implementation org.slf4j -->
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.0.13</version>
+            <scope>test</scope>
+        </dependency>        
+    </dependencies>
+
     <build>
         <resources>
             <resource>
