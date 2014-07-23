@@ -5,11 +5,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
     </parent>    
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>service-serialization-rdf</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <packaging>bundle</packaging>
     <name>service serialization rdf</name>
     
@@ -22,20 +22,8 @@
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>boost-test</artifactId>
-            <version>[1.0.1, 2.0.0)</version>
-            <scope>test</scope>
-        </dependency>        
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.odcs</groupId>
-            <artifactId>dataunit-rdf</artifactId>
-            <version>[${unifiedviews.version},2.0.0)</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>dataunit-rdf-simple</artifactId>
-            <version>[1.0.1, 2.0.0)</version>
+            <version>[1.1.0, 2.0.0)</version>
             <scope>provided</scope>
         </dependency>        
     </dependencies> 
