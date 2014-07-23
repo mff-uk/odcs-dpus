@@ -1,5 +1,6 @@
 package cz.opendata.linked.extractor.tabular;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.simple.ConfigurableBase;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,41 +23,35 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.*;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
-import java.util.*;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.FilesDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext.MessageType;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 
 import org.slf4j.Logger;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.ICsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
-@AsExtractor
-public class Extractor extends ConfigurableBase<ExtractorConfig> implements
-		ConfigDialogProvider<ExtractorConfig> {
+@DPU.AsExtractor
+public class Extractor extends ConfigurableBase<ExtractorConfig> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
 	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
-	@InputDataUnit(name = "table")
-	public FileDataUnit tableFile;
+	@DataUnit.AsInput(name = "table")
+	public FilesDataUnit tableFile;
 	
-	@OutputDataUnit(name = "triplifiedTable")
+	@DataUnit.AsOutput(name = "triplifiedTable")
 	public WritableRDFDataUnit triplifiedTableT;
 	
 	public Extractor() {
@@ -69,38 +64,25 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements
 	}
 
 	@Override
-	public void execute(DPUContext context) throws DPUException,
-			DataUnitException {
+	public void execute() throws DPUException, DataUnitException {
 
-		SimpleRdfWrite triplifiedTableWrap = SimpleRdfFactory.create(triplifiedTableT, context);
+		final SimpleRdfWrite triplifiedTableWrap = 
+                SimpleRdfFactory.create(triplifiedTableT, context);
 		triplifiedTableWrap.setPolicy(AddPolicy.BUFFERED);
 		
-		// do we found at least one file?
-		boolean fileFound = false;
-		
-		// extract from all files				
-		Iterator<Handler> iter = tableFile.getRootDir().getFlatIterator();
-		while(iter.hasNext()) {
-			Handler handler = iter.next();
-			if ( handler instanceof FileHandler ) {
-				fileFound = true;
-				FileHandler fileHandler = (FileHandler) handler;
-				context.sendMessage(MessageType.INFO, "Processing file " + handler.getName(), 
-						"Processing file " + handler.getRootedPath());
-				// export data
-				proceedFile(context, triplifiedTableWrap, fileHandler.asFile());
-			}				
-		}
-
-		triplifiedTableWrap.flushBuffer();		
-		
-		if (!fileFound)	{
-			context.sendMessage(MessageType.ERROR, "No file found in the input file data unit.");
-		}
-
+		FilesDataUnit.Iteration iter = tableFile.getIteration();
+        while (iter.hasNext()) {
+            FilesDataUnit.Entry entry = iter.next();
+            
+            context.sendMessage(MessageType.INFO, 
+                    "Processing file " + entry.getSymbolicName());
+            
+            proceedFile(triplifiedTableWrap, new File(entry.getFileURIString()));
+        }
+		triplifiedTableWrap.flushBuffer();
 	}
 	
-	private void proceedFile(DPUContext context, SimpleRdfWrite triplifiedTableWrap, File tableFile) throws OperationFailedException {
+	private void proceedFile(SimpleRdfWrite triplifiedTableWrap, File tableFile) throws OperationFailedException {
 		final ValueFactory valueFactory = triplifiedTableWrap.getValueFactory();
 		
 		String tableFileName = tableFile.getName();

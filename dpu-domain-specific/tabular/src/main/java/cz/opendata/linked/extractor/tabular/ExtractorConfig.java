@@ -2,9 +2,7 @@ package cz.opendata.linked.extractor.tabular;
 
 import java.util.LinkedHashMap;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-
-public class ExtractorConfig extends DPUConfigObjectBase {
+public class ExtractorConfig {
 
 	private LinkedHashMap<String, String> columnPropertyMap;
 

@@ -5,15 +5,14 @@ import java.util.LinkedHashMap;
 
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Button.ClickEvent;
-
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.SimpleConfigDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
  */
-public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
+public class ExtractorDialog extends SimpleConfigDialogBase<ExtractorConfig> {
 
 	private static final long serialVersionUID = -2276716135089984872L;
 	
@@ -162,7 +161,7 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	}
 
 	@Override
-	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+	public void setConfiguration(ExtractorConfig conf) throws DPUConfigException {
 		
 		if ( conf.getBaseURI() == null )	{
 			this.tfBaseURI.setValue("");
@@ -230,10 +229,10 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 	}
 
 	@Override
-	public ExtractorConfig getConfiguration() throws ConfigException {
+	public ExtractorConfig getConfiguration() throws DPUConfigException {
 		//TODO Validate filled values.
 		
-		LinkedHashMap<String, String> columnPropertiesMap = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> columnPropertiesMap = new LinkedHashMap<>();
 		
 		// the first row is heading !
 		for ( int row = 1; row < this.propertiesGridLayout.getRows(); row++ )	{

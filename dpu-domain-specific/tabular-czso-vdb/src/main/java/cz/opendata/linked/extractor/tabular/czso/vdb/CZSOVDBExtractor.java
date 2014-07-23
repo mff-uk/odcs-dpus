@@ -1,5 +1,6 @@
 package cz.opendata.linked.extractor.tabular.czso.vdb;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.simple.ConfigurableBase;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -20,39 +21,33 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.*;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
-import java.util.*;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.FilesDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext.MessageType;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.openrdf.model.*;
 import org.slf4j.Logger;
 
-@AsExtractor
-public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> implements
-		ConfigDialogProvider<CZSOVDBExtractorConfig> {
+@DPU.AsExtractor
+public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(
 			CZSOVDBExtractor.class);
 	
 	private final String baseODCSPropertyURI = "http://linked.opendata.cz/ontology/odcs/tabular/";
 
-	@InputDataUnit(name = "tables")
-	public FileDataUnit tableFiles;
+	@DataUnit.AsInput(name = "table")
+	public FilesDataUnit tableFile;
 	
-	@OutputDataUnit(name = "triplifiedTables")
+	@DataUnit.AsOutput(name = "triplifiedTable")
 	public WritableRDFDataUnit triplifiedTables;
 
 	public CZSOVDBExtractor() {
@@ -64,7 +59,7 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 		return new CZSOVDBExtractorDialog();
 	}
 
-	private void processTabularFile(File tableFile, DPUContext context) throws OperationFailedException {
+	private void processTabularFile(File tableFile) throws OperationFailedException {
 				
 		String tableFileName = tableFile.getName();
 		
@@ -235,31 +230,18 @@ public class CZSOVDBExtractor extends ConfigurableBase<CZSOVDBExtractorConfig> i
 	}
 	
 	@Override
-	public void execute(DPUContext context) throws DPUException,
-			DataUnitException {
-						
-		// do we found at least one file?
-		boolean fileFound = false;
-		
-		// extract from all files				
-		Iterator<Handler> iter = tableFiles.getRootDir().getFlatIterator();
-		while(iter.hasNext()) {
-			Handler handler = iter.next();
-			if ( handler instanceof FileHandler ) {
-				fileFound = true;
-				FileHandler fileHandler = (FileHandler) handler;
-				context.sendMessage(MessageType.INFO, "Processing file " + handler.getName(), 
-						"Processing file " + handler.getRootedPath());
-				// export data
-				processTabularFile(fileHandler.asFile(), context);
-			}				
-		}
+	public void execute() throws DPUException, DataUnitException {
 
-		
-		if (!fileFound)	{
-			context.sendMessage(MessageType.ERROR, "No file found in the input file data unit.");
-		}				
-		
+        FilesDataUnit.Iteration iter = tableFile.getIteration();
+        while (iter.hasNext()) {
+            FilesDataUnit.Entry entry = iter.next();
+            
+            context.sendMessage(MessageType.INFO, 
+                    "Processing file " + entry.getSymbolicName());
+            
+            processTabularFile(new File(entry.getFileURIString()));
+        }
+	
 	}
 	
 	/**

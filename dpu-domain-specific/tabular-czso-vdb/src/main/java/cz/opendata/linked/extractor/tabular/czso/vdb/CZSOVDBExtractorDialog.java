@@ -5,15 +5,14 @@ import java.util.LinkedHashMap;
 
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Button.ClickEvent;
-
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.SimpleConfigDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
  */
-public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorConfig> {
+public class CZSOVDBExtractorDialog extends SimpleConfigDialogBase<CZSOVDBExtractorConfig> {
 	
 	private static final long serialVersionUID = -3104734516557662861L;
 
@@ -205,7 +204,7 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 	}
 
 	@Override
-	public void setConfiguration(CZSOVDBExtractorConfig conf) throws ConfigException {
+	public void setConfiguration(CZSOVDBExtractorConfig conf) throws DPUConfigException {
 		
 		if ( conf.getBaseURI() == null )	{
 			this.tfBaseURI.setValue("");
@@ -260,10 +259,10 @@ public class CZSOVDBExtractorDialog extends BaseConfigDialog<CZSOVDBExtractorCon
 	}
 
 	@Override
-	public CZSOVDBExtractorConfig getConfiguration() throws ConfigException {
+	public CZSOVDBExtractorConfig getConfiguration() throws DPUConfigException {
 		//TODO Validate filled values.
 		
-		LinkedHashMap<Integer, String> columnPropertiesMap = new LinkedHashMap<Integer, String>();
+		LinkedHashMap<Integer, String> columnPropertiesMap = new LinkedHashMap<>();
 		
 		// the first row is heading of the mapping table!
 		for ( int row = 1; row < this.propertiesGridLayout.getRows(); row++ )	{

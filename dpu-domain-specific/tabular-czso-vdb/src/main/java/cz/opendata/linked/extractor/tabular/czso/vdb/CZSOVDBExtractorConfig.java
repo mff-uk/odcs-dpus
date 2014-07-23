@@ -2,12 +2,8 @@ package cz.opendata.linked.extractor.tabular.czso.vdb;
 
 import java.util.LinkedHashMap;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
+public class CZSOVDBExtractorConfig  {
 
-public class CZSOVDBExtractorConfig extends DPUConfigObjectBase {
-
-	private static final long serialVersionUID = 6979581350385466975L;
-	
 	private LinkedHashMap<Integer, String> columnPropertyMap;
 	
 	private LinkedHashMap<Coordinates, String> fixedValueMap;

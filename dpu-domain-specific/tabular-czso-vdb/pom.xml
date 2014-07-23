@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>cz.cuni.mff.xrg.uv</groupId>
 		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>
 	<artifactId>extractor_tabular_czso_vdb</artifactId>
 	<name>ext. tabular czso vdb</name>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>bundle</packaging>
 	<description>This extractor transforms an input XLS file which was exported from the public database of Czech Statistical Office. The output is an RDF representation structured according to given parameters.</description>
 	
@@ -30,6 +30,12 @@
 			<version>3.10-FINAL</version>
 			<scope>provided</scope>
 		</dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>1.1.0</version>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
   
 </project>
