@@ -10,7 +10,7 @@ import cz.cuni.mff.xrg.uv.postaladdress.to.ruain.ontology.Subject;
  */
 public class QueryToString {
 
-    private final static String SELECT_PREAMBLE = "SELECT ";
+    private final static String SELECT_PREAMBLE = "SELECT DISTINCT ";
 
     private final static String SELECT_WHERE = " WHERE {\n";
 

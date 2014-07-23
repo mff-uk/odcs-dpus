@@ -24,7 +24,7 @@ public class AddressLocality extends StatementMapper {
     @Override
     public List<Requirement> map(String predicate, String object) {
         final List<Requirement> results = new LinkedList<>();
-        final String[] objectSplit = object.split(",");
+        final String[] objectSplit = object.split(",", 2);
         
         final List<String> obce = new LinkedList<>();
         final List<String> castiObci = new LinkedList<>();

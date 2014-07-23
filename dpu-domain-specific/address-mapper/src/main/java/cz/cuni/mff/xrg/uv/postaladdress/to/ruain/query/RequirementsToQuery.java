@@ -234,16 +234,14 @@ public class RequirementsToQuery {
         }
         
         if (q.getContent().containsKey(Subject.CASTIOBCI)) {
-            // test for levels ..
-            if (maxLevel < 1) {
-                // we have only ADRESNI_MISTO 
-                // add mapping STAVEBNI_OBJEKT --> CASTI_OBCE                
-                addToQueries(result, Subject.STAVEBNI_OBJEKT, 
+            // add mapping 
+            // ADRESNI_MISTO --> STAVEBNI_OBJEKT --> CASTI_OBCE
+            addToQueries(result, Subject.ADRESNI_MISTO, 
+                                "<" + Ruian.P_STAVEBNI_OBJEKT + ">",
+                                Subject.STAVEBNI_OBJEKT);
+            addToQueries(result, Subject.STAVEBNI_OBJEKT, 
                                 "<" + Ruian.P_CAST_OBCE + ">",
                                 Subject.CASTIOBCI);
-                // then in case 0: mapping into STAVEBNI_OBJEKT
-                maxLevel = 1;
-            }
         }
         
         // add mapping, we are the only one who can ..
@@ -257,10 +255,7 @@ public class RequirementsToQuery {
                                 "<" + Ruian.P_ULICE + ">",
                             Subject.ULICE);
                     } else {
-                        // use stavebniObjekt
-                        addToQueries(result, Subject.ADRESNI_MISTO, 
-                                "<" + Ruian.P_STAVEBNI_OBJEKT + ">",
-                                Subject.STAVEBNI_OBJEKT);
+                        // else stavebniObjekt is used
                     }                    
                     break;
                 case 1: // ULICE --> OBEC, STAVEBNI_OBJEKT --> CASTI_OBCE --> OBEC
@@ -268,28 +263,29 @@ public class RequirementsToQuery {
                         // use ulice to bind to obec
                         addToQueries(result, Subject.ULICE, 
                                 "<" + Ruian.P_OBEC + ">", Subject.OBEC);
-                    } else {
-                        // use stavebni objekt - with possible alternative
-                        if (q.getContent().containsKey(Subject.CASTIOBCI)) {
-                            // we have castiObce
-                            addToQueries(result, Subject.STAVEBNI_OBJEKT, 
-                                    "<" + Ruian.P_CAST_OBCE + ">", Subject.CASTIOBCI);
-                            addToQueries(result, Subject.CASTIOBCI, 
+                    }
+                    if (q.getContent().containsKey(Subject.CASTIOBCI)) {
+                        addToQueries(result, Subject.CASTIOBCI, 
                                 "<" + Ruian.P_OBEC + ">", Subject.OBEC);
-                        } else {
-                            // it may map directly for obec
-                            final List<Query> alternatives = deepCopy(result);
-                            // STAVEBNI_OBJEKT --> CASTI_OBCE --> OBEC
-                            addToQueries(alternatives, Subject.STAVEBNI_OBJEKT, 
-                                    "<" + Ruian.P_CAST_OBCE + ">", Subject.CASTIOBCI);
-                            addToQueries(alternatives, Subject.CASTIOBCI, 
-                                "<" + Ruian.P_OBEC + ">", Subject.OBEC);
-                            // STAVEBNI_OBJEKT --> OBEC
-                            addToQueries(result, Subject.STAVEBNI_OBJEKT, 
-                                "<" + Ruian.P_OBEC + ">", Subject.OBEC);                            
-                            // merge
-                            result.addAll(alternatives);
-                        }
+                    }
+                    
+                    if (!q.getContent().containsKey(Subject.ULICE) && 
+                            q.getContent().containsKey(Subject.CASTIOBCI)) {
+                        // CASTIOBCE is not presented
+                        // but we do not know it they are not used to map 
+                        // for obec or not -> so ve create two alternatives
+                        
+                        final List<Query> alternatives = deepCopy(result);
+                        // STAVEBNI_OBJEKT --> CASTI_OBCE --> OBEC
+                        addToQueries(alternatives, Subject.STAVEBNI_OBJEKT, 
+                                "<" + Ruian.P_CAST_OBCE + ">", Subject.CASTIOBCI);
+                        addToQueries(alternatives, Subject.CASTIOBCI, 
+                            "<" + Ruian.P_OBEC + ">", Subject.OBEC);
+                        // STAVEBNI_OBJEKT --> OBEC
+                        addToQueries(result, Subject.STAVEBNI_OBJEKT, 
+                            "<" + Ruian.P_OBEC + ">", Subject.OBEC);                            
+                        // merge
+                        result.addAll(alternatives); 
                     }
                     break;
                 case 2: // OBEC --> POU
