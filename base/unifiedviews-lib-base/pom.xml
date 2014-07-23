@@ -4,11 +4,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-base</artifactId>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>unifiedviews-lib-base</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>unifiedviews lib base</name>
 
@@ -41,7 +41,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Export-Package>${osgi.export}</Export-Package>
                         <Import-Package>
-                            cz.cuni.mff.xrg.odcs.*;version="[${unifiedviews.version},2.0.0)",
+                            eu.unifiedviews.*;version="[${unifiedviews.version},2.0.0)",
                             ${osgi.import}
                             *
                         </Import-Package>
