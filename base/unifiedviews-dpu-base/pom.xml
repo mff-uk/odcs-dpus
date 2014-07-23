@@ -58,6 +58,13 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>[${unifiedviews.version},2.0.0)</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>        
+        <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>dataunit-rdf-simple</artifactId>
             <version>[${simple.rdf.version},2.0.0)</version>
