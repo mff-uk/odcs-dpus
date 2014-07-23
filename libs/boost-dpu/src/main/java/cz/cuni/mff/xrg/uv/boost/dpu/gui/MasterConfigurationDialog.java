@@ -7,7 +7,7 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
  *
  * @author Škoda Petr
  */
-public class MasterConfigurationDialog extends 
+public abstract class MasterConfigurationDialog extends 
         AbstractConfigDialog<MasterConfigObject> {
     
 }
