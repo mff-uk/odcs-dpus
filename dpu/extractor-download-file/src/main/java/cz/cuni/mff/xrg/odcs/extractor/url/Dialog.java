@@ -3,12 +3,12 @@ package cz.cuni.mff.xrg.odcs.extractor.url;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.SimpleConfigDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class Dialog extends BaseConfigDialog<Configuration> {
+public class Dialog extends SimpleConfigDialogBase<Configuration> {
 
 	private VerticalLayout mainLayout;
 	
@@ -48,7 +48,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 		txtTarget = new TextField();
 		txtTarget.setWidth("100%");
 		txtTarget.setHeight("-1px");
-		txtTarget.setCaption("Target - file name and location in output:");
+		txtTarget.setCaption("Target name - symbolic file name:");
 		txtTarget.setRequired(true);
 		mainLayout.addComponent(txtTarget);
 		
@@ -84,7 +84,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 	}
 	
 	@Override
-	public void setConfiguration(Configuration conf) throws ConfigException {
+	public void setConfiguration(Configuration conf) throws DPUConfigException {
 		if (conf.getURL() != null) {
 			txtURL.setValue(conf.getURL().toString());
 		} else {
@@ -96,14 +96,14 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 	}
 
 	@Override
-	public Configuration getConfiguration() throws ConfigException {
+	public Configuration getConfiguration() throws DPUConfigException {
 		Configuration conf = new Configuration();
 		
 		final boolean isValid = txtURL.isValid() && txtTarget.isValid() && 
 				txtRetryCount.isValid() && txtRetryDelay.isValid();
 		
 		if (!isValid) {
-			throw new ConfigException("Some fields contains invalid value.");
+			throw new DPUConfigException("Some fields contains invalid value.");
 		}
 		
 		final String stringURL = txtURL.getValue();
@@ -111,13 +111,13 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 			if (getContext().isTemplate()) {
 				// ok
 			} else {
-				throw new ConfigException("URL is not specified.");
+				throw new DPUConfigException("URL is not specified.");
 			}
 		} else {
 			try {
 				conf.setURL(new URL(txtURL.getValue()));
 			} catch (MalformedURLException ex) {
-				throw new ConfigException("Wrong URL format", ex);
+				throw new DPUConfigException("Wrong URL format", ex);
 			}
 		}
 		
@@ -126,7 +126,7 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 			conf.setRetryCount(Integer.parseInt(txtRetryCount.getValue()));
 			conf.setRetryDelay(Integer.parseInt(txtRetryDelay.getValue()));
 		} catch (NumberFormatException ex) {
-			throw new ConfigException("Bad number format.");
+			throw new DPUConfigException("Bad number format.");
 		}
 		return conf;
 	}

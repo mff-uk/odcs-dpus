@@ -1,13 +1,12 @@
 package cz.cuni.mff.xrg.odcs.extractor.url;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 import java.net.URL;
 
 /**
  * 
  * @author Škoda Petr
  */
-public class Configuration extends DPUConfigObjectBase {
+public class Configuration {
 
 	private URL URL = null;
 	
