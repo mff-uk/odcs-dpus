@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.external.rdf;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.uv.external.ExternalFailure;
 import cz.cuni.mff.xrg.uv.external.FaultTolerantPolicy;
+import eu.unifiedviews.dpu.DPUContext;
 import java.util.LinkedList;
 import java.util.List;
 import org.openrdf.query.BindingSet;

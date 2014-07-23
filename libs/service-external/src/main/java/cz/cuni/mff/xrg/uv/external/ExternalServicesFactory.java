@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.external;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 import cz.cuni.mff.xrg.uv.external.rdf.RemoteRepository;
+import eu.unifiedviews.dpu.DPUContext;
 
 /**
  * General purpose factory. Use this class to create classes from this module.
