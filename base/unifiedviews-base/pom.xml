@@ -24,6 +24,8 @@
         <bundle.plugin.version>2.3.7</bundle.plugin.version>
         <!-- used version of slf4j -->
         <slf4j.version>1.7.5</slf4j.version>
+        <!-- centralized storage for sasamne.version -->
+        <sesame.version>2.7.11</sesame.version>
         <!-- system properties -->
         <project.java.version>1.7</project.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
