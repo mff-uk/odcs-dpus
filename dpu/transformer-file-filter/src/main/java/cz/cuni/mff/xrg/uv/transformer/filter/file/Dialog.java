@@ -4,10 +4,10 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.SimpleConfigDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 
-public class Dialog extends BaseConfigDialog<Configuration> {
+public class Dialog extends SimpleConfigDialogBase<Configuration> {
 	
 	private VerticalLayout mainLayout;
 	
@@ -41,16 +41,15 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 	}
 
 	@Override
-	protected void setConfiguration(Configuration c) throws ConfigException {
+	protected void setConfiguration(Configuration c) throws DPUConfigException {
 		txtFilter.setValue(c.getFilter());
 	}
 
 	@Override
-	protected Configuration getConfiguration() throws ConfigException {
+	protected Configuration getConfiguration() throws DPUConfigException {
 		if (!txtFilter.isValid()) {
-			throw new ConfigException("Filter must be set.");
-		}
-		
+			throw new DPUConfigException("Filter must be set.");
+		}		
 		Configuration cnf = new Configuration();
 		cnf.setFilter(txtFilter.getValue());
 		return cnf;

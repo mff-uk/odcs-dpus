@@ -4,18 +4,27 @@
 	<parent>
 		<groupId>cz.cuni.mff.xrg.uv</groupId>
 		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>transforme_file_filter</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>bundle</packaging>
 	<name>trans. file filter</name>
-	<description>Filter given files used regular expression, if file pass the filter, then is copied to output to same place (in directory structure) as it's in input.</description>
+	<description>Filter given files used regular expression, if file pass the filter, then is copied to output</description>
 	
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.uv.transformer.filter.file</dpu.package>
 		<dpu.mainClass>Main</dpu.mainClass>
 	</properties>
 	
+    <dependencies>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>1.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>    
+    
 </project>

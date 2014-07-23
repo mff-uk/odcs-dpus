@@ -1,8 +1,6 @@
 package cz.cuni.mff.xrg.uv.transformer.filter.file;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-
-public class Configuration extends DPUConfigObjectBase {
+public class Configuration {
 	
 	private String filter = ".*";
 
