@@ -1,90 +1,81 @@
 package cz.cuni.mff.xrg.uv.transformer.unzipper;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsTransformer;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.NonConfigurableBase;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.Handler;
-import cz.cuni.mff.xrg.odcs.dataunit.file.options.OptionsAdd;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.FilesDataUnit;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUContext.MessageType;
+import eu.unifiedviews.dpu.DPUException;
 import java.io.File;
-import java.util.Iterator;
+import java.util.Collection;
 import net.lingala.zip4j.core.ZipFile;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AsTransformer
-public class Main extends NonConfigurableBase {
+@DPU.AsTransformer
+public class Main implements DPU {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	@InputDataUnit(name = "input")
-	public FileDataUnit input;
+	@DataUnit.AsInput(name = "input")
+	public FilesDataUnit input;
 
-	@OutputDataUnit(name = "output")
-	public FileDataUnit output;
+	@DataUnit.AsOutput(name = "output")
+	public WritableFilesDataUnit output;
 
+    protected DPUContext context;
+    
 	public Main() {
 	}
 
-	@Override
-	public void execute(DPUContext context)
-			throws DPUException, DataUnitException {
+    @Override
+    public void execute(DPUContext context) throws DPUException {
+        this.context = context;
+        try {
+            execute();
+        } catch (DataUnitException ex) {
+            throw new DPUException(ex);
+        }
+    }
 
-		Iterator<Handler> iter = input.getRootDir().getFlatIterator();
-		while (iter.hasNext()) {
-			final Handler handler = iter.next();
-			LOG.debug("Handler located {}", handler.getRootedPath());
-			if (handler instanceof FileHandler && isZipFile(handler)) {
-				// ok, we unpack
-				final File file = handler.asFile();
-				final String outputName = file.getName();
-
-				if (output.getRootDir().getByName(outputName) != null) {
-					// name=directory is already used
-					context.sendMessage(MessageType.ERROR, "Unzipper failed",
-							String.format("Duplicit zip name '%s'", outputName));
-					return;
-				}
-
-				final File outputDir = new File(output.getRootDir().asFile(),
-						outputName);
-				outputDir.mkdirs();
-
-				LOG.debug("Unzipping {} into {}", handler.getRootedPath(),
-						outputDir.toString());
-
-				try {
-					unzip((FileHandler) handler, outputDir);
-				} catch (Exception ex) {
-					context.sendMessage(MessageType.ERROR, "Unzipper failed",
-							String.format("Failed to unzip '%s'", handler
-									.getRootedPath()), ex);
-					return;
-				}
-
-				LOG.debug("Adding directory ...");
-
-				// add into FileData unit as existing, that force scan for 
-				// subdirectories
-				output.getRootDir().addExistingDirectory(outputDir,
-						new OptionsAdd(true, true));
-
-				LOG.debug("Adding directory ... done");
-
-			}
-		}
-
-		if (output.getRootDir().isEmpty()) {
-			context.sendMessage(MessageType.WARNING, "No output",
-					"The output is empty, run DPU in debug mode and examine logs for more info.");
-		}
-
+    public void execute() throws DPUException, DataUnitException {
+        final FilesDataUnit.Iteration iter = input.getIteration();
+        while (iter.hasNext()) {
+            final FilesDataUnit.Entry entry = iter.next();
+            final String symbolicName = entry.getSymbolicName();
+            
+            // test if it's zip file
+            if (!isZipFile(symbolicName)) {
+                continue;
+            }
+            
+            // create directory
+            File outputDir = new File(output.getBaseURIString(), symbolicName);
+            outputDir.mkdirs();
+            
+            LOG.debug("Unzipping {} into {}", symbolicName, 
+                    outputDir.toString());            
+            try {
+                unzip(new File(entry.getFileURIString()), outputDir);
+            } catch (Exception ex) {
+                context.sendMessage(MessageType.ERROR, "Unzipper failed",
+                        String.format("Failed to unzip '%s'", 
+                                entry.getFileURIString()), ex);
+                return;
+            }
+            
+            // scan directory for new files
+            final int outputDirLen = outputDir.getPath().length();
+            Collection<File> files = FileUtils.listFiles(outputDir, null, true);
+            for (File newFile : files) {
+                String relativePath = newFile.getPath().substring(outputDirLen);
+                output.addExistingFile(symbolicName + "/" + relativePath, 
+                        newFile.toString());
+            }
+        }
 	}
 
 	/**
@@ -92,11 +83,9 @@ public class Main extends NonConfigurableBase {
 	 * @param handler
 	 * @return True if given handler name has 'zip' extension.
 	 */
-	private boolean isZipFile(Handler handler) {
-		final String extension = handler.getName().substring(
-				handler.getName().length() - 3);
-		LOG.debug("Test for extension for '{}' extension '{}'", 
-				handler.getRootedPath(), extension);
+	private boolean isZipFile(String symbolicName) {
+		final String extension = symbolicName.substring(
+                symbolicName.length() - 3);
 		return extension.compareToIgnoreCase("zip") == 0;
 	}
 
@@ -106,8 +95,8 @@ public class Main extends NonConfigurableBase {
 	 * @param source
 	 * @param target
 	 */
-	private void unzip(FileHandler source, File target) throws Exception {
-		ZipFile zipFile = new ZipFile(source.asFile());
+	private void unzip(File source, File target) throws Exception {
+		ZipFile zipFile = new ZipFile(source);
 		if (zipFile.isEncrypted()) {
 			throw new Exception("Zip file is encrypted.");
 		}
