@@ -1,14 +1,11 @@
 package cz.cuni.mff.xrg.uv.rdf.simple;
 
 import eu.unifiedviews.dataunit.DataUnitException;
-import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -30,6 +27,8 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	private static final Logger LOG = LoggerFactory.getLogger(
 			SimpleRdfWrite.class);
 
+    private static final String DEFAULT_GRAPH_NAME = "main";
+    
 	/**
 	 * Add policy.
 	 */
@@ -53,9 +52,14 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	protected final WritableRDFDataUnit writableDataUnit;
 
     /**
+     * Holds info about all added graphs.
+     */
+    protected Map<String, URI> writeSetAll;
+    
+    /**
      * Current write set.
      */
-    protected final Set<URI> currentWriteSet;
+    protected Map<String, URI> writeSetCurrent;
     
 	/**
 	 * 
@@ -67,9 +71,10 @@ public class SimpleRdfWrite extends SimpleRdfRead {
             throws OperationFailedException {
 		super(dataUnit, context);
 		this.writableDataUnit = dataUnit;
-        this.currentWriteSet = new HashSet<>();
-        // set write content
-        setCurrentWriteSetToAll();
+        this.writeSetAll = new HashMap<>();
+        this.writeSetCurrent = writeSetAll;
+        // add new output graph, this will also add it to writeSetAll
+        creteNewGraph(DEFAULT_GRAPH_NAME);
 	}
 
 	/**
@@ -188,24 +193,49 @@ public class SimpleRdfWrite extends SimpleRdfRead {
      * @return array of current write {@likn URI}s
      */
     private URI[] getCurrentWriteContexts() {
-        return currentWriteSet.toArray(new URI[0]);
+        return writeSetCurrent.values().toArray(new URI[0]);
     }
     
     /**
-     * Set {@link #currentWriteSet} to all graphs in {@link #writableDataUnit}.
+     * Set {@link #writeSetCurrent} to all graphs in {@link #writableDataUnit}.
      */
-    private void setCurrentWriteSetToAll() throws OperationFailedException {
-        currentReadSet.clear();
-        try {
-            final RDFDataUnit.Iteration iter = 
-                    writableDataUnit.getIterationWritable();            
-            while (iter.hasNext()) {
-                currentReadSet.add(iter.next().getDataGraphname());
-            }
-        } catch (DataUnitException ex) {
-            throw new OperationFailedException(
-                    "Failed to get list of data graph names.", ex);
-        }
+    private void setCurrentWriteSetToAll() {
+        writeSetCurrent = writeSetAll;
     }
 
+    /**
+     * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name
+     * to generate new graph {@link URI} and create a graph with it.
+     * 
+     * @param name
+     * @return 
+     */
+    private URI creteNewGraph(String name) throws OperationFailedException {
+        final String baseUriStr;
+        try {
+            baseUriStr = writableDataUnit.getBaseDataGraphURI().stringValue();
+        } catch (DataUnitException ex) {
+            throw new OperationFailedException("Faield to get base graph name.",
+                    ex);
+        }
+        final String newUriStr = baseUriStr + "/" + name;
+        
+        if (writeSetAll.containsKey(newUriStr)) {
+            LOG.warn("Same gaph create at least twice: {}", newUriStr);
+            return writeSetAll.get(newUriStr);
+        }
+        
+        final URI newUri;
+        try {
+            newUri = writableDataUnit.addNewDataGraph(name);
+        } catch (DataUnitException ex) {
+            throw new OperationFailedException("Failed to add new graph.", ex);
+        }
+        
+        // add to all Uri repository
+        writeSetAll.put(name, newUri);
+        
+        return newUri;
+    }
+    
 }

@@ -39,8 +39,8 @@ public class SimpleRdfRead {
     /**
      * Set of currently used graphs.
      */
-    protected final Set<URI> currentReadSet;
-
+    protected final Set<URI> readSetCurrent;
+    
     /**
      *
      * @param dataUnit
@@ -50,7 +50,7 @@ public class SimpleRdfRead {
     SimpleRdfRead(RDFDataUnit dataUnit, DPUContext context) throws OperationFailedException {
         this.dataUnit = dataUnit;
         this.context = context;
-        this.currentReadSet = new HashSet<>();
+        this.readSetCurrent = new HashSet<>();
         // set read contexts
         setCurrentReadSetToAll();
     }
@@ -81,7 +81,7 @@ public class SimpleRdfRead {
         try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
             RepositoryResult<Statement> repoResult
                     = conn.c().getStatements(null, null, null, true,
-                            currentReadSet.toArray(new URI[0]));
+                            readSetCurrent.toArray(new URI[0]));
             // add all data into list
             while (repoResult.hasNext()) {
                 Statement next = repoResult.next();
@@ -112,7 +112,7 @@ public class SimpleRdfRead {
                     QueryLanguage.SPARQL, query);
             // prepare dataset
             CleverDataset dataset = new CleverDataset();
-            dataset.addDefaultGraphs(currentReadSet);
+            dataset.addDefaultGraphs(readSetCurrent);
             tupleQuery.setDataset(dataset);
             // wrap result and return
             return new ConnectionPair<>(conn.c(), tupleQuery.evaluate());
@@ -140,7 +140,7 @@ public class SimpleRdfRead {
                     QueryLanguage.SPARQL,
                     query);
             CleverDataset dataset = new CleverDataset();
-            dataset.addDefaultGraphs(currentReadSet);
+            dataset.addDefaultGraphs(readSetCurrent);
             graphQuery.setDataset(dataset);
             // evaluate
             GraphQueryResult result = graphQuery.evaluate();
@@ -156,16 +156,16 @@ public class SimpleRdfRead {
     }
 
     /**
-     * Set {@link #currentReadSet} to all graphs from {@link #dataUnit}.
+     * Set {@link #readSetCurrent} to all graphs from {@link #dataUnit}.
      *
      * @throws OperationFailedException
      */
     private void setCurrentReadSetToAll() throws OperationFailedException {
-        currentReadSet.clear();
+        readSetCurrent.clear();
         try {
             final RDFDataUnit.Iteration iter = dataUnit.getIteration();            
             while (iter.hasNext()) {
-                currentReadSet.add(iter.next().getDataGraphname());
+                readSetCurrent.add(iter.next().getDataGraphURI());
             }
         } catch (DataUnitException ex) {
             throw new OperationFailedException(
