@@ -1,9 +1,13 @@
 package cz.cuni.mff.xrg.uv.test.boost.rdf;
 
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
 import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -22,7 +26,8 @@ public final class InputOutput {
     }
 
     /**
-     * Extract triples from given file and add them into repository.
+     * Extract triples from given file and add them into repository, into the
+     * fixed graph name.
      * 
      * @param source
      * @param format
@@ -33,15 +38,20 @@ public final class InputOutput {
         RepositoryConnection connection = null;
 
         try {
+            final URI graphUri = target.getConnection().getValueFactory()
+                    .createURI(target.getBaseDataGraphURI().stringValue() + 
+                            "/fromFile");
+            
             connection = target.getConnection();
             connection.begin();
-            connection.add(source, "http://default//", format, target.getWriteContext());
+            connection.add(source, "http://default//", format, graphUri);
             connection.commit();
 
             LOG.info("{} triples have been extracted from {}",
                     connection.size(), source.toString());
 
-        } catch (IOException | RDFParseException | RepositoryException e) {
+        } catch (IOException | RepositoryException | RDFParseException | 
+                DataUnitException e) {
             LOG.error("Extraction failed.", e);
         } finally {
             if (connection != null) {
@@ -64,7 +74,21 @@ public final class InputOutput {
     public static void loadToFile(RDFDataUnit source, File target,
             RDFFormat format) {
         RepositoryConnection connection = null;
-        URI[] sourceContexts = source.getContexts().toArray(new URI[0]);
+        
+        // get all contexts
+        final List<URI> uris = new LinkedList<>();
+        try {
+            final RDFDataUnit.Iteration iter = source.getIteration();
+            while (iter.hasNext()) {
+                uris.add(iter.next().getDataGraphURI());
+            }        
+        } catch (DataUnitException ex) {
+            LOG.error("Faield to get graph list.", ex);            
+            return;
+        }
+        
+        // load
+        URI[] sourceContexts = uris.toArray(new URI[0]);
         try (FileOutputStream out = new FileOutputStream(target);
                 OutputStreamWriter os = new OutputStreamWriter(out, Charset
                         .forName("UTF-8"));) {
@@ -72,7 +96,7 @@ public final class InputOutput {
 
             RDFWriter rdfWriter = Rio.createWriter(format, os);
             connection.export(rdfWriter, sourceContexts);
-        } catch (RepositoryException | IOException | RDFHandlerException e) {
+        } catch (DataUnitException | RepositoryException | IOException | RDFHandlerException e) {
             LOG.error("Loading failed.", e);
         } finally {
             if (connection != null) {
