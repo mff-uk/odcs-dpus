@@ -15,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Provides easy way how to set/get metadata (predicate/object) for given
+ * symbolic name.
+ * 
  * @author Škoda Petr
  */
 public class Manipulator {
