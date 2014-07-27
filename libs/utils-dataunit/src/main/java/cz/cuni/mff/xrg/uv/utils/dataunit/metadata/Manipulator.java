@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides easy way how to set/get metadata (predicate/object) for given
  * symbolic name.
- * 
+ *
  * @author Škoda Petr
  */
 public class Manipulator {
@@ -30,16 +30,24 @@ public class Manipulator {
 
     private static final String OBJECT_BINDING = "object";
 
-    private static final String SELECT = "SELECT ?" + OBJECT_BINDING + " WHERE { "
+    private static final String SELECT
+            = "SELECT ?" + OBJECT_BINDING + " WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
             + "}";
 
-    private static final String UPDATE = "DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
+    private static final String UPDATE
+            = "DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
             + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
             + "WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
             + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o} "
+            + " } ";
+
+    private static final String INSERT
+            = "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            + "WHERE { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
             + " } ";
 
     private Manipulator() {
@@ -93,6 +101,17 @@ public class Manipulator {
         return null;
     }
 
+    /**
+     * Set metadata under given predicate If the predicate is already set then
+     * is replaced. To add multiple metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param object
+     * @throws DataUnitException
+     */
     public static void set(WritableMetadataDataUnit dataUnit,
             String symbolicName,
             String predicate, String object) throws DataUnitException {
@@ -100,9 +119,10 @@ public class Manipulator {
         try {
             connection = dataUnit.getConnection();
             // execute query
-            
+
 // TODO use some method to get writable graph
-            final URI writeGraph = dataUnit.getMetadataGraphnames().iterator().next();
+            final URI writeGraph = dataUnit.getMetadataGraphnames().iterator()
+                    .next();
             set(connection, writeGraph, symbolicName,
                     predicate, object);
         } finally {
@@ -119,8 +139,6 @@ public class Manipulator {
     private static void set(RepositoryConnection connection, URI uri,
             String symbolicName, String predicate, String object) throws DataUnitException {
         try {
-            LOG.debug("s:{} p:{} o:{}", symbolicName, predicate, object);
-            
             final ValueFactory valueFactory = connection.getValueFactory();
             final Update update
                     = connection.prepareUpdate(QueryLanguage.SPARQL, UPDATE);
@@ -133,44 +151,132 @@ public class Manipulator {
 
             DatasetImpl dataset = new DatasetImpl();
             dataset.setDefaultInsertGraph(uri);
-            dataset.addDefaultRemoveGraph(uri);            
+            dataset.addDefaultRemoveGraph(uri);
             update.setDataset(dataset);
 
             update.execute();
-                        
+
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);
         }
     }
 
     /**
+     * Add metadata for given symbolic name. The old data under same predicate
+     * are not deleted. Use to add multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param object
+     * @throws DataUnitException
+     */
+    public static void add(WritableMetadataDataUnit dataUnit,
+            String symbolicName,
+            String predicate, String object) throws DataUnitException {
+        RepositoryConnection connection = null;
+        try {
+            connection = dataUnit.getConnection();
+            // execute query
+
+// TODO use some method to get writable graph
+            final URI writeGraph = dataUnit.getMetadataGraphnames().iterator()
+                    .next();
+            add(connection, writeGraph, symbolicName,
+                    predicate, object);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (RepositoryException ex) {
+                    LOG.warn("Error in close.", ex);
+                }
+            }
+        }
+    }
+
+    private static void add(RepositoryConnection connection, URI uri,
+            String symbolicName, String predicate, String object) throws DataUnitException {
+        try {
+            final ValueFactory valueFactory = connection.getValueFactory();
+            final Update update
+                    = connection.prepareUpdate(QueryLanguage.SPARQL, INSERT);
+            update.setBinding(SYMBOLIC_NAME_BINDING,
+                    valueFactory.createLiteral(symbolicName));
+            update.setBinding(PREDICATE_BINDING,
+                    valueFactory.createURI(predicate));
+            update.setBinding(OBJECT_BINDING,
+                    valueFactory.createLiteral(object));
+
+            DatasetImpl dataset = new DatasetImpl();
+            dataset.setDefaultInsertGraph(uri);
+            dataset.addDefaultRemoveGraph(uri);
+            update.setDataset(dataset);
+
+            update.execute();
+
+        } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
+            throw new DataUnitException("Failed to execute update.", ex);
+        }
+    }    
+    
+    /**
+     * Dump content of metadata graphs into logs.
+     *
+     * @param dataUnit
+     * @throws DataUnitException
+     */
+    public static void dump(MetadataDataUnit dataUnit) throws DataUnitException {
+        RepositoryConnection connection = null;
+        try {
+            connection = dataUnit.getConnection();
+            dump(connection, dataUnit.getMetadataGraphnames());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();;
+                } catch (RepositoryException ex) {
+                    LOG.warn("Error in close.", ex);
+                }
+            }
+        }
+    }
+
+    /**
      * For debug purpose.
-     * 
+     *
      * @param connection
      * @param uris
-     * @throws DataUnitException 
+     * @throws DataUnitException
      */
-    static void dump(RepositoryConnection connection, Set<URI> uris) 
-            throws DataUnitException{
-        StringBuilder graphs = new StringBuilder();
+    static void dump(RepositoryConnection connection, Set<URI> uris)
+            throws DataUnitException {
+        final StringBuilder message = new StringBuilder();
+        message.append("\n\tGraphs: ");
         for (URI uri : uris) {
-            graphs.append(uri.stringValue());
-            graphs.append(" ");
-        }        
-        LOG.debug("Debug dump: {}", graphs.toString());
+            message.append(uri.stringValue());
+            message.append(" ");
+        }
+        message.append("\n");
         try {
             RepositoryResult r = connection.getStatements(null, null, null,
-                            true, uris.toArray(new URI[0]));
+                    true, uris.toArray(new URI[0]));
             while (r.hasNext()) {
                 Statement s = (Statement) r.next();
-                LOG.debug("'{}' <{}> '{}'", s.getSubject().stringValue(),
-                        s.getPredicate().stringValue(),
-                        s.getObject().stringValue());
+
+                message.append("'");
+                message.append(s.getSubject().stringValue());
+                message.append("' <");
+                message.append(s.getPredicate().stringValue());
+                message.append("> '");
+                message.append(s.getObject().stringValue());
+                message.append("'\n");
             }
-            LOG.debug("------------");
+            message.append("------------");
+            LOG.debug("{}", message.toString());
         } catch (RepositoryException ex) {
             throw new DataUnitException("Dump failed.", ex);
         }
     }
-    
+
 }
