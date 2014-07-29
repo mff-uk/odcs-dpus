@@ -50,6 +50,7 @@ public class Manipulator {
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
             + " } ";
 
+
     private Manipulator() {
 
     }
