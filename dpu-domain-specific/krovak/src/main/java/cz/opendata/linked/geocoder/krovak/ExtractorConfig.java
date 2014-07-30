@@ -9,8 +9,6 @@ import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
  */
 public class ExtractorConfig extends DPUConfigObjectBase {
 	
-	private static final long serialVersionUID = 8719241993054209502L;
-
 	private int numofrecords = 100;
 	
 	private int interval = 1000;

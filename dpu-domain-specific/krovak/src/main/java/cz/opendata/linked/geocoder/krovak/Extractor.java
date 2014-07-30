@@ -55,7 +55,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 	
-	@InputDataUnit(name = "gmlPoint points")
+	@InputDataUnit(name = "points")
 	public RDFDataUnit gmlPoints;
 
 	@OutputDataUnit(name = "Geocoordinates")
@@ -234,6 +234,7 @@ implements DPU, ConfigDialogProvider<ExtractorConfig> {
 					HttpPost httppost = new HttpPost(url);
 					httppost.setEntity(mpe);
 					response = httpclient.execute(httppost);
+					httppost.releaseConnection();
 
 				} catch (ClientProtocolException e) {
 					LOG.error(e.getLocalizedMessage());
