@@ -16,12 +16,12 @@ public class SimpleRdfFactory {
     
     public static SimpleRdfRead create(RDFDataUnit dataUnit, DPUContext context) 
             throws OperationFailedException {
-        return new SimpleRdfRead(dataUnit, context);
+        return new SimpleRdfReadImpl(dataUnit, context);
     }
 
-    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit, 
+    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit,
             DPUContext context) throws OperationFailedException {
-        return new SimpleRdfWrite(dataUnit, context);
+        return new SimpleRdfWriteImpl(dataUnit, context);
     }
     
 }
