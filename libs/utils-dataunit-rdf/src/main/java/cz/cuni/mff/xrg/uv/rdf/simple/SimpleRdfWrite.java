@@ -73,8 +73,8 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 		this.writableDataUnit = dataUnit;
         this.writeSetAll = new HashMap<>();
         this.writeSetCurrent = writeSetAll;
-        // add new output graph, this will also add it to writeSetAll
-        creteNewGraph(DEFAULT_GRAPH_NAME);
+        // set write set all
+        this.writeSetAll.add(dataUnit.)
 	}
 
 	/**
@@ -201,41 +201,6 @@ public class SimpleRdfWrite extends SimpleRdfRead {
      */
     private void setCurrentWriteSetToAll() {
         writeSetCurrent = writeSetAll;
-    }
-
-    /**
-     * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name
-     * to generate new graph {@link URI} and create a graph with it.
-     * 
-     * @param name
-     * @return 
-     */
-    private URI creteNewGraph(String name) throws OperationFailedException {
-        final String baseUriStr;
-        try {
-            baseUriStr = writableDataUnit.getBaseDataGraphURI().stringValue();
-        } catch (DataUnitException ex) {
-            throw new OperationFailedException("Faield to get base graph name.",
-                    ex);
-        }
-        final String newUriStr = baseUriStr + "/" + name;
-        
-        if (writeSetAll.containsKey(newUriStr)) {
-            LOG.warn("Same gaph create at least twice: {}", newUriStr);
-            return writeSetAll.get(newUriStr);
-        }
-        
-        final URI newUri;
-        try {
-            newUri = writableDataUnit.addNewDataGraph(name);
-        } catch (DataUnitException ex) {
-            throw new OperationFailedException("Failed to add new graph.", ex);
-        }
-        
-        // add to all Uri repository
-        writeSetAll.put(name, newUri);
-        
-        return newUri;
     }
     
 }
