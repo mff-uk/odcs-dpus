@@ -164,21 +164,15 @@ public class SimpleRdfRead {
         readSetCurrent.clear();
 
         try {
-            readSetCurrent.addAll(dataUnit.getDataGraphnames());
+            final RDFDataUnit.Iteration iter = dataUnit.getIteration();
+            while (iter.hasNext()) {
+                readSetCurrent.add(iter.next().getDataGraphURI());
+            }
         } catch (DataUnitException ex) {
             throw new OperationFailedException(
                     "Failed to get list of data graph names.", ex);
         }
-        
-//        try {
-//            final RDFDataUnit.Iteration iter = dataUnit.getIteration();
-//            while (iter.hasNext()) {
-//                readSetCurrent.add(iter.next().getDataGraphURI());
-//            }
-//        } catch (DataUnitException ex) {
-//            throw new OperationFailedException(
-//                    "Failed to get list of data graph names.", ex);
-//        }
     }
-    
+
+
 }

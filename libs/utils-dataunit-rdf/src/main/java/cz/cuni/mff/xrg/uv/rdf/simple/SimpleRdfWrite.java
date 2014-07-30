@@ -27,7 +27,7 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 	private static final Logger LOG = LoggerFactory.getLogger(
 			SimpleRdfWrite.class);
 
-    private static final String DEFAULT_GRAPH_NAME = "main";
+    private static final String DEFAULT_GRAPH_NAME = "default-output";
     
 	/**
 	 * Add policy.
@@ -73,8 +73,8 @@ public class SimpleRdfWrite extends SimpleRdfRead {
 		this.writableDataUnit = dataUnit;
         this.writeSetAll = new HashMap<>();
         this.writeSetCurrent = writeSetAll;
-        // set write set all
-        this.writeSetAll.add(dataUnit.)
+        // add new output graph, this will also add it to writeSetAll
+        createNewGraph(DEFAULT_GRAPH_NAME);
 	}
 
 	/**
@@ -202,5 +202,41 @@ public class SimpleRdfWrite extends SimpleRdfRead {
     private void setCurrentWriteSetToAll() {
         writeSetCurrent = writeSetAll;
     }
-    
+
+
+    /**
+     * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name
+     * to generate new graph {@link URI} and create a graph with it.
+     *
+     * @param name
+     * @return
+     */
+    private URI createNewGraph(String name) throws OperationFailedException {
+        final String baseUriStr;
+        try {
+            baseUriStr = writableDataUnit.getBaseDataGraphURI().stringValue();
+        } catch (DataUnitException ex) {
+            throw new OperationFailedException("Faield to get base graph name.",
+                    ex);
+        }
+        final String newUriStr = baseUriStr + "/" + name;
+
+        if (writeSetAll.containsKey(newUriStr)) {
+            LOG.warn("DPU ask me to create graph that already exists: {}", newUriStr);
+            return writeSetAll.get(newUriStr);
+        }
+
+        final URI newUri;
+        try {
+            newUri = writableDataUnit.addNewDataGraph(name);
+        } catch (DataUnitException ex) {
+            throw new OperationFailedException("Failed to add new graph.", ex);
+        }
+
+        // add to all Uri repository
+        writeSetAll.put(name, newUri);
+
+        return newUri;
+    }
+
 }
