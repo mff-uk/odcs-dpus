@@ -73,8 +73,6 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 		this.writableDataUnit = dataUnit;
         this.writeSetAll = new HashMap<>();
         this.writeSetCurrent = writeSetAll;
-        // add new output graph, this will also add it to writeSetAll
-        createNewGraph(DEFAULT_GRAPH_NAME);
 	}
 
 	/**
@@ -141,7 +139,7 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 		if (toAddBuffer.isEmpty()) {
 			// nothing to add
 			return;
-		}
+        }
 		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
 			conn.c().begin();
 			// add to repository
@@ -198,10 +196,18 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 	}
 
     /**
+     * If no graph is in {@link #writeSetCurrent} then new one is added.
      *
      * @return array of current write {@likn URI}s
      */
-    private URI[] getCurrentWriteContexts() {
+    private URI[] getCurrentWriteContexts() throws OperationFailedException {
+        // test for graph
+        if (writeSetCurrent.isEmpty()) {
+            // no write set .. add new graph
+            writeSetCurrent.put(DEFAULT_GRAPH_NAME,
+                    createNewGraph(DEFAULT_GRAPH_NAME));
+        }
+
         return writeSetCurrent.values().toArray(new URI[0]);
     }
 
