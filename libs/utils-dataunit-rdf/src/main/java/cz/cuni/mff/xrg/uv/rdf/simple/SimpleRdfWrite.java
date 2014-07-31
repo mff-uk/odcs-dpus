@@ -51,4 +51,13 @@ public interface SimpleRdfWrite extends SimpleRdfRead {
 	 */
 	void flushBuffer() throws OperationFailedException;
 
+    /**
+     * Set given graph as current output. If existing graph is set then the
+     * existing graph is used.
+     *
+     * @param symbolicName
+     * @throws OperationFailedException
+     */
+    void setOutputGraph(String symbolicName) throws OperationFailedException;
+
 }

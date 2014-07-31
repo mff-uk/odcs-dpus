@@ -90,6 +90,7 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 	 * @param o
 	 * @throws OperationFailedException
 	 */
+    @Override
 	public void add(Resource s, URI p, Value o) throws OperationFailedException {
 		final Statement statement = getValueFactory().createStatement(s, p, o);
 		// add to bufer
@@ -118,6 +119,7 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 	 *
 	 * @param policy Add policy.
 	 */
+    @Override
 	public void setPolicy(AddPolicy policy) {
 		this.addPolicy = policy;
 	}
@@ -134,6 +136,7 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 	 *
 	 * @throws OperationFailedException
 	 */
+    @Override
 	public void flushBuffer() throws OperationFailedException {
 		if (toAddBuffer.isEmpty()) {
 			// nothing to add
@@ -151,6 +154,12 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 					"Failed to add triples into repository.", ex);
 		}
 	}
+
+    @Override
+    public void setOutputGraph(String symbolicName) throws OperationFailedException {
+        writeSetCurrent.clear();
+        writeSetCurrent.put(symbolicName, createNewGraph(symbolicName));
+    }
 
 	/**
 	 * If the extracted data are inconsistent then the extraction fail.
@@ -208,33 +217,26 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
      * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name
      * to generate new graph {@link URI} and create a graph with it.
      *
-     * @param name
+     * @param symbolicName
      * @return
      */
-    private URI createNewGraph(String name) throws OperationFailedException {
-        final String baseUriStr;
-        try {
-            baseUriStr = writableDataUnit.getBaseDataGraphURI().stringValue();
-        } catch (DataUnitException ex) {
-            throw new OperationFailedException("Faield to get base graph name.",
-                    ex);
-        }
-        final String newUriStr = baseUriStr + "/" + name;
+    private URI createNewGraph(String symbolicName)
+            throws OperationFailedException {
 
-        if (writeSetAll.containsKey(newUriStr)) {
-            LOG.warn("DPU ask me to create graph that already exists: {}", newUriStr);
-            return writeSetAll.get(newUriStr);
+        if (writeSetAll.containsKey(symbolicName)) {
+            LOG.warn("DPU ask me to create graph that already exists: {}", symbolicName);
+            return writeSetAll.get(symbolicName);
         }
 
         final URI newUri;
         try {
-            newUri = writableDataUnit.addNewDataGraph(name);
+            newUri = writableDataUnit.addNewDataGraph(symbolicName);
         } catch (DataUnitException ex) {
             throw new OperationFailedException("Failed to add new graph.", ex);
         }
 
         // add to all Uri repository
-        writeSetAll.put(name, newUri);
+        writeSetAll.put(symbolicName, newUri);
 
         return newUri;
     }
