@@ -24,7 +24,6 @@ public class SerializationXmlFactory {
         SerializationXmlImpl impl = new SerializationXmlImpl(clazz);
         // add alias for core class
         impl.xstream.alias(rootName, clazz);
-        impl.xstreamUTF.alias(rootName, clazz);
         // and return
         return impl;
     }

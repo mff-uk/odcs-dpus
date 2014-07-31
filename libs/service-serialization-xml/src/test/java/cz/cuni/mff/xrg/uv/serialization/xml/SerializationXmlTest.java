@@ -12,7 +12,7 @@ public class SerializationXmlTest {
     @Test
     public void serializeAndDeserialize() throws SerializationXmlFailure {
         final ConfigObject original = new ConfigObject();
-        original.setValue(10);
+        original.setIntegralValue(10);
         
         final SerializationXml<ConfigObject> service = SerializationXmlFactory
                 .serializationXml(ConfigObject.class, "cnf");
@@ -21,7 +21,8 @@ public class SerializationXmlTest {
         final ConfigObject copy = service.convert(str);
         
         Assert.assertNotEquals(original, copy);
-        Assert.assertEquals(original.getValue(), copy.getValue());
+        Assert.assertEquals(original.getIntegralValue(), copy.getIntegralValue());
+        Assert.assertEquals("value", ConfigObject.PUBLIC_FINAL);
     }
 
 }

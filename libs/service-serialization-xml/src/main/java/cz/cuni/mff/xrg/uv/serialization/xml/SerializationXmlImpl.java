@@ -1,7 +1,6 @@
 package cz.cuni.mff.xrg.uv.serialization.xml;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -9,7 +8,9 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.nio.file.WatchEvent;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -28,14 +29,12 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
 
     final XStream xstream;
 
-    final XStream xstreamUTF;
-
     private final LinkedList<String> loadedFields = new LinkedList<>();
 
     public SerializationXmlImpl(Class<T> clazz) {
         this.clazz = clazz;
 
-        this.xstream = new XStream() {
+        this.xstream = new XStream(){
             @Override
             protected MapperWrapper wrapMapper(MapperWrapper next) {
                 return new MapperWrapper(next) {
@@ -60,9 +59,6 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
             }
         };
         this.xstream.setClassLoader(clazz.getClassLoader());
-        // second xStream
-        this.xstreamUTF = new XStream(new DomDriver("UTF-8"));
-        this.xstreamUTF.setClassLoader(clazz.getClassLoader());
     }
 
     @Override
@@ -98,6 +94,13 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
             final LinkedList<String> toCopy = new LinkedList<>();
             final Field[] declaredFields = clazz.getDeclaredFields();
             for (Field field : declaredFields) {
+
+                final int modifiers = field.getModifiers();
+                // we do not set static or final
+                if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+
                 if (loadedFields.contains(field.getName())) {
                     // ok, has been loaded
                 } else {
@@ -119,7 +122,7 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
         byte[] result = null;
         try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream()) {
             // use XStream for serialisation
-            try (ObjectOutputStream objOut = xstreamUTF
+            try (ObjectOutputStream objOut = xstream
                     .createObjectOutputStream(byteOut)) {
                 objOut.writeObject(object);
             }
@@ -133,7 +136,6 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
     @Override
     public void setClassLoader(ClassLoader loader) {
         this.xstream.setClassLoader(loader);
-        this.xstreamUTF.setClassLoader(loader);
     }
     
     /**
@@ -148,6 +150,7 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
             try {
                 final PropertyDescriptor descriptor = new PropertyDescriptor(
                         fieldName, clazz);
+
                 final Method readMethod = descriptor.getReadMethod();
                 final Method writeMethod = descriptor.getWriteMethod();
 
