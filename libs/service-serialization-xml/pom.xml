@@ -21,9 +21,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.servicemix.bundles</groupId>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.4</version>
+<!--            <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.xstream</artifactId>
-            <version>1.4.7_1</version>
+            <version>1.4.4_1</version>-->
             <scope>provided</scope>
         </dependency>
     </dependencies>    

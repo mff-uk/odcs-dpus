@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.serialization.xml;
+package cz.cuni.mff.xrg.uv.service.serialization.xml;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
-import java.nio.file.WatchEvent;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
  
     private final Class<T> clazz;
 
-    final XStream xstream;
+    public final XStream xstream;
 
     private final LinkedList<String> loadedFields = new LinkedList<>();
 
@@ -82,8 +81,8 @@ class SerializationXmlImpl<T> implements SerializationXml<T> {
         // convert
         final byte[] bytes = string.getBytes(Charset.forName("UTF-8"));
         try (ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);
-                ObjectInputStream objIn = xstream
-                .createObjectInputStream(byteIn)) {
+                ObjectInputStream objIn = xstream.createObjectInputStream(byteIn);) {
+
             Object objectTemp = objIn.readObject();
             object = (T) objectTemp;
         } catch (IOException | ClassNotFoundException e) {

@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.serialization.xml;
+package cz.cuni.mff.xrg.uv.service.serialization.xml;
 
 /**
  * Interface for xml serialisation interface.
