@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.serialization.rdf;
+package cz.cuni.mff.xrg.uv.service.serialization.rdf;
 
 import java.util.List;
 import org.openrdf.model.Statement;
