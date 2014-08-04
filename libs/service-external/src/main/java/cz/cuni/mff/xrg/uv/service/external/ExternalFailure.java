@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.external;
+package cz.cuni.mff.xrg.uv.service.external;
 
 /**
  *

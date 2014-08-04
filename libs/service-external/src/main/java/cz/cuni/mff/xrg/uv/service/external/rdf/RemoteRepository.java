@@ -1,7 +1,7 @@
-package cz.cuni.mff.xrg.uv.external.rdf;
+package cz.cuni.mff.xrg.uv.service.external.rdf;
 
-import cz.cuni.mff.xrg.uv.external.ExternalFailure;
-import cz.cuni.mff.xrg.uv.external.FaultTolerantPolicy;
+import cz.cuni.mff.xrg.uv.service.external.ExternalFailure;
+import cz.cuni.mff.xrg.uv.service.external.FaultTolerantPolicy;
 import eu.unifiedviews.dpu.DPUContext;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,7 +65,7 @@ public class RemoteRepository implements AutoCloseable {
      *
      * @param strQuery
      * @return
-     * @throws cz.cuni.mff.xrg.uv.external.ExternalFailure
+     * @throws cz.cuni.mff.xrg.uv.service.external.ExternalFailure
      */
     public List<BindingSet> select(String strQuery) throws ExternalFailure{
         // prepare counters

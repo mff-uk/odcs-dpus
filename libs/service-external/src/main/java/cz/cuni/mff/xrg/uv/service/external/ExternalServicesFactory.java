@@ -1,6 +1,6 @@
-package cz.cuni.mff.xrg.uv.external;
+package cz.cuni.mff.xrg.uv.service.external;
 
-import cz.cuni.mff.xrg.uv.external.rdf.RemoteRepository;
+import cz.cuni.mff.xrg.uv.service.external.rdf.RemoteRepository;
 import eu.unifiedviews.dpu.DPUContext;
 
 /**

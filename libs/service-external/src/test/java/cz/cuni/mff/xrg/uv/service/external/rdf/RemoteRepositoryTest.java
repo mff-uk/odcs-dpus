@@ -1,7 +1,7 @@
-package cz.cuni.mff.xrg.uv.external.rdf;
+package cz.cuni.mff.xrg.uv.service.external.rdf;
 
-import cz.cuni.mff.xrg.uv.external.ExternalFailure;
-import cz.cuni.mff.xrg.uv.external.ExternalServicesFactory;
+import cz.cuni.mff.xrg.uv.service.external.ExternalFailure;
+import cz.cuni.mff.xrg.uv.service.external.ExternalServicesFactory;
 import eu.unifiedviews.dpu.DPUContext;
 import org.junit.Assert;
 import org.junit.Test;

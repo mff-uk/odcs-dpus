@@ -1,6 +1,6 @@
-package cz.cuni.mff.xrg.uv.external.solr;
+package cz.cuni.mff.xrg.uv.service.external.solr;
 
-import cz.cuni.mff.xrg.uv.external.ExternalFailure;
+import cz.cuni.mff.xrg.uv.service.external.ExternalFailure;
 //import org.apache.solr.client.solrj.SolrQuery;
 //import org.apache.solr.client.solrj.SolrServerException;
 //import org.apache.solr.client.solrj.impl.HttpSolrServer;
