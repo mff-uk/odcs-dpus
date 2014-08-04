@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedConfigDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.MasterConfigurationDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
@@ -46,5 +47,7 @@ public abstract class ConfigurableBase<CONFIG> extends NonConfigurableBase
     public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
         return null;
     }
+
+    public abstract AdvancedConfigDialogBase getDPUConfigurationDialog();
 
 }

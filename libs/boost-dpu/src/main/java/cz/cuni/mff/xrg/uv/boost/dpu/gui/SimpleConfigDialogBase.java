@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.gui;
 
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXml;
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;

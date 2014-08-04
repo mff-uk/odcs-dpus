@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXml;
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

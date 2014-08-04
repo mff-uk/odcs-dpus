@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.simple;
 
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXml;
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
@@ -24,8 +24,14 @@ public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
      */
     protected CONFIG config = null;
 
+    /**
+     * Execution context.
+     */
     protected DPUContext context;
-    
+
+    /**
+     * Service for xml serialization.
+     */
     private final SerializationXml<CONFIG> serializationService;
 
     public ConfigurableBase(Class<CONFIG> configClazz) {
@@ -55,14 +61,58 @@ public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
     @Override
     public void execute(DPUContext context) throws DPUException {
         this.context = context;
+        boolean executeMain = false;
         try {
-            execute();
+            init();
+            executeMain = true;
+        } catch (DPUException ex) {
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "DPU init. failed",
+                    "init() method failed for DPUException", ex);
         } catch (DataUnitException ex) {
-            throw new DPUException(ex);
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "DPU init. failed",
+                    "init() method failed for DataUnitException", ex);
         }
+        // execute
+        try {
+            if (executeMain) {
+                innerExecute();
+            } else {
+                context.sendMessage(DPUContext.MessageType.INFO,
+                        "Main execution method skipped.");
+            }
+        } catch (DataUnitException ex) {
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "DPU Failed for DataUnit Exception", "", ex);
+        }
+        close();
     }
 
-    public abstract void execute() throws DPUException, DataUnitException;
+    /**
+     * Called before {@link #innerExecute()}. If throws then
+     * {@link #innerExecute()} is not called.
+     *
+     * @throws DPUException
+     * @throws DataUnitException
+     */
+    protected void init() throws DPUException, DataUnitException {
         
+    }
+
+    /**
+     * DPU user core.
+     * 
+     * @throws DPUException
+     * @throws DataUnitException
+     */
+    protected abstract void innerExecute() throws DPUException, DataUnitException;
+
+    /**
+     * Is executed in any case.
+     */
+    protected void close() {
+
+    }
     
 }
