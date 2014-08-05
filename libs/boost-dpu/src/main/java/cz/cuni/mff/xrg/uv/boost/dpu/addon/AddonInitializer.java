@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.addon;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -11,19 +12,11 @@ import java.util.List;
 public class AddonInitializer {
  
     public static class AddonInfo {
-    
-        String name;
-        
-        Integer index;
         
         Addon addon;
 
-        public String getName() {
-            return name;
-        }
-
-        public Integer getIndex() {
-            return index;
+        AddonInfo(Addon addon) {
+            this.addon = addon;
         }
 
         public Addon getAddon() {
@@ -40,4 +33,13 @@ public class AddonInitializer {
         return Collections.EMPTY_LIST;
     }
     
+    public static List<AddonInfo> create(Addon[] addons) {
+        final List<AddonInfo> result = new LinkedList<>();
+        // convert
+        for (Addon item : addons) {
+            result.add(new AddonInfo(item));
+        }
+        return result;
+    }
+
 }
