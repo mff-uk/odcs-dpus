@@ -16,7 +16,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
+public abstract class DpuSimpleBase<CONFIG> implements DPU, DPUConfigurable,
         ConfigDialogProvider<CONFIG> {
 
     /**
@@ -34,9 +34,9 @@ public abstract class ConfigurableBase<CONFIG> implements DPU, DPUConfigurable,
      */
     private final SerializationXml<CONFIG> serializationService;
 
-    public ConfigurableBase(Class<CONFIG> configClazz) {
+    public DpuSimpleBase(Class<CONFIG> configClazz) {
         this.serializationService = SerializationXmlFactory.serializationXml(
-                configClazz, "dpuConfig");
+                configClazz);
     }
 
     @Override

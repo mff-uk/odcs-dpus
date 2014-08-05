@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXml;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class ConfigManager {
     
     private final MasterConfigObject masterConfig;
 
-    private final SerializationXml<Object> serializer;
+    private final SerializationXmlGeneral serializer;
     
     public ConfigManager() {
         this.masterConfig = null;
@@ -29,12 +29,20 @@ public class ConfigManager {
      * @param masterConfig Can be null.
      * @param serializer
      */
-    public ConfigManager(MasterConfigObject masterConfig, SerializationXml serializer) {
+    public ConfigManager(MasterConfigObject masterConfig, SerializationXmlGeneral serializer) {
         this.masterConfig = masterConfig;
         this.serializer = serializer;
     }
-    
-    public <TYPE> TYPE get(String name, Class<TYPE> clazz) {
+
+    /**
+     *
+     * @param <TYPE>
+     * @param name
+     * @param clazz
+     * @return Null if configuration is not presented.
+     * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
+     */
+    public <TYPE> TYPE get(String name, Class<TYPE> clazz) throws ConfigException{
         if (masterConfig == null) {
             return null;
         }
@@ -42,25 +50,19 @@ public class ConfigManager {
         if (strValue == null) {
             return null;
         }
-        // set class loader
-        serializer.setClassLoader(clazz.getClassLoader());
-        
+     
         try {
-            final Object obj = serializer.convert(strValue);
+            final Object obj = serializer.convert(clazz, strValue);
             return (TYPE)obj;
         } catch (SerializationXmlFailure ex) {
-            LOG.error("Failed to convert configuration class.", ex);
+            throw new ConfigException("Serialization failed", ex);
         }
-        return null;
-        //return masterConfig.getConfigurations().get(name);
     }
 
     public <TYPE> void set(TYPE object, String name) {
         if (masterConfig == null) {
             return;
         }
-        
-        serializer.setClassLoader(object.getClass().getClassLoader());
         
         try {
             final String objectAsStr = serializer.convert(object);
@@ -70,5 +72,9 @@ public class ConfigManager {
             throw new RuntimeException("Serialization failed.", ex);
         }
     }
-    
+
+    public MasterConfigObject getMasterConfig() {
+        return masterConfig;
+    }
+
 }

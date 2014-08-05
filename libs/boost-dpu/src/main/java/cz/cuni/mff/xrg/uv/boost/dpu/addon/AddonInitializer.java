@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Provides functions for easy ad-don list initialisation.
  *
  * @author Škoda Petr
  */

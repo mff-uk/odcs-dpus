@@ -11,14 +11,21 @@ public interface AddonWithDialog<C> extends Addon {
 
     /**
      * 
-     * @return Caption that is used for {@link AdvancedConfigDialogBase}.
+     * @return Caption that is used for {@link VaadinDialogBase}.
      */
     public String getDialogCaption();
+
+    /**
+     * Configuration name used to store configuration.
+     * 
+     * @return
+     */
+    public String getConfigName();
 
     /**
      * 
      * @return Respective configuration dialog.
      */
-    public AdvancedConfigDialogBase<C> getDialog();
+    public VaadinDialogBase<C> getDialog();
 
 }
