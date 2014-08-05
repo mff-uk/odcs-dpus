@@ -21,11 +21,15 @@ public class SerializationXmlFactory {
      */
     public static <T> SerializationXml<T> serializationXml(
             Class<T> clazz, String rootName) {
-        SerializationXmlImpl impl = new SerializationXmlImpl(clazz);
-        // add alias for core class
-        impl.xstream.alias(rootName, clazz);
-        // and return
-        return impl;
+        return new SerializationXmlImpl(clazz, rootName);
     }
-    
+
+    /**
+     * 
+     * @return
+     */
+    public static SerializationXmlGeneral serializationXmlGeneral() {
+        return new SerializationXmlGeneralImpl();
+    }
+
 }

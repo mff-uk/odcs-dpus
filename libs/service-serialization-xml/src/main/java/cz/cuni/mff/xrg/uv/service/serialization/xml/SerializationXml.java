@@ -13,20 +13,12 @@ public interface SerializationXml<T> {
      * null.
      * 
      * @return Object instance or null.
-     * @throws cz.cuni.mff.xrg.uv.serialization.xml.SerializationXmlFailure
+     * @throws cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure
      */
     public T createInstance() throws SerializationXmlFailure;
 
     public T convert(String string) throws SerializationXmlFailure;
     
     public String convert(T object) throws SerializationXmlFailure;
-    
-    /**
-     * Set used class loader. May broke serialisation if wrong class loader
-     * is set, use with care.
-     * 
-     * @param loader 
-     */
-    public void setClassLoader(ClassLoader loader);
     
 }
