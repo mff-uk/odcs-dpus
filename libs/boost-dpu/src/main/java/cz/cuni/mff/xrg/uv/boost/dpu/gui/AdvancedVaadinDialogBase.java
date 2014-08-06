@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.boost.dpu.gui;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -11,6 +12,7 @@ import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
+import java.util.List;
 
 /**
  *
@@ -39,7 +41,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
 
     private final TabSheet tabSheet;
 
-    public AdvancedVaadinDialogBase(Class<CONFIG> configClass) {
+    public AdvancedVaadinDialogBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
         this.configClass = configClass;
         this.configManager = new ConfigManager(new MasterConfigObject(),

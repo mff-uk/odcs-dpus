@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer.AddonInfo;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -51,7 +51,7 @@ public abstract class DpuAdvancedBase<CONFIG>
     /**
      * List of used ad-dons.
      */
-    private final List<AddonInfo> addons;
+    private final List<AddonInitializer.AddonInfo> addons;
 
     /**
      * DPU's configuration.
@@ -63,7 +63,7 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     private final Class<CONFIG> configClass;
 
-    public DpuAdvancedBase(Class<CONFIG> configClass, List<AddonInfo> addons) {
+    public DpuAdvancedBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
         this.addons = addons;
@@ -103,7 +103,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         // execute - Addon.preAction
         //
         boolean executeDpu = true;
-        for (AddonInfo item : addons) {
+        for (AddonInitializer.AddonInfo item : addons) {
             try {
                 if (item.getAddon().preAction(context, configManager)) {
                     // ok continue
@@ -158,7 +158,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         //
         // execute - Addon.postAction
         //
-        for (AddonInfo item : addons) {
+        for (AddonInitializer.AddonInfo item : addons) {
             try {
                 item.getAddon().postAction(context, configManager);
             } catch (RuntimeException ex) {
@@ -217,7 +217,7 @@ public abstract class DpuAdvancedBase<CONFIG>
      * @return Null if no {@link Addon} of given type exists.
      */
     protected <T extends Addon> T getAddon(Class<T> clazz) {
-        for (AddonInfo info : addons) {
+        for (AddonInitializer.AddonInfo info : addons) {
             if (info.getAddon().getClass() == clazz) {
                 return (T) info.getAddon();
             }
