@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.service.serialization.xml;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -31,7 +32,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
 
     SerializationXmlGeneralImpl() {
 
-        this.xstream = new XStream() {
+        this.xstream = new XStream(new DomDriver("UTF-8")) {
             @Override
             protected MapperWrapper wrapMapper(MapperWrapper next) {
                 return new MapperWrapper(next) {
