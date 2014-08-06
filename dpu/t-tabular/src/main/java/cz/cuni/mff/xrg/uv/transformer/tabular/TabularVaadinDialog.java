@@ -121,7 +121,7 @@ public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
         generalLayout.addComponent(this.txtRowsClass);
 
         this.checkIgnoreBlankCell = new CheckBox("Ignore blank cells");
-        this.checkIgnoreBlankCell.setDescription("If true and and cell is blank then URI for blank cell is inserted else cell is ignored.");
+        this.checkIgnoreBlankCell.setDescription("If unchecked and and cell is blank then URI for blank cell is inserted else cell is ignored.");
         generalLayout.addComponent(this.checkIgnoreBlankCell);
 
         // -------------------------- CSV ----------------------------
