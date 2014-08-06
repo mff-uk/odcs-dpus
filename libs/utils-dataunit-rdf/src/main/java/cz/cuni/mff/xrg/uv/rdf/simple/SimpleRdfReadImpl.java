@@ -3,13 +3,13 @@ package cz.cuni.mff.xrg.uv.rdf.simple;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
-import eu.unifiedviews.helpers.dataunit.dataset.CleverDataset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.openrdf.model.*;
 import org.openrdf.query.*;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
@@ -61,6 +61,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
      * @return Value factory for wrapped {@link RDFDataUnit}
      * @throws OperationFailedException
      */
+    @Override
     public ValueFactory getValueFactory() throws OperationFailedException {
         if (valueFactory == null) {
             try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
@@ -76,6 +77,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
      * @return List of all triples in the repository.
      * @throws OperationFailedException
      */
+    @Override
     public List<Statement> getStatements() throws OperationFailedException {
         List<Statement> statemens = new ArrayList<>();
         try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
@@ -102,6 +104,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
      * @return
      * @throws OperationFailedException
      */
+    @Override
     public ConnectionPair<TupleQueryResult> executeSelectQuery(String query)
             throws OperationFailedException {
         // the connction needs to stay open during the whole query
@@ -111,9 +114,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
             TupleQuery tupleQuery = conn.c().prepareTupleQuery(
                     QueryLanguage.SPARQL, query);
             // prepare dataset
-            CleverDataset dataset = new CleverDataset();
-            dataset.addDefaultGraphs(readSetCurrent);
-            tupleQuery.setDataset(dataset);
+            tupleQuery.setDataset(prepareReadDataSet(readSetCurrent));
             // wrap result and return
             return new ConnectionPair<>(conn.c(), tupleQuery.evaluate());
         } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
@@ -131,6 +132,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
      * @return
      * @throws OperationFailedException
      */
+    @Override
     public ConnectionPair<Graph> executeConstructQuery(String query) throws OperationFailedException {
         // the connction needs to stay open during the whole query
         ClosableConnection conn = new ClosableConnection(dataUnit);
@@ -139,9 +141,7 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
             GraphQuery graphQuery = conn.c().prepareGraphQuery(
                     QueryLanguage.SPARQL,
                     query);
-            CleverDataset dataset = new CleverDataset();
-            dataset.addDefaultGraphs(readSetCurrent);
-            graphQuery.setDataset(dataset);
+            graphQuery.setDataset(prepareReadDataSet(readSetCurrent));
             // evaluate
             GraphQueryResult result = graphQuery.evaluate();
             // convert into graph
@@ -174,5 +174,17 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
         }
     }
 
+    /**
+     * Prepare dataset with all given URIs as default graphs.
+     * @param graphs
+     * @return
+     */
+    private Dataset prepareReadDataSet(Set<URI> graphs) {
+        final DatasetImpl dataset = new DatasetImpl();
+        for (URI uri : graphs) {
+            dataset.addDefaultGraph(uri);
+        }
+        return dataset;
+    }
 
 }
