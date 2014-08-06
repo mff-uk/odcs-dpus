@@ -100,8 +100,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
         return object;
     }
 
-    @Override
-    public synchronized Object convert(ClassLoader classLoader, String string)
+    private Object convert(ClassLoader classLoader, String string)
             throws SerializationXmlFailure {
         this.xstream.setClassLoader(classLoader);
 
