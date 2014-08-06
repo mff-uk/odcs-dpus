@@ -69,24 +69,11 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
 
     @Override
     public synchronized <T> T convert(Class<T> clazz, String string) throws SerializationXmlFailure {
-        this.xstream.setClassLoader(clazz.getClassLoader());
-
-        if (string == null || string.isEmpty()) {
-            return null;
-        }
         // clear the skip list
         loadedFields.clear();
-        T object = null;
-        // convert
-        final byte[] bytes = string.getBytes(Charset.forName("UTF-8"));
-        try (ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);
-                ObjectInputStream objIn = xstream
-                .createObjectInputStream(byteIn);) {
-
-            final Object objectTemp = objIn.readObject();
-            object = (T) objectTemp;
-        } catch (IOException | ClassNotFoundException e) {
-            throw new SerializationXmlFailure(e);
+        T object = (T) convert(clazz.getClassLoader(), string);
+        if (object == null) {
+            return null;
         }
         // load missing values from
         if (loadedFields.size() < clazz.getDeclaredFields().length) {
@@ -111,6 +98,25 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
             copyFields(clazz, objectDefault, object, toCopy);
         }
         return object;
+    }
+
+    @Override
+    public synchronized Object convert(ClassLoader classLoader, String string)
+            throws SerializationXmlFailure {
+        this.xstream.setClassLoader(classLoader);
+
+        if (string == null || string.isEmpty()) {
+            return null;
+        }
+        // convert
+        final byte[] bytes = string.getBytes(Charset.forName("UTF-8"));
+        try (ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);
+                ObjectInputStream objIn = xstream
+                .createObjectInputStream(byteIn);) {
+            return objIn.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new SerializationXmlFailure(e);
+        }
     }
 
     @Override
