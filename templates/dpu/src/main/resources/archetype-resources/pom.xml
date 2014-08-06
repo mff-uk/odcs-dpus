@@ -15,10 +15,37 @@
 	
 	<properties>    
 		<dpu.package>${package}</dpu.package>
-		<dpu.mainClass>Main</dpu.mainClass>
+		<dpu.mainClass>${dpu_name}</dpu.mainClass>
 	</properties>
 	
 	<dependencies>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- compile library -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
 	</dependencies>	
 	
 </project>

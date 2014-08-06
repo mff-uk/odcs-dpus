@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion> 
 	<groupId>cz.cuni.mff.xrg.uv</groupId> 
-	<artifactId>dpu-template-configurable</artifactId> 
-	<version>1.0.0</version> 
+	<artifactId>dpu-template-advanced</artifactId>
+	<version>1.1.0</version>
 	<packaging>maven-archetype</packaging> 
 	<name>dpu template configurable</name> 
-	<description>Template for configurable DPU.</description>
+	<description>Template for configurable DPU - utilize libraries from https://github.com/mff-uk/DPUs </description>
 	
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
