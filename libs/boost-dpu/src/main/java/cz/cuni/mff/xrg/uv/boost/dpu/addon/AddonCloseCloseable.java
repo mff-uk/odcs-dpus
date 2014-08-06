@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Škoda Petr
  */
-public class CloseCloseable implements Addon {
+public class AddonCloseCloseable implements Addon {
 
     private final List<Closeable> toCloseList = new LinkedList<>();
 
