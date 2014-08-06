@@ -2,9 +2,7 @@ package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.*;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
@@ -63,11 +61,26 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     private final Class<CONFIG> configClass;
 
+    /**
+     * History of configuration class, if set used instead of
+     * {@link #configClass}.
+     */
+    private final ConfigHistory<CONFIG> configHistory;
+
     public DpuAdvancedBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
         this.addons = addons;
         this.configClass = configClass;
+        this.configHistory = null;
+    }
+
+    public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory, List<AddonInitializer.AddonInfo> addons) {
+        this.serializationXml = SerializationXmlFactory
+                .serializationXmlGeneral();
+        this.addons = addons;
+        this.configClass = configHistory.getFinalClass();
+        this.configHistory = configHistory;
     }
 
     @Override
@@ -78,7 +91,12 @@ public abstract class DpuAdvancedBase<CONFIG>
         // prepare configuration
         //
         try {
-            config = configManager.get(DPU_CONFIG_NAME, configClass);
+            if (configHistory == null) {
+                // no history for configuration
+                config = configManager.get(DPU_CONFIG_NAME, configClass);
+            } else {
+                config = configManager.get(DPU_CONFIG_NAME, configHistory);
+            }
         } catch (ConfigException ex) {
             context.sendMessage(MessageType.ERROR,
                     "Configuration prepareation failed.", "", ex);

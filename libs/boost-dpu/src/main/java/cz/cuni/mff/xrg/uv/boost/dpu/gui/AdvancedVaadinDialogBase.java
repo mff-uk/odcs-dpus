@@ -4,8 +4,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
@@ -13,6 +15,8 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
 import java.util.List;
+
+import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase.DPU_CONFIG_NAME;
 
 /**
  *
@@ -39,6 +43,12 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
      */
     private ConfigManager configManager = null;
 
+    /**
+     * History of configuration class, if set used instead of
+     * {@link #configClass}.
+     */
+    private final ConfigHistory<CONFIG> configHistory;
+
     private final TabSheet tabSheet;
 
     public AdvancedVaadinDialogBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
@@ -46,10 +56,24 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         this.configClass = configClass;
         this.configManager = new ConfigManager(new MasterConfigObject(),
                 serializationXml);
+        this.configHistory = null;
         //
         // gui
         //
         tabSheet = new TabSheet();        
+        super.setCompositionRoot(tabSheet);
+    }
+
+     public AdvancedVaadinDialogBase(ConfigHistory<CONFIG> configHistory, List<AddonInitializer.AddonInfo> addons) {
+        this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        this.configClass = configHistory.getFinalClass();
+        this.configManager = new ConfigManager(new MasterConfigObject(),
+                serializationXml);
+        this.configHistory = configHistory;
+        //
+        // gui
+        //
+        tabSheet = new TabSheet();
         super.setCompositionRoot(tabSheet);
     }
 
@@ -81,8 +105,13 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         //
         // configure DPU
         //
-        CONFIG dpuConfig = configManager.get(DpuAdvancedBase.DPU_CONFIG_NAME,
-                    configClass);
+        CONFIG dpuConfig;
+        if (configHistory == null) {
+            // no history for configuration
+            dpuConfig = configManager.get(DPU_CONFIG_NAME, configClass);
+        } else {
+            dpuConfig = configManager.get(DPU_CONFIG_NAME, configHistory);
+        }
         setConfiguration(dpuConfig);
 
         // TODO set other configurations
