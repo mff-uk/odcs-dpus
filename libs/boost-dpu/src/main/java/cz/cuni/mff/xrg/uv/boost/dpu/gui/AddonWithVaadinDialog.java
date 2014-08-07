@@ -3,11 +3,13 @@ package cz.cuni.mff.xrg.uv.boost.dpu.gui;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 
 /**
+ * <strong>Addon configuration class must be static and with
+ * nonparametric constructor!</strong>
  * 
  * @author Škoda Petr
- * @param <C>
+ * @param <CONFIG>
  */
-public interface AddonWithVaadinDialog<C> extends Addon {
+public interface AddonWithVaadinDialog<CONFIG> extends Addon {
 
     /**
      * 
@@ -19,6 +21,6 @@ public interface AddonWithVaadinDialog<C> extends Addon {
      * 
      * @return Respective configuration dialog.
      */
-    public AddonDialogBase<C> getDialog();
+    public AddonDialogBase<CONFIG> getDialog();
 
 }

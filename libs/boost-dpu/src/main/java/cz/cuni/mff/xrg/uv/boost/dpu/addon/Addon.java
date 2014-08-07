@@ -3,8 +3,6 @@ package cz.cuni.mff.xrg.uv.boost.dpu.addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 
 /**
- * <strong>If addon use configuration then the configuration class
- * must be static!</strong>
  *
  * @author Škoda Petr
  */
