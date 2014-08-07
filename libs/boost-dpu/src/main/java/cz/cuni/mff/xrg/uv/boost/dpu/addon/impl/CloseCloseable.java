@@ -1,6 +1,7 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.addon;
+package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.Closeable;
 import java.util.LinkedList;
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @author Škoda Petr
  */
-public class AddonCloseCloseable implements Addon {
+public class CloseCloseable implements Addon {
 
     private final List<Closeable> toCloseList = new LinkedList<>();
 
@@ -27,18 +28,19 @@ public class AddonCloseCloseable implements Addon {
     }
 
     @Override
-    public boolean preAction(DPUContext context, ConfigManager configManager) {
+    public boolean preAction(DpuAdvancedBase.Context context) {
         return true;
     }
 
     @Override
-    public void postAction(DPUContext context, ConfigManager configManager) {
+    public void postAction(DpuAdvancedBase.Context context) {
         // close all
         for (AutoCloseable item : toCloseList) {
             try {
                 item.close();
             } catch (Exception ex) {
-                context.sendMessage(DPUContext.MessageType.ERROR, "Close failed", "", ex);
+                context.getDpuContext().sendMessage(
+                        DPUContext.MessageType.ERROR, "Close failed", "", ex);
             }
         }
     }

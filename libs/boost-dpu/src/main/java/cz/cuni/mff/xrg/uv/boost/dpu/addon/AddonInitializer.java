@@ -13,7 +13,7 @@ public class AddonInitializer {
  
     public static class AddonInfo {
         
-        Addon addon;
+        private final Addon addon;
 
         AddonInfo(Addon addon) {
             this.addon = addon;
@@ -33,6 +33,22 @@ public class AddonInitializer {
         return Collections.EMPTY_LIST;
     }
     
+    public static List<AddonInfo> create(Addon addon) {
+        final List<AddonInfo> result = new LinkedList<>();
+        // convert
+        result.add(new AddonInfo(addon));
+        return result;
+    }
+
+    public static List<AddonInfo> create(Addon addon1, Addon addon2) {
+        final List<AddonInfo> result = new LinkedList<>();
+        // convert
+        result.add(new AddonInfo(addon1));
+        result.add(new AddonInfo(addon2));
+        return result;
+    }
+
+
     public static List<AddonInfo> create(Addon[] addons) {
         final List<AddonInfo> result = new LinkedList<>();
         // convert

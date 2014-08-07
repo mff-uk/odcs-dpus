@@ -89,6 +89,14 @@ public class ConfigManager {
         }
     }
 
+    public <TYPE> TYPE createNew(Class<TYPE> clazz) throws ConfigException {
+        try {
+            return serializer.createInstance(clazz);
+        } catch (SerializationXmlFailure ex) {
+            throw new RuntimeException("Serialization failed.", ex);
+        }
+    }
+
     public MasterConfigObject getMasterConfig() {
         return masterConfig;
     }

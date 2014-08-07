@@ -8,6 +8,7 @@ import java.util.List;
  * Small helper for closing {@link AutoCloseable} classes.
  *
  * @author Škoda Petr
+ * @deprecated 
  */
 public class CloseAutoCloseable {
 

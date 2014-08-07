@@ -26,82 +26,144 @@ import org.slf4j.LoggerFactory;
 public abstract class DpuAdvancedBase<CONFIG>
         implements DPU, DPUConfigurable, ConfigDialogProvider<MasterConfigObject> {
 
+    /**
+     * Holds all information from {@link DpuAdvancedBase} to make manipulation
+     * with them easier.
+     */
+    public class Context {
+
+        /**
+         * Execution context.
+         */
+        private DPUContext dpuContext;
+
+        /**
+         * Configuration manager.
+         */
+        private ConfigManager configManager = null;
+
+        /**
+         * Serialisation service for root configuration.
+         */
+        private final SerializationXmlGeneral serializationXml;
+
+        /**
+         * List of used ad-dons.
+         */
+        private final List<AddonInitializer.AddonInfo> addons;
+
+        /**
+         * DPU's configuration.
+         */
+        private CONFIG config;
+
+        /**
+         * DPU's configuration class.
+         */
+        private final Class<CONFIG> configClass;
+
+        /**
+         * History of configuration class, if set used instead of
+         * {@link #configClass}.
+         */
+        private final ConfigHistory<CONFIG> configHistory;
+
+        public Context(List<AddonInitializer.AddonInfo> addons,
+                Class<CONFIG> configClass, ConfigHistory<CONFIG> configHistory) {
+
+            this.serializationXml = SerializationXmlFactory
+                    .serializationXmlGeneral();
+            this.addons = addons;
+            this.configClass = configClass;
+            this.configHistory = configHistory;
+        }
+
+        public DPUContext getDpuContext() {
+            return dpuContext;
+        }
+
+        public ConfigManager getConfigManager() {
+            return configManager;
+        }
+
+        public SerializationXmlGeneral getSerializationXml() {
+            return serializationXml;
+        }
+
+        public List<AddonInitializer.AddonInfo> getAddons() {
+            return addons;
+        }
+
+        public CONFIG getConfig() {
+            return config;
+        }
+
+        public Class<CONFIG> getConfigClass() {
+            return configClass;
+        }
+
+        public ConfigHistory<CONFIG> getConfigHistory() {
+            return configHistory;
+        }
+
+    }
+
     public static final String DPU_CONFIG_NAME = "dpu_config";
 
     private static final Logger LOG = LoggerFactory.getLogger(
             DpuAdvancedBase.class);
 
     /**
-     * Execution context.
+     * Holds all variables of this class.
+     */
+    private final Context masterContext;
+
+    /**
+     * Used to make {@link DPUContext} accessible to DPUs.
      */
     protected DPUContext context;
-
+    
     /**
-     * Configuration manager.
-     */
-    private ConfigManager configManager = null;
-
-    /**
-     * Serialisation service for root configuration.
-     */
-    private final SerializationXmlGeneral serializationXml;
-
-    /**
-     * List of used ad-dons.
-     */
-    private final List<AddonInitializer.AddonInfo> addons;
-
-    /**
-     * DPU's configuration.
+     * Used to make configuration accessible to DPUs.
      */
     protected CONFIG config;
 
-    /**
-     * DPU's configuration class.
-     */
-    private final Class<CONFIG> configClass;
-
-    /**
-     * History of configuration class, if set used instead of
-     * {@link #configClass}.
-     */
-    private final ConfigHistory<CONFIG> configHistory;
-
-    public DpuAdvancedBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory
-                .serializationXmlGeneral();
-        this.addons = addons;
-        this.configClass = configClass;
-        this.configHistory = null;
+    public DpuAdvancedBase(Class<CONFIG> configClass,
+            List<AddonInitializer.AddonInfo> addons) {
+        this.masterContext = new Context(addons, configClass, null);
     }
 
-    public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory, List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory
-                .serializationXmlGeneral();
-        this.addons = addons;
-        this.configClass = configHistory.getFinalClass();
-        this.configHistory = configHistory;
+    public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory,
+            List<AddonInitializer.AddonInfo> addons) {
+        this.masterContext = new Context(addons, null, configHistory);
     }
 
     @Override
     public void execute(DPUContext context) {
         // set context
-        this.context = context;
+        this.masterContext.dpuContext = context;
         //
         // prepare configuration
         //
         try {
-            if (configHistory == null) {
+            if (this.masterContext.configHistory == null) {
                 // no history for configuration
-                config = configManager.get(DPU_CONFIG_NAME, configClass);
+                this.masterContext.config = this.masterContext.configManager.get(
+                        DPU_CONFIG_NAME, this.masterContext.configClass);
             } else {
-                config = configManager.get(DPU_CONFIG_NAME, configHistory);
+                this.masterContext.config = this.masterContext.configManager.get(
+                        DPU_CONFIG_NAME, this.masterContext.configHistory);
             }
         } catch (ConfigException ex) {
             context.sendMessage(MessageType.ERROR,
                     "Configuration prepareation failed.", "", ex);
             return;
         }
+        //
+        // set values for DPU
+        //
+        this.config = this.masterContext.config;
+        this.context = this.masterContext.dpuContext;
         //
         // execute - innerInit
         //
@@ -121,9 +183,9 @@ public abstract class DpuAdvancedBase<CONFIG>
         // execute - Addon.preAction
         //
         boolean executeDpu = true;
-        for (AddonInitializer.AddonInfo item : addons) {
+        for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
             try {
-                if (item.getAddon().preAction(context, configManager)) {
+                if (item.getAddon().preAction(this.masterContext)) {
                     // ok continue
                 } else {
                     // failed
@@ -176,9 +238,9 @@ public abstract class DpuAdvancedBase<CONFIG>
         //
         // execute - Addon.postAction
         //
-        for (AddonInitializer.AddonInfo item : addons) {
+        for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
             try {
-                item.getAddon().postAction(context, configManager);
+                item.getAddon().postAction(this.masterContext);
             } catch (RuntimeException ex) {
                 context.sendMessage(MessageType.ERROR,
                         "Addon.postAction throws: "
@@ -192,9 +254,11 @@ public abstract class DpuAdvancedBase<CONFIG>
         try {
             // parseconfiguration
             final MasterConfigObject masterConfig
-                    = serializationXml.convert(MasterConfigObject.class, config);
+                    = this.masterContext.serializationXml.convert(
+                            MasterConfigObject.class, config);
             // wrap inside ConfigManager
-            configManager = new ConfigManager(masterConfig, serializationXml);
+            this.masterContext.configManager = new ConfigManager(masterConfig,
+                    this.masterContext.serializationXml);
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
         }
@@ -206,7 +270,7 @@ public abstract class DpuAdvancedBase<CONFIG>
             // get default
             MasterConfigObject defaultConfig = createDefaultMasterConfig();
             // convert to string
-            return serializationXml.convert(defaultConfig);
+            return this.masterContext.serializationXml.convert(defaultConfig);
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Config serialization failed.", ex);
         }
@@ -219,8 +283,10 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     private MasterConfigObject createDefaultMasterConfig() throws SerializationXmlFailure {
         // get string representation
-        final CONFIG dpuConfig = serializationXml.createInstance(configClass);
-        final String dpuConfigStr = serializationXml.convert(dpuConfig);
+        final CONFIG dpuConfig = this.masterContext.serializationXml.createInstance(
+                this.masterContext.configClass);
+        final String dpuConfigStr = this.masterContext.serializationXml.convert(
+                dpuConfig);
         // prepare master config
         final MasterConfigObject newConfigObject = new MasterConfigObject();
         newConfigObject.getConfigurations().put(DPU_CONFIG_NAME, dpuConfigStr);
@@ -235,7 +301,7 @@ public abstract class DpuAdvancedBase<CONFIG>
      * @return Null if no {@link Addon} of given type exists.
      */
     protected <T extends Addon> T getAddon(Class<T> clazz) {
-        for (AddonInitializer.AddonInfo info : addons) {
+        for (AddonInitializer.AddonInfo info : this.masterContext.addons) {
             if (info.getAddon().getClass() == clazz) {
                 return (T) info.getAddon();
             }
