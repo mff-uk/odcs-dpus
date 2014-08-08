@@ -67,8 +67,6 @@ public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
 	}
 	
 	private void buildMainLayout() {
-//		setWidth("100%");
-//		setHeight("100%");
 
         // ------------------------ General ------------------------
 

@@ -6,6 +6,7 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -28,7 +29,7 @@ public class TabularConfig_V1 {
     /**
      * Column mapping.
      */
-    private Map<String, ColumnInfo_V1> columnsInfo = new HashMap<>();
+    private Map<String, ColumnInfo_V1> columnsInfo = new LinkedHashMap<>();
 
     private String quoteChar = "\"";
 
