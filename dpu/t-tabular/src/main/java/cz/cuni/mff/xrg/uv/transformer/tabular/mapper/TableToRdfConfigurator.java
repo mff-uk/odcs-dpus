@@ -110,7 +110,6 @@ public class TableToRdfConfigurator {
             valueGenerator.add(new ValueGenerator(
                 tableToRdf.valueFactory.createURI(columnInfo.getURI()),
                 template));
-            
         }
         //
         // add columns from user - Template Mapping
@@ -133,12 +132,12 @@ public class TableToRdfConfigurator {
      * Auto type of given value.
      *
      * @param value
-     * @param useDataType
+     * @param useDataType Null is considered to be false.
      * @return
      */
-    private static ColumnType guessType(Object value, boolean useDataType) {
+    private static ColumnType guessType(Object value, Boolean useDataType) {
 
-        if (useDataType) {
+        if (useDataType != null && useDataType) {
             if (value instanceof Date) {
                 return ColumnType.Date;
             }
