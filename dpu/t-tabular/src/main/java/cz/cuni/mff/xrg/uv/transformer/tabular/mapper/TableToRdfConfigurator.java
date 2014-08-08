@@ -95,7 +95,7 @@ public class TableToRdfConfigurator {
                         Utils.convertStringToURIPart(columnName));
             }
             if (columnInfo.getType() == ColumnType.Auto) {
-                columnInfo.setType(guessType(data.get(index),
+                columnInfo.setType(guessType(columnName, data.get(index),
                         columnInfo.isUseTypeFromDfb()));
                 LOG.debug("Type for {} is {}", columnName,
                         columnInfo.getType().toString());
@@ -131,11 +131,13 @@ public class TableToRdfConfigurator {
     /**
      * Auto type of given value.
      *
+     * @param columnName
      * @param value
      * @param useDataType Null is considered to be false.
      * @return
      */
-    private static ColumnType guessType(Object value, Boolean useDataType) {
+    private static ColumnType guessType(String columnName, Object value,
+            Boolean useDataType) {
 
         if (useDataType != null && useDataType) {
             if (value instanceof Date) {
@@ -154,6 +156,13 @@ public class TableToRdfConfigurator {
         //
         // Try to parse value
         //
+        if (value == null) {
+            // we can gues ..
+            LOG.warn("Can't determine type for: {}, string used as default.",
+                    columnName);
+            return ColumnType.String;
+        }
+
         final String valueStr = value.toString();
         try {
             Long.parseLong(valueStr);
@@ -209,62 +218,4 @@ public class TableToRdfConfigurator {
 
         }
     }
-
-//  /**
-//     * Generates mapping information from header. This mapping is then used by
-//     * following calls of {@link #paserRow(java.util.List, int)} until the
-//     * {@link #parseHeader(java.util.List)} or {@link #dropHeaderInfo() }
-//     * is called.
-//     *
-//     * You can use {@link #getLastUsedCollumnMapping()} to obtain last generated
-//     * mapping by this function.
-//     *
-//     * @param header
-//     */
-//    public void parseHeader(List<String> header) {
-//        keyColumnIndex = null;
-//        propertyMap = new URI[header.size()];
-//        infoMap = new ColumnInfo_V1[header.size()];
-//        for (int index = 0; index < header.size(); index++) {
-//            final String columnName = header.get(index);
-//            // test for key column
-//            if (config.keyColumnName != null &&
-//                    columnName.compareTo(config.keyColumnName) == 0) {
-//                keyColumnIndex = index;
-//            }
-//            // create mapping
-//            final ColumnInfo_V1 columnInfo;
-//            if (config.columnsInfo.containsKey(columnName)) {
-//                // use predefined
-//                ColumnInfo_V1 userColumnInfo  = config.columnsInfo.get(columnName);
-//                // check for null value in URI
-//                if (userColumnInfo.getURI() == null) {
-//                    // create new with our URI
-//                    columnInfo = new ColumnInfo_V1(userColumnInfo,
-//                            config.baseURI + Utils.convertStringToURIPart(
-//                                    columnName));
-//                } else {
-//                    // use the one from user
-//                    columnInfo = userColumnInfo;
-//                }
-//            } else {
-//                // create record, just for the URL
-//                columnInfo = new ColumnInfo_V1(config.baseURI +
-//                        Utils.convertStringToURIPart(columnName));
-//            }
-//            LOG.debug("Map column '{}' to <{}>", columnName,
-//                    columnInfo.getURI());
-//            propertyMap[index] = valueFactory.createURI(columnInfo.getURI());
-//            infoMap[index] = columnInfo;
-//        }
-//        // parse first row to fill additional informations
-//        parserRowForTypes = true;
-//    }
-
-
 }
-
-
-// cislo radku jako subject
-// zalomeni radku - vyhodit z dialogu, knihovna to nepouziva
-//
