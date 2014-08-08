@@ -11,7 +11,7 @@
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
 	<name>T-Tabular</name>
-	<description></description>
+	<description>Convert tabular data into rdf data.</description>
 	
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.uv.transformer.tabular</dpu.package>
