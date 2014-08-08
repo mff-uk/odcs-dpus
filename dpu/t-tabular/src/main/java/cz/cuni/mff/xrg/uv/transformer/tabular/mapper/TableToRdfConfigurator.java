@@ -58,8 +58,8 @@ public class TableToRdfConfigurator {
             if (header != null) {
                 columnName = header.get(index);
             } else {
-                // use generated one
-                columnName = "col" + Integer.toString(index);
+                // use generated one - first is col1, col2 ... 
+                columnName = "col" + Integer.toString(index + 1);
             }
             // add column name
             tableToRdf.nameToIndex.put("{" + columnName + "}", index);
