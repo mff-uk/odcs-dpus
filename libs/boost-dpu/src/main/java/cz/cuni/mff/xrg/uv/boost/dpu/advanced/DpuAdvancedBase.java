@@ -70,9 +70,10 @@ public abstract class DpuAdvancedBase<CONFIG>
 
         public Context(List<AddonInitializer.AddonInfo> addons,
                 Class<CONFIG> configClass, ConfigHistory<CONFIG> configHistory) {
-
             this.serializationXml = SerializationXmlFactory
                     .serializationXmlGeneral();
+            this.serializationXml.addAlias(MasterConfigObject.class,
+                    "MasterConfigObject");            
             this.addons = addons;
             this.configClass = configClass;
             this.configHistory = configHistory;
@@ -212,6 +213,9 @@ public abstract class DpuAdvancedBase<CONFIG>
         } catch (DPUException ex) {
             context.sendMessage(MessageType.ERROR, "DPU Failed",
                     "DPU throws DPUException.", ex);
+        } catch (DataUnitException ex) {
+            context.sendMessage(MessageType.ERROR, "Problem with data unit.",
+                    "", ex);
         } catch (RuntimeException ex) {
             context.sendMessage(MessageType.ERROR, "DPU Failed",
                     "DPU throws DPUException.", ex);
@@ -261,6 +265,28 @@ public abstract class DpuAdvancedBase<CONFIG>
                     this.masterContext.serializationXml);
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
+        } catch (java.lang.ClassCastException e) {
+            // try direct conversion
+            // TODO update
+            try {
+                CONFIG dpuConfig;
+                if (masterContext.configHistory == null) {
+                    // no history for configuration
+                    dpuConfig = masterContext.serializationXml.convert(masterContext.configClass, config);
+                } else {
+                    dpuConfig = masterContext.serializationXml.convert(masterContext.configHistory.getFinalClass(), config);
+                }
+                final MasterConfigObject masterConfig = new MasterConfigObject();
+                masterContext.configManager = new ConfigManager(masterConfig, masterContext.serializationXml);
+
+                if (masterContext.configHistory == null) {
+                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
+                } else {
+                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
+                }
+            } catch (SerializationXmlFailure ex) {
+                throw new DPUConfigException("Conversion failed for prime class", ex);
+            }
         }
     }
 
@@ -322,8 +348,9 @@ public abstract class DpuAdvancedBase<CONFIG>
      * Execute user DPU code.
      *
      * @throws DPUException
+     * @throws eu.unifiedviews.dataunit.DataUnitException
      */
-    protected abstract void innerExecute() throws DPUException;
+    protected abstract void innerExecute() throws DPUException, DataUnitException;
 
     /**
      * Is called after the {@link #innerExecute()} ends.

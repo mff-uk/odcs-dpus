@@ -65,10 +65,17 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
      */
     private final List<AddonDialogBase> addons;
 
+    /**
+     * Currently set main sheet.
+     */
+    private Tab mainTab = null;
+
     public AdvancedVaadinDialogBase(Class<CONFIG> configClass,
             List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
+        this.serializationXml.addAlias(MasterConfigObject.class,
+                "MasterConfigObject");
         this.configClass = configClass;
         this.configManager = new ConfigManager(new MasterConfigObject(),
                 serializationXml);
@@ -83,6 +90,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
+        this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
         this.configClass = configHistory.getFinalClass();
         this.configManager = new ConfigManager(new MasterConfigObject(),
                 serializationXml);
@@ -122,7 +130,16 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
 
     @Override
     protected void setCompositionRoot(Component compositionRoot) {
+        if (mainTab != null && mainTab.getComponent().equals(compositionRoot)) {
+            // already set
+            return;
+        }
         final Tab newTab = tabSheet.addTab(compositionRoot, "DPU configuration");
+        // remove old one if set
+        if (mainTab != null) {
+            tabSheet.removeTab(mainTab);
+        }
+        mainTab = newTab;
         tabSheet.setTabPosition(newTab, 0);
     }
 
@@ -145,6 +162,28 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             configManager = new ConfigManager(masterConfig, serializationXml);
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
+        } catch (java.lang.ClassCastException e) {
+            // try direct conversion
+            // TODO update
+            try {
+                CONFIG dpuConfig;
+                if (configHistory == null) {
+                    // no history for configuration
+                    dpuConfig = serializationXml.convert(configClass, conf);
+                } else {
+                    dpuConfig = serializationXml.convert(configHistory.getFinalClass(), conf);
+                }
+                final MasterConfigObject masterConfig = new MasterConfigObject();
+                configManager = new ConfigManager(masterConfig, serializationXml);
+                
+                if (configHistory == null) {
+                    configManager.set(dpuConfig, DPU_CONFIG_NAME);
+                } else {
+                    configManager.set(dpuConfig, DPU_CONFIG_NAME);
+                }
+            } catch (Exception ex) {
+                throw new DPUConfigException("Conversion failed for prime class", ex);
+            }
         }
         //
         // configure DPU

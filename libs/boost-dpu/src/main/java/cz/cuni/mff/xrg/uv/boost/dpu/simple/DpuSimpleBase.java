@@ -10,6 +10,8 @@ import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.dpu.config.DPUConfigurable;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -18,6 +20,9 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
  */
 public abstract class DpuSimpleBase<CONFIG> implements DPU, DPUConfigurable,
         ConfigDialogProvider<CONFIG> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(
+            DpuSimpleBase.class);
 
     /**
      * DPU's configuration.
@@ -41,6 +46,7 @@ public abstract class DpuSimpleBase<CONFIG> implements DPU, DPUConfigurable,
 
     @Override
     public void configure(String configStr) throws DPUConfigException {
+        LOG.info("configure('{}')", configStr);
         try {
             config = serializationService.convert(configStr);
         } catch (SerializationXmlFailure ex) {

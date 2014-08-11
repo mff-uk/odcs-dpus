@@ -3,7 +3,6 @@ package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import eu.unifiedviews.dpu.DPUContext;
-import java.io.Closeable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,14 +13,14 @@ import java.util.List;
  */
 public class CloseCloseable implements Addon {
 
-    private final List<Closeable> toCloseList = new LinkedList<>();
+    private final List<AutoCloseable> toCloseList = new LinkedList<>();
 
     /**
      * Add class to close.
      * 
      * @param toClose
      */
-    public void add(Closeable toClose) {
+    public void add(AutoCloseable toClose) {
         if (toClose != null) {
             toCloseList.add(toClose);
         }

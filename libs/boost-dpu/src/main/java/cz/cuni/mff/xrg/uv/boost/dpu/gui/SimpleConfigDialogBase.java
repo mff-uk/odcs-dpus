@@ -53,6 +53,8 @@ public abstract class SimpleConfigDialogBase<CONFIG> extends
     public void setConfig(String configStr) throws DPUConfigException {
         CONFIG config = null;
 
+        LOG.info("SimpleConfigDialogBase::setConfig('{}')", configStr);
+
         try {
             config = serializationService.convert(configStr);
         } catch (SerializationXmlFailure ex) {
@@ -86,6 +88,7 @@ public abstract class SimpleConfigDialogBase<CONFIG> extends
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Serialization failed.", ex);
         }
+        LOG.info("SimpleConfigDialogBase::getConfig() -> {}", lastSetConfig);
         return lastSetConfig;
     }
 

@@ -29,7 +29,7 @@ public class VersionedConfigTest {
         Config_V3 v3 = historyHolder.parse(v1Str, serialization);
 
         Assert.assertEquals("3", v3.getStr1());
-        Assert.assertEquals("3;3", v3.getStr2());
+        Assert.assertEquals("<a>3</a>", v3.getStr2());
     }
 
     @Test
