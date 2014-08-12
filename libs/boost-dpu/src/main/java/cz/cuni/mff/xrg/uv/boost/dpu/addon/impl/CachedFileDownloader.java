@@ -14,6 +14,7 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
@@ -27,17 +28,17 @@ import org.slf4j.LoggerFactory;
  *
  * @author Škoda Petr
  */
-public class CachedFileDownloader 
-    implements AddonWithVaadinDialog<CachedFileDownloader.Configuration> {
+public class CachedFileDownloader
+        implements AddonWithVaadinDialog<CachedFileDownloader.Configuration> {
 
-    public static final String USED_USER_DIRECTORY =
-            "addon/cachedFileDownloader";
+    public static final String USED_USER_DIRECTORY
+            = "addon/cachedFileDownloader";
 
-    public static final String USED_CONFIG_NAME = 
-            "addon/cachedFileDownloader";
+    public static final String USED_CONFIG_NAME
+            = "addon/cachedFileDownloader";
 
-    public static final String ADDON_NAME = 
-            "Ceched file downloader";
+    public static final String ADDON_NAME
+            = "Cached file downloader";
 
     private static final Logger LOG = LoggerFactory.getLogger(
             CachedFileDownloader.class);
@@ -46,7 +47,7 @@ public class CachedFileDownloader
      * Addons' configuration.
      */
     public static class Configuration {
-        
+
         /**
          * Max number of attempts to download singe file.
          */
@@ -108,7 +109,7 @@ public class CachedFileDownloader
 
         @Override
         protected String getConfigClassName() {
-            return ADDON_NAME;
+            return USED_CONFIG_NAME;
         }
 
         @Override
@@ -118,21 +119,21 @@ public class CachedFileDownloader
             mainLayout.setSpacing(true);
             mainLayout.setMargin(true);
 
-            mainLayout.addComponent( new Label(
+            mainLayout.addComponent(new Label(
                     "Max number of attemps to download a single file, use -1 for infinity"));
             txtMaxAttemps = new TextField();
             txtMaxAttemps.setWidth("100%");
             txtMaxAttemps.setRequired(true);
             mainLayout.addComponent(txtMaxAttemps);
 
-            mainLayout.addComponent( new Label(
+            mainLayout.addComponent(new Label(
                     "Max pause in ms between downloads"));
             txtMaxPause = new TextField();
             txtMaxPause.setWidth("100%");
             txtMaxPause.setRequired(true);
             mainLayout.addComponent(txtMaxPause);
 
-            mainLayout.addComponent( new Label(
+            mainLayout.addComponent(new Label(
                     "Min pause in ms between downloads"));
             txtMinPause = new TextField();
             txtMinPause.setWidth("100%");
@@ -151,10 +152,10 @@ public class CachedFileDownloader
 
         @Override
         protected Configuration getConfiguration() throws DPUConfigException {
-            if (!txtMaxAttemps.isValid() || !txtMaxPause.isValid() ||
-                    !txtMinPause.isValid()) {
-                throw new DPUConfigException("All values for " + ADDON_NAME +
-                        " must be provided.");
+            if (!txtMaxAttemps.isValid() || !txtMaxPause.isValid()
+                    || !txtMinPause.isValid()) {
+                throw new DPUConfigException("All values for " + ADDON_NAME
+                        + " must be provided.");
             }
 
             final Configuration c = new Configuration();
@@ -191,7 +192,7 @@ public class CachedFileDownloader
     /**
      * Time of next download.
      */
-    private long nextDownload = Long.MAX_VALUE;
+    private long nextDownload = (new Date()).getTime();
 
     /**
      * Base directory where store files.
@@ -205,7 +206,7 @@ public class CachedFileDownloader
     public boolean preAction(DpuAdvancedBase.Context context) {
         this.dpuContext = context.getDpuContext();
         this.baseDirectory = new File(this.dpuContext.getUserDirectory(),
-            USED_USER_DIRECTORY);
+                USED_USER_DIRECTORY);
         try {
             // load configuration
             this.config = context.getConfigManager().get(USED_CONFIG_NAME,
@@ -213,9 +214,21 @@ public class CachedFileDownloader
         } catch (ConfigException ex) {
             this.dpuContext.sendMessage(DPUContext.MessageType.WARNING,
                     "Addon failed to load configuration",
-                    "Failed to load configuration for: " + ADDON_NAME +
-                            " default configuration is used.", ex);
+                    "Failed to load configuration for: " + ADDON_NAME
+                    + " default configuration is used.", ex);
+
+            // TODO use default configuration
         }
+
+        if (this.config == null) {
+            this.dpuContext.sendMessage(DPUContext.MessageType.WARNING,
+                    "Addon configuration is null.",
+                    "Failed to load configuration for: " + ADDON_NAME
+                    + " default configuration is used.");
+
+            // TODO use default
+        }
+
         return true;
     }
 
@@ -232,6 +245,24 @@ public class CachedFileDownloader
     @Override
     public AddonDialogBase<Configuration> getDialog() {
         return new VaadinDialog();
+    }
+
+    /**
+     * Downloaded given file and store it into a cache. If file is presented in
+     * cache the is returned. If URI is in bad format then throw
+     * {@link AddonException}.
+     *
+     * @param fileUrl
+     * @return
+     * @throws AddonException
+     * @throws IOException
+     */
+    public File get(String fileUrl) throws AddonException, IOException {
+        try {
+            return get(new URL(fileUrl));
+        } catch (MalformedURLException e) {
+            throw new AddonException("Wrong URL.", e);
+        }
     }
 
     /**
@@ -260,6 +291,7 @@ public class CachedFileDownloader
         //
         final File file = new File(baseDirectory, fileName);
         if (file.exists()) {
+            LOG.trace("get({}) - file from cache ", fileUrl.toString());
             return file;
         }
         //
@@ -272,6 +304,7 @@ public class CachedFileDownloader
             // try to download
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
+                LOG.trace("get({}) - file downloaded ", fileUrl.toString());
                 return file;
             } catch (IOException ex) {
                 LOG.warn("Failed to download file from {} attemp {}/{}",
