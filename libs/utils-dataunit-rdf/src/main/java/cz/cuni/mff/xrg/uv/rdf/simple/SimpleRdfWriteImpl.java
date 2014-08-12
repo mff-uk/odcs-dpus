@@ -159,42 +159,6 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
         writeSetCurrent.put(symbolicName, createNewGraph(symbolicName));
     }
 
-	/**
-	 * If the extracted data are inconsistent then the extraction fail.
-	 *
-	 * @param file
-	 * @param format
-	 * @param defaultURI
-	 * @throws OperationFailedException
-	 * @deprecated DPUs that use this method should rather directly add data
-	 * into repository of use file data unit as output and then use FileToRdf
-	 * DPU convertor
-	 */
-	@Deprecated
-	public void extract(File file, RDFFormat format, String defaultURI) throws OperationFailedException {
-		if (defaultURI == null) {
-			defaultURI = file.toURI().toString();
-		}
-
-		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
-			// add all in a single transaction
-			LOG.trace("Extraction begins from: {}", file.toString());
-			conn.c().begin();
-			conn.c().add(file, defaultURI, format, getCurrentWriteContexts());
-			conn.c().commit();
-			LOG.trace("Extraction done");
-		} catch (RepositoryException ex) {
-			throw new OperationFailedException(
-					"Extraction failed.", ex);
-		} catch (IOException | RDFParseException ex) {
-			throw new OperationFailedException(
-					"Extraction failed.", ex);
-		} catch (RuntimeException ex) {
-			throw new OperationFailedException(
-					"Extraction failed for RuntimeException.", ex);
-		}
-	}
-
     /**
      * If no graph is in {@link #writeSetCurrent} then new one is added.
      *
@@ -206,6 +170,7 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
             // no write set .. add new graph
             writeSetCurrent.put(DEFAULT_GRAPH_NAME,
                     createNewGraph(DEFAULT_GRAPH_NAME));
+            LOG.info("Default graph used: " + DEFAULT_GRAPH_NAME);
         }
 
         return writeSetCurrent.values().toArray(new URI[0]);
