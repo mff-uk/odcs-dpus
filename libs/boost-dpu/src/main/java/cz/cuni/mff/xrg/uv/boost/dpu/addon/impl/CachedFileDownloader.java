@@ -351,7 +351,8 @@ public class CachedFileDownloader
         }
         // determine min time for next download
         nextDownload = (new Date()).getTime()
-                + (long) ((Math.random() * config.maxPause) - config.minPause);
+                + (long) ((Math.random() * (config.maxPause - config.minPause))
+                + config.minPause);
     }
 
 }
