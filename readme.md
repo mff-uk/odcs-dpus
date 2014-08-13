@@ -22,7 +22,7 @@ This manual assumes that you have already downloaded and installed libraries fro
 * download this repository
 * execute tools/init.sh
 * create new DPU form maven archeotype dpu-template-advanced
-* if the target instance does not contains libs as osgi-bundles you must update dependency scope from provided to compile
+* if the target instance does not contain libs as osgi-bundles you must update dependency scope from provided to compile
 
 ##For developers (Please READ before contributing)
 Purpose of specific directories.
