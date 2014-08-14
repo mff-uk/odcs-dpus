@@ -11,6 +11,7 @@
     <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>unifiedviews lib base</name>
+    <description>Base project for libraries.</description>
 
     <properties>
         <!-- must end with comma if not empty -->
