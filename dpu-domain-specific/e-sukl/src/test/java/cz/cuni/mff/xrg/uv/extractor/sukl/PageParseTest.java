@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.extractor.sukl;
 
 import java.io.File;
 import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,10 +20,10 @@ public class PageParseTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             PageParseTest.class);
 
-    @Test
+    //@Test
     public void name() throws IOException {
 
-        Document document = Jsoup.parse(new File("d:/Temp/08/0195347.htm"),
+        Document document = Jsoup.parse(new File("d:/Temp/08/0202266.htm"),
                 null, "view-source:www.sukl.cz");
 
         String selector;
@@ -44,16 +45,22 @@ public class PageParseTest {
                     "Účinná látka") == 0) {
                 String value = element.getElementsByTag("td").first().text();
 
+                boolean val = StringUtils.isWhitespace(value);
+                LOG.info("{}", val);
+
+                LOG.info("size: {}", value.length());
+                
+
                 String nameCz = value.substring(0, value.indexOf("("));
                 String nameLa = value.substring(value.indexOf("(") + 1,
                         value.indexOf(")"));
 
-                LOG.debug("{} - {}", nameCz, nameLa);
+                LOG.debug("'{}' - '{}'", nameCz, nameLa);
             }
         }
     }
 
-    @Test
+    //@Test
     public void documents() throws IOException {
 
         Document document = Jsoup.parse(new File("d:/Temp/08/0195347-documents.htm"),

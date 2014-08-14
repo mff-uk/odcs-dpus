@@ -12,6 +12,7 @@ import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.utils.SelectQuery;
 import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -22,7 +23,6 @@ import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,8 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  */
 @DPU.AsExtractor
-public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
+public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
+        implements SelectQuery.BindingIterator {
 
     private static final Logger LOG = LoggerFactory.getLogger(Sukl.class);
 
@@ -84,17 +85,13 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
 
     private final CachedFileDownloader downloaderService;
 
-    private final CloseCloseable closeService;
-
     private ValueFactory valueFactory;
 
     public Sukl() {
         super(SuklConfig_V1.class,
-                AddonInitializer.create(new CachedFileDownloader(),
-                        new CloseCloseable()));
+                AddonInitializer.create(new CachedFileDownloader()));
 
         downloaderService = getAddon(CachedFileDownloader.class);
-        closeService = getAddon(CloseCloseable.class);
     }
 
     @Override
@@ -124,35 +121,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
 
     @Override
     protected void innerExecute() throws DPUException {
-        try (ConnectionPair<TupleQueryResult> connection
-                = inSkosNoation.executeSelectQuery(IN_QUERY)) {
-            final TupleQueryResult result = connection.getObject();
-            while (result.hasNext() && !context.canceled()) {
-                final BindingSet binding = result.next();
-                final String notation = binding.getBinding(SKOSNOTATION_BINDING)
-                        .getValue().stringValue();
-                final URI subject = (URI) binding.getBinding(SUBJECT_BINDING)
-                        .getValue();
-                // get information for given notation
-                try {
-                    downloadInfo(subject, notation);
-                } catch (AddonException | IOException e) {
-                    context.sendMessage(DPUContext.MessageType.WARNING,
-                            "Failed to get info about notation.",
-                            "Notation: " + notation, e);
-
-                    // TODO terminate or continue?
-                    
-                } catch (DataUnitException ex) {
-                    throw new DPUException("Problem with dataUnit.", ex);
-                }
-            }
+        try {
+            // will call processStatement
+            SelectQuery.iterate(inSkosNoation, IN_QUERY, this);
+            // flush buffer
             outInfo.flushBuffer();
-            try {
-                Manipulator.dump(filesOutTexts);
-            } catch (DataUnitException ex) {
-
-            }
         } catch (OperationFailedException | QueryEvaluationException e) {
             throw new DPUException("Query execution failed.", e);
         }
@@ -163,6 +136,27 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
         return new SuklVaadinDialog();
     }
 
+    @Override
+    public void processStatement(BindingSet binding) throws DPUException {
+        final String notation = binding.getBinding(SKOSNOTATION_BINDING)
+                .getValue().stringValue();
+        final URI subject = (URI) binding.getBinding(SUBJECT_BINDING)
+                .getValue();
+        // get information for given notation
+        try {
+            downloadInfo(subject, notation);
+        } catch (AddonException | IOException e) {
+            context.sendMessage(DPUContext.MessageType.WARNING,
+                    "Failed to get info about notation.",
+                    "Notation: " + notation, e);
+
+            // TODO terminate or continue?
+
+        } catch (DataUnitException ex) {
+            throw new DPUException("Problem with dataUnit.", ex);
+        }
+    }
+
     /**
      * Download info for medicament with given skos:notation number.
      *
@@ -171,7 +165,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
      * @throws java.io.IOException
      */
-    private void downloadInfo(URI subject, String notation) throws AddonException, 
+    private void downloadInfo(URI subject, String notation) throws AddonException,
             IOException, OperationFailedException, DataUnitException {
         LOG.debug("downloadInfo({}, {})", subject.toString(), notation);
         // parse info cz
@@ -203,13 +197,17 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
      * @return True if name is provided.
      * @throws OperationFailedException
      */
-    private boolean parseNameCz(URI subject, Document doc) 
+    private boolean parseNameCz(URI subject, Document doc)
             throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo(
                     "Účinná látka") == 0) {
                 final String val = element.getElementsByTag("td").first().text();
+                if (val.length() < 2) {
+                    // this is just an empty string, we skip this
+                    return false;
+                }
                 final String nameCz = val.substring(0, val.indexOf("("));
                 final String nameLa = val.substring(val.indexOf("(") + 1,
                         val.indexOf(")"));
@@ -235,7 +233,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
      * @param doc
      * @throws OperationFailedException
      */
-    private void parseNameEn(URI subject, Document doc) 
+    private void parseNameEn(URI subject, Document doc)
             throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
@@ -295,7 +293,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1> {
             }
             // add info
             outInfo.add(subject, predicate,
-                            valueFactory.createURI(value));
+                    valueFactory.createURI(value));
             // download
             final File file = downloaderService.get(value);
             filesOutTexts.addExistingFile(value, file.toURI().toString());
