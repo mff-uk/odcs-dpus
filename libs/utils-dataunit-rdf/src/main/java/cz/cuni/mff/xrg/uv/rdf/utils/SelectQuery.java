@@ -26,6 +26,10 @@ import org.openrdf.query.TupleQueryResult;
  * });
  * }
  * </pre>
+ * or the DPU class it self can implements the
+ * {@link SelectQuery.BindingIterator} this can be useful when the iteration
+ * over given select is the main loop in DPU.
+ *
  * @author Škoda Petr
  */
 public class SelectQuery {
