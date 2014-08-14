@@ -12,6 +12,7 @@
     <version>1.1.0</version>
     <packaging>bundle</packaging>
     <name>utils dataunit rdf</name>
+    <description>Utilitites for RDFDataUnit class.</description>
     
     <dependencies>
         <dependency>

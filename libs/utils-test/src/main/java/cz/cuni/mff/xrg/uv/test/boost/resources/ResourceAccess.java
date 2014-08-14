@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URL;
 
 /**
+ * Provide access to files in projects resources.
  *
  * @author Škoda Petr
  */
@@ -13,9 +14,13 @@ public class ResourceAccess {
     }
 
     /**
-     * Provide access to files in resources under their names.
+     * Return {@link File} to file if given name located in the java
+     * resources directory.
      *
-     * @param name
+     * If file is not found then {@link RuntimeException} is thrown to 
+     * terminate tests.
+     *
+     * @param name FIle name.
      * @return File representation.
      */
     public static File getFile(String name) {
@@ -27,6 +32,5 @@ public class ResourceAccess {
         }
         return new File(url.getPath());
     }
-
 
 }

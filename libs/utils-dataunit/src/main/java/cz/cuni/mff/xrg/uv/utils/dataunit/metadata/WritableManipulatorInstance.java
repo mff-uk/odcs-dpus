@@ -12,7 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Manipulator for writing metadata.
+ * 
  * @author Škoda Petr
  */
 public class WritableManipulatorInstance extends ManipulatorInstance {
@@ -61,7 +62,6 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
      * @throws DataUnitException
      */
     public WritableManipulatorInstance add(String predicate, String value) throws DataUnitException {
-        LOG.info("add({}, {}) for subject:{}", predicate, value, symbolicName);
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
             final Update update

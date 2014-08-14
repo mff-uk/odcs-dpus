@@ -9,6 +9,18 @@ import org.openrdf.model.Value;
  * Add write functionality to {@link SimpleRdfRead} by wrapping
  * {@link WritableRDFDataUnit}.
  *
+ * <pre>
+ * {@code
+ * SimpleRdfWrite rdf = SimpleRdfFactory(rdfDataUnit, dpuContext);
+ * rdf.setPolicy(AddPolicy.BUFFERED);
+ * rdf.setOutputGraph("myOutputGraph");
+ * // add triples
+ * rdf.add(subject, predicate, object);
+ * // write from buffer into database
+ * rdf.flushBuffer();
+ * }
+ * </pre>
+ *
  * @author Škoda Petr
  */
 public interface SimpleRdfWrite extends SimpleRdfRead {

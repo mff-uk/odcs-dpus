@@ -15,9 +15,9 @@ import org.openrdf.query.TupleQueryResult;
  * <pre>
  * {@code
  * SimpleRdfRead rdf;
- String query = "SELECT ?s WHERE {?s ?p ?o}";
- SelectQuery.iterate(rdf, query, new SelectQuery.BindingIterator() {
-  @Override
+ * String query = "SELECT ?s WHERE {?s ?p ?o}";
+ * SelectQuery.iterate(rdf, query, new SelectQuery.BindingIterator() {
+ *  @Override
  *  public void processStatement(BindingSet binding) throws DPUException {
  *      // process binding here
  *      String s = binding.getBinding("s").getValue().getStringValue();

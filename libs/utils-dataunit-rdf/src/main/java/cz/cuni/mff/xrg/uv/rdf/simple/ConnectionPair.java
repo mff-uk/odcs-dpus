@@ -48,7 +48,7 @@ public class ConnectionPair<T> implements AutoCloseable {
 	 */
 	private final T object;
 
-	public ConnectionPair(RepositoryConnection connection, T object) {
+	ConnectionPair(RepositoryConnection connection, T object) {
 		this.connection = connection;
 		this.object = object;
 	}

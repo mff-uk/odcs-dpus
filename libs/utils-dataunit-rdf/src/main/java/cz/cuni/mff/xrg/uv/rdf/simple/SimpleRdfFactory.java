@@ -5,6 +5,8 @@ import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
 
 /**
+ * Create {@link SimpleRdfRead}/{@link SimpleRdfWrite} wrap for given
+ * {@link RDFDataUnit}/{@link WritableRDFDataUnit}.
  *
  * @author Škoda Petr
  */

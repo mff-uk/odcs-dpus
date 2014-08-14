@@ -22,7 +22,8 @@ public interface SimpleRdfRead {
     ValueFactory getValueFactory() throws OperationFailedException;
 
     /**
-     * Eagerly load all triples and store them into list.
+     * Eagerly load all triples and store them into list. Do not use
+     * for larger number of triples.
      *
      * @return List of all triples in the repository.
      * @throws OperationFailedException
@@ -48,6 +49,7 @@ public interface SimpleRdfRead {
      * @return
      * @throws OperationFailedException
      */
-    ConnectionPair<Graph> executeConstructQuery(String query) throws OperationFailedException;
+    ConnectionPair<Graph> executeConstructQuery(String query)
+            throws OperationFailedException;
 
 }

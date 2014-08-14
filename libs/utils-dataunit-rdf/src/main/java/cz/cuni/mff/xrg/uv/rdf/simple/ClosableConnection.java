@@ -20,7 +20,7 @@ class ClosableConnection implements AutoCloseable {
 
 	private RepositoryConnection connection = null;
 
-	public ClosableConnection(RDFDataUnit rdf) throws OperationFailedException {
+	ClosableConnection(RDFDataUnit rdf) throws OperationFailedException {
 		try {
 			connection = rdf.getConnection();
 		} catch (DataUnitException e) {

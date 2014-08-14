@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.test.boost.rdf;
 
+import cz.cuni.mff.xrg.uv.test.boost.resources.ResourceAccess;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
@@ -7,7 +8,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -16,6 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Provide functions to load/store values from
+ * {@link RDFDataUnit}/{@link WritableRDFDataUnit}.
+ *
+ * To obtain file from resource use {@link ResourceAccess}.
+ *
  * @author Škoda Petr
  */
 public final class InputOutput {
@@ -88,7 +93,7 @@ public final class InputOutput {
         }
         
         // load
-        URI[] sourceContexts = uris.toArray(new URI[0]);
+        final URI[] sourceContexts = uris.toArray(new URI[0]);
         try (FileOutputStream out = new FileOutputStream(target);
                 OutputStreamWriter os = new OutputStreamWriter(out, Charset
                         .forName("UTF-8"));) {
