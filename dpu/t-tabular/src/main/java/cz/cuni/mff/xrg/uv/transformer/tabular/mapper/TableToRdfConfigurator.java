@@ -4,6 +4,7 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.Utils;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnType;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGenerator;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,8 +32,17 @@ public class TableToRdfConfigurator {
      * @param tableToRdf
      * @param header
      * @param data
+     * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      */
-    public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data) {
+    public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data) throws ParseFailed {
+        // initial checks
+        if (data == null) {
+            throw new ParseFailed("First data row is null!");
+        }
+        if (header != null && header.size() != data.size()) {
+            throw new ParseFailed("Diff number of cells in header (" + header.size() + ") and data (" + data.size() + ")");
+        }
+        //
         final TableToRdfConfig config = tableToRdf.config;
         //
         // clear configuration

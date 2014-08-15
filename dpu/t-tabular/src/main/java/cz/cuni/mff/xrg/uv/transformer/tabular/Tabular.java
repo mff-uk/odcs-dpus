@@ -1,5 +1,10 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CloseCloseable;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.simple.DpuSimpleBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.utils.CloseAutoCloseable;
 import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
@@ -21,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @DPU.AsTransformer
-public class Tabular extends DpuSimpleBase<TabularConfig_V1> {
+public class Tabular extends DpuAdvancedBase<TabularConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
 
@@ -33,27 +38,25 @@ public class Tabular extends DpuSimpleBase<TabularConfig_V1> {
 
     private SimpleRdfWrite rdfTableWrap = null;
 
-    private final CloseAutoCloseable closeClosabel = new CloseAutoCloseable();
-
     public Tabular() {
-        super(TabularConfig_V1.class);
+        super(TabularConfig_V1.class, AddonInitializer.create(new CloseCloseable()));
     }
 
     @Override
-    public AbstractConfigDialog<TabularConfig_V1> getConfigurationDialog() {
+    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
         return new TabularVaadinDialog();
     }
 
     @Override
-    protected void init() throws DPUException, DataUnitException {
-        super.init();
+    protected void innerInit() throws DataUnitException {
+        
         rdfTableWrap = SimpleRdfFactory.create(outRdfTables, context);
         rdfTableWrap.setPolicy(AddPolicy.BUFFERED);
         TabularOntology.init(rdfTableWrap.getValueFactory());
     }
 
     @Override
-    protected void innerExecute() throws DPUException, DataUnitException {
+    protected void innerExecute() throws DPUException, OperationFailedException, DataUnitException {
         //
         // prepare tabular convertor
         //
@@ -80,7 +83,8 @@ public class Tabular extends DpuSimpleBase<TabularConfig_V1> {
         // execute ever files
         //
         final FilesDataUnit.Iteration iteration = inFilesTable.getIteration();
-        closeClosabel.add(iteration);
+        getAddon(CloseCloseable.class).add(iteration);
+
         while(iteration.hasNext()) {
             final FilesDataUnit.Entry entry = iteration.next();
             // set output graph
@@ -99,8 +103,7 @@ public class Tabular extends DpuSimpleBase<TabularConfig_V1> {
     }
 
     @Override
-    protected void close() {
-        super.close();
+    protected void innerCleanUp() {
         if (rdfTableWrap != null) {
             try {
                 rdfTableWrap.flushBuffer();
@@ -109,7 +112,8 @@ public class Tabular extends DpuSimpleBase<TabularConfig_V1> {
                         "Can't save data into rdf.", "", ex);
             }
         }
-        closeClosabel.closeAll(context);
     }
+
+
 
 }

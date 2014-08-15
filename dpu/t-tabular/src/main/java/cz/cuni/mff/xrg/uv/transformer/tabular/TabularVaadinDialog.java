@@ -3,18 +3,19 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 import com.vaadin.data.Property;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.*;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyComponentGroup;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import eu.unifiedviews.helpers.dpu.config.BaseConfigDialog;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
+public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             TabularVaadinDialog.class);
@@ -43,6 +44,9 @@ public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
 
     private TextField txtCsvLinesToIgnore;
 
+    /**
+     * Layout for column mapping.
+     */
     private GridLayout propertiesLayout;
 
     private final List<PropertyComponentGroup> properties = new LinkedList<>();
@@ -57,7 +61,7 @@ public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
     private boolean layoutSet = false;
 
 	public TabularVaadinDialog() {
-		super(TabularConfig_V1.class);
+		super(TabularConfig_V1.class, AddonInitializer.noAddons());
         try {
 		buildMainLayout();
         } catch (Exception ex) {
@@ -411,6 +415,12 @@ public class TabularVaadinDialog extends BaseConfigDialog<TabularConfig_V1> {
                 throw new DPUConfigException("Wrong uri for row class.", ex);
             }
             cnf.setRowsClass(txtRowsClass.getValue());
+        }
+        //
+        // additional checks
+        //
+        if (!cnf.isGenerateNew() && cnf.getColumnsInfo().isEmpty()) {
+            throw new DPUConfigException("Specify at least one column mapping or check 'Full column mapping' option.");
         }
 
 		return cnf;
