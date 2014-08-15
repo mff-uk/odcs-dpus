@@ -5,7 +5,6 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
