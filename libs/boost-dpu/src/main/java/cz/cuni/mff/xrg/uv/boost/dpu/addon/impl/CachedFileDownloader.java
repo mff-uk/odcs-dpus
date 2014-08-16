@@ -291,7 +291,7 @@ public class CachedFileDownloader
         //
         final File file = new File(baseDirectory, fileName);
         if (file.exists()) {
-            LOG.trace("get({}) - file from cache ", fileUrl.toString());
+            LOG.info("get({}) - file from cache ", fileUrl.toString());
             return file;
         }
         //
@@ -304,7 +304,7 @@ public class CachedFileDownloader
             // try to download
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
-                LOG.trace("get({}) - file downloaded ", fileUrl.toString());
+                LOG.info("get({}) - file downloaded ", fileUrl.toString());
                 return file;
             } catch (IOException ex) {
                 LOG.warn("Failed to download file from {} attemp {}/{}",
