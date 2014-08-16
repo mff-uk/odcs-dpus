@@ -42,7 +42,6 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
         super(connection, readGraphs, symbolicName, closeConnectionOnClose);
         this.dataset.setDefaultInsertGraph(writeGraph);
         this.dataset.addDefaultRemoveGraph(writeGraph);
-        LOG.info("WritableManipulatorInstance.write-graph: {}", writeGraph.toString());
     }
 
     /**

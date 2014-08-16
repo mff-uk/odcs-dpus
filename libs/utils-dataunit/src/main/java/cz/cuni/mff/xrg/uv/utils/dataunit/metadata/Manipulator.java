@@ -3,8 +3,6 @@ package cz.cuni.mff.xrg.uv.utils.dataunit.metadata;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
-import java.util.HashSet;
-import java.util.Set;
 import org.openrdf.model.*;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -15,6 +13,18 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides easy way how to set/get metadata (predicate/object) for given
  * symbolic name.
+ *
+ * This class can be used for a simple one shot actions with metadata, or
+ * {@link ManipulatorInstance}/{@link WritableManipulatorInstance} can be
+ * created and used repeatedly.
+ *
+ * <pre>
+ * {@core
+ * // set path to given file with respective symbolicName
+ * Manipulator.add(WritableFilesDataUnit, symbolicName,
+ *      VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
+ * }
+ * </pre>
  *
  * @author Škoda Petr
  */
@@ -33,7 +43,6 @@ public class Manipulator {
     }
 
     /**
-     *
      * Does not close given connection.
      *
      * @param dataUnit
@@ -48,6 +57,14 @@ public class Manipulator {
                 dataUnit.getMetadataGraphnames(), symbolicName, false);
     }
 
+    /**
+     * Close must be called on returned class after usage.
+     *
+     * @param dataUnit
+     * @param entry
+     * @return
+     * @throws DataUnitException
+     */
     public static ManipulatorInstance create(MetadataDataUnit dataUnit, 
             MetadataDataUnit.Entry entry) throws DataUnitException {
         return create(dataUnit, entry.getSymbolicName());
@@ -69,6 +86,14 @@ public class Manipulator {
         return create(dataUnit, entry.getSymbolicName(), connection);
     }
 
+    /**
+     * Close must be called on returned class after usage.
+     * 
+     * @param dataUnit
+     * @param symbolicName
+     * @return
+     * @throws DataUnitException
+     */
     public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit,
             String symbolicName) throws DataUnitException {
         return new WritableManipulatorInstance(dataUnit.getConnection(),
