@@ -132,9 +132,14 @@ public class TableToRdfConfigurator {
         // final checks and data sets
         //
         tableToRdf.infoMap = valueGenerator.toArray(new ValueGenerator[0]);
-        if (config.rowsClass != null) {
+        if (config.rowsClass != null && !config.rowsClass.isEmpty()) {
+            try {
             tableToRdf.rowClass =
                     tableToRdf.valueFactory.createURI(config.rowsClass);
+            } catch (IllegalArgumentException ex) {
+                throw new ParseFailed("Failed to create row's class URI from:" +
+                        config.rowsClass, ex);
+            }
         }
     }
 
