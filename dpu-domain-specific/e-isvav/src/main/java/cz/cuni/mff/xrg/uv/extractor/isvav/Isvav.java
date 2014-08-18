@@ -1,17 +1,18 @@
 package cz.cuni.mff.xrg.uv.extractor.isvav;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.DirectoryHandler;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.extractor.isvav.source.*;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,46 +32,51 @@ import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AsExtractor
-public class Main extends ConfigurableBase<Configuration>
-		implements ConfigDialogProvider<Configuration> {
+/**
+ *
+ * @author Škoda Petr
+ */
+@DPU.AsExtractor
+public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Isvav.class);
 	
-	@OutputDataUnit(name = "output", description = "Contains one or more zip files.")
-	public FileDataUnit output;
+	@DataUnit.AsOutput(name = "zipFiles", description = "Contains one or more zip files.")
+	public WritableFilesDataUnit outFilesData;
 	
-	public Main() {
-		super(Configuration.class);
+	public Isvav() {
+		super(IsvavConfig_V1.class, AddonInitializer.noAddons());
 	}
 
-	@Override
-	public void execute(DPUContext context)
-			throws DPUException, DataUnitException {
-		// create sources
+    @Override
+    protected void innerExecute() throws DPUException, DataUnitException {
+        // create sources
 		List<AbstractSource> usedSource = createSource();
 		// for each source
 		int index = 0;
-		DirectoryHandler root = output.getRootDir();
 		for (AbstractSource source : usedSource) {
 			final String filename = String.format("%s-%d.zip", 
 					source.getBaseFileName(), index++);
-			final File file = root.addNewFile(filename).asFile();
+			final File file = new File( 
+                    java.net.URI.create(outFilesData.addNewFile(filename)));
+            Manipulator.add(outFilesData, filename, VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
+                    filename);;
 			// download file
 			if (!downloadData(context, source, file)) {
 				// extraction failed
 				return;
 			} else {
-				context.sendMessage(MessageType.INFO, "File extracted", 
+				context.sendMessage(DPUContext.MessageType.INFO,
+                        "File extracted",
 						"Extracted file saved into: " + filename);
 			}
 		}
 	}
 
-	@Override
-	public AbstractConfigDialog<Configuration> getConfigurationDialog() {
-		return new Dialog();
-	}
+    @Override
+    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
+        return new IsvavVaadinDialog();
+    }
 
 	/**
 	 * Create sources for given data type
@@ -123,10 +129,9 @@ public class Main extends ConfigurableBase<Configuration>
 	protected boolean downloadData(DPUContext context, AbstractSource source, File target) {
 		String sessionID = null;
 		
-		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpGet httpget = new HttpGet(source.getFilterUri());
-		
-		HttpClientContext httpContext = HttpClientContext.create();
+		final CloseableHttpClient httpclient = HttpClients.createDefault();
+		final HttpGet httpget = new HttpGet(source.getFilterUri());
+		final HttpClientContext httpContext = HttpClientContext.create();
 		try (CloseableHttpResponse response = httpclient.execute(httpget, httpContext)) {
 			CookieStore cookieStore = httpContext.getCookieStore();
 			Iterator<Cookie> iter = cookieStore.getCookies().iterator();
@@ -137,22 +142,25 @@ public class Main extends ConfigurableBase<Configuration>
 				}
 			}
 		} catch (IOException ex) {
-			context.sendMessage(MessageType.ERROR, "Extraction failed", "Can't connect to filter page.", ex);
+			context.sendMessage(DPUContext.MessageType.ERROR,
+                    "Extraction failed", "Can't connect to filter page.", ex);
 			return false;
 		}
 		
-		URL dataUrl;
+		final URL dataUrl;
 		try {
 			dataUrl = new URL(source.getDownloadUri(sessionID));
 		} catch (MalformedURLException ex) {
-			context.sendMessage(MessageType.ERROR, "Extraction failed", "Failed to create download URL.", ex);
+			context.sendMessage(DPUContext.MessageType.ERROR,
+                    "Extraction failed", "Failed to create download URL.", ex);
 			return false;
 		}
 		
 		try {
 			FileUtils.copyURLToFile(dataUrl, target);
 		} catch (IOException ex) {
-			context.sendMessage(MessageType.ERROR, "Extraction failed", "Failed to download file.", ex);
+			context.sendMessage(DPUContext.MessageType.ERROR,
+                    "Extraction failed", "Failed to download file.", ex);
 			return false;
 		}
 		

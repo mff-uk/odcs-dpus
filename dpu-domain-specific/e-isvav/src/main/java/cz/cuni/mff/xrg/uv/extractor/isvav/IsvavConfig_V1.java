@@ -1,8 +1,6 @@
 package cz.cuni.mff.xrg.uv.extractor.isvav;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-
-public class Configuration extends DPUConfigObjectBase {
+public class IsvavConfig_V1 {
 
 	private SourceType sourceType = SourceType.Funder;
 

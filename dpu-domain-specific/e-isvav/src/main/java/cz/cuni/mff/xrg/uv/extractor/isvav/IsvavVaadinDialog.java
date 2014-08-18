@@ -3,19 +3,21 @@ package cz.cuni.mff.xrg.uv.extractor.isvav;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 
-public class Dialog extends BaseConfigDialog<Configuration> {
+public class IsvavVaadinDialog extends AdvancedVaadinDialogBase<IsvavConfig_V1> {
 
 	private ComboBox cmbSource;
 	
-	public Dialog() {
-		super(Configuration.class);
-		buildMainLayout();
+	public IsvavVaadinDialog() {
+		super(IsvavConfig_V1.class, AddonInitializer.noAddons());
+
+		buildLayout();
 	}
 
-	private void buildMainLayout() {
+	private void buildLayout() {
         // top-level component properties
         setWidth("100%");
         setHeight("100%");
@@ -62,13 +64,13 @@ public class Dialog extends BaseConfigDialog<Configuration> {
 	}
 	
 	@Override
-	public void setConfiguration(Configuration conf) throws ConfigException {
+	public void setConfiguration(IsvavConfig_V1 conf) throws DPUConfigException {
 		cmbSource.setValue(conf.getSourceType());
 	}
 
 	@Override
-	public Configuration getConfiguration() throws ConfigException {
-		Configuration config = new Configuration();		
+	public IsvavConfig_V1 getConfiguration() throws DPUConfigException {
+		IsvavConfig_V1 config = new IsvavConfig_V1();
 		config.setSourceType((SourceType)cmbSource.getValue());		
 		return config;
 	}

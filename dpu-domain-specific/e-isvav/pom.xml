@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.0</version>
+    </parent>
+    <artifactId>e-isvav</artifactId>
+    <name>Isvav</name>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <version>1.1.0</version>
+    <packaging>bundle</packaging>
+    <description>Extract data from isvav. Extraction of results utilize current system time (year) to determine last period for extraction.</description>
+    
+    <properties>
+        <dpu.package>cz.cuni.mff.xrg.uv.extractor.isvav</dpu.package>
+        <dpu.mainClass>Isvav</dpu.mainClass>
+    </properties>
+ 	
+    <dependencies>
+        <dependency> <!-- this dependency is provided by UV -->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.3.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency> <!-- dependency of httpclient -->
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency> <!-- dependency of httpclient -->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- compile library -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[1.1.0,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+	
+</project>
