@@ -4,14 +4,13 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.extractor.isvav.source.*;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
+import cz.cuni.mff.xrg.uv.utils.dataunit.files.CreateFile;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
@@ -57,10 +56,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		for (AbstractSource source : usedSource) {
 			final String filename = String.format("%s-%d.zip", 
 					source.getBaseFileName(), index++);
-			final File file = new File( 
-                    java.net.URI.create(outFilesData.addNewFile(filename)));
-            Manipulator.add(outFilesData, filename, VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
-                    filename);;
+			final File file = CreateFile.createFile(outFilesData, filename);
 			// download file
 			if (!downloadData(context, source, file)) {
 				// extraction failed
