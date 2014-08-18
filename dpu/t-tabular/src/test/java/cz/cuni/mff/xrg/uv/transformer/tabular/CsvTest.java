@@ -1,8 +1,8 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.test.boost.resources.ResourceAccess;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnType;

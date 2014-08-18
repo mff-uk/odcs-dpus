@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular.mapper;
 
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.transformer.tabular.TabularOntology;
 import cz.cuni.mff.xrg.uv.transformer.tabular.Utils;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGenerator;
