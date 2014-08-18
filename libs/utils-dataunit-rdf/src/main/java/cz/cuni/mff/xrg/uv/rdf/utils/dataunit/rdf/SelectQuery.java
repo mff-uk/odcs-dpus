@@ -1,8 +1,8 @@
-package cz.cuni.mff.xrg.uv.rdf.utils;
+package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf;
 
-import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
 import eu.unifiedviews.dpu.DPUException;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;

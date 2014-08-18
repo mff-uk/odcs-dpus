@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.rdf.simple;
+package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple;
 
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;

@@ -1,9 +1,9 @@
-package cz.cuni.mff.xrg.uv.rdf.simple.test;
+package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.test;
 
-import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import java.util.Collections;
 import java.util.List;
 import org.openrdf.model.*;
