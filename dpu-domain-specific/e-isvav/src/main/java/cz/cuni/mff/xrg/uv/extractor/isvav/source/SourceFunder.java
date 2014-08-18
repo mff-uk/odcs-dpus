@@ -9,10 +9,10 @@ public class SourceFunder extends AbstractSource {
 
 	private static final String URL_FILTER = "http://www.isvav.cz/findFunderByFilter.do?sortField=reskod&sortType=0";
 	
-	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=funder&exportType=xls";
+	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=funder&exportType=";
 	
-	public SourceFunder() {
-		super(URL_FILTER, URL_DOWNLOAD, "Funder");
+	public SourceFunder(String exportType) {
+		super(URL_FILTER, URL_DOWNLOAD + exportType, "Funder");
 	}
 	
 }

@@ -14,14 +14,14 @@ public class SourceProject extends AbstractSource {
 
 	/**
 	 * Views:
-	 *	0 - výpis údajů o účastnících projektů po jednotlivých letech
-	 *	1 - výpis finančních údajů projektů po jednotlivých letech
-	 *	2 - výpis finančních údajů projektů po jednotlivých letech a účastnících
+	 *	1 - výpis údajů o účastnících projektů po jednotlivých letech
+	 *	2 - výpis finančních údajů projektů po jednotlivých letech
+	 *	3 - výpis finančních údajů projektů po jednotlivých letech a účastnících
 	 */
-	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=project&exportType=xls&views=1&views=2&views=3&x=27&y=14";
+	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=project&views=1&views=2&views=3&exportType=";
 	
-	public SourceProject() {
-		super(URL_FILTER, URL_DOWNLOAD, "Project");
+	public SourceProject(String exportType) {
+		super(URL_FILTER, URL_DOWNLOAD + exportType, "Project");
 	}	
 
 }

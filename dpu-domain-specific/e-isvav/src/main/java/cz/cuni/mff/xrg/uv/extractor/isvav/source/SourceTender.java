@@ -13,10 +13,10 @@ public class SourceTender extends AbstractSource {
 	 * Views:
 	 *	1 - výpis finančních údajů o veřejných soutěžích ve VaVaI na jednotlivé roky
 	 */
-	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=tender&exportType=xls&views=1&x=24&y=7";
+	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=tende&views=1&r&exportType=";
 	
-	public SourceTender() {
-		super(URL_FILTER, URL_DOWNLOAD, "Tender");
+	public SourceTender(String exportType) {
+		super(URL_FILTER, URL_DOWNLOAD + exportType, "Tender");
 	}
 	
 }

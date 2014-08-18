@@ -12,10 +12,10 @@ public class SourceOrganization extends AbstractSource {
 	 */
 	private static final String URL_FILTER = "http://www.isvav.cz/findOrganizationByFilter.do?orgName=&kodSubjektu=&kategorieSubjektu=&orgICO=&nazevOrgJednotky=&kodOrgJednotky=&kodZeme=&vyzOrgRok=2008&vyzOrgPoskyt=any&vyzOrg=0&bezPodrizenych=0&sortField=parnidk&sortType=0";
 	
-	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=organization&exportType=xls&x=42&y=7";
+	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=organization&exportType=";
 	
-	public SourceOrganization() {
-		super(URL_FILTER, URL_DOWNLOAD, "Organization");
+	public SourceOrganization(String exportType) {
+		super(URL_FILTER, URL_DOWNLOAD + exportType, "Organization");
 	}
 
 }

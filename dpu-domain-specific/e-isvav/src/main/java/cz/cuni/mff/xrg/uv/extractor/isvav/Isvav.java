@@ -85,22 +85,25 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 	 */
 	private List<AbstractSource> createSource() {
 		List<AbstractSource> sources = new LinkedList<>();
+        // xls, dbf
+        String exportType = "dbf";
+
 		switch (config.getSourceType()) {
 			case Funder:
-				sources.add(new SourceFunder());
+				sources.add(new SourceFunder(exportType));
 				break;
 			case Organization:
-				sources.add(new SourceOrganization());
+				sources.add(new SourceOrganization(exportType));
 				break;
 			case Programme:
 				// 1991 - 2019
-				sources.add(new SourceProgramme("1991", "2019"));
+				sources.add(new SourceProgramme(exportType, "1991", "2019"));
 				break;
 			case Project:
-				sources.add(new SourceProject());
+				sources.add(new SourceProject(exportType));
 				break;
 			case Research:
-				sources.add(new SourceResearch());
+				sources.add(new SourceResearch(exportType));
 				break;
 			case Result:
 				Calendar now = Calendar.getInstance();
@@ -108,11 +111,11 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 				final int to = now.get(Calendar.YEAR);
 				LOG.debug("Extracting from {} to {}", from, to);
 				for (Integer year = from; year <= to; ++year) {
-					sources.add(new SourceResult(year.toString()));
+					sources.add(new SourceResult(exportType, year.toString()));
 				}
 				break;
 			case Tender:
-				sources.add(new SourceTender());
+				sources.add(new SourceTender(exportType));
 				break;
 		}
 		return sources;

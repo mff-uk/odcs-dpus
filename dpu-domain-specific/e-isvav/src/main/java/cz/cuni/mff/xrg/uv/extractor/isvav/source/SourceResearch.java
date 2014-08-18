@@ -14,13 +14,13 @@ public class SourceResearch extends AbstractSource {
 	
 	/**
 	 * Views:
-	 *	0 - výpis údajů o účastnících výzkumných záměrů po jednotlivých letech
-	 *	1 - výpis finančních údajů výzkumných záměrů po jednotlivých letech
+	 *	1 - výpis údajů o účastnících výzkumných záměrů po jednotlivých letech
+	 *	2 - výpis finančních údajů výzkumných záměrů po jednotlivých letech
 	 */
-	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=researchPlan&exportType=xls&views=1&views=2&x=15&y=4";
+	private static final String URL_DOWNLOAD = "http://www.isvav.cz/export.zip;jsessionid=%s?entityType=researchPlan&views=1&views=2&exportType=";
 	
-	public SourceResearch() {
-		super(URL_FILTER, URL_DOWNLOAD, "Research");
+	public SourceResearch(String exportType) {
+		super(URL_FILTER, URL_DOWNLOAD + exportType, "Research");
 	}	
 
 }
