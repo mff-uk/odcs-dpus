@@ -151,7 +151,6 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
      */
     protected void addTab(Component component, String caption) {
         final Tab newTab = tabSheet.addTab(component, caption);
-        tabSheet.setTabPosition(newTab, 1);
     }
 
     @Override
