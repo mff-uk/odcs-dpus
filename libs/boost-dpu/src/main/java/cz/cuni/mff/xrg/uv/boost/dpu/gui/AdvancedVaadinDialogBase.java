@@ -119,7 +119,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
                             addonWithDialog.getDialogCaption());
                 } else {
                     dialog.buildLayout();
-                    tabSheet.addTab(dialog, addonWithDialog.getDialogCaption());
+                    addTab(dialog, addonWithDialog.getDialogCaption());
                     this.addons.add(dialog);
                 }
             }
@@ -132,6 +132,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     protected void setCompositionRoot(Component compositionRoot) {
         if (mainTab != null && mainTab.getComponent().equals(compositionRoot)) {
             // already set
+            tabSheet.setSelectedTab(0);
             return;
         }
         final Tab newTab = tabSheet.addTab(compositionRoot, "DPU configuration");
@@ -141,6 +142,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         }
         mainTab = newTab;
         tabSheet.setTabPosition(newTab, 0);
+        tabSheet.setSelectedTab(0);
     }
 
     /**
