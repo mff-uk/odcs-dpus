@@ -143,6 +143,17 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         tabSheet.setTabPosition(newTab, 0);
     }
 
+    /**
+     * Add new tab under given name.
+     * 
+     * @param component
+     * @param caption
+     */
+    protected void addTab(Component component, String caption) {
+        final Tab newTab = tabSheet.addTab(component, caption);
+        tabSheet.setTabPosition(newTab, 1);
+    }
+
     @Override
     public void setContext(ConfigDialogContext newContext) {
         this.context = newContext;
