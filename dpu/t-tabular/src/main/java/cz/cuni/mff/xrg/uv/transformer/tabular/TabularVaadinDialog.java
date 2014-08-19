@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import com.vaadin.data.Property;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
@@ -38,6 +39,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checkIgnoreBlankCell;
 
+    private CheckBox checkStaticRowCounter;
+
     private TextField txtCsvQuoteChar;
 
     private TextField txtCsvDelimeterChar;
@@ -63,7 +66,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 	public TabularVaadinDialog() {
 		super(TabularConfig_V1.class, AddonInitializer.noAddons());
         try {
-		buildMainLayout();
+            buildMainLayout();
+            buildImportTab();
         } catch (Exception ex) {
             LOG.error("TabularVaadinDialog", ex);
             throw ex;
@@ -91,6 +95,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtBaseUri.setWidth("100%");
         this.txtBaseUri.setRequired(true);
         this.txtBaseUri.setRequiredError("Resource URI base must be supplied.");
+        this.txtBaseUri.setDescription("This value is used as base URI for automatic column property generation "
+                + "and also to create absolute URI if relative uri is provided in 'Property URI' column.");
         generalLayout.addComponent(this.txtBaseUri);
 
         this.txtKeyColumnName = new TextField("Key column");
@@ -107,6 +113,12 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtRowsLimit.setNullRepresentation("");
         generalLayout.addComponent(this.txtRowsLimit);
 
+        this.txtRowsClass = new TextField("Class for a row object");
+        this.txtRowsClass.setWidth("100%");
+        this.txtRowsClass.setNullRepresentation("");
+        this.txtRowsClass.setNullSettingAllowed(true);
+        generalLayout.addComponent(this.txtRowsClass);
+
         this.checkHasHeader = new CheckBox("Has header");
         this.checkHasHeader.setDescription("Uncheck if there is no header in given file. "
                         + "The columns are then accessible under names col0, col1, ..");
@@ -116,15 +128,14 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.checkGenerateNew.setDescription("If true then default mapping is generated for every column.");
         generalLayout.addComponent(this.checkGenerateNew);
 
-        this.txtRowsClass = new TextField("Class for a row object");
-        this.txtRowsClass.setWidth("100%");
-        this.txtRowsClass.setNullRepresentation("");
-        this.txtRowsClass.setNullSettingAllowed(true);
-        generalLayout.addComponent(this.txtRowsClass);
-
         this.checkIgnoreBlankCell = new CheckBox("Ignore blank cells");
         this.checkIgnoreBlankCell.setDescription("If unchecked and and cell is blank then URI for blank cell is inserted else cell is ignored.");
         generalLayout.addComponent(this.checkIgnoreBlankCell);
+
+        this.checkStaticRowCounter = new CheckBox("Use static row counter");
+        this.checkStaticRowCounter.setDescription("If checked and multiple files are precessed, then those files share the same row counter."
+                + "The process can be viewsed as if files are appended before parsing.");
+        generalLayout.addComponent(checkStaticRowCounter);
 
         // -------------------------- CSV ----------------------------
 
@@ -214,10 +225,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         // main layout for whole dialog
         mainLayout = new VerticalLayout();
 		mainLayout.setImmediate(false);
-        //mainLayout.setSpacing(true);
+        mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
-
+        mainLayout.setMargin(true);
         mainLayout.addComponent(configLayout);
         mainLayout.setExpandRatio(configLayout, 0.0f);
 
@@ -226,8 +237,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         mainLayout.addComponent(propertiesTab);
         mainLayout.setExpandRatio(propertiesTab, 1.0f);
 
-        Button btnAddMapping = new Button("Add mapping");
-        btnAddMapping.setImmediate(true);
+        final Button btnAddMapping = new Button("Add mapping");
         btnAddMapping.addClickListener(new Button.ClickListener() {
 
             @Override
@@ -252,6 +262,41 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         // setConfiguration method
 	}
 
+    private void buildImportTab() {
+
+        final FormLayout generalLayout = new FormLayout();
+		generalLayout.setImmediate(true);
+        generalLayout.setMargin(true);
+		generalLayout.setWidth("100%");
+		generalLayout.setHeight("-1px");
+
+        generalLayout.addComponent(new Label("Here you can insert \t separated "
+                + "names of columns. After pressing import given Input is "
+                + "paresed and used as column names in Mapping. "
+                + "Old data ARE LOST!",
+                ContentMode.HTML));
+
+        final Button btnImportColNames = new Button("Import column names");
+        generalLayout.addComponent(btnImportColNames);
+
+        final TextArea txtColNames = new TextArea("Input");
+        txtColNames.setSizeFull();
+        generalLayout.addComponent(txtColNames);
+
+        btnImportColNames.addClickListener(new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                parseStringForColumnNames(txtColNames.getValue());
+
+                Notification.show("Import", "Column name import done.",
+                        Notification.Type.HUMANIZED_MESSAGE);
+            }
+        });
+
+        this.addTab(generalLayout, "Import");
+    }
+
     private void addSimplePropertyMapping(String name, ColumnInfo_V1 setting) {
         final PropertyComponentGroup newGroup =
                 new PropertyComponentGroup(propertiesLayout);
@@ -259,6 +304,26 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         if (name != null && setting != null) {
             newGroup.set(name, setting);
+        }
+    }
+
+    /**
+     * Parse given string and use it to set column (properties) names. Original
+     * data are lost.
+     *
+     * @param str
+     */
+    private void parseStringForColumnNames(String str) {
+        final String[] columnNames = str.split("\t");
+        for (int index = 0; index < columnNames.length; ++index) {
+            if (index >= properties.size()) {
+                addSimplePropertyMapping(columnNames[index], 
+                        new ColumnInfo_V1());
+            } else {
+                // use existing
+                properties.get(index).set(columnNames[index], 
+                        new ColumnInfo_V1());
+            }
         }
     }
 
@@ -335,6 +400,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkGenerateNew.setValue(c.isGenerateNew());
         txtRowsClass.setValue(c.getRowsClass());
         checkIgnoreBlankCell.setValue(c.isIgnoreBlankCells());
+        checkStaticRowCounter.setValue(c.isStaticRowCounter());
     }
 
 	@Override
@@ -404,6 +470,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         cnf.setHasHeader(checkHasHeader.getValue());
         cnf.setGenerateNew(checkGenerateNew.getValue());
         cnf.setIgnoreBlankCells(checkIgnoreBlankCell.getValue());
+        cnf.setStaticRowCounter(checkStaticRowCounter.getValue());
 
         if (txtRowsClass.getValue() == null) {
             cnf.setRowsClass(null);
