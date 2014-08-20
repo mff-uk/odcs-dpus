@@ -8,10 +8,11 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.URISyntaxException;
 
 /**
+ * Component for setting basic mapping.
  *
  * @author Škoda Petr
  */
-public class PropertyComponentGroup {
+public class PropertyGroup {
 
     private final TextField columnName;
 
@@ -23,7 +24,7 @@ public class PropertyComponentGroup {
 
     private final TextField language;
 
-    public PropertyComponentGroup(GridLayout propertiesLayout) {
+    public PropertyGroup(GridLayout propertiesLayout) {
         this.columnName = new TextField();
         this.columnName.setWidth("100%");
         this.columnName.setNullSettingAllowed(true);

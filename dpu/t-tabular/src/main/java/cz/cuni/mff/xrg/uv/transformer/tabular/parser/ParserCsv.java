@@ -31,6 +31,8 @@ public class ParserCsv implements Parser {
 
     private final DPUContext context;
 
+    private int rowNumber = 0;
+
     public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf,
             DPUContext context) {
         this.config = config;
@@ -45,6 +47,11 @@ public class ParserCsv implements Parser {
                 config.delimiterChar.charAt(0),
                 "\\n") // is not used during reading
                 .build();
+
+        // set if for first time or if we use static row counter
+        if (!config.checkStaticRowCounter || rowNumber == 0) {
+           rowNumber = config.hasHeader ? 2 : 1;
+        }
 
         try (FileInputStream fileInputStream = new FileInputStream(inFile);
                 InputStreamReader inputStreamReader = new InputStreamReader(
@@ -71,22 +78,28 @@ public class ParserCsv implements Parser {
             //
             // read rows and parse
             //
-            int rowNumber = config.hasHeader ? 2 : 1;
+            int rowNumPerFile = 0;
             List<String> row = csvListReader.read();
             // configure parser
             TableToRdfConfigurator.configure(tableToRdf, header, (List)row);
             // go ...
+            if (config.rowLimit == null) {
+                LOG.debug("Row limit: not used");
+            } else {
+                LOG.debug("Row limit: {}", config.rowLimit);
+            }
             while (row != null && 
-                    (config.rowLimit == null || rowNumber < config.rowLimit) &&
+                    (config.rowLimit == null || rowNumPerFile < config.rowLimit) &&
                     !context.canceled()) {
                 // cast string to objects
                 tableToRdf.paserRow((List)row, rowNumber);
                 // read next row
                 rowNumber++;
+                rowNumPerFile++;
                 row = csvListReader.read();
                 // log
-                if ((rowNumber % 1000) == 0) {
-                    LOG.debug("Row number {} processed.", rowNumber);
+                if ((rowNumPerFile % 1000) == 0) {
+                    LOG.debug("Row number {} processed.", rowNumPerFile);
                 }
             }
         } catch (IOException ex) {

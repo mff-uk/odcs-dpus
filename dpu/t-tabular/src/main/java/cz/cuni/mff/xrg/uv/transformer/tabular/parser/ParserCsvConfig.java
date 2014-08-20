@@ -25,9 +25,11 @@ public class ParserCsvConfig {
 
     final boolean hasHeader;
 
+    final boolean checkStaticRowCounter;
+
     public ParserCsvConfig(String quoteChar, String delimiterChar,
             String encoding, Integer numberOfStartLinesToIgnore,
-            Integer rowLimit, boolean hasHeader) {
+            Integer rowLimit, boolean hasHeader, boolean checkStaticRowCounter) {
         if (quoteChar == null) {
             this.quoteChar = "\"";
             LOG.warn("Property quoteChar is not set, '{}' is used as default.",
@@ -57,6 +59,7 @@ public class ParserCsvConfig {
         }
         this.rowLimit = rowLimit;
         this.hasHeader = hasHeader;
+        this.checkStaticRowCounter = checkStaticRowCounter;
     }
 
 }

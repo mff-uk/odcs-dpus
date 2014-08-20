@@ -38,7 +38,7 @@ public class CsvTest {
         Mockito.when(context.canceled()).thenReturn(false);
     }
 
-//    @Test
+    //@Test
     public void csvw_csv2rdf_example_1() throws OperationFailedException, ParseFailed {
         
         final File csvFile = ResourceAccess.getFile("csvw_csv2rdf_example_1.csv");
@@ -47,7 +47,8 @@ public class CsvTest {
         // prepare tabular parser config
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
-                "http://localhost/", columnInfo, true, null, false);
+                "http://localhost/", columnInfo, true, null, false,
+                new HashMap<String, String>(), false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -57,7 +58,7 @@ public class CsvTest {
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, null, null,
-                0, null, true);
+                0, null, true, true);
 
         // go go go
         ParserCsv parser = new ParserCsv(csvConfig, tabular, context);
@@ -75,7 +76,8 @@ public class CsvTest {
         columnInfo.put("Fakt", new ColumnInfo_V1(null, ColumnType.String));
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
-                "http://localhost/", columnInfo, false, null, false);
+                "http://localhost/", columnInfo, false, null, false,
+                new HashMap<String, String>(), false, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -85,7 +87,7 @@ public class CsvTest {
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, null, null,
-                1, 10, true);
+                1, 10, true, true);
 
         // go go go
         ParserCsv parser = new ParserCsv(csvConfig, tabular, context);
@@ -102,7 +104,8 @@ public class CsvTest {
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
-                "http://localhost/", columnInfo, true, null, false);
+                "http://localhost/", columnInfo, true, null, false,
+                new HashMap<String, String>(), false, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -112,14 +115,14 @@ public class CsvTest {
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, null, null,
-                1, 10, false);
+                1, 10, false, true);
 
         // go go go
         ParserCsv parser = new ParserCsv(csvConfig, tabular, context);
         parser.parse(csvFile);
     }
 
-//    @Test
+    @Test
     public void DETIND2_140801() throws OperationFailedException, ParseFailed {
 
         final File csvFile = ResourceAccess.getFile("DETIND2_140801.txt");
@@ -128,9 +131,9 @@ public class CsvTest {
         // prepare tabular parser config
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         
-        TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
+        TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
-                false);
+                false, new HashMap<String, String>(), false, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -140,7 +143,7 @@ public class CsvTest {
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, "|", "Cp1250",
-                1, 10, false);
+                1, 10, false, true);
 
         // go go go
         ParserCsv parser = new ParserCsv(csvConfig, tabular, context);

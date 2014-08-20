@@ -3,7 +3,6 @@ package cz.cuni.mff.xrg.uv.transformer.tabular.mapper;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.transformer.tabular.TabularOntology;
-import cz.cuni.mff.xrg.uv.transformer.tabular.Utils;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGenerator;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,10 @@ public class TableToRdf {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableToRdf.class);
 
-    private final SimpleRdfWrite outRdf;
+    /**
+     * Data output.
+     */
+    final SimpleRdfWrite outRdf;
 
     final ValueFactory valueFactory;
 
@@ -31,7 +33,7 @@ public class TableToRdf {
 
     ValueGenerator[] infoMap = null;
 
-    Integer keyColumnIndex = null;
+    ValueGenerator keyColumn = null;
 
     String baseUri = null;
 
@@ -60,15 +62,16 @@ public class TableToRdf {
         //
         // get subject - key
         //
-        final String suffixURI = getURISuffix(row, rowNumber, keyColumnIndex);
-        final URI subj = valueFactory.createURI(baseUri + suffixURI);
+        final URI subj = prepareUri(row, rowNumber);
+        if (subj == null) {
+            LOG.error("Row ({}) has null key, row skipped.", rowNumber);
+        }
         //
         // parse the line, based on configuration
         //
         for (ValueGenerator item : infoMap) {
             final URI predicate = item.getUri();
-            final Value value = item.generateValue(row, nameToIndex,
-                    valueFactory);
+            final Value value = item.generateValue(row, valueFactory);
             if (value == null) {
                 if (config.ignoreBlankCells) {
                     // ignore
@@ -94,16 +97,13 @@ public class TableToRdf {
      *
      * @param row
      * @param rowNumber
-     * @param keyColumnIndex
      * @return
      */
-    protected String getURISuffix(List<Object> row, int rowNumber,
-            Integer keyColumnIndex) {
-        if (keyColumnIndex == null) {
-            return Integer.toString(rowNumber);
+    protected URI prepareUri(List<Object> row, int rowNumber) {
+        if (keyColumn == null) {
+            return valueFactory.createURI(baseUri + Integer.toString(rowNumber));
         } else {
-            return Utils.convertStringToURIPart(
-                    row.get(keyColumnIndex).toString());
+            return (URI)keyColumn.generateValue(row, valueFactory);
         }
     }
 

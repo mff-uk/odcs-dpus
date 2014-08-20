@@ -16,7 +16,7 @@ public class TabularConfig_V1 {
 
     /**
      * Name of column that will be used as a key. If null then first column
-     * is used.
+     * is used. Can also contains template for constriction of primary subject.
      */
     private String keyColumnName = null;
 
@@ -26,9 +26,15 @@ public class TabularConfig_V1 {
     private String baseURI = "http://localhost";
 
     /**
-     * Column mapping.
+     * Column mapping simple.
      */
     private Map<String, ColumnInfo_V1> columnsInfo = new LinkedHashMap<>();
+
+    /**
+     * Advanced column mapping using string templates directly. Based on
+     * http://w3c.github.io/csvw/csv2rdf/#
+     */
+    private Map<String, String> columnsInfoAdv = new LinkedHashMap<>();
 
     private String quoteChar = "\"";
 
@@ -56,9 +62,24 @@ public class TabularConfig_V1 {
     private boolean ignoreBlankCells = false;
 
     /**
+     * If true then {@link #keyColumnName} is interpreted as advanced = tempalte.
+     */
+    private boolean advancedKeyColumn = false;
+
+    /**
      * If null no class is set.
      */
     private String rowsClass;
+
+    /**
+     * If checked same row counter is used for all files. 
+     */
+    private boolean staticRowCounter = false;
+
+    /**
+     * If true then generate labels for properties (basic)
+     */
+    private boolean generateLabels = true;
 
     public TabularConfig_V1() {
     }
@@ -151,6 +172,14 @@ public class TabularConfig_V1 {
         this.generateNew = generateNew;
     }
 
+    public Map<String, String> getColumnsInfoAdv() {
+        return columnsInfoAdv;
+    }
+
+    public void setColumnsInfoAdv(Map<String, String> columnsInfoAdv) {
+        this.columnsInfoAdv = columnsInfoAdv;
+    }
+
     public String getRowsClass() {
         return rowsClass;
     }
@@ -167,18 +196,45 @@ public class TabularConfig_V1 {
         this.ignoreBlankCells = ignoreBlankCells;
     }
 
+    public boolean isAdvancedKeyColumn() {
+        return advancedKeyColumn;
+    }
+
+    public void setAdvancedKeyColumn(boolean advancedKeyColumn) {
+        this.advancedKeyColumn = advancedKeyColumn;
+    }
+    
+    public ParserDbfConfig getParserDbfConfig() {
+        return new ParserDbfConfig(encoding, rowsLimit, hasHeader,
+                staticRowCounter);
+    }
+
+    public boolean isStaticRowCounter() {
+        return staticRowCounter;
+    }
+
+    public void setStaticRowCounter(boolean staticRowCounter) {
+        this.staticRowCounter = staticRowCounter;
+    }
+
+    public boolean isGenerateLabels() {
+        return generateLabels;
+    }
+
+    public void setGenerateLabels(boolean generateLabels) {
+        this.generateLabels = generateLabels;
+    }
+
     public TableToRdfConfig getTableToRdfConfig() {
-        return new TableToRdfConfig(keyColumnName, baseURI, columnsInfo, 
-                generateNew, rowsClass, ignoreBlankCells);
+        return new TableToRdfConfig(keyColumnName, baseURI, columnsInfo,
+                generateNew, rowsClass, ignoreBlankCells, columnsInfoAdv,
+                advancedKeyColumn, generateLabels);
     }
 
     public ParserCsvConfig getParserCsvConfig() {
         return new ParserCsvConfig(quoteChar, delimiterChar,
-                encoding, linesToIgnore, rowsLimit, hasHeader);
-    }
-
-    public ParserDbfConfig getParserDbfConfig() {
-        return new ParserDbfConfig(encoding, rowsLimit, hasHeader);
+                encoding, linesToIgnore, rowsLimit, hasHeader,
+                staticRowCounter);
     }
 
 }

@@ -29,6 +29,8 @@ public class ParserDbf implements Parser {
 
     private final DPUContext context;
 
+    private int rowNumber = 0;
+
     public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf,
             DPUContext context) {
         this.config = config;
@@ -68,21 +70,33 @@ public class ParserDbf implements Parser {
         //
         // prase other rows
         //
-        int rowNumber = config.hasHeader ? 2 : 1;
+
+        // set if for first time or if we use static row counter
+        if (!config.checkStaticRowCounter || rowNumber == 0) {
+           rowNumber = config.hasHeader ? 2 : 1;
+        }
+
+        int rowNumPerFile = 0;
         Object[] row = reader.nextRecord();
         // configure parser
         TableToRdfConfigurator.configure(tableToRdf, header, Arrays.asList(row));
         // go ...
-        while (row != null
-                && (config.rowLimit == null || rowNumber < config.rowLimit)
-                && !context.canceled()) {
+            if (config.rowLimit == null) {
+                LOG.debug("Row limit: not used");
+            } else {
+                LOG.debug("Row limit: {}", config.rowLimit);
+            }
+        while (row != null &&
+                (config.rowLimit == null || rowNumPerFile < config.rowLimit) &&
+                !context.canceled()) {
             tableToRdf.paserRow(Arrays.asList(row), rowNumber);
             // read next row
             rowNumber++;
+            rowNumPerFile++;
             row = reader.nextRecord();
             // log
-            if ((rowNumber % 1000) == 0) {
-                LOG.debug("Row number {} processed.", rowNumber);
+            if ((rowNumPerFile % 1000) == 0) {
+                LOG.debug("Row number {} processed.", rowNumPerFile);
             }
         }
     }
