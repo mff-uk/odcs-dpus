@@ -47,11 +47,14 @@ public class TableToRdfConfig {
 
     final boolean generateLabels;
 
+    final boolean generateRowTriple;
+
     public TableToRdfConfig(String keyColumnName, String baseURI,
             Map<String, ColumnInfo_V1> columnsInfo, boolean generateNew,
             String rowsClass, boolean ignoreBlankCells,
             Map<String, String> columnsInfoAdv,
-            boolean advancedKeyColumn, boolean generateLabels) {
+            boolean advancedKeyColumn, boolean generateLabels,
+            boolean generateRowTriple) {
         this.keyColumn = keyColumnName;
         this.baseURI = baseURI;
         this.columnsInfo = columnsInfo != null ? columnsInfo :
@@ -63,6 +66,7 @@ public class TableToRdfConfig {
                 new HashMap<String, String>();;
         this.advancedKeyColumn = advancedKeyColumn;
         this.generateLabels = generateLabels;
+        this.generateRowTriple = generateRowTriple;
     }
 
 }

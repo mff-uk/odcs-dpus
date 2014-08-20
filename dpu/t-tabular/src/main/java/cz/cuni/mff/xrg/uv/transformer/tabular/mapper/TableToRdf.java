@@ -85,8 +85,10 @@ public class TableToRdf {
             }
         }
         // add row data - number, class
-        outRdf.add(subj, TabularOntology.URI_ROW_NUMBER,
-                valueFactory.createLiteral(rowNumber));
+        if (config.generateRowTriple) {
+            outRdf.add(subj, TabularOntology.URI_ROW_NUMBER,
+                    valueFactory.createLiteral(rowNumber));
+        }
         if (rowClass != null) {
             outRdf.add(subj, typeUri, rowClass);
         }

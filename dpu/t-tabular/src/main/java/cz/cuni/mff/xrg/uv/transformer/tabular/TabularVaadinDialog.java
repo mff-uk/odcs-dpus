@@ -45,6 +45,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checkGenerateLabels;
 
+    private CheckBox checkGenerateRowTriple;
+
     private TextField txtCsvQuoteChar;
 
     private TextField txtCsvDelimeterChar;
@@ -165,6 +167,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.checkGenerateLabels = new CheckBox("Generate labels");
         this.checkGenerateLabels.setDescription("If checked then rdfs:labels are generated to column URIs, as the value original column name is used. If file does not contain header then data from first row are used. Does not generate labels for advanced mapping.");
         checkLayout.addComponent(this.checkGenerateLabels);
+
+        this.checkGenerateRowTriple = new CheckBox("Generate row column");
+        this.checkGenerateRowTriple.setDescription("If checked then column with row number is generated for each row.");
+        checkLayout.addComponent(this.checkGenerateRowTriple);
 
         // -------------------------- CSV ----------------------------
 
@@ -507,6 +513,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkStaticRowCounter.setValue(c.isStaticRowCounter());
         checkAdvancedKeyColumn.setValue(c.isAdvancedKeyColumn());
         checkGenerateLabels.setValue(c.isGenerateLabels());
+        checkGenerateRowTriple.setValue(c.isGenerateRowTriple());
     }
 
 	@Override
@@ -589,6 +596,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         cnf.setStaticRowCounter(checkStaticRowCounter.getValue());
         cnf.setAdvancedKeyColumn(checkAdvancedKeyColumn.getValue());
         cnf.setGenerateLabels(checkGenerateLabels.getValue());
+        cnf.setGenerateRowTriple(checkGenerateRowTriple.getValue());
 
         final String rowsClass = txtRowsClass.getValue();
         if (rowsClass == null || rowsClass.isEmpty()) {

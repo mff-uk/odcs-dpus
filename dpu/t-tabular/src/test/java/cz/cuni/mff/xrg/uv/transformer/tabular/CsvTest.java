@@ -48,7 +48,7 @@ public class CsvTest {
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                new HashMap<String, String>(), false, true);
+                new HashMap<String, String>(), false, true, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -77,7 +77,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, false, null, false,
-                new HashMap<String, String>(), false, false);
+                new HashMap<String, String>(), false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -105,7 +105,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                new HashMap<String, String>(), false, false);
+                new HashMap<String, String>(), false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -133,7 +133,7 @@ public class CsvTest {
         
         TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
-                false, new HashMap<String, String>(), false, false);
+                false, new HashMap<String, String>(), false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 

@@ -81,6 +81,11 @@ public class TabularConfig_V1 {
      */
     private boolean generateLabels = true;
 
+    /**
+     * If true then triple with row number is generated for each line.
+     */
+    private boolean generateRowTriple = true;
+
     public TabularConfig_V1() {
     }
 
@@ -225,10 +230,18 @@ public class TabularConfig_V1 {
         this.generateLabels = generateLabels;
     }
 
+    public boolean isGenerateRowTriple() {
+        return generateRowTriple;
+    }
+
+    public void setGenerateRowTriple(boolean generateRowTriple) {
+        this.generateRowTriple = generateRowTriple;
+    }
+
     public TableToRdfConfig getTableToRdfConfig() {
         return new TableToRdfConfig(keyColumnName, baseURI, columnsInfo,
                 generateNew, rowsClass, ignoreBlankCells, columnsInfoAdv,
-                advancedKeyColumn, generateLabels);
+                advancedKeyColumn, generateLabels, generateRowTriple);
     }
 
     public ParserCsvConfig getParserCsvConfig() {
