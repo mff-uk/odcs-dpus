@@ -42,16 +42,6 @@ public class PropertyGroup {
         this.columnType.setNewItemsAllowed(false);
         propertiesLayout.addComponent(this.columnType);
 
-        this.uri = new TextField();
-        this.uri.setWidth("100%");
-        this.uri.setNullSettingAllowed(true);
-        this.uri.setNullRepresentation("");
-        propertiesLayout.addComponent(this.uri);
-
-        this.typeFromDbf = new CheckBox();
-        this.typeFromDbf.setWidth("7em");
-        propertiesLayout.addComponent(this.typeFromDbf);
-
         this.language = new TextField();
         this.language.setWidth("7em");
         this.language.setNullSettingAllowed(true);
@@ -65,6 +55,16 @@ public class PropertyGroup {
                         .getValue());
             }
         });
+
+        this.typeFromDbf = new CheckBox();
+        this.typeFromDbf.setWidth("7em");
+        propertiesLayout.addComponent(this.typeFromDbf);
+
+        this.uri = new TextField();
+        this.uri.setWidth("100%");
+        this.uri.setNullSettingAllowed(true);
+        this.uri.setNullRepresentation("");
+        propertiesLayout.addComponent(this.uri);
 
         updateEnabled((ColumnType) columnType.getValue());
     }

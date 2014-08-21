@@ -112,13 +112,12 @@ public class TableToRdfConfigurator {
             if (columnInfo.getType() == ColumnType.Auto) {
                 columnInfo.setType(guessType(columnName, data.get(index),
                         columnInfo.isUseTypeFromDfb()));
-                LOG.debug("Type for {} is {}", columnName,
-                        columnInfo.getType().toString());
             }
             //
             // generate tableToRdf configuration from 'columnInfo'
             //
             final String template = generateTemplate(columnInfo, columnName);
+            LOG.debug("Template for column '{}' is '{}'", columnName, template);
             //
             // add to configuration
             //
@@ -225,7 +224,7 @@ public class TableToRdfConfigurator {
         //
         if (value == null) {
             // we can gues ..
-            LOG.warn("Can't determine type for: {}, string used as default.",
+            LOG.warn("Can't determine type for: {} as value in first row is empty, string used as default.",
                     columnName);
             return ColumnType.String;
         }
@@ -283,6 +282,8 @@ public class TableToRdfConfigurator {
                 } else {
                     return placeHolder + "@" + columnInfo.getLanguage();
                 }
+            case gYear:
+                return placeHolder + "^^" + XMLSchema.GYEAR;
             default:
                 LOG.error("No type used for: {}", columnName);
                 return placeHolder;

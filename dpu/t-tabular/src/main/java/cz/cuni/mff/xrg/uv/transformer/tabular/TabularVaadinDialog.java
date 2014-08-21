@@ -80,7 +80,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 	public TabularVaadinDialog() {
 		super(TabularConfig_V1.class, AddonInitializer.noAddons());
         try {
-            buildImportTab();
+            buildMappingImportExportTab();
             buildMainLayout();
         } catch (Exception ex) {
             LOG.error("TabularVaadinDialog", ex);
@@ -228,14 +228,14 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.basicLayout.addComponent(new Label("Output type"));
         this.basicLayout.setColumnExpandRatio(1, 0.0f);
 
-        this.basicLayout.addComponent(new Label("Property URI"));
-        this.basicLayout.setColumnExpandRatio(2, 0.7f);
+        this.basicLayout.addComponent(new Label("Language"));
+        this.basicLayout.setColumnExpandRatio(2, 0.0f);
 
         this.basicLayout.addComponent(new Label("Use Dbf types"));
         this.basicLayout.setColumnExpandRatio(3, 0.0f);
 
-        this.basicLayout.addComponent(new Label("Language"));
-        this.basicLayout.setColumnExpandRatio(4, 0.0f);
+        this.basicLayout.addComponent(new Label("Property URI"));
+        this.basicLayout.setColumnExpandRatio(4, 0.7f);
 
         addSimplePropertyMapping(null, null);
 
@@ -261,7 +261,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         propertiesTab.addTab(this.basicLayout, "Simple");
         Tab tab = propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
-        tab.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } should is part of column name"
+        tab.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } is part of column name"
                 + "then before use they must be escaped ie. \\{ or \\} should be used."
                 + "Use \"...\" to denote literal and <...>  to denote uri. '...' then represent the content of literal/uri.");
 
@@ -321,20 +321,21 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         // then we
 	}
 
-    private void buildImportTab() {
+    private void buildMappingImportExportTab() {
         final VerticalLayout generalLayout = new VerticalLayout();
         generalLayout.setMargin(true);
 		generalLayout.setSizeFull();
 
-        final Label label = new Label("Here you can insert \t separated "
-                + "names of columns. After pressing import given Input is "
-                + "paresed and used as column names in Mapping. "
-                + "Old data ARE LOST!",
+        final Label label = new Label("Hower over buttons to get additional info",
                 ContentMode.HTML);
         generalLayout.addComponent(label);
         generalLayout.setExpandRatio(label, 0.0f);
 
         final Button btnImportColNames = new Button("Import column names");
+        btnImportColNames.setDescription("You can insert \t separated "
+                + "names of columns. After pressing import given text is "
+                + "paresed and used as column names in Mapping. "
+                + "Old data ARE LOST!");
         generalLayout.addComponent(btnImportColNames);
         generalLayout.setExpandRatio(btnImportColNames, 0.0f);
 
@@ -343,7 +344,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         generalLayout.addComponent(txtSeparator);
         generalLayout.setExpandRatio(txtSeparator, 0.0f);
 
-        final TextArea txtColNames = new TextArea("Input");
+        final TextArea txtColNames = new TextArea("");
         txtColNames.setSizeFull();
         generalLayout.addComponent(txtColNames);
         generalLayout.setExpandRatio(txtColNames, 1.0f);
@@ -360,7 +361,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             }
         });
 
-        this.addTab(generalLayout, "Import");
+        this.addTab(generalLayout, "Mapping Import/Export");
     }
 
     /**
@@ -629,8 +630,9 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 	@Override
 	public String getDescription() {
 		StringBuilder desc = new StringBuilder();
-				
+	
 		return desc.toString();
 	}
+
 
 }

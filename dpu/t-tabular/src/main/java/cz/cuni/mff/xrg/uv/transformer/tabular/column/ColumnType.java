@@ -12,6 +12,7 @@ public enum ColumnType {
     Float,
     Date,
     Boolean,
+    gYear,
     /**
      * Auto from data.
      */
