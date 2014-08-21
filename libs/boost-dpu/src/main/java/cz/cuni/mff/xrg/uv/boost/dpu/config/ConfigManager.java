@@ -69,7 +69,7 @@ public class ConfigManager {
             return null;
         }
         try {
-            return configHistory.parse(name, serializer);
+            return configHistory.parse(strValue, serializer);
         } catch (SerializationXmlFailure ex) {
             throw new ConfigException("Serialization failed", ex);
         }
