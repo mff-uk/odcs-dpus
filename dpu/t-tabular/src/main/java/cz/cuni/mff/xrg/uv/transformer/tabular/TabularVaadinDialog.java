@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 import com.vaadin.data.Property;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.TabSheet.Tab;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
@@ -259,7 +260,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         propertiesTab.setSizeFull();
 
         propertiesTab.addTab(this.basicLayout, "Simple");
-        propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
+        Tab tab = propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
+        tab.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } should is part of column name"
+                + "then before use they must be escaped ie. \\{ or \\} should be used."
+                + "Use \"...\" to denote literal and <...>  to denote uri. '...' then represent the content of literal/uri.");
 
         // -------------------------------------------------------------
 
@@ -312,7 +316,9 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         setCompositionRoot(mainPanel);
         // composite root can be updated in
-        // setConfiguration method
+        // setConfiguration method in reaction to dialog type (instance, template)
+
+        // then we
 	}
 
     private void buildImportTab() {
@@ -347,7 +353,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 parseStringForColumnNames(txtColNames.getValue(),
-                        txtSeparator.getValue());
+                        txtSeparator.getValue().trim());
 
                 Notification.show("Import", "Column name import done.",
                         Notification.Type.HUMANIZED_MESSAGE);

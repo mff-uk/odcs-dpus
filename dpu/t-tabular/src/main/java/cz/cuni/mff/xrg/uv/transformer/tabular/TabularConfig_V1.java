@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
+import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGeneratorReplace;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
@@ -33,6 +34,10 @@ public class TabularConfig_V1 {
     /**
      * Advanced column mapping using string templates directly. Based on
      * http://w3c.github.io/csvw/csv2rdf/#
+     *
+     * If { or } should be used then they can be escaped like: \{ and \}
+     * this functionality is secured by
+     * {@link ValueGeneratorReplace#compile}
      */
     private Map<String, String> columnsInfoAdv = new LinkedHashMap<>();
 

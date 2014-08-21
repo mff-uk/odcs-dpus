@@ -258,6 +258,10 @@ public class TableToRdfConfigurator {
      * @return
      */
     private static String generateTemplate(ColumnInfo_V1 columnInfo, String columnName) {
+        // update columnName
+        columnName = columnName.replaceAll("\\{", "\\\\{").
+                replaceAll("\\}", "\\\\}");
+
         final String placeHolder = "\"{" +columnName + "}\"";
         switch(columnInfo.getType()) {
             case Boolean:

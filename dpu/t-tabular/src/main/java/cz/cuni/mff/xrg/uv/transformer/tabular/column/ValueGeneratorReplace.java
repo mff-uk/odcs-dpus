@@ -118,12 +118,11 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
     public void compile(Map<String, Integer> nameToIndex,
             ValueFactory valueFactory) throws ParseFailed {
         tokens.clear();
-
         // parse inner pattern
         String toParse = template;
         while (!toParse.isEmpty()) {
-            int left = toParse.indexOf("{");
-            int right = toParse.indexOf("}");
+            int left = indexOfUnescape(toParse, '{');
+            int right = indexOfUnescape(toParse, '}');
 
             if (left == -1 && right == -1) {
                 tokens.add(new TokenString(toParse));
@@ -145,6 +144,10 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
             } else if (left == -1 || (right != -1 && right < left)) {
                 // } --> name
                 String name = toParse.substring(0, right);
+                // revert escaping
+                name = name.replaceAll("\\\\\\{", "\\{").
+                        replaceAll("\\\\}", "\\}");
+
                 toParse = toParse.substring(right + 1);
                 //
                 boolean isUri = false;
@@ -173,6 +176,30 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
     @Override
     public URI getUri() {
         return uri;
+    }
+
+    /**
+     * Return index of first unescape occurrence of given character in given
+     * string.
+     *
+     * @param str
+     * @param toFind
+     * @return
+     */
+    private int indexOfUnescape(String str, char toFind) {
+       for (int i = 0; i < str.length(); ++i) {
+           final char current = str.charAt(i);
+           if (current == toFind) {
+               // we find the one
+               return i;
+           } else if (current == '\\') {
+               // skip next
+               i++;
+           }
+           // continue the search
+       }
+       // not founded
+       return -1;
     }
 
     /**
