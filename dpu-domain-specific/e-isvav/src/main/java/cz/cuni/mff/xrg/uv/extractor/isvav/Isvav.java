@@ -80,9 +80,9 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 	 * @return 
 	 */
 	private List<AbstractSource> createSource() {
-		List<AbstractSource> sources = new LinkedList<>();
+		final List<AbstractSource> sources = new LinkedList<>();
         // xls, dbf
-        String exportType = "dbf";
+        final String exportType = config.getExportType();
 
 		switch (config.getSourceType()) {
 			case Funder:
