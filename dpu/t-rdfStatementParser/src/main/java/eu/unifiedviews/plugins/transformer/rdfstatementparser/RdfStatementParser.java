@@ -139,7 +139,7 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
         regExpCache.clear();
         // get input and iterate over it
         try {
-            SelectQuery.iterate(inData, config.getSelectQuery(), this);
+            SelectQuery.iterate(inData, config.getSelectQuery(), this, context);
         } catch (OperationFailedException | QueryEvaluationException ex) {
             throw new DPUException("Failed to iterate over input.", ex);
         }
