@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CloseCloseable;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
@@ -19,13 +20,9 @@ import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @DPU.AsTransformer
-public class Tabular extends DpuAdvancedBase<TabularConfig_V1> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
+public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;
@@ -36,7 +33,8 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V1> {
     private SimpleRdfWrite rdfTableWrap = null;
 
     public Tabular() {
-        super(TabularConfig_V1.class, AddonInitializer.create(new CloseCloseable()));
+        super(ConfigHistory.create(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class),
+                AddonInitializer.create(new CloseCloseable()));
     }
 
     @Override

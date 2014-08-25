@@ -1,8 +1,9 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGeneratorReplace;
+import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import java.util.LinkedHashMap;
@@ -14,13 +15,45 @@ import java.util.Map;
  *
  * @author Škoda Petr
  */
-public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
+public class TabularConfig_V2 {
 
+    public static class AdvanceMapping {
+        
+        private String uri = "";
+        
+        private String template = "";
+
+        public AdvanceMapping() {
+        }
+
+        public AdvanceMapping(String uri, String template) {
+            this.uri = uri;
+            this.template = template;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public void setUri(String uri) {
+            this.uri = uri;
+        }
+
+        public String getTemplate() {
+            return template;
+        }
+
+        public void setTemplate(String template) {
+            this.template = template;
+        }
+        
+    }
+    
     /**
      * Name of column that will be used as a key. If null then first column
      * is used. Can also contains template for constriction of primary subject.
      */
-    private String keyColumnName = null;
+    private String keyColumn = null;
 
     /**
      * Base URI that is used to prefix generated URIs.
@@ -40,7 +73,7 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
      * this functionality is secured by
      * {@link ValueGeneratorReplace#compile}
      */
-    private Map<String, String> columnsInfoAdv = new LinkedHashMap<>();
+    private List<AdvanceMapping> columnsInfoAdv = new LinkedList<>();
 
     private String quoteChar = "\"";
 
@@ -68,7 +101,7 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
     private boolean ignoreBlankCells = false;
 
     /**
-     * If true then {@link #keyColumnName} is interpreted as advanced = tempalte.
+     * If true then {@link #keyColumn} is interpreted as advanced = tempalte.
      */
     private boolean advancedKeyColumn = false;
 
@@ -92,15 +125,15 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
      */
     private boolean generateRowTriple = true;
 
-    public TabularConfig_V1() {
+    public TabularConfig_V2() {
     }
 
-    public String getKeyColumnName() {
-        return keyColumnName;
+    public String getKeyColumn() {
+        return keyColumn;
     }
 
-    public void setKeyColumnName(String keyColumnName) {
-        this.keyColumnName = keyColumnName;
+    public void setKeyColumn(String keyColumn) {
+        this.keyColumn = keyColumn;
     }
 
     public String getBaseURI() {
@@ -183,11 +216,11 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
         this.generateNew = generateNew;
     }
 
-    public Map<String, String> getColumnsInfoAdv() {
+    public List<AdvanceMapping> getColumnsInfoAdv() {
         return columnsInfoAdv;
     }
 
-    public void setColumnsInfoAdv(Map<String, String> columnsInfoAdv) {
+    public void setColumnsInfoAdv(List<AdvanceMapping> columnsInfoAdv) {
         this.columnsInfoAdv = columnsInfoAdv;
     }
 
@@ -244,37 +277,16 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
         this.generateRowTriple = generateRowTriple;
     }
 
-    @Override
-    public TabularConfig_V2 toNextVersion() {
-        TabularConfig_V2 v2 = new TabularConfig_V2();
-        v2.setAdvancedKeyColumn(advancedKeyColumn);
-        v2.setBaseURI(baseURI);
-        v2.setColumnsInfo(columnsInfo);
-        v2.setDelimiterChar(delimiterChar);
-        v2.setEncoding(encoding);
-        v2.setGenerateLabels(generateLabels);
-        v2.setGenerateNew(generateNew);
-        v2.setGenerateRowTriple(generateRowTriple);
-        v2.setHasHeader(hasHeader);
-        v2.setIgnoreBlankCells(ignoreBlankCells);
-        v2.setKeyColumn(keyColumnName);
-        v2.setLinesToIgnore(linesToIgnore);
-        v2.setQuoteChar(quoteChar);
-        v2.setRowsClass(rowsClass);
-        v2.setRowsLimit(rowsLimit);
-        v2.setStaticRowCounter(staticRowCounter);
-        v2.setTableType(tableType);
+    public TableToRdfConfig getTableToRdfConfig() {
+        return new TableToRdfConfig(keyColumn, baseURI, columnsInfo,
+                generateNew, rowsClass, ignoreBlankCells, columnsInfoAdv,
+                advancedKeyColumn, generateLabels, generateRowTriple);
+    }
 
-        List<TabularConfig_V2.AdvanceMapping> adv = new LinkedList<>();
-
-        for (String uri : columnsInfoAdv.keySet()) {
-            final String template = columnsInfoAdv.get(uri);
-            adv.add(new TabularConfig_V2.AdvanceMapping(uri, template));
-        }
-
-        v2.setColumnsInfoAdv(adv);
-
-        return v2;
+    public ParserCsvConfig getParserCsvConfig() {
+        return new ParserCsvConfig(quoteChar, delimiterChar,
+                encoding, linesToIgnore, rowsLimit, hasHeader,
+                staticRowCounter);
     }
 
 }

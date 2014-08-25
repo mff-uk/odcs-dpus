@@ -5,6 +5,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyGroup;
@@ -13,11 +14,13 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_V1> {
+public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_V2> {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             TabularVaadinDialog.class);
@@ -78,7 +81,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     private boolean layoutSet = false;
 
 	public TabularVaadinDialog() {
-		super(TabularConfig_V1.class, AddonInitializer.noAddons());
+		super(ConfigHistory.create(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class)
+                , AddonInitializer.noAddons());
         try {
             buildMappingImportExportTab();
             buildMainLayout();
@@ -331,29 +335,34 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         generalLayout.addComponent(label);
         generalLayout.setExpandRatio(label, 0.0f);
 
+        final HorizontalLayout buttonLine = new HorizontalLayout();
+        buttonLine.setWidth("100%");
+        buttonLine.setSpacing(true);
+        generalLayout.addComponent(buttonLine);
+        generalLayout.setExpandRatio(buttonLine, 0.0f);
+
         final Button btnImportColNames = new Button("Import column names");
         btnImportColNames.setDescription("You can insert \t separated "
                 + "names of columns. After pressing import given text is "
                 + "paresed and used as column names in Mapping. "
                 + "Old data ARE LOST!");
-        generalLayout.addComponent(btnImportColNames);
-        generalLayout.setExpandRatio(btnImportColNames, 0.0f);
-
-        final TextField txtSeparator = new TextField("Separator");
+        buttonLine.addComponent(btnImportColNames);
+        
+        final TextField txtSeparator = new TextField("Separator for 'Import column names'");
         txtSeparator.setValue("\\t");
         generalLayout.addComponent(txtSeparator);
         generalLayout.setExpandRatio(txtSeparator, 0.0f);
 
-        final TextArea txtColNames = new TextArea("");
-        txtColNames.setSizeFull();
-        generalLayout.addComponent(txtColNames);
-        generalLayout.setExpandRatio(txtColNames, 1.0f);
+        final TextArea txtValue = new TextArea("");
+        txtValue.setSizeFull();
+        generalLayout.addComponent(txtValue);
+        generalLayout.setExpandRatio(txtValue, 1.0f);
 
         btnImportColNames.addClickListener(new Button.ClickListener() {
 
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                parseStringForColumnNames(txtColNames.getValue(),
+                importColumnNames(txtValue.getValue(),
                         txtSeparator.getValue().trim());
 
                 Notification.show("Import", "Column name import done.",
@@ -400,7 +409,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
      *
      * @param str
      */
-    private void parseStringForColumnNames(String str, String separator) {
+    private void importColumnNames(String str, String separator) {
         if (separator == null || separator.isEmpty()) {
             separator = "\\t";
         }
@@ -423,7 +432,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     }
 
 	@Override
-	protected void setConfiguration(TabularConfig_V1 c) throws DPUConfigException {
+	protected void setConfiguration(TabularConfig_V2 c) throws DPUConfigException {
         //
         // update dialog, as the isTempalte is decided at the begining
         // this should occure only once per dialog creation
@@ -436,7 +445,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             }
         }
         //
-        txtKeyColumnName.setValue(c.getKeyColumnName());
+        txtKeyColumnName.setValue(c.getKeyColumn());
         //
         // save uri
         //
@@ -452,45 +461,9 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
         txtBaseUri.setValue(uriStr);
         //
-        // column info basic
+        // column mapping
         //
-        int index = 0;
-        for (String key : c.getColumnsInfo().keySet()) {
-            final ColumnInfo_V1 info = c.getColumnsInfo().get(key);
-            if (index >= basisMapping.size()) {
-                addSimplePropertyMapping(key, info);
-            } else {
-                // use existing
-                basisMapping.get(index).set(key, info);
-            }
-            index++;
-        }
-        // clear old
-        for (;index < basisMapping.size(); ++index) {
-            basisMapping.get(index).clear();
-        }
-        //
-        // column info advanced
-        //
-        index = 0;
-        if (c.getColumnsInfoAdv() != null) {
-            for (String key : c.getColumnsInfoAdv().keySet()) {
-                final String template = c.getColumnsInfoAdv().get(key);
-                if (index >= advancedMapping.size()) {
-                    addAdvancedPropertyMapping(key, template);
-                } else {
-                    // use existing
-                    advancedMapping.get(index).set(key, template);
-                }
-                index++;
-            }
-            // clear old
-            for (;index < advancedMapping.size(); ++index) {
-                advancedMapping.get(index).clear();
-            }
-        } else {
-            LOG.debug("c.getColumnsInfoAdv() is null!");
-        }
+        loadColumnMapping(c.getColumnsInfo(), c.getColumnsInfoAdv());
         //
         // csv data
         //
@@ -524,35 +497,20 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     }
 
 	@Override
-	protected TabularConfig_V1 getConfiguration() throws DPUConfigException {
-		TabularConfig_V1 cnf = new TabularConfig_V1();
+	protected TabularConfig_V2 getConfiguration() throws DPUConfigException {
+		TabularConfig_V2 cnf = new TabularConfig_V2();
 
         // check global validity
         if (!txtBaseUri.isValid() || !txtEncoding.isValid()) {
             throw new DPUConfigException("Configuration contains invalid inputs.");
         }
         
-        cnf.setKeyColumnName(txtKeyColumnName.getValue());
+        cnf.setKeyColumn(txtKeyColumnName.getValue());
         cnf.setBaseURI(txtBaseUri.getValue());
+        // 
+        // column mapping
         //
-        // column info basic
-        //
-        for (PropertyGroup item : basisMapping) {
-            final String name = item.getColumnName();
-            if (name != null) {
-                cnf.getColumnsInfo().put(name, item.get());
-            }
-        }
-        //
-        // column info advanced
-        //
-        for (PropertyGroupAdv item : advancedMapping) {
-            final String uri = item.getUri();
-            final String template = item.getTemplate();
-            if (uri != null && template != null) {
-                cnf.getColumnsInfoAdv().put(uri, template);
-            }
-        }
+        storeColumnMapping(cnf.getColumnsInfo(), cnf.getColumnsInfoAdv());
         //
         // csv data
         //
@@ -634,5 +592,73 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 		return desc.toString();
 	}
 
+    private void loadColumnMapping(Map<String, ColumnInfo_V1> basic,
+            List<TabularConfig_V2.AdvanceMapping> advance) {
+        //
+        // column info basic
+        //
+        int index = 0;
+        for (String key : basic.keySet()) {
+            final ColumnInfo_V1 info = basic.get(key);
+            if (index >= basisMapping.size()) {
+                addSimplePropertyMapping(key, info);
+            } else {
+                // use existing
+                basisMapping.get(index).set(key, info);
+            }
+            index++;
+        }
+        // clear old
+        for (;index < basisMapping.size(); ++index) {
+            basisMapping.get(index).clear();
+        }
+        //
+        // column info advanced
+        //
+        index = 0;
+        if (advance != null) {
+            for (TabularConfig_V2.AdvanceMapping item : advance) {
+                final String uri = item.getUri();
+                final String template = item.getTemplate();
+                if (index >= advancedMapping.size()) {
+                    addAdvancedPropertyMapping(uri, template);
+                } else {
+                    // use existing
+                    advancedMapping.get(index).set(uri, template);
+                }
+                index++;
+            }
+            // clear old
+            for (;index < advancedMapping.size(); ++index) {
+                advancedMapping.get(index).clear();
+            }
+        } else {
+            LOG.debug("c.getColumnsInfoAdv() is null!");
+        }
+    }
+
+    private void storeColumnMapping(Map<String, ColumnInfo_V1> basic,
+            List<TabularConfig_V2.AdvanceMapping> advance) throws DPUConfigException {
+        //
+        // column info basic
+        //
+        for (PropertyGroup item : basisMapping) {
+            final String name = item.getColumnName();
+            if (name != null) {
+                basic.put(name, item.get());
+            }
+        }
+        //
+        // column info advanced
+        //
+        for (PropertyGroupAdv item : advancedMapping) {
+            final String uri = item.getUri();
+            final String template = item.getTemplate();
+            if (uri != null && template != null &&
+                    !uri.isEmpty() && !template.isEmpty()) {
+                advance.add(new TabularConfig_V2.AdvanceMapping(uri, template));
+            }
+        }
+    }
 
 }

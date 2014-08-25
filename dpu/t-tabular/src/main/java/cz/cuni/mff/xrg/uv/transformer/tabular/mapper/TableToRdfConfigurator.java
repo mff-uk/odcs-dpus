@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular.mapper;
 
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.transformer.tabular.TabularConfig_V2;
 import cz.cuni.mff.xrg.uv.transformer.tabular.TabularOntology;
 import cz.cuni.mff.xrg.uv.transformer.tabular.Utils;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
@@ -32,14 +33,17 @@ public class TableToRdfConfigurator {
      * @param header
      * @param data
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
+     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
-    public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data) throws ParseFailed, OperationFailedException {
+    public static void configure(TableToRdf tableToRdf, List<String> header,
+            List<Object> data) throws ParseFailed, OperationFailedException {
         // initial checks
         if (data == null) {
             throw new ParseFailed("First data row is null!");
         }
         if (header != null && header.size() != data.size()) {
-            throw new ParseFailed("Diff number of cells in header (" + header.size() + ") and data (" + data.size() + ")");
+            throw new ParseFailed("Diff number of cells in header ("
+                    + header.size() + ") and data (" + data.size() + ")");
         }
         //
         final TableToRdfConfig config = tableToRdf.config;
@@ -164,14 +168,13 @@ public class TableToRdfConfigurator {
         //
         // add advanced
         //
-        for (String uri : tableToRdf.config.columnsInfoAdv.keySet()) {
-            final String template = tableToRdf.config.columnsInfoAdv.get(uri);
+        for (TabularConfig_V2.AdvanceMapping item : tableToRdf.config.columnsInfoAdv) {
             // prepare URI
-            uri = prepareAsUri(uri, config);
+            String uri = prepareAsUri(item.getUri(), config);
             // add tempalte
             valueGenerators.add(ValueGeneratorReplace.create(
                 tableToRdf.valueFactory.createURI(uri),
-                template));
+                item.getTemplate()));
         }
         //
         // Compile valueGenerators

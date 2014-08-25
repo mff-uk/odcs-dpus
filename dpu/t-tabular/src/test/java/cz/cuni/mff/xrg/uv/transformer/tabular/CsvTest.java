@@ -12,6 +12,7 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsv;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public class CsvTest {
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                new HashMap<String, String>(), false, true, true);
+                Collections.EMPTY_LIST, false, true, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -77,7 +78,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, false, null, false,
-                new HashMap<String, String>(), false, false, true);
+                Collections.EMPTY_LIST, false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -105,7 +106,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                new HashMap<String, String>(), false, false, true);
+                Collections.EMPTY_LIST, false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -133,7 +134,7 @@ public class CsvTest {
         
         TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
-                false, new HashMap<String, String>(), false, false, true);
+                false, Collections.EMPTY_LIST, false, false, true);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
