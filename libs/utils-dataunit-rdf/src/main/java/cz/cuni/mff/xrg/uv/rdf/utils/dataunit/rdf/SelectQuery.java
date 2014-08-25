@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
+import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -56,16 +57,17 @@ public class SelectQuery {
      * @param rdf
      * @param query
      * @param iterator
-     * @throws cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException
+     * @param context
+     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      * @throws org.openrdf.query.QueryEvaluationException
      * @throws eu.unifiedviews.dpu.DPUException
      */
-    public static void iterate(SimpleRdfRead rdf, String query, BindingIterator iterator)
+    public static void iterate(SimpleRdfRead rdf, String query, BindingIterator iterator, DPUContext context)
             throws OperationFailedException, QueryEvaluationException, DPUException {
         try (ConnectionPair<TupleQueryResult> connection =
                 rdf.executeSelectQuery(query)) {
             final TupleQueryResult result = connection.getObject();
-            while (result.hasNext()) {
+            while (result.hasNext() && !context.canceled()) {
                 final BindingSet bindingSet = result.next();
                 iterator.processStatement(bindingSet);
             }
