@@ -33,8 +33,12 @@ public class ConfigHistory<CONFIG> {
             return serializer.convert(finalClass, config);
         }
         //
-        // go down to deep past
+        // go down to deep past, if you can
         //
+        if (endOfHistory == null) {
+            throw new ConfigException("Can't parse given object");
+        }
+
         Object object = null;
         ConfigHistoryEntry<?,?> current = endOfHistory;
         do {
@@ -76,12 +80,42 @@ public class ConfigHistory<CONFIG> {
         return finalClass;
     }
 
+    /**
+     * Call {@link #create(java.lang.Class, java.lang.String)} with allias
+     * equals to clazz.getCanonicalName().replaceAll("_", "__") as '_' are
+     * replaced by xStream with "__".
+     *
+     * @param <T>
+     * @param <S>
+     * @param clazz
+     * @return
+     */
     public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz) {
         return create(clazz, clazz.getCanonicalName().replaceAll("_", "__"));
     }
 
+    /**
+     * Create new history evidence for given class with given alias.
+     *
+     * @param <T>
+     * @param <S>
+     * @param clazz
+     * @param alias
+     * @return
+     */
     public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz, String alias) {
         return new ConfigHistoryEntry<>(alias, clazz, null);
+    }
+
+    /**
+     * Create representation for configuration class without history.
+     * 
+     * @param <T>
+     * @param clazz
+     * @return
+     */
+    public static <T> ConfigHistory<T> createNoHistory(Class<T> clazz) {
+        return new ConfigHistory<>(null, clazz);
     }
 
 }

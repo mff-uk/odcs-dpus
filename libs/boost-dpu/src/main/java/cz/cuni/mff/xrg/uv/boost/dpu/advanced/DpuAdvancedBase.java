@@ -58,24 +58,18 @@ public abstract class DpuAdvancedBase<CONFIG>
         private CONFIG config;
 
         /**
-         * DPU's configuration class.
-         */
-        private final Class<CONFIG> configClass;
-
-        /**
          * History of configuration class, if set used instead of
          * {@link #configClass}.
          */
         private final ConfigHistory<CONFIG> configHistory;
 
         public Context(List<AddonInitializer.AddonInfo> addons,
-                Class<CONFIG> configClass, ConfigHistory<CONFIG> configHistory) {
+                ConfigHistory<CONFIG> configHistory) {
             this.serializationXml = SerializationXmlFactory
                     .serializationXmlGeneral();
             this.serializationXml.addAlias(MasterConfigObject.class,
                     "MasterConfigObject");            
             this.addons = addons;
-            this.configClass = configClass;
             this.configHistory = configHistory;
         }
 
@@ -97,10 +91,6 @@ public abstract class DpuAdvancedBase<CONFIG>
 
         public CONFIG getConfig() {
             return config;
-        }
-
-        public Class<CONFIG> getConfigClass() {
-            return configClass;
         }
 
         public ConfigHistory<CONFIG> getConfigHistory() {
@@ -131,12 +121,13 @@ public abstract class DpuAdvancedBase<CONFIG>
 
     public DpuAdvancedBase(Class<CONFIG> configClass,
             List<AddonInitializer.AddonInfo> addons) {
-        this.masterContext = new Context(addons, configClass, null);
+        this.masterContext = new Context(addons, 
+                ConfigHistory.createNoHistory(configClass));
     }
 
     public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory,
             List<AddonInitializer.AddonInfo> addons) {
-        this.masterContext = new Context(addons, null, configHistory);
+        this.masterContext = new Context(addons, configHistory);
     }
 
     @Override
@@ -147,14 +138,8 @@ public abstract class DpuAdvancedBase<CONFIG>
         // prepare configuration
         //
         try {
-            if (this.masterContext.configHistory == null) {
-                // no history for configuration
-                this.masterContext.config = this.masterContext.configManager.get(
-                        DPU_CONFIG_NAME, this.masterContext.configClass);
-            } else {
-                this.masterContext.config = this.masterContext.configManager.get(
-                        DPU_CONFIG_NAME, this.masterContext.configHistory);
-            }
+            this.masterContext.config = this.masterContext.configManager.get(
+                    DPU_CONFIG_NAME, this.masterContext.configHistory);
         } catch (ConfigException ex) {
             context.sendMessage(MessageType.ERROR,
                     "Configuration prepareation failed.", "", ex);
@@ -267,15 +252,10 @@ public abstract class DpuAdvancedBase<CONFIG>
             throw new DPUConfigException("Conversion failed.", ex);
         } catch (java.lang.ClassCastException e) {
             // try direct conversion
-            // TODO update
+            // TODO update : move into addon
             try {
-                CONFIG dpuConfig;
-                if (masterContext.configHistory == null) {
-                    // no history for configuration
-                    dpuConfig = masterContext.serializationXml.convert(masterContext.configClass, config);
-                } else {
-                    dpuConfig = masterContext.serializationXml.convert(masterContext.configHistory.getFinalClass(), config);
-                }
+                final CONFIG dpuConfig = masterContext.serializationXml.convert(
+                        masterContext.configHistory.getFinalClass(), config);
                 final MasterConfigObject masterConfig = new MasterConfigObject();
                 masterContext.configManager = new ConfigManager(masterConfig, masterContext.serializationXml);
 
@@ -310,7 +290,7 @@ public abstract class DpuAdvancedBase<CONFIG>
     private MasterConfigObject createDefaultMasterConfig() throws SerializationXmlFailure {
         // get string representation
         final CONFIG dpuConfig = this.masterContext.serializationXml.createInstance(
-                this.masterContext.configClass);
+                this.masterContext.configHistory.getFinalClass());
         final String dpuConfigStr = this.masterContext.serializationXml.convert(
                 dpuConfig);
         // prepare master config

@@ -40,11 +40,6 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     private final SerializationXmlGeneral serializationXml;
 
     /**
-     * DPU's configuration class.
-     */
-    private final Class<CONFIG> configClass;
-
-    /**
      * Configuration manager.
      */
     private ConfigManager configManager = null;
@@ -76,10 +71,9 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
                 .serializationXmlGeneral();
         this.serializationXml.addAlias(MasterConfigObject.class,
                 "MasterConfigObject");
-        this.configClass = configClass;
         this.configManager = new ConfigManager(new MasterConfigObject(),
                 serializationXml);
-        this.configHistory = null;
+        this.configHistory = ConfigHistory.createNoHistory(configClass);
         // addons - add dialogs
         this.addons = new LinkedList<>();
         this.tabSheet = new TabSheet();
@@ -91,7 +85,6 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
-        this.configClass = configHistory.getFinalClass();
         this.configManager = new ConfigManager(new MasterConfigObject(),
                 serializationXml);
         this.configHistory = configHistory;
@@ -176,23 +169,13 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             throw new DPUConfigException("Conversion failed.", ex);
         } catch (java.lang.ClassCastException e) {
             // try direct conversion
-            // TODO update
+            // TODO update > use somehow in configurations ?
             try {
-                CONFIG dpuConfig;
-                if (configHistory == null) {
-                    // no history for configuration
-                    dpuConfig = serializationXml.convert(configClass, conf);
-                } else {
-                    dpuConfig = serializationXml.convert(configHistory.getFinalClass(), conf);
-                }
+                final CONFIG dpuConfig = serializationXml.convert(
+                        configHistory.getFinalClass(), conf);
                 final MasterConfigObject masterConfig = new MasterConfigObject();
                 configManager = new ConfigManager(masterConfig, serializationXml);
-                
-                if (configHistory == null) {
-                    configManager.set(dpuConfig, DPU_CONFIG_NAME);
-                } else {
-                    configManager.set(dpuConfig, DPU_CONFIG_NAME);
-                }
+                configManager.set(dpuConfig, DPU_CONFIG_NAME);
             } catch (Exception ex) {
                 throw new DPUConfigException("Conversion failed for prime class", ex);
             }
@@ -200,13 +183,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         //
         // configure DPU
         //
-        CONFIG dpuConfig;
-        if (configHistory == null) {
-            // no history for configuration
-            dpuConfig = configManager.get(DPU_CONFIG_NAME, configClass);
-        } else {
-            dpuConfig = configManager.get(DPU_CONFIG_NAME, configHistory);
-        }
+        final CONFIG dpuConfig = configManager.get(DPU_CONFIG_NAME, configHistory);
         setConfiguration(dpuConfig);
         //
         // configure addons
