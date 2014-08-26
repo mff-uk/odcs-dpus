@@ -11,7 +11,7 @@ public class SuklOntology {
     public static final String BASE_URI = "http://linked.opendata.cz/resource/domain/sukl/";
 
     public static final String P_EFFECTIVE_SUBSTANCE
-            = BASE_URI + "effectiveSubstance";
+            = "http://linked.opendata.cz/ontology/sukl/hasActiveIngredient/effectiveSubstance";
 
     public static URI P_EFFECTIVE_SUBSTANCE_URI;
 
