@@ -120,12 +120,18 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     protected void innerExecute() throws DPUException {
         try {
             // will call processStatement
-            SelectQuery.iterate(inSkosNoation, IN_QUERY, this);
+            SelectQuery.iterate(inSkosNoation, IN_QUERY, this, context);
             // flush buffer
             outInfo.flushBuffer();
-        } catch (OperationFailedException | QueryEvaluationException e) {
+
+            LOG.debug("Metadata dump:");
+            Manipulator.dump(filesOutTexts);
+
+        } catch (DataUnitException | QueryEvaluationException e) {
             throw new DPUException("Query execution failed.", e);
         }
+
+
     }
 
     @Override
@@ -210,7 +216,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                         val.indexOf(")"));
                 // add
                 outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
-                        valueFactory.createLiteral(nameCz, "cz"));
+                        valueFactory.createLiteral(nameCz, "cs"));
                 outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
                         valueFactory.createLiteral(nameLa, "la"));
 
@@ -293,9 +299,26 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                     valueFactory.createURI(value));
             // download
             final File file = downloaderService.get(value);
-            filesOutTexts.addExistingFile(value, file.toURI().toString());
+
             // add metadata for path
+            while (!context.canceled()) {
+                try {
+                    filesOutTexts.addExistingFile(value,
+                            file.toURI().toString());
+                    // files has been added
+                    break;
+                } catch (DataUnitException ex) {
+                    LOG.warn("FilesDataUnit.addExistingFile throws. ", ex);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+
+                }
+            }
+
             final String path = notation + "-" + fileType + ".pdf";
+            LOG.debug("new file {} -> {}", file.toURI().toString(), path);
             Manipulator.add(filesOutTexts, value,
                     VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
         }
