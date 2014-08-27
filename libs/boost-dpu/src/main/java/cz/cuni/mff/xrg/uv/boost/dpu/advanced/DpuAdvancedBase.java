@@ -216,9 +216,9 @@ public abstract class DpuAdvancedBase<CONFIG>
         // execute - innerCleanUp
         //
         try {
-            LOG.info("innerExecute:start");
+            LOG.info("innerCleanUp:start");
             innerCleanUp();
-            LOG.info("innerExecute:start");
+            LOG.info("innerCleanUp:stop");
         } catch (Throwable ex) {
             context.sendMessage(MessageType.ERROR, "DPU Failed",
                     "DPU throws Throwable in innerCleanUp method. See logs for more details.");
