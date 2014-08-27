@@ -104,16 +104,22 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         //
         // ontology
         //
-        SuklOntology.P_EFFECTIVE_SUBSTANCE_URI
-                = valueFactory.createURI(SuklOntology.P_EFFECTIVE_SUBSTANCE);
+        SuklOntology.O_INGREDIEND_CLASS_URI
+                = valueFactory.createURI(SuklOntology.O_INGREDIEND_CLASS);
+        SuklOntology.P_HAS_INGREDIEND_URI
+                = valueFactory.createURI(SuklOntology.P_HAS_INGREDIEND);
+        SuklOntology.P_INGREDIEND_NAME_DCTERMS_URI
+                = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_DCTERMS);
+        SuklOntology.P_INGREDIEND_NAME_SKOS_URI
+                = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_SKOS);
         SuklOntology.P_PIL_URI
                 = valueFactory.createURI(SuklOntology.P_PIL);
         SuklOntology.P_SPC_URI
                 = valueFactory.createURI(SuklOntology.P_SPC);
         SuklOntology.P_TEXT_ON_THE_WRAP_URI
                 = valueFactory.createURI(SuklOntology.P_TEXT_ON_THE_WRAP);
-        SuklOntology.O_NOT_SET_URI
-                = valueFactory.createURI(SuklOntology.O_NOT_SET);
+        SuklOntology.O_INGREDIEND_NOT_SET_URI
+                = valueFactory.createURI(SuklOntology.O_INGREDIEND_NOT_SET);
     }
 
     @Override
@@ -130,7 +136,6 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         } catch (DataUnitException | QueryEvaluationException e) {
             throw new DPUException("Query execution failed.", e);
         }
-
 
     }
 
@@ -154,7 +159,6 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                     "Notation: " + notation, e);
 
             // TODO terminate or continue?
-
         } catch (DataUnitException ex) {
             throw new DPUException("Problem with dataUnit.", ex);
         }
@@ -206,26 +210,30 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo(
                     "Účinná látka") == 0) {
-                final String val = element.getElementsByTag("td").first().text();
+                final String val = element.getElementsByTag("td").first().html();
                 if (val.length() < 2) {
                     // this is just an empty string, we skip this
                     return false;
                 }
-                final String nameCz = val.substring(0, val.indexOf("("));
-                final String nameLa = val.substring(val.indexOf("(") + 1,
-                        val.indexOf(")"));
-                // add
-                outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
-                        valueFactory.createLiteral(nameCz, "cs"));
-                outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
-                        valueFactory.createLiteral(nameLa, "la"));
+
+                final String[] substances = val.split("<br />");
+                for (String substance : substances) {
+                    substance = substance.trim();
+                    // get names
+                    final String nameCs = substance.substring(0,
+                            substance.indexOf("("));
+                    final String nameLa = substance.substring(
+                            substance.indexOf("(") + 1, substance.indexOf(")"));
+                    // add
+                    addIngredient(subject, nameLa, nameCs, "cs");
+                }
 
                 return true;
             }
         }
         // else not set
-        outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
-                SuklOntology.O_NOT_SET_URI);
+        outInfo.add(subject, SuklOntology.P_HAS_INGREDIEND_URI,
+                SuklOntology.O_INGREDIEND_NOT_SET_URI);
         return false;
     }
 
@@ -242,13 +250,47 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo(
                     "Active substance") == 0) {
-                final String val = element.getElementsByTag("td").first().text();
-                final String nameEn = val.substring(0, val.indexOf("("));
-                // add
-                outInfo.add(subject, SuklOntology.P_EFFECTIVE_SUBSTANCE_URI,
-                        valueFactory.createLiteral(nameEn, "en"));
+                final String val = element.getElementsByTag("td").first().html();
+                if (val.length() < 2) {
+                    // this is just an empty string, we skip this
+                    break;
+                }
+
+                final String[] substances = val.split("<br />");
+                for (String substance : substances) {
+                    substance = substance.trim();
+                    // get names
+                    final String nameEn = substance.substring(0,
+                            substance.indexOf("("));
+                    final String nameLa = substance.substring(
+                            substance.indexOf("(") + 1, substance.indexOf(")"));
+                    addIngredient(subject, nameLa, nameEn, "en");
+                }
             }
         }
+    }
+
+    /**
+     * Create record for given ingredient and bind it to given subject.
+     *
+     * @param subject
+     * @param nameLa Identifier of ingredient - name in latin.
+     * @param name
+     * @param lang
+     * @throws OperationFailedException
+     */
+    private void addIngredient(URI subject, String nameLa, String name,
+            String lang) throws OperationFailedException {
+        final String ingredientSubjectStr = SuklOntology.INGREDIEND_PREFIX
+                + Utils.convertStringToURIPart(nameLa);
+        final URI ingredientUri = valueFactory.createURI(ingredientSubjectStr);
+
+        outInfo.add(subject, SuklOntology.P_HAS_INGREDIEND_URI, ingredientUri);
+        // add names
+        outInfo.add(ingredientUri, SuklOntology.P_INGREDIEND_NAME_SKOS_URI,
+                valueFactory.createLiteral(nameLa, "la"));
+        outInfo.add(ingredientUri, SuklOntology.P_INGREDIEND_NAME_SKOS_URI,
+                valueFactory.createLiteral(name, lang));
     }
 
     /**
@@ -257,6 +299,10 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * @param subject
      * @param notation
      * @param doc
+     * @throws
+     * cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
+     * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
+     * @throws java.io.IOException
      */
     private void parseTexts(URI subject, String notation, Document doc)
             throws OperationFailedException, AddonException, IOException,
