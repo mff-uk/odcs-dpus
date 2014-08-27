@@ -211,13 +211,10 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             if (element.getElementsByTag("th").first().text().compareTo(
                     "Účinná látka") == 0) {
                 final String val = element.getElementsByTag("td").first().html();
-                if (val.length() < 2) {
+                final String valText = element.getElementsByTag("td").first().text().trim();
+                if (valText.length() < 2) {
                     // this is just an empty string, we skip this
                     return false;
-                }
-                if (!val.contains("(")) {
-                    LOG.info("Skipped {} with value {} as it do not contains '('",
-                            subject.toString(), val);
                 }
 
                 final String[] substances = val.split("<br />");
@@ -256,13 +253,10 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             if (element.getElementsByTag("th").first().text().compareTo(
                     "Active substance") == 0) {
                 final String val = element.getElementsByTag("td").first().html();
-                if (val.length() < 2) {
+                final String valText = element.getElementsByTag("td").first().text().trim();
+                if (valText.length() < 2) {
                     // this is just an empty string, we skip this
-                    break;
-                }
-                if (!val.contains("(")) {
-                    LOG.info("Skipped {} with value {} as it do not contains '('",
-                            subject.toString(), val);
+                    return;
                 }
 
                 final String[] substances = val.split("<br />");
