@@ -215,8 +215,13 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                     // this is just an empty string, we skip this
                     return false;
                 }
+                if (!val.contains("(")) {
+                    LOG.info("Skipped {} with value {} as it do not contains '('",
+                            subject.toString(), val);
+                }
 
                 final String[] substances = val.split("<br />");
+
                 for (String substance : substances) {
                     substance = substance.trim();
                     // get names
@@ -254,6 +259,10 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 if (val.length() < 2) {
                     // this is just an empty string, we skip this
                     break;
+                }
+                if (!val.contains("(")) {
+                    LOG.info("Skipped {} with value {} as it do not contains '('",
+                            subject.toString(), val);
                 }
 
                 final String[] substances = val.split("<br />");
