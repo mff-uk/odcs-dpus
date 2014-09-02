@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CloseCloseable;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -20,9 +21,13 @@ import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @DPU.AsTransformer
 public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;
@@ -30,11 +35,12 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
     @DataUnit.AsOutput(name = "triplifiedTable")
     public WritableRDFDataUnit outRdfTables;
 
-    private SimpleRdfWrite rdfTableWrap = null;
+    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "outRdfTables")
+    public SimpleRdfWrite rdfTableWrap = null;
 
     public Tabular() {
         super(ConfigHistory.create(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class),
-                AddonInitializer.create(new CloseCloseable()));
+                AddonInitializer.create(new CloseCloseable(), new SimpleRdfConfigurator(Tabular.class)));
     }
 
     @Override
@@ -79,6 +85,11 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
         //
         final FilesDataUnit.Iteration iteration = inFilesTable.getIteration();
         getAddon(CloseCloseable.class).add(iteration);
+
+        if (!iteration.hasNext()) {
+            context.sendMessage(DPUContext.MessageType.ERROR, "No input files!");
+            return;
+        }
 
         while(iteration.hasNext()) {
             final FilesDataUnit.Entry entry = iteration.next();

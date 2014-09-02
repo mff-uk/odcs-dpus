@@ -10,15 +10,12 @@ public class ParserDbfConfig {
 
     final Integer rowLimit;
 
-    final boolean hasHeader;
-
     final boolean checkStaticRowCounter;
 
-    public ParserDbfConfig(String encoding, Integer rowLimit, boolean hasHeader,
+    public ParserDbfConfig(String encoding, Integer rowLimit,
             boolean checkStaticRowCounter) {
         this.encoding = encoding;
         this.rowLimit = rowLimit;
-        this.hasHeader = hasHeader;
         this.checkStaticRowCounter = checkStaticRowCounter;
     }
 

@@ -11,6 +11,7 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsv;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -123,7 +124,7 @@ public class CsvTest {
         parser.parse(csvFile);
     }
 
-    @Test
+    //@Test
     public void DETIND2_140801() throws OperationFailedException, ParseFailed {
 
         final File csvFile = ResourceAccess.getFile("DETIND2_140801.txt");

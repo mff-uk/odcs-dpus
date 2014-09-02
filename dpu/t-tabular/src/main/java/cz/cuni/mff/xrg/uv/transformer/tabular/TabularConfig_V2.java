@@ -248,11 +248,6 @@ public class TabularConfig_V2 {
         this.advancedKeyColumn = advancedKeyColumn;
     }
     
-    public ParserDbfConfig getParserDbfConfig() {
-        return new ParserDbfConfig(encoding, rowsLimit, hasHeader,
-                staticRowCounter);
-    }
-
     public boolean isStaticRowCounter() {
         return staticRowCounter;
     }
@@ -285,7 +280,14 @@ public class TabularConfig_V2 {
 
     public ParserCsvConfig getParserCsvConfig() {
         return new ParserCsvConfig(quoteChar, delimiterChar,
-                encoding, linesToIgnore, rowsLimit, hasHeader,
+                encoding, linesToIgnore,
+                rowsLimit == null || rowsLimit == -1 ? null : rowsLimit,
+                hasHeader, staticRowCounter);
+    }
+
+    public ParserDbfConfig getParserDbfConfig() {
+        return new ParserDbfConfig(encoding,
+                rowsLimit == null || rowsLimit == -1 ? null : rowsLimit,
                 staticRowCounter);
     }
 

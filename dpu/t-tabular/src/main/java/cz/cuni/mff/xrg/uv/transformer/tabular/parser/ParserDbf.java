@@ -5,6 +5,7 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,25 +48,19 @@ public class ParserDbf implements Parser {
         } else {
             encoding = config.encoding;
         }
-
         if (!Charset.isSupported(encoding)) {
             throw new ParseFailed("Charset '" + encoding + "' is not supported.");
         }
-
         final DbfReader reader = new DbfReader(inFile);
         //
         // get header
         //        
         final List<String> header;
-        if (config.hasHeader) {
-            final DbfHeader dbfHeader = reader.getHeader();
-            header = new ArrayList<>(dbfHeader.getFieldsCount());
-            for (int i = 0; i < dbfHeader.getFieldsCount(); ++i) {
-                final DbfField field = dbfHeader.getField(i);
-                header.add(field.getName());
-            }
-        } else {
-            header = null;
+        final DbfHeader dbfHeader = reader.getHeader();
+        header = new ArrayList<>(dbfHeader.getFieldsCount());
+        for (int i = 0; i < dbfHeader.getFieldsCount(); ++i) {
+            final DbfField field = dbfHeader.getField(i);
+            header.add(field.getName());
         }
         //
         // prase other rows
@@ -73,27 +68,42 @@ public class ParserDbf implements Parser {
 
         // set if for first time or if we use static row counter
         if (!config.checkStaticRowCounter || rowNumber == 0) {
-           rowNumber = config.hasHeader ? 2 : 1;
+           rowNumber = 1;
         }
-
         int rowNumPerFile = 0;
         Object[] row = reader.nextRecord();
+        List<Object> stringRow = new ArrayList(row.length);
         // configure parser
         TableToRdfConfigurator.configure(tableToRdf, header, Arrays.asList(row));
         // go ...
-            if (config.rowLimit == null) {
-                LOG.debug("Row limit: not used");
-            } else {
-                LOG.debug("Row limit: {}", config.rowLimit);
-            }
+        if (config.rowLimit == null) {
+            LOG.debug("Row limit: not used");
+        } else {
+            LOG.debug("Row limit: {}", config.rowLimit);
+        }
         while (row != null &&
                 (config.rowLimit == null || rowNumPerFile < config.rowLimit) &&
-                !context.canceled()) {
-            tableToRdf.paserRow(Arrays.asList(row), rowNumber);
+                !context.canceled()) {            
+            // convert
+            for (Object item : row) {
+                if (item instanceof byte[]) {
+                    try {
+                        stringRow.add(new String((byte [])item, config.encoding));
+                    } catch (UnsupportedEncodingException ex) {
+                        // terminate DPU as this can not be handled
+                        throw new RuntimeException(ex);
+                    }
+                } else {
+                    stringRow.add(item);
+                }
+            }
+            // process
+            tableToRdf.paserRow(stringRow, rowNumber);
             // read next row
             rowNumber++;
             rowNumPerFile++;
             row = reader.nextRecord();
+            stringRow.clear();
             // log
             if ((rowNumPerFile % 1000) == 0) {
                 LOG.debug("Row number {} processed.", rowNumPerFile);

@@ -5,6 +5,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
@@ -37,8 +38,6 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private TextField txtRowsClass;
 
-    private CheckBox checkHasHeader;
-
     private CheckBox checkGenerateNew;
 
     private CheckBox checkIgnoreBlankCell;
@@ -56,6 +55,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     private TextField txtCsvDelimeterChar;
 
     private TextField txtCsvLinesToIgnore;
+
+    private CheckBox checCsvkHasHeader;
 
     /**
      * Layout for basic column mapping.
@@ -82,7 +83,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
 	public TabularVaadinDialog() {
 		super(ConfigHistory.create(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class)
-                , AddonInitializer.noAddons());
+                , AddonInitializer.create(new SimpleRdfConfigurator(Tabular.class)));
         try {
             buildMappingImportExportTab();
             buildMainLayout();
@@ -129,6 +130,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         generalLayout.addComponent(this.txtEncoding);
 
         this.txtRowsLimit = new TextField("Rows limit");
+        this.txtRowsLimit.setInputPrompt("no limit");
         this.txtRowsLimit.setNullRepresentation("");
         this.txtRowsLimit.setNullSettingAllowed(true);
         generalLayout.addComponent(this.txtRowsLimit);
@@ -146,11 +148,6 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkLayout.setHeight("-1px");
         checkLayout.setSpacing(true);
         generalLayout.addComponent(checkLayout);
-
-        this.checkHasHeader = new CheckBox("Has header");
-        this.checkHasHeader.setDescription("Uncheck if there is no header in given file. "
-                        + "The columns are then accessible under names col0, col1, ..");
-        checkLayout.addComponent(this.checkHasHeader);
 
         this.checkGenerateNew = new CheckBox("Full column mapping");
         this.checkGenerateNew.setDescription("If true then default mapping is generated for every column.");
@@ -203,6 +200,11 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtCsvQuoteChar.setRequired(true);
         csvLayout.addComponent(this.txtCsvLinesToIgnore);
 
+        this.checCsvkHasHeader = new CheckBox("Has header");
+        this.checCsvkHasHeader.setDescription("Uncheck if there is no header in given file. "
+                        + "The columns are then accessible under names col0, col1, ..");
+        csvLayout.addComponent(this.checCsvkHasHeader);
+
         // add change listener
         this.optionTableType.addValueChangeListener(new Property.ValueChangeListener() {
 
@@ -213,6 +215,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                 txtCsvQuoteChar.setEnabled(csvEnabled);
                 txtCsvDelimeterChar.setEnabled(csvEnabled);
                 txtCsvLinesToIgnore.setEnabled(csvEnabled);
+                checCsvkHasHeader.setEnabled(csvEnabled);
             }
         });
 
@@ -471,10 +474,12 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             txtCsvQuoteChar.setValue(c.getQuoteChar());
             txtCsvDelimeterChar.setValue(c.getDelimiterChar());
             txtCsvLinesToIgnore.setValue(c.getLinesToIgnore().toString());
+            checCsvkHasHeader.setValue(c.isHasHeader());
         } else {
             txtCsvQuoteChar.setValue("\"");
             txtCsvDelimeterChar.setValue(",");
             txtCsvLinesToIgnore.setValue("0");
+            checCsvkHasHeader.setValue(true);
         }
         //
         // other data
@@ -486,7 +491,6 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             txtRowsLimit.setValue(c.getRowsLimit().toString());
         }
         optionTableType.setValue(c.getTableType());
-        checkHasHeader.setValue(c.isHasHeader());
         checkGenerateNew.setValue(c.isGenerateNew());
         txtRowsClass.setValue(c.getRowsClass());
         checkIgnoreBlankCell.setValue(c.isIgnoreBlankCells());
@@ -555,7 +559,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
 
         cnf.setTableType((ParserType)optionTableType.getValue());
-        cnf.setHasHeader(checkHasHeader.getValue());
+        cnf.setHasHeader(checCsvkHasHeader.getValue());
         cnf.setGenerateNew(checkGenerateNew.getValue());
         cnf.setIgnoreBlankCells(checkIgnoreBlankCell.getValue());
         cnf.setStaticRowCounter(checkStaticRowCounter.getValue());

@@ -215,11 +215,6 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
         this.advancedKeyColumn = advancedKeyColumn;
     }
     
-    public ParserDbfConfig getParserDbfConfig() {
-        return new ParserDbfConfig(encoding, rowsLimit, hasHeader,
-                staticRowCounter);
-    }
-
     public boolean isStaticRowCounter() {
         return staticRowCounter;
     }
@@ -267,11 +262,13 @@ public class TabularConfig_V1 implements VersionedConfig<TabularConfig_V2> {
 
         List<TabularConfig_V2.AdvanceMapping> adv = new LinkedList<>();
 
-        for (String uri : columnsInfoAdv.keySet()) {
-            final String template = columnsInfoAdv.get(uri);
-            adv.add(new TabularConfig_V2.AdvanceMapping(uri, template));
+        if (columnsInfoAdv != null) {
+            for (String uri : columnsInfoAdv.keySet()) {
+                final String template = columnsInfoAdv.get(uri);
+                adv.add(new TabularConfig_V2.AdvanceMapping(uri, template));
+            }
         }
-
+        
         v2.setColumnsInfoAdv(adv);
 
         return v2;
