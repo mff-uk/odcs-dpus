@@ -58,7 +58,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     /**
      * List of configurable addons.
      */
-    private final List<AddonDialogBase> addons;
+    private final List<AddonVaadinDialogBase> addons;
 
     /**
      * Currently set main sheet.
@@ -106,7 +106,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             if (addonInfo.getAddon() instanceof AddonWithVaadinDialog) {
                 final AddonWithVaadinDialog addonWithDialog
                         = (AddonWithVaadinDialog) addonInfo.getAddon();
-                final AddonDialogBase dialog = addonWithDialog.getDialog();
+                final AddonVaadinDialogBase dialog = addonWithDialog.getDialog();
                 if (dialog == null) {
                     LOG.error("Dialog is ignored as it's null: {}",
                             addonWithDialog.getDialogCaption());
@@ -188,7 +188,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         //
         // configure addons
         //
-        for (AddonDialogBase dialogs : addons) {
+        for (AddonVaadinDialogBase dialogs : addons) {
             dialogs.loadConfig(configManager);
         }
     }
@@ -205,7 +205,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         //
         // get configuration from addons
         //
-        for (AddonDialogBase dialogs : addons) {
+        for (AddonVaadinDialogBase dialogs : addons) {
             dialogs.storeConfig(newConfigManager);
         }
         //

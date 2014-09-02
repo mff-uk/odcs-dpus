@@ -13,7 +13,7 @@ public interface AddonWithVaadinDialog<CONFIG> extends Addon {
 
     /**
      * 
-     * @return Caption that is used for {@link AddonDialogBase}.
+     * @return Caption that is used for {@link AddonVaadinDialogBase}.
      */
     public String getDialogCaption();
 
@@ -21,6 +21,6 @@ public interface AddonWithVaadinDialog<CONFIG> extends Addon {
      * 
      * @return Respective configuration dialog.
      */
-    public AddonDialogBase<CONFIG> getDialog();
+    public AddonVaadinDialogBase<CONFIG> getDialog();
 
 }

@@ -12,7 +12,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AddonDialogBase<CONFIG>
+public abstract class AddonVaadinDialogBase<CONFIG>
     extends CustomComponent {
 
     /**
@@ -26,11 +26,11 @@ public abstract class AddonDialogBase<CONFIG>
      */
     private final ConfigHistory<CONFIG> configHistory;
 
-    public AddonDialogBase(ConfigHistory<CONFIG> configHistory) {
+    public AddonVaadinDialogBase(ConfigHistory<CONFIG> configHistory) {
         this.configHistory = configHistory;
     }
 
-    public AddonDialogBase(Class<CONFIG> configClass) {
+    public AddonVaadinDialogBase(Class<CONFIG> configClass) {
         this.configHistory = ConfigHistory.createNoHistory(configClass);
     }
 

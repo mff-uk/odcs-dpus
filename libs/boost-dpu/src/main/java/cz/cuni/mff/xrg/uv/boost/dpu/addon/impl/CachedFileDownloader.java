@@ -7,7 +7,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.CancelledException;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonDialogBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonWithVaadinDialog;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
@@ -95,7 +95,7 @@ public class CachedFileDownloader
     /**
      * Addon's configuration dialog.
      */
-    public class VaadinDialog extends AddonDialogBase<Configuration> {
+    public class VaadinDialog extends AddonVaadinDialogBase<Configuration> {
 
         private TextField txtMaxAttemps;
 
@@ -243,7 +243,7 @@ public class CachedFileDownloader
     }
 
     @Override
-    public AddonDialogBase<Configuration> getDialog() {
+    public AddonVaadinDialogBase<Configuration> getDialog() {
         return new VaadinDialog();
     }
 
