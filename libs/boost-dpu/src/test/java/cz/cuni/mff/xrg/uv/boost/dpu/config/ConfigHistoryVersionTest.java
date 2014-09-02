@@ -10,7 +10,7 @@ import org.junit.Test;
  *
  * @author Škoda Petr
  */
-public class VersionedConfigTest {
+public class ConfigHistoryVersionTest {
 
     SerializationXmlGeneral serialization = SerializationXmlFactory
             .serializationXmlGeneral();
