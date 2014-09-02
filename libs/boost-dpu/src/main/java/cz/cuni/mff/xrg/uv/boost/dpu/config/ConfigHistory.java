@@ -19,16 +19,29 @@ public class ConfigHistory<CONFIG> {
 
     private final Class<CONFIG> finalClass;
 
+    /**
+     *
+     * @param endOfHistory
+     * @param finalClass If null then class from endOfHistory is used.
+     */
     ConfigHistory(ConfigHistoryEntry<?, CONFIG> endOfHistory, Class<CONFIG> finalClass) {
         this.endOfHistory = endOfHistory;
-        this.finalClass = finalClass;
+        if (finalClass == null) {
+            // we know this as the only option we can get here
+            // is by ConfigHistoryEntry.addCurrent
+            // which adds the final version of config ie. CONFIG
+            this.finalClass = (Class<CONFIG>)endOfHistory.configClass;
+        } else {
+            this.finalClass = finalClass;
+        }
     }
 
     CONFIG parse(String config, SerializationXmlGeneral serializer) throws SerializationXmlFailure, ConfigException {
         //
         // checkif it's not the last class
         //
-        if (config.contains(finalClass.getCanonicalName().replace("_", "__"))) {
+        final String finalClassName = getClassName(finalClass);
+        if (config.contains(finalClassName)) {
             // ok, just convert
             return serializer.convert(finalClass, config);
         }
@@ -36,6 +49,7 @@ public class ConfigHistory<CONFIG> {
         // go down to deep past, if you can
         //
         if (endOfHistory == null) {
+            LOG.error("Can't parse config for ({}), there is no history, value is: {}", finalClassName, config);
             throw new ConfigException("Can't parse given object");
         }
 
@@ -80,10 +94,19 @@ public class ConfigHistory<CONFIG> {
         return finalClass;
     }
 
+    private static String getClassName(Class<?> clazz) {
+        String className = clazz.getCanonicalName().replace("_", "__");
+        if (clazz.getEnclosingClass() != null) {
+            // change last dot into _-
+            int lastDot = className.lastIndexOf(".");
+            className = className.substring(0, lastDot) + "_-" + className.substring(lastDot + 1);
+        }
+        return className;
+    }
+
     /**
      * Call {@link #create(java.lang.Class, java.lang.String)} with allias
-     * equals to clazz.getCanonicalName().replaceAll("_", "__") as '_' are
-     * replaced by xStream with "__".
+     * equals to given class name.
      *
      * @param <T>
      * @param <S>
@@ -91,7 +114,7 @@ public class ConfigHistory<CONFIG> {
      * @return
      */
     public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz) {
-        return create(clazz, clazz.getCanonicalName().replaceAll("_", "__"));
+        return create(clazz, getClassName(clazz));
     }
 
     /**
