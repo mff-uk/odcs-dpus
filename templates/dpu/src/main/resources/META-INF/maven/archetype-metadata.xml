@@ -4,7 +4,7 @@
 					  name="UberProject" partial="false" >
 	<requiredProperties>
 		<requiredProperty key="parent_version">
-			<defaultValue>1.1.0</defaultValue>
+			<defaultValue>1.1.1</defaultValue>
 		</requiredProperty>
 		<requiredProperty key="dpu_name">
             <defaultValue>Tabular</defaultValue>

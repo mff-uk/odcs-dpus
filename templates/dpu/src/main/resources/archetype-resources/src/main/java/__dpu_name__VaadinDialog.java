@@ -18,13 +18,13 @@ public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name
     }
 
     @Override
-    public void setConfiguration(${dpu_name}Config_V1 conf) throws DPUConfigException {
+    public void setConfiguration(${dpu_name}Config_V1 c) throws DPUConfigException {
 
     }
 
     @Override
     public ${dpu_name}Config_V1 getConfiguration() throws DPUConfigException {
-        final ${dpu_name}Config_V1 conf = new ${dpu_name}Config_V1();
+        final ${dpu_name}Config_V1 c = new ${dpu_name}Config_V1();
 
         return conf;
     }
@@ -33,6 +33,7 @@ public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name
 		final VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
+        mainLayout.setMargin(true);
 
         mainLayout.addComponent(new Label("DPU's configuration"));
 
