@@ -32,6 +32,8 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     public class Context {
 
+        private final DPU dpu;
+
         /**
          * Execution context.
          */
@@ -63,14 +65,19 @@ public abstract class DpuAdvancedBase<CONFIG>
          */
         private final ConfigHistory<CONFIG> configHistory;
 
-        public Context(List<AddonInitializer.AddonInfo> addons,
+        public Context(DPU dpu, List<AddonInitializer.AddonInfo> addons,
                 ConfigHistory<CONFIG> configHistory) {
+            this.dpu = dpu;
             this.serializationXml = SerializationXmlFactory
                     .serializationXmlGeneral();
             this.serializationXml.addAlias(MasterConfigObject.class,
                     "MasterConfigObject");            
             this.addons = addons;
             this.configHistory = configHistory;
+        }
+
+        public DPU getDpu() {
+            return dpu;
         }
 
         public DPUContext getDpuContext() {
@@ -121,13 +128,13 @@ public abstract class DpuAdvancedBase<CONFIG>
 
     public DpuAdvancedBase(Class<CONFIG> configClass,
             List<AddonInitializer.AddonInfo> addons) {
-        this.masterContext = new Context(addons, 
+        this.masterContext = new Context(this, addons,
                 ConfigHistory.createNoHistory(configClass));
     }
 
     public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory,
             List<AddonInitializer.AddonInfo> addons) {
-        this.masterContext = new Context(addons, configHistory);
+        this.masterContext = new Context(this, addons, configHistory);
     }
 
     @Override
