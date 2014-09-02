@@ -24,6 +24,8 @@ import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -70,7 +72,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     @DataUnit.AsInput(name = "SkosNotation")
     public RDFDataUnit rdfInSkosNotation;
 
-    public SimpleRdfRead inSkosNoation;
+    public SimpleRdfRead inSkosNotation;
 
     @DataUnit.AsOutput(name = "Info", description = "Active substances and links to files.")
     public WritableRDFDataUnit rdfOutInfo;
@@ -83,6 +85,16 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private final CachedFileDownloader downloaderService;
 
     private ValueFactory valueFactory;
+
+    /**
+     * Count number of files on output.
+     */
+    private Integer filesOnOutput = 0;
+
+    /**
+     * Store info about files on output as files can be shared.
+     */
+    private final Set<String> downloadedFiles = new HashSet<>();
 
     public Sukl() {
         super(SuklConfig_V1.class,
@@ -97,7 +109,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         //
         // wraps
         //
-        inSkosNoation = SimpleRdfFactory.create(rdfInSkosNotation, context);
+        inSkosNotation = SimpleRdfFactory.create(rdfInSkosNotation, context);
         outInfo = SimpleRdfFactory.create(rdfOutInfo, context);
         outInfo.setPolicy(AddPolicy.BUFFERED);
         valueFactory = this.outInfo.getValueFactory();
@@ -114,29 +126,40 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_SKOS);
         SuklOntology.P_PIL_URI
                 = valueFactory.createURI(SuklOntology.P_PIL);
+        SuklOntology.P_PIL_FILE_URI
+                = valueFactory.createURI(SuklOntology.P_PIL_FILE);
         SuklOntology.P_SPC_URI
                 = valueFactory.createURI(SuklOntology.P_SPC);
+        SuklOntology.P_SPC_FILE_URI
+                = valueFactory.createURI(SuklOntology.P_SPC_FILE);
         SuklOntology.P_TEXT_ON_THE_WRAP_URI
                 = valueFactory.createURI(SuklOntology.P_TEXT_ON_THE_WRAP);
-        SuklOntology.O_INGREDIEND_NOT_SET_URI
-                = valueFactory.createURI(SuklOntology.O_INGREDIEND_NOT_SET);
+        SuklOntology.P_TEXT_ON_THE_WRAP_FILE_URI
+                = valueFactory.createURI(SuklOntology.P_TEXT_ON_THE_WRAP_FILE);
+        // locals
+        filesOnOutput = 0;
+        downloadedFiles.clear();
     }
 
     @Override
     protected void innerExecute() throws DPUException {
         try {
             // will call processStatement
-            SelectQuery.iterate(inSkosNoation, IN_QUERY, this, context);
+            SelectQuery.iterate(inSkosNotation, IN_QUERY, this, context);
             // flush buffer
             outInfo.flushBuffer();
 
-            LOG.debug("Metadata dump:");
             Manipulator.dump(filesOutTexts);
 
-        } catch (DataUnitException | QueryEvaluationException e) {
-            throw new DPUException("Query execution failed.", e);
+        } catch (OperationFailedException ex) {
+            throw new DPUException("Operation failed.", ex);
+        } catch (QueryEvaluationException ex) {
+            throw new DPUException("Query execution failed.", ex);
+        } catch (DataUnitException ex) {
+            
         }
-
+        // log number of files
+        context.sendMessage(DPUContext.MessageType.INFO, filesOnOutput.toString() + " files downloaded.");
     }
 
     @Override
@@ -175,24 +198,29 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private void downloadInfo(URI subject, String notation) throws AddonException,
             IOException, OperationFailedException, DataUnitException {
         LOG.debug("downloadInfo({}, {})", subject.toString(), notation);
+
+        //
         // parse info cz
+        //
         final File fileInfoCz = downloaderService.get(
                 URI_BASE_INFO_CZ + notation);
-        final Document docInfoCz = Jsoup.parse(fileInfoCz,
-                null, "view-source:www.sukl.cz");
-        if (parseNameCz(subject, docInfoCz)) {
-            // parse info en only if we get the czech one
-            // as if we not nor english is probably provided
-            final File fileInfoEn = downloaderService.get(
-                    URI_BASE_INFO_EN + notation);
-            final Document docInfoEn = Jsoup.parse(fileInfoEn,
-                    null, "view-source:www.sukl.cz");
-            parseNameEn(subject, docInfoEn);
-        }
-        // parse info cz
+        final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
+        parseNameCz(subject, docInfoCz);
+
+        //
+        // parse 'en' only if we get the czech one
+        // as if we not nor english is probably provided
+        //
+        final File fileInfoEn = downloaderService.get(
+                URI_BASE_INFO_EN + notation);
+        final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
+        parseNameEn(subject, docInfoEn);
+
+        //
+        // donwload texts
+        //
         final File fileText = downloaderService.get(URI_BASE_TEXTS + notation);
-        final Document docText = Jsoup.parse(fileText,
-                null, "view-source:www.sukl.cz");
+        final Document docText = Jsoup.parse(fileText, null);
         parseTexts(subject, notation, docText);
     }
 
@@ -201,10 +229,9 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      *
      * @param subject
      * @param doc
-     * @return True if name is provided.
      * @throws OperationFailedException
      */
-    private boolean parseNameCz(URI subject, Document doc)
+    private void parseNameCz(URI subject, Document doc)
             throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
@@ -214,7 +241,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
                     // this is just an empty string, we skip this
-                    return false;
+                    LOG.trace("Value '{}' skipped.", valText);
+                    return;
                 }
 
                 final String[] substances = val.split("<br />");
@@ -229,14 +257,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                     // add
                     addIngredient(subject, nameLa, nameCs, "cs");
                 }
-
-                return true;
             }
         }
-        // else not set
-        outInfo.add(subject, SuklOntology.P_HAS_INGREDIEND_URI,
-                SuklOntology.O_INGREDIEND_NOT_SET_URI);
-        return false;
     }
 
     /**
@@ -256,6 +278,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
                     // this is just an empty string, we skip this
+                    LOG.trace("Value '{}' skipped.", valText);
                     return;
                 }
 
@@ -324,37 +347,47 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             }
             // parse
             URI predicate = null;
-            String fileType = "";
+            URI predicateFile = null;
             switch (name) {
                 case "SPC - Souhrn údajů o přípravku":
                     predicate = SuklOntology.P_SPC_URI;
-                    fileType = "spc";
+                    predicateFile = SuklOntology.P_SPC_FILE_URI;
                     break;
                 case "PIL - Příbalová informace":
                     predicate = SuklOntology.P_PIL_URI;
-                    fileType = "pil";
+                    predicateFile = SuklOntology.P_PIL_FILE_URI;
                     break;
                 case "Text na obalu":
                     predicate = SuklOntology.P_TEXT_ON_THE_WRAP_URI;
-                    fileType = "textOnTheWrap";
+                    predicateFile = SuklOntology.P_TEXT_ON_THE_WRAP_FILE_URI;
                     break;
             }
-            if (predicate == null) {
+            if (predicate == null || predicateFile == null) {
                 // value is not interesting for us
                 continue;
             }
             // add info
             outInfo.add(subject, predicate,
                     valueFactory.createURI(value));
+            final String fileName = Utils.convertStringToURIPart(value);
+            outInfo.add(subject, predicateFile,
+                    valueFactory.createLiteral(fileName));
+
             // download
             final File file = downloaderService.get(value);
+
+            if (downloadedFiles.contains(fileName)) {
+                // already downloaded
+                return;
+            }
 
             // add metadata for path
             while (!context.canceled()) {
                 try {
-                    filesOutTexts.addExistingFile(value,
+                    filesOutTexts.addExistingFile(fileName,
                             file.toURI().toString());
                     // files has been added
+                    ++filesOnOutput;
                     break;
                 } catch (DataUnitException ex) {
                     LOG.warn("FilesDataUnit.addExistingFile throws. ", ex);
@@ -365,11 +398,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
 
                 }
             }
-
-            final String path = notation + "-" + fileType + ".pdf";
-            LOG.debug("new file {} -> {}", file.toURI().toString(), path);
-            Manipulator.add(filesOutTexts, value,
-                    VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
+            LOG.debug("new file {} -> {}", file.toURI().toString(), fileName);
+            Manipulator.add(filesOutTexts, fileName,
+                    VirtualPathHelper.PREDICATE_VIRTUAL_PATH, fileName);
+            // add
+            downloadedFiles.add(fileName);
         }
     }
 

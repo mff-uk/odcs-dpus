@@ -43,19 +43,29 @@ public class SuklOntology {
 
     public static URI P_SPC_URI;
 
+    public static final String P_SPC_FILE
+            = ONTOLOGY_URI + "spcFile";
+
+    public static URI P_SPC_FILE_URI;
+
     public static final String P_PIL
             = ONTOLOGY_URI + "pilUri";
 
     public static URI P_PIL_URI;
+
+    public static final String P_PIL_FILE
+            = ONTOLOGY_URI + "pilFile";
+
+    public static URI P_PIL_FILE_URI;
 
     public static final String P_TEXT_ON_THE_WRAP
             = ONTOLOGY_URI + "textOnTheWrapUri";
 
     public static URI P_TEXT_ON_THE_WRAP_URI;
 
-    public static final String O_INGREDIEND_NOT_SET
-            = RESOURCE_URI + "Unknown";
-    
-    public static URI O_INGREDIEND_NOT_SET_URI;
+    public static final String P_TEXT_ON_THE_WRAP_FILE
+            = ONTOLOGY_URI + "textOnTheWrapFile";
+
+    public static URI P_TEXT_ON_THE_WRAP_FILE_URI;
 
 }
