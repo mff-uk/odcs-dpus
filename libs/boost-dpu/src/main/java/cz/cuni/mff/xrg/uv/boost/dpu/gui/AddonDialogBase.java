@@ -21,24 +21,17 @@ public abstract class AddonDialogBase<CONFIG>
     protected ConfigDialogContext context;
     
     /**
-     * DPU's configuration class.
-     */
-    private final Class<CONFIG> configClass;
-
-    /**
      * History of configuration class, if set used instead of
      * {@link #configClass}.
      */
     private final ConfigHistory<CONFIG> configHistory;
 
     public AddonDialogBase(ConfigHistory<CONFIG> configHistory) {
-        this.configClass = null;
         this.configHistory = configHistory;
     }
 
     public AddonDialogBase(Class<CONFIG> configClass) {
-        this.configClass = configClass;
-        this.configHistory = null;
+        this.configHistory = ConfigHistory.createNoHistory(configClass);
     }
 
     /**
@@ -56,18 +49,11 @@ public abstract class AddonDialogBase<CONFIG>
      * @throws eu.unifiedviews.dpu.config.DPUConfigException
      */
     public void loadConfig(ConfigManager configManager) throws DPUConfigException {
-        CONFIG dpuConfig;
-        if (configHistory == null) {
-            // no history for configuration
-            dpuConfig = configManager.get(getConfigClassName(), configClass);
-        } else {
-            dpuConfig = configManager.get(getConfigClassName(), configHistory);
-        }
+        CONFIG dpuConfig = configManager.get(getConfigClassName(), configHistory);
         // config can be null, so we then use the default
         if (dpuConfig == null) {
             // create new class
-            dpuConfig = configManager.createNew(configClass != null ?
-                    configClass : configHistory.getFinalClass());
+            dpuConfig = configManager.createNew(configHistory.getFinalClass());
         }
         setConfiguration(dpuConfig);
     }
