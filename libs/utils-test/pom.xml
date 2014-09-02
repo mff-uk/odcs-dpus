@@ -4,11 +4,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>    
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>utils-test</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
     <name>utils test</name>
     <description>Project with utilities for DPU testing.</description>
@@ -17,13 +17,14 @@
         <dependency> <!-- update -->
             <groupId>cz.cuni.mff.xrg.odcs</groupId>
             <artifactId>module-test</artifactId>
-            <version>[${unifiedviews.version},2.0.0)</version>
+            <!-- fixed version set -->
+            <version>1.3.0</version> <!-- [${unifiedviews.version},${unifiedviews.version.max})</version> -->
             <scope>compile</scope>
-        </dependency>		
+        </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
             <scope>compile</scope>
         </dependency>		
     </dependencies>

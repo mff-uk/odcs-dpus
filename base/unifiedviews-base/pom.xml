@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>unifiedviews-base</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>pom</packaging>
     <name>unifiedviews base</name>
 
@@ -18,8 +18,12 @@
     </developers>
 
     <properties>
-        <!-- min. odcs version - version of libs. during development -->
+        <!-- min. uv version - version of libs. during development -->
         <unifiedviews.version>1.0.0</unifiedviews.version>
+        <unifiedviews.version.max>2.0.0</unifiedviews.version.max>
+        <!-- version of UK libraries -->
+        <uk.version.min>1.1.1</uk.version.min>
+        <uk.version.max>1.2.0</uk.version.max>
         <!-- used bundle plugin version -->
         <bundle.plugin.version>2.3.7</bundle.plugin.version>
         <!-- used version of slf4j -->
@@ -37,7 +41,7 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-api</artifactId>
-            <version>[${unifiedviews.version},2.0.0)</version>
+            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

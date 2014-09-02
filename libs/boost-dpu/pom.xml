@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>cz.cuni.mff.xrg.uv</groupId>
 		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.1.0</version>
+		<version>1.1.1</version>
 	</parent>        
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>boost-dpu</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>bundle</packaging>
     <name>boost dpu</name>
     
@@ -17,7 +17,13 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
-            <version>1.1.0</version>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
             <scope>provided</scope>
         </dependency>
 		<dependency>

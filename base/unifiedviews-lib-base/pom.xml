@@ -4,11 +4,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-base</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>unifiedviews-lib-base</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>pom</packaging>
     <name>unifiedviews lib base</name>
     <description>Base project for libraries.</description>
@@ -57,7 +57,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Export-Package>${osgi.export}</Export-Package>
                         <Import-Package>
-                            eu.unifiedviews.*;version="[${unifiedviews.version},2.0.0)",
+                            eu.unifiedviews.*;version="[${unifiedviews.version},${unifiedviews.version.max})",
                             ${osgi.import}
                             *
                         </Import-Package>
@@ -67,6 +67,18 @@
                         <Embed-StripGroup>false</Embed-StripGroup>                        
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>        
     </build>

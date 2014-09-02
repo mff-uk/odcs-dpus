@@ -5,11 +5,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>    
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>service-serialization-xml</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>bundle</packaging>
     <name>service serialization xml</name>
     
@@ -21,12 +21,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.thoughtworks.xstream</groupId>
+<!--            <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
-            <version>1.4.4</version>
-<!--            <groupId>org.apache.servicemix.bundles</groupId>
+            <version>1.4.4</version>-->
+            <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.xstream</artifactId>
-            <version>1.4.4_1</version>-->
+            <version>1.4.4_1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>    

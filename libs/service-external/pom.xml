@@ -5,7 +5,7 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>service-external</artifactId>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-rdf</artifactId>
-            <version>[${unifiedviews.version},2.0.0)</version>
+            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
