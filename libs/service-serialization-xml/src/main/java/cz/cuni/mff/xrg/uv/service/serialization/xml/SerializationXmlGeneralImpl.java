@@ -60,6 +60,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
 
     @Override
     public <T> T createInstance(Class<T> clazz) throws SerializationXmlFailure {
+        LOG.debug("createInstance({})", clazz);
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -70,6 +71,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
 
     @Override
     public synchronized <T> T convert(Class<T> clazz, String string) throws SerializationXmlFailure {
+        LOG.debug("convert for: {}", clazz.getSimpleName());
         // clear the skip list
         loadedFields.clear();
         T object = (T) convert(clazz.getClassLoader(), string);
@@ -179,6 +181,23 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                 Object value = readMethod.invoke(source);
                 // set to object
                 writeMethod.invoke(target, value);
+
+                // read value from target back
+                Object valueCheck = readMethod.invoke(target);
+
+                if (valueCheck == null) {
+                    if (value != null) {
+                        LOG.error("{} : Target value is null and source is not!", fieldName);
+                    } else {
+                        LOG.debug("{}: Both values are null.", fieldName);
+                    }
+                } else if (valueCheck == value) {
+                    LOG.debug("{} : both values are equal.", fieldName);
+                } else {
+                    LOG.error("{} : Not equals!", fieldName);
+
+                }
+
             } catch (IntrospectionException ex) {
                 LOG.error("Failed to set value for: {}.{} ",
                         clazz.getSimpleName(), fieldName, ex);
