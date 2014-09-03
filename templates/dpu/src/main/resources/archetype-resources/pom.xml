@@ -17,7 +17,7 @@
 		<dpu.package>${package}</dpu.package>
 		<dpu.mainClass>${dpu_name}</dpu.mainClass>
 	</properties>
-	
+
 	<dependencies>
         <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
         <dependency>
