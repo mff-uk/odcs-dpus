@@ -41,6 +41,11 @@ public class SimpleRdfDummyBase implements SimpleRdfWrite {
     }
 
     @Override
+    public void setBufferSize(int size) {
+        
+    }
+
+    @Override
     public void flushBuffer() throws OperationFailedException {
         
     }

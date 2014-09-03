@@ -107,28 +107,23 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 	}
 
 	/**
-	 * Set policy that determines how the
-	 * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)}
-	 * behaves.
-	 *
-	 * @param policy Add policy.
+	 * {@inheritDoc}
 	 */
     @Override
 	public void setPolicy(AddPolicy policy) {
 		this.addPolicy = policy;
 	}
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setBufferSize(int size) {
+        this.toAddBufferFlushSize = size;
+    }
+
 	/**
-	 * Immediately store buffered triples into repository. The inner buffer is
-	 * cleared only if all the triples are added successfully. If throws
-	 * exception then the state of repository is undefined.
-	 *
-	 * If
-	 * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)}
-	 * is called with {@link AddPolicy#BUFFERED} this method must be called in
-	 * order to save added statements into repository.
-	 *
-	 * @throws OperationFailedException
+	 * {@inheritDoc}
 	 */
     @Override
 	public void flushBuffer() throws OperationFailedException {
@@ -149,6 +144,9 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 		}
 	}
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setOutputGraph(String symbolicName) throws OperationFailedException {
         writeSetCurrent.clear();
@@ -163,10 +161,11 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
     private URI[] getCurrentWriteContexts() throws OperationFailedException {
         // test for graph
         if (writeSetCurrent.isEmpty()) {
-            // no write set .. add new graph
+            // no write set .. add new graph, we use
+            // current time to prevent colisions
             writeSetCurrent.put(DEFAULT_GRAPH_NAME,
                     createNewGraph(DEFAULT_GRAPH_NAME));
-            LOG.info("Default graph used: " + DEFAULT_GRAPH_NAME);
+            LOG.warn("Default graph used: " + DEFAULT_GRAPH_NAME);
         }
 
         return writeSetCurrent.values().toArray(new URI[0]);

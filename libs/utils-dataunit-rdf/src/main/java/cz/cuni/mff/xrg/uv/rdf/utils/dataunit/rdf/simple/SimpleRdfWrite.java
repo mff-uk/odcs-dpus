@@ -49,6 +49,12 @@ public interface SimpleRdfWrite extends SimpleRdfRead {
 	 */
 	void setPolicy(AddPolicy policy);
 
+    /**
+     * Set buffer size for {@link AddPolicy#BUFFERED}.
+     * @param size
+     */
+    void setBufferSize(int size);
+
 	/**
 	 * Immediately store buffered triples into repository. The inner buffer is
 	 * cleared only if all the triples are added successfully. If throws
