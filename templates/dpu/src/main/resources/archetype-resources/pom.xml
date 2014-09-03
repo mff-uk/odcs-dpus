@@ -11,7 +11,7 @@
 	<version>${version}</version>
 	<packaging>bundle</packaging>
 	<name>${dpu_name}</name>
-	<description></description>
+	<description>Description of ${dpu_name}.</description>
 	
 	<properties>    
 		<dpu.package>${package}</dpu.package>
@@ -19,31 +19,32 @@
 	</properties>
 	
 	<dependencies>
+        <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
-            <version>[1.1.1,1.2.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-        <!-- compile library -->
+        <!-- dependecy for boost-dpu -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[1.1.1,1.2.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[1.1.1,1.2.0)</version>
+            <artifactId>utils-dataunit-files</artifactId>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
-            <version>[1.1.1,1.2.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
 	</dependencies>	

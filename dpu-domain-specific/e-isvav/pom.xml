@@ -4,10 +4,10 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-dpu-base</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
     <artifactId>e-isvav</artifactId>
-    <name>Isvav</name>
+    <name>e-Isvav</name>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <version>1.1.0</version>
     <packaging>bundle</packaging>
@@ -46,42 +46,42 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
         <!-- compile library -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-files</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-rdf</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
-            <version>[1.1.0,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

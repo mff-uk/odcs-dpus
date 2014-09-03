@@ -10,7 +10,7 @@
 	<artifactId>t-rdfStatementParser</artifactId>
 	<version>1.0.1</version>
 	<packaging>bundle</packaging>
-	<name>RdfStatementParser</name>
+	<name>t-RdfStatementParser</name>
 	<description></description>
 	
 	<properties>    
@@ -22,28 +22,28 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
-            <version>[1.1.1,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
         <!-- compile library -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[1.1.1,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-rdf</artifactId>
-            <version>[1.1.1,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
-            <version>[1.1.1,2.0.0)</version>
+            <version>[${uk.version.min},{$uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
 	</dependencies>	
