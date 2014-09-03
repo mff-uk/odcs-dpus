@@ -11,11 +11,14 @@ Prepared for 1.3.0
 |Name      |Type       |Location   |Description |
 |----------|-----------|-----------|------------|
 |e-sukl    |Extractor  |dpu-domain-specific/e-sukl||
+|e-isvav   |Extractor  |dpu-domain-specific/e-isvav||
 
 #####General
 |Name      |Type       |Location   |Description |
 |----------|-----------|-----------|------------|
 |t-tabular |Transformer|dpu/t-tabular||
+|l-solr    |Loader     |dpu/l-solr   ||
+|t-rdfStatementParser|Transformer|dpu/t-rdfStatementParser||
 
 ## How to create a new DPU - quick start
 This manual assumes that you have already downloaded and installed libraries from https://github.com/UnifiedViews.
