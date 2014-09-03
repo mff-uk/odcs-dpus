@@ -1,11 +1,15 @@
 package cz.opendata.linked.geocoder.krovak;
 
+import java.io.File;
+
 import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.odcs.rdf.enums.RDFFormatType;
 import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
 
 public class ScrapeTest {
 
@@ -22,10 +26,9 @@ public class ScrapeTest {
 		TestEnvironment env = new TestEnvironment();
 		// prepare input and output data units
 
-//		RDFDataUnit sPoints = env.createRdfInputFromResource("gmlPoint points",
-//				false,
-//				"addresses.ttl", RDFFormat.TURTLE);
-		RDFDataUnit geoCoord = env.createRdfOutput("Geocoordinates", false);
+	    WritableRDFDataUnit sPoints = env.createRdfInput("points", false);
+	    InputOutput.extractFromFile(new File("C:\\temp\\addresses.ttl"), RDFFormat.TURTLE, sPoints);
+	    WritableRDFDataUnit geoCoord = env.createRdfOutput("Geocoordinates", false);
 
 		// here we can simply pre-fill input data unit with content from 
 		// resource file
@@ -33,7 +36,7 @@ public class ScrapeTest {
 			// run the execution
 			env.run(extractor);
 
-//			geoCoord.loadToFile("C:\\temp\\geo.ttl", RDFFormatType.TTL);
+			InputOutput.loadToFile(geoCoord, new File("C:\\temp\\geo.ttl"), RDFFormat.TURTLE);
 
 			// verify result
 		} catch (Exception e) {
