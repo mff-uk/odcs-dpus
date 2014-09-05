@@ -4,9 +4,9 @@ import java.io.IOException;
 
 public class BannedException extends IOException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5492190523979352581L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5492190523979352581L;
 
 }

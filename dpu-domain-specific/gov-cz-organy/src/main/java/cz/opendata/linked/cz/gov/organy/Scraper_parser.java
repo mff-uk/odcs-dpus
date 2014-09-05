@@ -1,4 +1,5 @@
 package cz.opendata.linked.cz.gov.organy;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
@@ -8,58 +9,52 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
-import org.openrdf.model.ValueFactory;
-
-/**
- * Specificky scraper pro statni spravu.
- * 
- * @author Jakub Starka
- */
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 
 public class Scraper_parser extends ScrapingTemplate {
     
-	public SimpleRdfWrite list, details;
+    //public SimpleRdfWrite list, details;
+    public WritableFilesDataUnit list, details;
 	private int numDetails;
-	private int current;
-	
-	@Override
+    private int current;
+    
+    @Override
     protected LinkedList<ParseEntry> getLinks(String doc, String docType) {
         final LinkedList<ParseEntry> out = new LinkedList<>();
         
         if (docType.equals("init"))
         {
-        	XMLReader xr = null;
-			try {
-				SAXParserFactory factory = SAXParserFactory.newInstance();
-			    SAXParser sp = factory.newSAXParser();
-			    xr = sp.getXMLReader(); 
+            XMLReader xr = null;
+            try {
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                SAXParser sp = factory.newSAXParser();
+                xr = sp.getXMLReader(); 
 
-			    OrganyListParser handler = new OrganyListParser(out);
-			    xr.setContentHandler(handler);				
-			} catch (SAXException e) {
-				logger.error(e.getLocalizedMessage());
-			} catch (ParserConfigurationException e) {
-				logger.error(e.getLocalizedMessage());
-			}
-			
-			try {
-				xr.parse(new InputSource(new StringReader(doc)));
-				numDetails = out.size();
-				logger.info("Got " + numDetails + " links to details.");
-				current = 0;
-				
-			} catch (IOException | SAXException e) {
-				logger.error("Failed to parse document", e);
-			}
+                OrganyListParser handler = new OrganyListParser(out);
+                xr.setContentHandler(handler);                
+            } catch (SAXException e) {
+                logger.error(e.getLocalizedMessage());
+            } catch (ParserConfigurationException e) {
+                logger.error(e.getLocalizedMessage());
+            }
+            
+            try {
+                xr.parse(new InputSource(new StringReader(doc)));
+                numDetails = out.size();
+                logger.info("Got " + numDetails + " links to details.");
+                current = 0;
+                
+            } catch (IOException | SAXException e) {
+                logger.error("Failed to parse document", e);
+            }
 
         }
         return out;
@@ -67,24 +62,28 @@ public class Scraper_parser extends ScrapingTemplate {
     
     @Override
     protected void parse(String doc, String docType, URL url) {
-		try {
-    	if (docType.equals("init"))
-    	{
-			final ValueFactory valueFactory = list.getValueFactory();
-			list.add(valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-					valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-					valueFactory.createLiteral(doc));
-    	}
-    	if (docType.equals("detail"))
-    	{
-    		logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
-			final ValueFactory valueFactory = details.getValueFactory();
-    		details.add(valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-					valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-					valueFactory.createLiteral(doc));
-    	}
-		} catch (OperationFailedException ex) {
-			logger.error("Failed to add triple into storage.", ex);
-		}
+        if (docType.equals("init"))
+        {
+        	try {
+				File f = new File(list.addNewFile(url.toString()));
+				FileUtils.write(f, doc);
+			} catch (DataUnitException e) {
+				logger.error(e.getLocalizedMessage(),e);
+			} catch (IOException e) {
+				logger.error(e.getLocalizedMessage(),e);
+			}
+        }
+        if (docType.equals("detail"))
+        {
+            logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
+        	try {
+				File f = new File(details.addNewFile(url.toString()));
+				FileUtils.write(f, doc);
+			} catch (DataUnitException e) {
+				logger.error(e.getLocalizedMessage(),e);
+			} catch (IOException e) {
+				logger.error(e.getLocalizedMessage(),e);
+			}
+        }
     }
 }

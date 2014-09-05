@@ -9,92 +9,103 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
 
-@AsExtractor
+@DPU.AsExtractor
 public class Extractor 
-extends ConfigurableBase<ExtractorConfig> 
-implements DPU, ConfigDialogProvider<ExtractorConfig> {
+extends DpuAdvancedBase<ExtractorConfig> 
+{
 
-	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
-	@OutputDataUnit(name = "XMLList")
-	public WritableRDFDataUnit outList;
+//    @DataUnit.AsOutput(name = "XMLList")
+//    public WritableRDFDataUnit outList;
 
-	@OutputDataUnit(name = "XMLDetails")
-	public WritableRDFDataUnit outDetails;	
-	
-	public Extractor(){
-		super(ExtractorConfig.class);
-	}
+//    @DataUnit.AsOutput(name = "XMLDetails")
+//    public WritableRDFDataUnit outDetails; 
+    
+    @DataUnit.AsOutput(name = "XMLList")
+    public WritableFilesDataUnit outList;
+    
+    @DataUnit.AsOutput(name = "XMLDetails")
+    public WritableFilesDataUnit outDetails;
+    
+//    @SimpleRdfConfigurator.Configure(dataUnitFieldName="outList")
+//    public SimpleRdfWrite outListWrap;
+    
+//    @SimpleRdfConfigurator.Configure(dataUnitFieldName="outDetails")
+//    public SimpleRdfWrite outDetailsWrap;
+    
+    public Extractor(){
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
+    }
 
-	@Override
-	public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {		
-		return new ExtractorDialog();
-	}
+    @Override
+    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
+        return new ExtractorDialog();
+    }
 
-	@Override
-	public void execute(DPUContext ctx) throws DPUException
-	{
-		final SimpleRdfWrite outListWrap = SimpleRdfFactory.create(outList, ctx);
-		final SimpleRdfWrite outDetailsWrap = SimpleRdfFactory.create(outDetails, ctx);
-		
-		Cache.setInterval(config.getInterval());
-		Cache.setTimeout(config.getTimeout());
-		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = LOG;
-		Cache.rewriteCache = config.isRewriteCache();
-		Scraper_parser s = new Scraper_parser();
-		s.logger = LOG;
-		s.ctx = ctx;
-		s.list = outListWrap;
-		s.details = outDetailsWrap;
+    @Override
+    protected void innerExecute() throws DPUException
+    {
+        Cache.setInterval(config.getInterval());
+        Cache.setTimeout(config.getTimeout());
+        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.logger = LOG;
+        Cache.rewriteCache = config.isRewriteCache();
+        Scraper_parser s = new Scraper_parser();
+        s.logger = LOG;
+        s.context = context;
+        s.list = outList;
+        s.details = outDetails;
 
-		java.util.Date date = new java.util.Date();
-		long start = date.getTime();
+        java.util.Date date = new java.util.Date();
+        long start = date.getTime();
 
-		//Download
+        //Download
+        
+        try {
+            URL init = new URL("http://seznam.gov.cz/ovm/datafile.do?format=xml&service=seznamovm");
+            
+            if (config.isRewriteCache())
+            {
+                Path path = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
+                LOG.info("Deleting " + path);
+                Files.deleteIfExists(path);
+            }
+            
+            try {
+                s.parse(init, "init");
+            } catch (BannedException b) {
+                LOG.warn("Seems like we are banned for today");
+            }            
+            LOG.info("Download done.");
+        
+        } catch (IOException e) {
+            LOG.error("IOException", e);
+        } catch (InterruptedException e) {
+            LOG.error("Interrupted");
+        }
+        
+        java.util.Date date2 = new java.util.Date();
+        long end = date2.getTime();
 
-		try {
-			URL init = new URL("http://seznam.gov.cz/ovm/datafile.do?format=xml&service=seznamovm");
-			
-			if (config.isRewriteCache())
-			{
-				Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
-				LOG.info("Deleting " + path);
-				Files.deleteIfExists(path);
-			}
-			
-			try {
-				s.parse(init, "init");
-			} catch (BannedException b) {
-				LOG.warn("Seems like we are banned for today");
-			}			
-        	LOG.info("Download done.");
-		
-		} catch (IOException e) {
-			LOG.error("IOException", e);
-		} catch (InterruptedException e) {
-			LOG.error("Interrupted");
-		}
-		
-		java.util.Date date2 = new java.util.Date();
-		long end = date2.getTime();
-
-		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms");
-	}
+        context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms");
+    }
 
 }

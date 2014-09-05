@@ -4,7 +4,7 @@
  */
 package cz.cuni.mff.xrg.scraper.lib.template;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUContext;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
@@ -28,10 +28,10 @@ import org.slf4j.Logger;
  */
 public abstract class ScrapingTemplate {
     
-    public DPUContext ctx;
+    public DPUContext context;
     public Logger logger;
-	
-	/** 
+    
+    /** 
      * This method looks for links in actual document and create entries with URL and document type.
      * 
      * @param doc Input JSoup document.
@@ -60,7 +60,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type, "xml"));
         
-        while (!toParse.isEmpty() && !ctx.canceled()) {
+        while (!toParse.isEmpty() && !context.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
@@ -69,8 +69,8 @@ public abstract class ScrapingTemplate {
                 }
                 String doc = Cache.getDocument(p.url, 10, p.datatype);
                 if (doc!= null) {
-                	toParse.addAll(this.getLinks(doc, p.type));
-	                this.parse(doc, p.type, p.url);
+                    toParse.addAll(this.getLinks(doc, p.type));
+                    this.parse(doc, p.type, p.url);
                 }
                 if (Cache.errorsFetchingURL > 10) throw new BannedException();
                 parsed.add(p);
@@ -78,7 +78,7 @@ public abstract class ScrapingTemplate {
                 logger.error(ex.getLocalizedMessage());
             } 
         }
-        if (ctx.canceled()) logger.info("Cancelled");
+        if (context.canceled()) logger.info("Cancelled");
         
     }
     
