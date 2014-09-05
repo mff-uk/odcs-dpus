@@ -11,10 +11,20 @@ cd ../base
   mvn clean install
  cd ..
 
- # build libs
+# build libs
 echo "building libs .."
 cd ../libs
- for f in *; do
+ for f in utils-*; do
+   cd $f
+    mvn clean install
+   cd ..
+  done
+ for f in service-*; do
+   cd $f
+    mvn clean install
+   cd ..
+  done
+ for f in boost-*; do
    cd $f
     mvn clean install
    cd ..
