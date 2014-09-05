@@ -19,7 +19,7 @@
             <artifactId>module-test</artifactId>
             <!-- If version range is used then EEA server will be asked for new version every build.
                 TO prevent that fixed version is set. -->
-            <version>1.3.0</version>
+            <version>1.3.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
