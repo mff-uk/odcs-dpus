@@ -65,8 +65,9 @@ public class Scraper_parser extends ScrapingTemplate {
         if (docType.equals("init"))
         {
         	try {
-				File f = new File(list.addNewFile(url.toString()));
-				FileUtils.write(f, doc);
+				logger.debug(doc);
+        		File f = new File(list.addNewFile(url.toString()));
+				FileUtils.writeStringToFile(f, doc);
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {
@@ -77,8 +78,9 @@ public class Scraper_parser extends ScrapingTemplate {
         {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
         	try {
+				logger.debug(doc);
 				File f = new File(details.addNewFile(url.toString()));
-				FileUtils.write(f, doc);
+				FileUtils.writeStringToFile(f, doc);
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {
