@@ -126,6 +126,11 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     protected CONFIG config;
 
+    /**
+     * If true then we run in test mode and add-ons will not be executed.
+     */
+    private boolean testMode = false;
+
     public DpuAdvancedBase(Class<CONFIG> configClass,
             List<AddonInitializer.AddonInfo> addons) {
         this.masterContext = new Context(this, addons,
@@ -176,21 +181,23 @@ public abstract class DpuAdvancedBase<CONFIG>
         // execute - Addon.preAction
         //
         boolean executeDpu = true;
-        for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
-            try {
-                if (item.getAddon().preAction(this.masterContext)) {
-                    // ok continue
-                } else {
-                    // failed
-                    context.sendMessage(MessageType.ERROR, "Addon failed: "
-                            + item.getClass().getSimpleName());
+        if (!testMode) {
+            for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
+                try {
+                    if (item.getAddon().preAction(this.masterContext)) {
+                        // ok continue
+                    } else {
+                        // failed
+                        context.sendMessage(MessageType.ERROR, "Addon failed: "
+                                + item.getClass().getSimpleName());
+                        executeDpu = false;
+                    }
+                } catch (RuntimeException ex) {
+                    context.sendMessage(MessageType.ERROR,
+                            "Addon.preAction throws: "
+                            + item.getClass().getSimpleName(), "", ex);
                     executeDpu = false;
                 }
-            } catch (RuntimeException ex) {
-                context.sendMessage(MessageType.ERROR,
-                        "Addon.preAction throws: "
-                        + item.getClass().getSimpleName(), "", ex);
-                executeDpu = false;
             }
         }
         //
@@ -234,13 +241,15 @@ public abstract class DpuAdvancedBase<CONFIG>
         //
         // execute - Addon.postAction
         //
-        for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
-            try {
-                item.getAddon().postAction(this.masterContext);
-            } catch (RuntimeException ex) {
-                context.sendMessage(MessageType.ERROR,
-                        "Addon.postAction throws: "
-                        + item.getClass().getSimpleName(), "", ex);
+        if (!testMode) {
+            for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
+                try {
+                    item.getAddon().postAction(this.masterContext);
+                } catch (RuntimeException ex) {
+                    context.sendMessage(MessageType.ERROR,
+                            "Addon.postAction throws: "
+                            + item.getClass().getSimpleName(), "", ex);
+                }
             }
         }
     }
@@ -320,6 +329,14 @@ public abstract class DpuAdvancedBase<CONFIG>
             }
         }
         return null;
+    }
+
+    /**
+     * Call this method if DPU is running in test. If called add-ons will not
+     * be executed!
+     */
+    public void setTestMode() {
+        this.testMode = true;
     }
 
     /**
