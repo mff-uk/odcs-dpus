@@ -26,7 +26,7 @@ public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name
     public ${dpu_name}Config_V1 getConfiguration() throws DPUConfigException {
         final ${dpu_name}Config_V1 c = new ${dpu_name}Config_V1();
 
-        return conf;
+        return c;
     }
 
     private void buildLayout() {
