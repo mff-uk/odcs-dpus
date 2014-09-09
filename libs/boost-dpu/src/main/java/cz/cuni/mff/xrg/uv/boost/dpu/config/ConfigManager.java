@@ -45,10 +45,12 @@ public class ConfigManager {
      */
     public <TYPE> TYPE get(String name, Class<TYPE> clazz) throws ConfigException {
         if (masterConfig == null) {
+            LOG.trace("get({}, ...) -> null as masterConfig is null", name);
             return null;
         }
         final String strValue = masterConfig.getConfigurations().get(name);
         if (strValue == null) {
+            LOG.trace("get({}, ...) -> null as no value found", name);
             return null;
         }
 
