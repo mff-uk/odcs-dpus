@@ -15,7 +15,6 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -446,6 +445,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             } else {
                 setCompositionRoot(mainPanel);
             }
+            layoutSet = true;
         }
         //
         txtKeyColumnName.setValue(c.getKeyColumn());
@@ -648,7 +648,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         //
         for (PropertyGroup item : basisMapping) {
             final String name = item.getColumnName();
-            if (name != null) {
+            if (name != null && !name.isEmpty()) {
                 basic.put(name, item.get());
             }
         }

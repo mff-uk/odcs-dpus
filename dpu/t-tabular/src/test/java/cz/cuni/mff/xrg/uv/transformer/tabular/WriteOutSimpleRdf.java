@@ -1,7 +1,7 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.test.SimpleRdfDummyBase;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.test.SimpleRdfMockBase;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -11,7 +11,7 @@ import org.openrdf.model.Value;
  *
  * @author Škoda Petr
  */
-public class WriteOutSimpleRdf extends SimpleRdfDummyBase {
+public class WriteOutSimpleRdf extends SimpleRdfMockBase {
 
     @Override
     public void add(Resource s, URI p, Value o) throws OperationFailedException {
