@@ -67,8 +67,8 @@ public abstract class ScrapingTemplate {
                 }
                 Document doc = Cache.getDocument(p.url, 10, p.datatype);
                 if (doc!= null) {
-                	toParse.addAll(this.getLinks(doc, p.type));
-	                this.parse(doc, p.type, p.url);
+                    toParse.addAll(this.getLinks(doc, p.type));
+                    this.parse(doc, p.type, p.url);
                 }
                 if (Cache.errorsFetchingURL > 10) throw new BannedException();
                 parsed.add(p);

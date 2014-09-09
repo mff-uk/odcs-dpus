@@ -3,27 +3,67 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-		<groupId>cz.cuni.mff.xrg.uv</groupId>
-		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.1</version>
     </parent>    
-    <artifactId>extractor_ares_updates</artifactId>
-	<name>ext. ares updates</name>
+    <artifactId>E-MFCR_1_002</artifactId>
+    <name>ext. ares updates</name>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
-	<description>This extractor scrapes ARES XML records about updates to Czech business entities and registers their ICs to be updated</description>
+    <version>2.0.0</version>
+    <description>This extractor scrapes ARES XML records about updates to Czech business entities and registers their ICs to be updated</description>
     
     <properties>
         <dpu.package>cz.opendata.linked.ares.updates</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
- 	
+     
     <dependencies>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.7.3</version>
+        </dependency>
 		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.7.3</version>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
 		</dependency>
- 	</dependencies>
-    
+       <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- compile library -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
 </project>
+
