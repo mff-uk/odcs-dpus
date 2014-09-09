@@ -2,6 +2,7 @@ package cz.opendata.linked.cz.gov.organy;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URL;
 import java.util.LinkedList;
 
@@ -65,8 +66,8 @@ public class Scraper_parser extends ScrapingTemplate {
         if (docType.equals("init"))
         {
         	try {
-				logger.debug(doc);
-        		File f = new File(list.addNewFile(url.toString()));
+				//logger.debug(doc);
+				File f = new File(URI.create(list.addNewFile(url.toString())));
 				FileUtils.writeStringToFile(f, doc);
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
@@ -78,8 +79,8 @@ public class Scraper_parser extends ScrapingTemplate {
         {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
         	try {
-				logger.debug(doc);
-				File f = new File(details.addNewFile(url.toString()));
+				//logger.debug(doc);
+				File f = new File(URI.create(details.addNewFile(url.toString())));
 				FileUtils.writeStringToFile(f, doc);
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
