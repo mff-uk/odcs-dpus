@@ -7,18 +7,19 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
+public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
 
-	private static final long serialVersionUID = 839859194445887249L;
+    private static final long serialVersionUID = 839859194445887249L;
 
-	private GridLayout mainLayout;
+    private GridLayout mainLayout;
     private CheckBox chkAccessProfiles;
     private CheckBox chkRewriteCache;
     private CheckBox chkCurrentYearOnly;
@@ -27,15 +28,15 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField timeout;
     private TextField maxAttempts;
     
-	public ExtractorDialog() {
-		super(ExtractorConfig.class);
+    public ExtractorDialog() {
+        super(ExtractorConfig.class,AddonInitializer.noAddons());
         buildMainLayout();
-		Panel panel = new Panel();
-		panel.setSizeFull();
-		panel.setContent(mainLayout);
-		setCompositionRoot(panel);
-	}  
-	
+        Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+        setCompositionRoot(panel);
+    }  
+    
     private GridLayout buildMainLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
@@ -87,29 +88,29 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout.addComponent(maxAttempts);
         
         return mainLayout;
-    }	
+    }    
      
-	@Override
-	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.isRewriteCache());
-		chkAccessProfiles.setValue(conf.isAccessProfiles());
-		chkCurrentYearOnly.setValue(conf.isCurrentYearOnly());
-		chkValidate.setValue(conf.isValidateXSD());
-		interval.setValue(Integer.toString(conf.getInterval()));
-		timeout.setValue(Integer.toString(conf.getTimeout()));
-		maxAttempts.setValue(Integer.toString(conf.getMaxAttempts()));
-	}
+    @Override
+    public void setConfiguration(ExtractorConfig conf) throws DPUConfigException {
+        chkRewriteCache.setValue(conf.isRewriteCache());
+        chkAccessProfiles.setValue(conf.isAccessProfiles());
+        chkCurrentYearOnly.setValue(conf.isCurrentYearOnly());
+        chkValidate.setValue(conf.isValidateXSD());
+        interval.setValue(Integer.toString(conf.getInterval()));
+        timeout.setValue(Integer.toString(conf.getTimeout()));
+        maxAttempts.setValue(Integer.toString(conf.getMaxAttempts()));
+    }
 
-	@Override
-	public ExtractorConfig getConfiguration() throws ConfigException {
-		ExtractorConfig conf = new ExtractorConfig();
-		conf.setRewriteCache(chkRewriteCache.getValue());
-		conf.setAccessProfiles(chkAccessProfiles.getValue());
-		conf.setCurrentYearOnly(chkCurrentYearOnly.getValue());
-		conf.setInterval(Integer.parseInt(interval.getValue()));
-		conf.setTimeout(Integer.parseInt(timeout.getValue()));
-		conf.setMaxAttempts(Integer.parseInt(maxAttempts.getValue()));
-		conf.setValidateXSD(chkValidate.getValue());
-		return conf;
-	}	
+    @Override
+    public ExtractorConfig getConfiguration() throws DPUConfigException {
+        ExtractorConfig conf = new ExtractorConfig();
+        conf.setRewriteCache(chkRewriteCache.getValue());
+        conf.setAccessProfiles(chkAccessProfiles.getValue());
+        conf.setCurrentYearOnly(chkCurrentYearOnly.getValue());
+        conf.setInterval(Integer.parseInt(interval.getValue()));
+        conf.setTimeout(Integer.parseInt(timeout.getValue()));
+        conf.setMaxAttempts(Integer.parseInt(maxAttempts.getValue()));
+        conf.setValidateXSD(chkValidate.getValue());
+        return conf;
+    }    
 }

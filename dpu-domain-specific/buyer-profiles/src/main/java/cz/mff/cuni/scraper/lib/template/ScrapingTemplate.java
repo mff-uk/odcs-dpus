@@ -5,10 +5,10 @@
 package cz.mff.cuni.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import eu.unifiedviews.dpu.DPUContext;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 
 import java.io.IOException;
 import java.net.URL;
@@ -49,7 +49,7 @@ public abstract class ScrapingTemplate {
      */
     protected abstract void parse(Document doc, String docType, URL uri) throws OperationFailedException;    
     
-    public DPUContext ctx;
+    public DPUContext context;
     
     public Logger logger;
 
@@ -71,12 +71,12 @@ public abstract class ScrapingTemplate {
      */
     public void parse(URL initUrl, String type) throws InterruptedException, OperationFailedException {
         ValueFactory valueFactory = pstats.getValueFactory();
-		
-		LinkedList<ParseEntry> toParse = new LinkedList<>();
+        
+        LinkedList<ParseEntry> toParse = new LinkedList<>();
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type, "html"));
         
-        while (!toParse.isEmpty() && !ctx.canceled()) {
+        while (!toParse.isEmpty() && !context.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
@@ -86,18 +86,18 @@ public abstract class ScrapingTemplate {
                 Document doc = Cache.getDocument(p.url, maxAttempts, p.datatype);
                 if (doc != null)
                 {
-                	toParse.addAll(this.getLinks(doc, p.type));
-                	this.parse(doc, p.type, p.url);
-                	parsed.add(p);
+                    toParse.addAll(this.getLinks(doc, p.type));
+                    this.parse(doc, p.type, p.url);
+                    parsed.add(p);
                 }
                 else {
-                	logger.warn("Skipped: " + p.url.toString());
-                	pstats.add(valueFactory.createURI(p.url.toString()), 
-							valueFactory.createURI(BPOprefix + "found"), 
-							valueFactory.createLiteral("false", valueFactory.createURI(xsdPrefix + "boolean")));
+                    logger.warn("Skipped: " + p.url.toString());
+                    pstats.add(valueFactory.createURI(p.url.toString()), 
+                            valueFactory.createURI(BPOprefix + "found"), 
+                            valueFactory.createLiteral("false", valueFactory.createURI(xsdPrefix + "boolean")));
                 }
             } catch (IOException ex) {
-            	logger.warn("Exception: " + ex.getLocalizedMessage());
+                logger.warn("Exception: " + ex.getLocalizedMessage());
             } 
         }
         
