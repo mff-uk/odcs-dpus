@@ -3,15 +3,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-		<groupId>cz.cuni.mff.xrg.uv</groupId>
-		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.1</version>
     </parent>    
-    <artifactId>extractor_gov_cz_agendy</artifactId>
-	<name>ext. gov cz agendy</name>
+    <artifactId>E_MICR_3_001</artifactId>
+    <name>ext. gov cz agendy</name>
     <packaging>bundle</packaging>
-    <version>1.0.1</version>
-	<description>This extractor scrapes Agendy from https://rpp-ais.egon.gov.cz/gen/agendy-detail/</description>
+    <version>2.0.0</version>
+    <description>This extractor scrapes Agendy from https://rpp-ais.egon.gov.cz/gen/agendy-detail/</description>
 
     <properties>    
         <dpu.package>cz.opendata.linked.cz.gov.agendy</dpu.package>
@@ -19,11 +19,45 @@
     </properties>
 
     <dependencies>
-		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.7.3</version>
-		</dependency>
- 	</dependencies>
-    
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.7.3</version>
+        </dependency>
+       <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- compile library -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
 </project>
+

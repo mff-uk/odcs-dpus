@@ -25,7 +25,7 @@ public class CssSelector extends Selector {
      * @param string CSS selector.
      */
     public CssSelector(Element doc, String string) {
-	this(doc, string, null, 0);
+    this(doc, string, null, 0);
     }
     
     /**
@@ -60,13 +60,13 @@ public class CssSelector extends Selector {
      */
     public CssSelector(Element doc, String string, String checked, Integer index) {
         d = doc;
-	if (string.contains("@")) {
-	    String[] split = string.split("@");
-	    selector = split[0].trim();
-	    attribute = split[1];
-	} else {
-	    selector = string;
-	}
+    if (string.contains("@")) {
+        String[] split = string.split("@");
+        selector = split[0].trim();
+        attribute = split[1];
+    } else {
+        selector = string;
+    }
         if (checked != null) {
             if (checked.contains("@")) {
                 String[] split = checked.split("@");
@@ -107,24 +107,24 @@ public class CssSelector extends Selector {
         
         
         Elements e = d.select(selector);
-	if (e.size() > index) {
+    if (e.size() > index) {
             Element el = e.get(index);
             
-	    if (attribute != null) {
+        if (attribute != null) {
                 usageMap.put(selector + " @" + attribute, usageMap.get(selector + " @" + attribute) + 1);
-		return el.attr(attribute);
-	    } else {
+        return el.attr(attribute);
+        } else {
                 usageMap.put(selector, usageMap.get(selector) + 1);
-		return el.text();
-	    }
-	} else {
-	    return null;
-	}
+        return el.text();
+        }
+    } else {
+        return null;
+    }
     }
     
     @Override
     public String getValue() {
-	if (this.checked != null) {
+    if (this.checked != null) {
             Elements c = d.select(checked);
             if (checkedAttribute != null) {
                 if (c.isEmpty() || !c.get(0).hasAttr(checkedAttribute) ||
@@ -140,19 +140,19 @@ public class CssSelector extends Selector {
         
         
         Elements e = d.select(selector);
-	if (e.size() > index) {
+    if (e.size() > index) {
             Element el = e.get(index);
             
-	    if (attribute != null) {
+        if (attribute != null) {
                 usageMap.put(selector + " @" + attribute, usageMap.get(selector + " @" + attribute) + 1);
-		return el.attr(attribute);
-	    } else {
+        return el.attr(attribute);
+        } else {
                 usageMap.put(selector, usageMap.get(selector) + 1);
-		return el.text();
-	    }
-	} else {
-	    return null;
-	}
+        return el.text();
+        }
+    } else {
+        return null;
+    }
     }
 
 }
