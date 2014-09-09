@@ -5,12 +5,16 @@ import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Škoda Petr
  */
 public class CreateFile {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CreateFile.class);
 
     private CreateFile() {
 
@@ -36,6 +40,7 @@ public class CreateFile {
         Manipulator.add(dataUnit, virtualPath,
                 VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
                 virtualPath);
+        LOG.trace("createFile(,{}) -> {}", virtualPath, file.toString());
         return file;
     }
 
