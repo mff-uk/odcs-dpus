@@ -21,14 +21,14 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 public class Parser extends ScrapingTemplate{
     
-	public Logger logger;
-	public PrintStream ps;
+    public Logger logger;
+    public PrintStream ps;
     private int count = 0;
     private int total;
     
     private String turtleEscape(String input)
     {
-    	return input.replace("\\", "\\\\").replace("\"", "\\\"");
+        return input.replace("\\", "\\\\").replace("\"", "\\\"");
     }
     
     @Override
@@ -37,15 +37,15 @@ public class Parser extends ScrapingTemplate{
         LinkedList<ParseEntry> out = new LinkedList<>();
         if (docType.equals("list")) {
             /* Na strance se sezname si najdu linky na detaily */
-        	Elements e = doc.select("body table tbody tr td:eq(0) a");
+            Elements e = doc.select("body table tbody tr td:eq(0) a");
             total = e.size() - 1;
-        	logger.info("Found " + total + " agendas.");
+            logger.info("Found " + total + " agendas.");
             for (int i = 0; i < e.size(); i ++) {
                 try {
                     URL u = new URL("https://rpp-ais.egon.gov.cz/gen/agendy-detail/" + e.get(i).attr("href"));
                     out.add(new ParseEntry(u, "detail"));
                 } catch (MalformedURLException ex) {
-                	ex.printStackTrace();
+                    ex.printStackTrace();
                 }
             }
         }
@@ -53,12 +53,12 @@ public class Parser extends ScrapingTemplate{
     }
     private String uriSlug(String input)
     {
-    	return input.toLowerCase().replace(" ", "-").replace(".", "-").replace("–", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
+        return input.toLowerCase().replace(" ", "-").replace(".", "-").replace("–", "-").replace(",", "-").replace("(", "-").replace("§", "-").replace("*", "-").replace("/", "-").replace(")", "-").replace("--", "-").replace("--", "-");
     }
 
     private void printIfNotNullOrEmpty(String before, String what, String after)
     {
-    	if (what != null && !what.isEmpty()) ps.println(before + what + after);
+        if (what != null && !what.isEmpty()) ps.println(before + what + after);
     }
     
     @Override
@@ -105,128 +105,128 @@ public class Parser extends ScrapingTemplate{
                 
                 for (Element e: tableA.select("tr:has(td:eq(1))"))
                 {
-                	String currentCislo = e.select("td:eq(0)").first().text();
-                	if (currentCislo.contains("/")) currentCislo = currentCislo.substring(0, currentCislo.indexOf("/"));
-                	String currentRok = e.select("td:eq(1)").first().text();
-                	String currentNazev = e.select("td:eq(2)").first().text(); 
-                	String currentParagraf = e.select("td:eq(3)").first().text().replace(" ", "").replace("čl.", ""); 
-                	String currentOdstavec = e.select("td:eq(4)").first().text().replace(" ", "");
-                	String currentPismeno = e.select("td:eq(5)").first().text().replace(" ", "");
-                	
-                	try {
-						StringBuilder uriBuilder = new StringBuilder("http://linked.opendata.cz/resource/legislation/cz/act");
-						if (currentRok != null && currentCislo != null && !currentRok.isEmpty() && ! currentCislo.isEmpty() && !currentCislo.equals("...")) {
-							uriBuilder.append("/" + currentRok + "/" + currentCislo + "-" + currentRok);
-							
-							if (currentParagraf != null && !currentParagraf.isEmpty())
-							{
-								if (currentParagraf.contains("-"))
-								{
-									int pod = Integer.parseInt(currentParagraf.substring(0, currentParagraf.indexOf("-")));
-									int pdo;
-									try {
-										pdo = Integer.parseInt(currentParagraf.substring(currentParagraf.indexOf("-") + 1));
-									}
-									catch (Exception e2){
-										pdo = pod;
-									}
-									String zakon = uriBuilder.toString();
-									for (int j = pod; j <= pdo; j++)
-									{
-						                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/section/" + j, "> ;");
-									}
-								}
-								else if (currentParagraf.contains(","))
-								{
-									String[] ps = currentParagraf.split(",");
-									String zakon = uriBuilder.toString();
-									for (String p : ps)
-									{
-						                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/section/" + p, "> ;");
-									}
-								}
-								else
-								{
-									uriBuilder.append("/section/" + currentParagraf);
-									
-									if (currentOdstavec != null && !currentOdstavec.isEmpty())
-									{
-										
-										if (currentOdstavec.contains("-"))
-										{
-											int pod = Integer.parseInt(currentOdstavec.substring(0, currentOdstavec.indexOf("-")));
-											int pdo;
-											try {
-												pdo = Integer.parseInt(currentOdstavec.substring(currentOdstavec.indexOf("-") + 1));
-											}
-											catch (Exception e2){
-												pdo = pod;
-											}
-											String zakon = uriBuilder.toString();
-											for (int j = pod; j <= pdo; j++)
-											{
-								                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + j, "> ;");
-											}
-										}
-										else if (currentOdstavec.contains(","))
-										{
-											String[] ps = currentOdstavec.split(",");
-											String zakon = uriBuilder.toString();
-											for (String p : ps)
-											{
-								                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + p, "> ;");
-											}
-										}
-										else
-										{
-											uriBuilder.append("/" + currentOdstavec);
-											if (currentPismeno != null && !currentPismeno.isEmpty())
-											{
-												if (currentPismeno.contains("-"))
-												{
-													char pod = currentPismeno.charAt(0);
-													char pdo = currentPismeno.charAt(2);
-													String zakon = uriBuilder.toString();
-													for (char j = pod; j <= pdo; j++)
-													{
-										                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + j, "> ;");
-													}
-												}
-												else if (currentPismeno.contains(","))
-												{
-													String[] ps = currentPismeno.split(",");
-													String zakon = uriBuilder.toString();
-													for (String p : ps)
-													{
-										                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + p, "> ;");
-													}
-												}
-												else
-												{
-													uriBuilder.append("/" + currentPismeno);
-													URL zakon = new URL(uriBuilder.toString());
-									                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
-												}
-											}
-											else 
-											{
-												URL zakon = new URL(uriBuilder.toString());
-								                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
-											}
-										}
-									}
-								}
-							}
-							else
-							{
-								URL zakon = new URL(uriBuilder.toString());
-				                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
-							}
-						}
-					} catch (MalformedURLException e1) {
-						logger.error(e1.getLocalizedMessage());
-					}
-                	
+                    String currentCislo = e.select("td:eq(0)").first().text();
+                    if (currentCislo.contains("/")) currentCislo = currentCislo.substring(0, currentCislo.indexOf("/"));
+                    String currentRok = e.select("td:eq(1)").first().text();
+                    String currentNazev = e.select("td:eq(2)").first().text(); 
+                    String currentParagraf = e.select("td:eq(3)").first().text().replace(" ", "").replace("čl.", ""); 
+                    String currentOdstavec = e.select("td:eq(4)").first().text().replace(" ", "");
+                    String currentPismeno = e.select("td:eq(5)").first().text().replace(" ", "");
+                    
+                    try {
+                        StringBuilder uriBuilder = new StringBuilder("http://linked.opendata.cz/resource/legislation/cz/act");
+                        if (currentRok != null && currentCislo != null && !currentRok.isEmpty() && ! currentCislo.isEmpty() && !currentCislo.equals("...")) {
+                            uriBuilder.append("/" + currentRok + "/" + currentCislo + "-" + currentRok);
+                            
+                            if (currentParagraf != null && !currentParagraf.isEmpty())
+                            {
+                                if (currentParagraf.contains("-"))
+                                {
+                                    int pod = Integer.parseInt(currentParagraf.substring(0, currentParagraf.indexOf("-")));
+                                    int pdo;
+                                    try {
+                                        pdo = Integer.parseInt(currentParagraf.substring(currentParagraf.indexOf("-") + 1));
+                                    }
+                                    catch (Exception e2){
+                                        pdo = pod;
+                                    }
+                                    String zakon = uriBuilder.toString();
+                                    for (int j = pod; j <= pdo; j++)
+                                    {
+                                        printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/section/" + j, "> ;");
+                                    }
+                                }
+                                else if (currentParagraf.contains(","))
+                                {
+                                    String[] ps = currentParagraf.split(",");
+                                    String zakon = uriBuilder.toString();
+                                    for (String p : ps)
+                                    {
+                                        printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/section/" + p, "> ;");
+                                    }
+                                }
+                                else
+                                {
+                                    uriBuilder.append("/section/" + currentParagraf);
+                                    
+                                    if (currentOdstavec != null && !currentOdstavec.isEmpty())
+                                    {
+                                        
+                                        if (currentOdstavec.contains("-"))
+                                        {
+                                            int pod = Integer.parseInt(currentOdstavec.substring(0, currentOdstavec.indexOf("-")));
+                                            int pdo;
+                                            try {
+                                                pdo = Integer.parseInt(currentOdstavec.substring(currentOdstavec.indexOf("-") + 1));
+                                            }
+                                            catch (Exception e2){
+                                                pdo = pod;
+                                            }
+                                            String zakon = uriBuilder.toString();
+                                            for (int j = pod; j <= pdo; j++)
+                                            {
+                                                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + j, "> ;");
+                                            }
+                                        }
+                                        else if (currentOdstavec.contains(","))
+                                        {
+                                            String[] ps = currentOdstavec.split(",");
+                                            String zakon = uriBuilder.toString();
+                                            for (String p : ps)
+                                            {
+                                                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + p, "> ;");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            uriBuilder.append("/" + currentOdstavec);
+                                            if (currentPismeno != null && !currentPismeno.isEmpty())
+                                            {
+                                                if (currentPismeno.contains("-"))
+                                                {
+                                                    char pod = currentPismeno.charAt(0);
+                                                    char pdo = currentPismeno.charAt(2);
+                                                    String zakon = uriBuilder.toString();
+                                                    for (char j = pod; j <= pdo; j++)
+                                                    {
+                                                        printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + j, "> ;");
+                                                    }
+                                                }
+                                                else if (currentPismeno.contains(","))
+                                                {
+                                                    String[] ps = currentPismeno.split(",");
+                                                    String zakon = uriBuilder.toString();
+                                                    for (String p : ps)
+                                                    {
+                                                        printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString() + "/" + p, "> ;");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    uriBuilder.append("/" + currentPismeno);
+                                                    URL zakon = new URL(uriBuilder.toString());
+                                                    printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
+                                                }
+                                            }
+                                            else 
+                                            {
+                                                URL zakon = new URL(uriBuilder.toString());
+                                                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                URL zakon = new URL(uriBuilder.toString());
+                                printIfNotNullOrEmpty("\tovm-a:pravniZaklad <", zakon.toString(), "> ;");
+                            }
+                        }
+                    } catch (MalformedURLException e1) {
+                        logger.error(e1.getLocalizedMessage());
+                    }
+                    
                 }
                 
                 Element tableAother = tables.get(1);
@@ -234,45 +234,45 @@ public class Parser extends ScrapingTemplate{
                 
                 for (Element e: tableAother.select("tr:has(td:eq(1))"))
                 {
-                	String currentCislo = e.select("td:eq(0)").first().text();
-                	String currentRok = e.select("td:eq(1)").first().text();
-                	String currentNazev = e.select("td:eq(2)").first().text(); 
+                    String currentCislo = e.select("td:eq(0)").first().text();
+                    String currentRok = e.select("td:eq(1)").first().text();
+                    String currentNazev = e.select("td:eq(2)").first().text(); 
 
-                	try {
-						StringBuilder uriBuilder = new StringBuilder("http://linked.opendata.cz/resource/legislation/cz/act");
-						if (currentRok != null && currentCislo != null && !currentRok.isEmpty() && ! currentCislo.isEmpty() && !currentCislo.equals("null")) {
-							uriBuilder.append("/" + currentRok + "/" + currentCislo + "-" + currentRok);
-							
-							URL zakon = new URL(uriBuilder.toString());
-			                printIfNotNullOrEmpty("\tovm-a:ostatniPredpis <", zakon.toString(), "> ;");
-						}
-						else
-						{
-			                printIfNotNullOrEmpty("\tovm-a:ostatniPredpisText \"\"\"", currentNazev, "\"\"\" ;");
-						}
-					} catch (MalformedURLException e1) {
-						logger.error(e1.getLocalizedMessage());
-					}
-                	
+                    try {
+                        StringBuilder uriBuilder = new StringBuilder("http://linked.opendata.cz/resource/legislation/cz/act");
+                        if (currentRok != null && currentCislo != null && !currentRok.isEmpty() && ! currentCislo.isEmpty() && !currentCislo.equals("null")) {
+                            uriBuilder.append("/" + currentRok + "/" + currentCislo + "-" + currentRok);
+                            
+                            URL zakon = new URL(uriBuilder.toString());
+                            printIfNotNullOrEmpty("\tovm-a:ostatniPredpis <", zakon.toString(), "> ;");
+                        }
+                        else
+                        {
+                            printIfNotNullOrEmpty("\tovm-a:ostatniPredpisText \"\"\"", currentNazev, "\"\"\" ;");
+                        }
+                    } catch (MalformedURLException e1) {
+                        logger.error(e1.getLocalizedMessage());
+                    }
+                    
                 }
                 
                 ps.println("\t.\n");
                 
                 //ohlašovatel činnosti gr:BE
                 String currentBEURI = "http://linked.opendata.cz/resource/business-entity/CZ" + identifikaceOVM;
-            	
+                
                 ps.println("<" + currentBEURI + "> a gr:BusinessEntity ;");
                 printIfNotNullOrEmpty("\tgr:legalName \"", nazevOVM, "\" ;");
                 printIfNotNullOrEmpty("\tdcterms:title \"", nazevOVM, "\" ;");
                 
-            	String beidUri = currentBEURI + "/identifier/" + identifikaceOVM;
+                String beidUri = currentBEURI + "/identifier/" + identifikaceOVM;
                 printIfNotNullOrEmpty("\tadms:identifier <", beidUri ,"> ;");
                 ps.println("\t.\n");
 
                 printIfNotNullOrEmpty("<",beidUri,"> a adms:Identifier ;");
-            	printIfNotNullOrEmpty("\tskos:notation \"",identifikaceOVM,"\" ;");
-            	printIfNotNullOrEmpty("\tskos:prefLabel \"",identifikaceOVM,"\" ;");
-            	ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
+                printIfNotNullOrEmpty("\tskos:notation \"",identifikaceOVM,"\" ;");
+                printIfNotNullOrEmpty("\tskos:prefLabel \"",identifikaceOVM,"\" ;");
+                ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
                 ps.println("\t.\n");
                 //konec ohlašovatele agendy
                 
@@ -282,19 +282,19 @@ public class Parser extends ScrapingTemplate{
                 
                 for (Element e: tableB.select("tr:has(td:eq(1))"))
                 {
-                	String currentKod = e.select("td:eq(0)").first().text();
-                	String currentNazev = turtleEscape(e.select("td:eq(1)").first().text()); 
-                	String currentPopis = turtleEscape(e.select("td:eq(2)").first().text()); 
-                	
-                	String currentCURIE = "ovm-c:" + currentKod;
-                	
+                    String currentKod = e.select("td:eq(0)").first().text();
+                    String currentNazev = turtleEscape(e.select("td:eq(1)").first().text()); 
+                    String currentPopis = turtleEscape(e.select("td:eq(2)").first().text()); 
+                    
+                    String currentCURIE = "ovm-c:" + currentKod;
+                    
                     ps.println("<" + URLagendy + "> ovm-a:cinnost " + currentCURIE + " .\n");
-                	
+                    
                     ps.println(currentCURIE + " a ovm-co:Cinnost, skos:Concept ;");
-                	ps.println("\tskos:inScheme ovm-c:CinnostiConceptScheme ;");
-                	printIfNotNullOrEmpty("\tskos:notation \"",currentKod,"\" ;");
-                	printIfNotNullOrEmpty("\tskos:prefLabel \"\"\"",currentNazev,"\"\"\" ;");
-                	printIfNotNullOrEmpty("\tskos:note \"\"\"",currentPopis,"\"\"\" ;");
+                    ps.println("\tskos:inScheme ovm-c:CinnostiConceptScheme ;");
+                    printIfNotNullOrEmpty("\tskos:notation \"",currentKod,"\" ;");
+                    printIfNotNullOrEmpty("\tskos:prefLabel \"\"\"",currentNazev,"\"\"\" ;");
+                    printIfNotNullOrEmpty("\tskos:note \"\"\"",currentPopis,"\"\"\" ;");
                     ps.println("\t.\n");
 
                 }
@@ -303,17 +303,17 @@ public class Parser extends ScrapingTemplate{
 
                 for (Element e: tableC.select("tr:has(td:eq(0))"))
                 {
-                	String currentKod = e.select("td:eq(0)").first().text();
-                	
-                	if (currentKod.equals("(žádná data)")) break;
-                	
-                	String currentCURIE = "ovm-t:" + uriSlug(currentKod);
-                	
+                    String currentKod = e.select("td:eq(0)").first().text();
+                    
+                    if (currentKod.equals("(žádná data)")) break;
+                    
+                    String currentCURIE = "ovm-t:" + uriSlug(currentKod);
+                    
                     ps.println("<" + URLagendy + "> ovm-a:typOVM " + currentCURIE + " .\n");
-                	
+                    
                     ps.println(currentCURIE + " a ovm-a:TypOVM, skos:Concept ;");
-                	ps.println("\tskos:inScheme ovm-a:TypOVMConceptScheme ;");
-                	printIfNotNullOrEmpty("\tskos:prefLabel \"",currentKod,"\" ;");
+                    ps.println("\tskos:inScheme ovm-a:TypOVMConceptScheme ;");
+                    printIfNotNullOrEmpty("\tskos:prefLabel \"",currentKod,"\" ;");
                     ps.println("\t.\n");
 
                 }
@@ -321,26 +321,26 @@ public class Parser extends ScrapingTemplate{
                 Element tableOVMs = tables.get(4);
                 for (Element e: tableOVMs.select("tr:has(td:eq(1))"))
                 {
-                	String currentKod = e.select("td:eq(0)").first().text();
-                	String currentNazev = e.select("td:eq(1)").first().text();
-                	
+                    String currentKod = e.select("td:eq(0)").first().text();
+                    String currentNazev = e.select("td:eq(1)").first().text();
+                    
                     String currentURI = "http://linked.opendata.cz/resource/business-entity/CZ" + currentKod;
-                	ps.println("<" + URLagendy + "> ovm-a:vykonava <" + currentURI + "> .\n");
-                	
+                    ps.println("<" + URLagendy + "> ovm-a:vykonava <" + currentURI + "> .\n");
+                    
                     ps.println("<" + currentURI + "> a gr:BusinessEntity ;");
                     printIfNotNullOrEmpty("\tgr:legalName \"", currentNazev, "\" ;");
                     printIfNotNullOrEmpty("\tdcterms:title \"", currentNazev, "\" ;");
                     
-                	String idUri = currentURI + "/identifier/" + currentKod;
+                    String idUri = currentURI + "/identifier/" + currentKod;
                     if (idUri != null) {
                         printIfNotNullOrEmpty("\tadms:identifier <", idUri ,"> ;");
                         ps.println("\t.\n");
 
                         printIfNotNullOrEmpty("<",idUri,"> a adms:Identifier ;");
-	                	printIfNotNullOrEmpty("\tskos:notation \"",currentKod,"\" ;");
-	                	printIfNotNullOrEmpty("\tskos:prefLabel \"",currentKod,"\" ;");
-	                	ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
-	                    ps.println("\t.\n");
+                        printIfNotNullOrEmpty("\tskos:notation \"",currentKod,"\" ;");
+                        printIfNotNullOrEmpty("\tskos:prefLabel \"",currentKod,"\" ;");
+                        ps.println("\tskos:inScheme <http://linked.opendata.cz/resource/concept-scheme/CZ-ICO> ;");
+                        ps.println("\t.\n");
                     }
                     else {
                         ps.println("\t.\n");
