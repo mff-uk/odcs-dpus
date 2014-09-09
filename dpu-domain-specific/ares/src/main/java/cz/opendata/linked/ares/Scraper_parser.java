@@ -15,8 +15,8 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-	private static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
-	public Logger logger ;
+    private static String icoBEprefix = "http://linked.opendata.cz/resource/business-entity/CZ";
+    public Logger logger ;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
@@ -27,7 +27,7 @@ public class Scraper_parser extends ScrapingTemplate{
     
     private String escapeString(String original)
     {
-    	return original.replace("\n", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
+        return original.replace("\n", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
     }
     
     @Override

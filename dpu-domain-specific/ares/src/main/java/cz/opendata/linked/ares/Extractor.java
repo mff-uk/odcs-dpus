@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,359 +15,356 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.nodes.Document;
 import org.openrdf.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.InputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.simple.*;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.*;
+
 import org.openrdf.model.ValueFactory;
 
-@AsExtractor
+@DPU.AsExtractor
 public class Extractor 
-extends ConfigurableBase<ExtractorConfig> 
-implements DPU, ConfigDialogProvider<ExtractorConfig> {
+extends DpuAdvancedBase<ExtractorConfig> 
+{
 
-	private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
-	
-	@InputDataUnit(name = "ICs", optional = true )
-	public RDFDataUnit duICs;
-	
-	@OutputDataUnit(name = "Basic")
-	public WritableRDFDataUnit outBasic;
+    private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
+    
+    @DataUnit.AsInput(name = "ICs", optional = true )
+    public RDFDataUnit duICs;
+    
+    @DataUnit.AsOutput(name = "Basic")
+    public WritableFilesDataUnit outBasic;
 
-	@OutputDataUnit(name = "OR")
-	public WritableRDFDataUnit outOR;
+    @DataUnit.AsOutput(name = "OR")
+    public WritableFilesDataUnit outOR;
 
-	@OutputDataUnit(name = "RZP")
-	public WritableRDFDataUnit outRZP;
+    @DataUnit.AsOutput(name = "RZP")
+    public WritableFilesDataUnit outRZP;
 
-	public Extractor(){
-		super(ExtractorConfig.class);
-	}
+    public Extractor(){
+        super(ExtractorConfig.class,AddonInitializer.noAddons());
+    }
 
-	private int countTodaysCacheFiles(DPUContext ctx) throws ParseException 
-	{
-		int count = 0;
+    private int countTodaysCacheFiles(DPUContext context) throws ParseException 
+    {
+        int count = 0;
 
-		// Directory path here
-		String path = ctx.getUserDirectory() + "/cache/wwwinfo.mfcr.cz/cgi-bin/ares/"; 
-		File folder = new File(path);
-		if (!folder.isDirectory()) return 0;
+        // Directory path here
+        String path = context.getUserDirectory() + "/cache/wwwinfo.mfcr.cz/cgi-bin/ares/"; 
+        File folder = new File(path);
+        if (!folder.isDirectory()) return 0;
 
-		File[] listOfFiles = folder.listFiles(); 
-		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        File[] listOfFiles = folder.listFiles(); 
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
-		for (File item : listOfFiles){
-			if (item.isFile())  {
-				Date now = new Date();
-				Date modified = sdf.parse(sdf.format(item.lastModified()));
-				long diff = (now.getTime() - modified.getTime()) / 1000;
-				//System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
+        for (File item : listOfFiles){
+            if (item.isFile())  {
+                Date now = new Date();
+                Date modified = sdf.parse(sdf.format(item.lastModified()));
+                long diff = (now.getTime() - modified.getTime()) / 1000;
+                //System.out.println("Date modified: " + sdf.format(currentFile.lastModified()) + " which is " + diff + " seconds ago.");
 
-				if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
-			}
-		}
+                if (diff < (config.getHoursToCheck() * 60 * 60)) count++;
+            }
+        }
 
-		ctx.sendMessage(MessageType.INFO, "Total of " + count + " files cached in last " + config.getHoursToCheck() + " hours. " + (config.getPerDay() - count) + " remaining.");
-		return count;
-	}
+        context.sendMessage(DPUContext.MessageType.INFO, "Total of " + count + " files cached in last " + config.getHoursToCheck() + " hours. " + (config.getPerDay() - count) + " remaining.");
+        return count;
+    }
 
 
-	@Override
-	public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {		
-		return new ExtractorDialog();
-	}
+    @Override
+    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
+        return new ExtractorDialog();
+    }
 
-	@Override
-	public void execute(DPUContext ctx) throws DPUException, OperationFailedException
-	{	
-		Cache.setInterval(config.getInterval());
-		Cache.setTimeout(config.getTimeout());
-		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
-		Cache.logger = LOG;
-		Scraper_parser s = new Scraper_parser();
-		s.logger = LOG;
+    @Override
+    protected void innerExecute() throws DPUException, OperationFailedException
+    {    
+        Cache.setInterval(config.getInterval());
+        Cache.setTimeout(config.getTimeout());
+        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.logger = LOG;
+        Scraper_parser s = new Scraper_parser();
+        s.logger = LOG;
 
-		java.util.Date date = new java.util.Date();
-		long start = date.getTime();
+        java.util.Date date = new java.util.Date();
+        long start = date.getTime();
 
-		Set<String> ICs = new TreeSet<>();
+        Set<String> ICs = new TreeSet<>();
 
-		//Load ICs from input DataUnit
-		
-		ctx.sendMessage(MessageType.INFO, "Interval: " + config.getInterval());
-		ctx.sendMessage(MessageType.INFO, "Timeout: " + config.getTimeout());
-		ctx.sendMessage(MessageType.INFO, "Hours to check: " + config.getHoursToCheck());
-		ctx.sendMessage(MessageType.INFO, "Dowload per time frame: " + config.getPerDay());
-		ctx.sendMessage(MessageType.INFO, "Cache base dir: " + Cache.basePath);
-		ctx.sendMessage(MessageType.INFO, "Cache only: " + config.isUseCacheOnly());
-		ctx.sendMessage(MessageType.INFO, "Generating output: " + config.isGenerateOutput());
-		ctx.sendMessage(MessageType.INFO, "BAS Active only: " + config.isBas_active());
-		ctx.sendMessage(MessageType.INFO, "Puvadr in BAS: " + config.isBas_puvadr());
-		ctx.sendMessage(MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
+        //Load ICs from input DataUnit
+        
+        context.sendMessage(DPUContext.MessageType.INFO, "Interval: " + config.getInterval());
+        context.sendMessage(DPUContext.MessageType.INFO, "Timeout: " + config.getTimeout());
+        context.sendMessage(DPUContext.MessageType.INFO, "Hours to check: " + config.getHoursToCheck());
+        context.sendMessage(DPUContext.MessageType.INFO, "Dowload per time frame: " + config.getPerDay());
+        context.sendMessage(DPUContext.MessageType.INFO, "Cache base dir: " + Cache.basePath);
+        context.sendMessage(DPUContext.MessageType.INFO, "Cache only: " + config.isUseCacheOnly());
+        context.sendMessage(DPUContext.MessageType.INFO, "Generating output: " + config.isGenerateOutput());
+        context.sendMessage(DPUContext.MessageType.INFO, "BAS Active only: " + config.isBas_active());
+        context.sendMessage(DPUContext.MessageType.INFO, "Puvadr in BAS: " + config.isBas_puvadr());
+        context.sendMessage(DPUContext.MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
 
-		int lines = 0;
-		
-		SimpleRdfRead duICsWrap = SimpleRdfFactory.create(duICs, ctx);
-		final List<Statement> statements = duICsWrap.getStatements();
-		if (statements != null && !statements.isEmpty())
-		{
-			URL textPredicate;
-			try {
-				textPredicate = new URL("http://linked.opendata.cz/ontology/odcs/textValue");
-				for (Statement stmt : statements)
-				{
-					if (stmt.getPredicate().toString().equals(textPredicate.toString()))
-					{
-						ICs.add(stmt.getObject().stringValue());
-						lines++;
-					}
-				}
-			} catch (MalformedURLException e) {
-				LOG.error("Unexpected malformed URL of ODCS textValue predicate");
-			}
-		}
-		LOG.info("{} ICs loaded from input", lines);
-		
-		//Load ICs from file
-		BufferedReader in;
-		lines = 0;
-		try {
-			in = new BufferedReader(new FileReader(new File(ctx.getUserDirectory(),"ic.txt")));
-			while (in.ready()) {
-				ICs.add(in.readLine());
-				lines++;
-			}
-			in.close();
-		} catch (IOException e) {
-			LOG.info("IO error when loading ICs from file - probably not present");
-		}
-		LOG.info(lines + " ICs loaded from config file");
-		//End Load ICs from file
+        int lines = 0;
+        
+        SimpleRdfRead duICsWrap = SimpleRdfFactory.create(duICs, context);
+        final List<Statement> statements = duICsWrap.getStatements();
+        if (statements != null && !statements.isEmpty())
+        {
+            URL textPredicate;
+            try {
+                textPredicate = new URL("http://linked.opendata.cz/ontology/odcs/textValue");
+                for (Statement stmt : statements)
+                {
+                    if (stmt.getPredicate().toString().equals(textPredicate.toString()))
+                    {
+                        ICs.add(stmt.getObject().stringValue());
+                        lines++;
+                    }
+                }
+            } catch (MalformedURLException e) {
+                LOG.error("Unexpected malformed URL of ODCS textValue predicate");
+            }
+        }
+        LOG.info("{} ICs loaded from input", lines);
+        
+        //Load ICs from file
+        BufferedReader in;
+        lines = 0;
+        try {
+            in = new BufferedReader(new FileReader(new File(context.getUserDirectory(),"ic.txt")));
+            while (in.ready()) {
+                ICs.add(in.readLine());
+                lines++;
+            }
+            in.close();
+        } catch (IOException e) {
+            LOG.info("IO error when loading ICs from file - probably not present");
+        }
+        LOG.info(lines + " ICs loaded from config file");
+        //End Load ICs from file
 
-		int downloaded = 0;
-		int cachedToday = 0;
-		int cachedEarlier = 0;
-		
-		try {
-			cachedToday = countTodaysCacheFiles(ctx);
-		} catch (ParseException e) {
-			LOG.info("countTodaysCacheFiles throws", e);
-		}
+        int downloaded = 0;
+        int cachedToday = 0;
+        int cachedEarlier = 0;
+        
+        try {
+            cachedToday = countTodaysCacheFiles(context);
+        } catch (ParseException e) {
+            LOG.info("countTodaysCacheFiles throws", e);
+        }
 
-		ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs.");
+        context.sendMessage(DPUContext.MessageType.INFO, "I see " + ICs.size() + " ICs.");
 
-		/*//Remove duplicate ICs
-		List<String> dedupICs = new LinkedList<String>();    
-		for (String currentIC: ICs)
-		{
-		  if (!dedupICs.contains(currentIC)) 
-		  {
-			  dedupICs.add(currentIC);
-		  }
-		 }
-		
-		ICs = dedupICs;*/
-		
-		if (ctx.canceled()) {
-			return;
-		}
-		
+        /*//Remove duplicate ICs
+        List<String> dedupICs = new LinkedList<String>();    
+        for (String currentIC: ICs)
+        {
+          if (!dedupICs.contains(currentIC)) 
+          {
+              dedupICs.add(currentIC);
+          }
+         }
+        
+        ICs = dedupICs;*/
+        
+        if (context.canceled()) {
+            return;
+        }
+        
 
-		//Download
-		int toCache = (config.getPerDay() - cachedToday);
-		Iterator<String> li = ICs.iterator();
-		//ctx.sendMessage(MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
+        //Download
+        int toCache = (config.getPerDay() - cachedToday);
+        Iterator<String> li = ICs.iterator();
+        //context.sendMessage(DPUContext.MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 
-		final SimpleRdfWrite outBasicWrap = SimpleRdfFactory.create(outBasic, ctx);
-		outBasicWrap.setPolicy(AddPolicy.BUFFERED);
+        try {
+            while (li.hasNext() && !context.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
+                String currentIC = li.next();
+                URL current;
 
-		final SimpleRdfWrite outORWrap = SimpleRdfFactory.create(outOR, ctx);
-		outORWrap.setPolicy(AddPolicy.BUFFERED);
+                if (config.isDownloadBasic()) {
+                    current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
 
-		final SimpleRdfWrite outRZPWrap = SimpleRdfFactory.create(outRZP, ctx);
-		outRZPWrap.setPolicy(AddPolicy.BUFFERED);
+                    if (!Cache.isCached(current) && !config.isUseCacheOnly())
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        if (doc != null)
+                        {
+                            //logger.trace(doc.outerHtml());
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                    else if (Cache.isCached(current))
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        cachedEarlier++;
+                        if (doc != null)
+                        {
+                            //logger.trace(doc.outerHtml());
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Got from cache {}:{}", cachedEarlier, current );
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                }
 
-		try {
-			while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
-				String currentIC = li.next();
-				URL current;
+                if (context.canceled()) break;
 
-				if (config.isDownloadBasic()) {
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=" + currentIC + (config.isBas_active() ? "" : "&aktivni=false") + (config.isBas_puvadr() ? "&adr_puv=true" : ""));
+                if (config.isDownloadOR()) {
+                    current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
 
-					final ValueFactory valueFactory = outBasicWrap.getValueFactory();						
-					if (!Cache.isCached(current) && !config.isUseCacheOnly())
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						if (doc != null)
-						{
-							//logger.trace(doc.outerHtml());
-							if (config.isGenerateOutput()) {
-								outBasicWrap.add(
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-					else if (Cache.isCached(current))
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							//logger.trace(doc.outerHtml());
-							if (config.isGenerateOutput()) {
-								outBasicWrap.add(
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Got from cache {}:{}", cachedEarlier, current );
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-				}
+                    if (!Cache.isCached(current) && !config.isUseCacheOnly())
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        cachedEarlier++;
+                        if (doc != null)
+                        {
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outOR.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                    else if (Cache.isCached(current))
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        cachedEarlier++;
+                        if (doc != null)
+                        {
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outOR.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Got from cache {}: {}", cachedEarlier, current);
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                }
 
-				if (ctx.canceled()) break;
+                if (context.canceled()) break;
 
-				if (config.isDownloadOR()) {
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
+                if (config.isDownloadRZP()) {
+                    current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_rzp.cgi?ico=" + currentIC + "&rozsah=2");
 
-					final ValueFactory valueFactory = outORWrap.getValueFactory();
-					if (!Cache.isCached(current) && !config.isUseCacheOnly())
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							if (config.isGenerateOutput()) {
-								outORWrap.add( 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-					else if (Cache.isCached(current))
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							if (config.isGenerateOutput()) {
-								outORWrap.add( 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-				}
+                    if (!Cache.isCached(current) && !config.isUseCacheOnly())
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        cachedEarlier++;
+                        if (doc != null)
+                        {
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                    else if (Cache.isCached(current))
+                    {
+                        Document doc = Cache.getDocument(current, 10, "xml");
+                        cachedEarlier++;
+                        if (doc != null)
+                        {
+                            if (config.isGenerateOutput()) {
+                				try {
+									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
+									FileUtils.writeStringToFile(f, doc.outerHtml());
+								} catch (DataUnitException e) {
+									LOG.error(e.getLocalizedMessage(), e);
+								}
+                            }
+                            LOG.debug("Got from cache {}: {}", cachedEarlier, current);
+                        }
+                        else
+                        {
+                            LOG.warn("Document null: {}", current);
+                        }
+                    }
+                }
+            
+            }
+            if (context.canceled()) LOG.error("Interrupted");
+        } catch (BannedException e) {
+            LOG.warn("Seems like we are banned for today");
+        } catch (IOException e) {
+            LOG.info("IOException", e);
+        } catch (InterruptedException e) {
+            LOG.error("Interrupted");
+        }
 
-				if (ctx.canceled()) break;
+        java.util.Date date2 = new java.util.Date();
+        long end = date2.getTime();
 
-				if (config.isDownloadRZP()) {
-					current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_rzp.cgi?ico=" + currentIC + "&rozsah=2");
-
-					final ValueFactory valueFactory = outRZPWrap.getValueFactory();
-					if (!Cache.isCached(current) && !config.isUseCacheOnly())
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							if (config.isGenerateOutput()) {
-								outRZPWrap.add( 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-					else if (Cache.isCached(current))
-					{
-						Document doc = Cache.getDocument(current, 10, "xml");
-						cachedEarlier++;
-						if (doc != null)
-						{
-							if (config.isGenerateOutput()) {
-								outRZPWrap.add( 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), 
-										valueFactory.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),
-										valueFactory.createLiteral(doc.outerHtml()));
-							}
-							LOG.debug("Got from cache {}: {}", cachedEarlier, current);
-						}
-						else
-						{
-							LOG.warn("Document null: {}", current);
-						}
-					}
-				}
-			
-			}
-			if (ctx.canceled()) LOG.error("Interrupted");
-		} catch (BannedException e) {
-			LOG.warn("Seems like we are banned for today");
-		} catch (IOException e) {
-			LOG.info("IOException", e);
-		} catch (InterruptedException e) {
-			LOG.error("Interrupted");
-		}
-
-		// add the triples in repositories
-		outBasicWrap.flushBuffer();
-		outORWrap.flushBuffer();
-		outRZPWrap.flushBuffer();
-		
-		java.util.Date date2 = new java.util.Date();
-		long end = date2.getTime();
-
-		ctx.sendMessage(MessageType.INFO, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
-	}
+        context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
+    }
 
 }
