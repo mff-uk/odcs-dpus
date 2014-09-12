@@ -3,19 +3,63 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-		<groupId>cz.cuni.mff.xrg.uv</groupId>
-		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.0.0</version>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.1</version>
     </parent>    
-    <artifactId>extractor_ruian</artifactId>
-	<name>ext. ruian</name>
+    <artifactId>E-RUIAN</artifactId>
+    <name>ext. ruian</name>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
-	<description>This extractor scrapes RUIAN from http://vdp.cuzk.cz/vdp/ruian/vymennyformat/vyhledej</description>
+    <version>2.0.0</version>
+    <description>This extractor scrapes RUIAN from http://vdp.cuzk.cz/vdp/ruian/vymennyformat/vyhledej</description>
     
     <properties>    
         <dpu.package>cz.opendata.linked.cz.ruian</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
     </properties>
 
+
+    <dependencies>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
+		</dependency>
+       <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- compile library -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
 </project>
+
