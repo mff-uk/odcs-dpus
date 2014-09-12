@@ -5,7 +5,6 @@ import java.io.File;
 import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
-import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;

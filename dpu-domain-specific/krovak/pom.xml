@@ -43,8 +43,8 @@
         </dependency>
         <dependency>
            <groupId>cz.cuni.mff.xrg.uv</groupId>
-           <artifactId>test-boost</artifactId>
-           <version>1.0.0</version>        
+           <artifactId>utils-test</artifactId>
+           <version>[${uk.version.min},${uk.version.max})</version>
         </dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

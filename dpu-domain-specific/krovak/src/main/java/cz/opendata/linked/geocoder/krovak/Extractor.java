@@ -1,7 +1,5 @@
 package cz.opendata.linked.geocoder.krovak;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
