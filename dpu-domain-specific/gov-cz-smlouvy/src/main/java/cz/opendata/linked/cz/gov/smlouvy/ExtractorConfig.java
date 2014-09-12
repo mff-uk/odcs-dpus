@@ -1,72 +1,71 @@
 package cz.opendata.linked.cz.gov.smlouvy;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class ExtractorConfig extends DPUConfigObjectBase {
+public class ExtractorConfig  {
 
     private boolean rewriteCache = true;
-	
-	private int timeout = 40000;
+    
+    private int timeout = 40000;
     
     private int interval = 0;
 
-	private boolean smlouvy = true;
+    private boolean smlouvy = true;
     
-	private boolean objednavky = true;
+    private boolean objednavky = true;
 
-	private boolean plneni = true;
+    private boolean plneni = true;
 
-	public boolean isRewriteCache() {
-		return rewriteCache;
-	}
+    public boolean isRewriteCache() {
+        return rewriteCache;
+    }
 
-	public void setRewriteCache(boolean rewriteCache) {
-		this.rewriteCache = rewriteCache;
-	}
+    public void setRewriteCache(boolean rewriteCache) {
+        this.rewriteCache = rewriteCache;
+    }
 
-	public int getTimeout() {
-		return timeout;
-	}
+    public int getTimeout() {
+        return timeout;
+    }
 
-	public void setTimeout(int timeout) {
-		this.timeout = timeout;
-	}
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
 
-	public int getInterval() {
-		return interval;
-	}
+    public int getInterval() {
+        return interval;
+    }
 
-	public void setInterval(int interval) {
-		this.interval = interval;
-	}
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
 
-	public boolean isSmlouvy() {
-		return smlouvy;
-	}
+    public boolean isSmlouvy() {
+        return smlouvy;
+    }
 
-	public void setSmlouvy(boolean smlouvy) {
-		this.smlouvy = smlouvy;
-	}
+    public void setSmlouvy(boolean smlouvy) {
+        this.smlouvy = smlouvy;
+    }
 
-	public boolean isObjednavky() {
-		return objednavky;
-	}
+    public boolean isObjednavky() {
+        return objednavky;
+    }
 
-	public void setObjednavky(boolean objednavky) {
-		this.objednavky = objednavky;
-	}
+    public void setObjednavky(boolean objednavky) {
+        this.objednavky = objednavky;
+    }
 
-	public boolean isPlneni() {
-		return plneni;
-	}
+    public boolean isPlneni() {
+        return plneni;
+    }
 
-	public void setPlneni(boolean plneni) {
-		this.plneni = plneni;
-	}
-	
+    public void setPlneni(boolean plneni) {
+        this.plneni = plneni;
+    }
+    
 }
