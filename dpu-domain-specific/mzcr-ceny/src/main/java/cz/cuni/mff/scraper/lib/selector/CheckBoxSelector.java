@@ -11,7 +11,7 @@ import org.jsoup.select.Elements;
 public class CheckBoxSelector extends CssSelector {
 
     public CheckBoxSelector(Document doc, String string) {
-	this(doc, string, null);
+    this(doc, string, null);
     }
     
     public CheckBoxSelector(Document doc, String string, String checked) {
@@ -21,14 +21,14 @@ public class CheckBoxSelector extends CssSelector {
     public String getValue() {
         Elements e = d.select("input[name=" + selector + "]");
         
-	if (e.size() != 0) {
+    if (e.size() != 0) {
             usageMap.put(selector, usageMap.get(selector) + 1);
             for (int i = 0; i < e.size(); i ++) {
                 if (e.get(i).hasAttr("checked") && e.get(i).attr("checked").equals("checked")) {
                     return e.get(i).attr("value");
                 }
             }
-	}
+    }
         return null;
     }
 
