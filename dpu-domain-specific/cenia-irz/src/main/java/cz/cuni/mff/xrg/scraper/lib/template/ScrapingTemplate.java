@@ -4,10 +4,10 @@
  */
 package cz.cuni.mff.xrg.scraper.lib.template;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import eu.unifiedviews.dpu.DPUContext;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 import java.io.IOException;
@@ -34,16 +34,16 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ScrapingTemplate {
     
-	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(
-			ScrapingTemplate.class);
-	
-    public DPUContext ctx;
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(
+            ScrapingTemplate.class);
+    
+    public DPUContext context;
     
     public SimpleRdfWrite outputDataUnit;
-	
-	public ValueFactory valueFactory;
-	
-	/** 
+    
+    public ValueFactory valueFactory;
+    
+    /** 
      * This method looks for links in actual document and create entries with URL and document type.
      * 
      * @param doc Input JSoup document.
@@ -72,7 +72,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type));
         
-        while (!toParse.isEmpty() && !ctx.canceled()) {
+        while (!toParse.isEmpty() && !context.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
@@ -84,7 +84,7 @@ public abstract class ScrapingTemplate {
                 this.parse(doc, p.type, p.url);
                 parsed.add(p);
             } catch (IOException ex) {
-				LOG.error("IOException in parse", ex);
+                LOG.error("IOException in parse", ex);
             } 
         }
         

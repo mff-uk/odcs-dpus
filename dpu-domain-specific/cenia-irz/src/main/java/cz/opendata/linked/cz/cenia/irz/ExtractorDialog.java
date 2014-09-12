@@ -6,14 +6,15 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
+public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
 
     private GridLayout mainLayout;
     private CheckBox chkRewriteCache;
@@ -22,15 +23,15 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
     private TextField interval;
     private TextField timeout;
     
-	public ExtractorDialog() {
-		super(ExtractorConfig.class);
+    public ExtractorDialog() {
+        super(ExtractorConfig.class,AddonInitializer.noAddons());
         buildMainLayout();
-		Panel panel = new Panel();
-		panel.setSizeFull();
-		panel.setContent(mainLayout);
-		setCompositionRoot(panel);
+        Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+        setCompositionRoot(panel);
     }  
-	
+    
     private GridLayout buildMainLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
@@ -67,42 +68,42 @@ public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
         mainLayout.addComponent(timeout);
         
         return mainLayout;
-    }	
-     	
-	@Override
-	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
-		chkRewriteCache.setValue(conf.isRewriteCache());
-		interval.setValue(Integer.toString(conf.getInterval()));
-		timeout.setValue(Integer.toString(conf.getTimeout()));
-		chkStartYear.setValue(Integer.toString(conf.getStartYear()));
-		chkEndYear.setValue(Integer.toString(conf.getEndYear()));
-	}
+    }    
+         
+    @Override
+    public void setConfiguration(ExtractorConfig conf) throws DPUConfigException {
+        chkRewriteCache.setValue(conf.isRewriteCache());
+        interval.setValue(Integer.toString(conf.getInterval()));
+        timeout.setValue(Integer.toString(conf.getTimeout()));
+        chkStartYear.setValue(Integer.toString(conf.getStartYear()));
+        chkEndYear.setValue(Integer.toString(conf.getEndYear()));
+    }
 
-	@Override
-	public ExtractorConfig getConfiguration() throws ConfigException {
-		ExtractorConfig conf = new ExtractorConfig();
-		conf.setRewriteCache(chkRewriteCache.getValue());
-		try {
-			conf.setInterval(Integer.parseInt(interval.getValue()));
-		} catch (InvalidValueException e) {
-		}
+    @Override
+    public ExtractorConfig getConfiguration() throws DPUConfigException {
+        ExtractorConfig conf = new ExtractorConfig();
+        conf.setRewriteCache(chkRewriteCache.getValue());
+        try {
+            conf.setInterval(Integer.parseInt(interval.getValue()));
+        } catch (InvalidValueException e) {
+        }
 
-		try {
-			conf.setTimeout(Integer.parseInt(timeout.getValue()));
-		} catch (InvalidValueException e) {
-		}
+        try {
+            conf.setTimeout(Integer.parseInt(timeout.getValue()));
+        } catch (InvalidValueException e) {
+        }
 
-		try {
-			conf.setStartYear(Integer.parseInt(chkStartYear.getValue()));
-		} catch (InvalidValueException e) {
-		}
+        try {
+            conf.setStartYear(Integer.parseInt(chkStartYear.getValue()));
+        } catch (InvalidValueException e) {
+        }
 
-		try {
-			conf.setEndYear(Integer.parseInt(chkEndYear.getValue()));
-		} catch (InvalidValueException e) {
-		}
+        try {
+            conf.setEndYear(Integer.parseInt(chkEndYear.getValue()));
+        } catch (InvalidValueException e) {
+        }
 
-		return conf;
-	}
-	
+        return conf;
+    }
+    
 }
