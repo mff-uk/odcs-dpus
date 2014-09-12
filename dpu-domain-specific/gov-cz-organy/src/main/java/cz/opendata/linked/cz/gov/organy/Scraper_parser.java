@@ -42,9 +42,9 @@ public class Scraper_parser extends ScrapingTemplate {
                 OrganyListParser handler = new OrganyListParser(out);
                 xr.setContentHandler(handler);                
             } catch (SAXException e) {
-                logger.error(e.getLocalizedMessage());
+                logger.error(e.getLocalizedMessage(), e);
             } catch (ParserConfigurationException e) {
-                logger.error(e.getLocalizedMessage());
+                logger.error(e.getLocalizedMessage(), e);
             }
             
             try {

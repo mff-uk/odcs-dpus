@@ -30,7 +30,7 @@ public class Cache {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage(), e);
         }
 
         return sResponse;
@@ -206,9 +206,9 @@ public class Cache {
             	OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
             	BufferedWriter fw = new BufferedWriter(osw);
                 fw.append(out);
-                fos.close();
-                osw.close();
                 fw.close();
+                osw.close();
+                fos.close();
             }
             catch (Exception e)
             {
@@ -216,7 +216,7 @@ public class Cache {
                 {
                     throw e;
                 }
-                else logger.warn("ERROR caching: " + e.getLocalizedMessage());
+                else logger.warn("ERROR caching: " + e.getLocalizedMessage(), e);
             }
         } else {
             //System.out.println("Using cache for URL: " + url.getHost() + url.getFile());
