@@ -1,12 +1,16 @@
 package cz.cuni.mff.css_parser.utils;
 
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.params.HttpConnectionParams;
+import org.apache.commons.httpclient.params.HttpParams;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,6 +29,7 @@ import javax.net.ssl.X509TrustManager;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
+
 import org.openrdf.model.ValueFactory;
 /**
  *  Document cache. It stores downloaded files to hard drive.
@@ -99,9 +104,13 @@ public class Cache {
         URL oURL;
         String sResponse = null;
 
+        logger.debug("Getting " + p_sURL);
+        
         oURL = new URL(p_sURL);
         oURL.openConnection();
+        logger.debug("Calling toString " + p_sURL);
         sResponse = IOUtils.toString(oURL, "UTF-8");
+        logger.debug("Got " + p_sURL);
 
         return sResponse;
     }
