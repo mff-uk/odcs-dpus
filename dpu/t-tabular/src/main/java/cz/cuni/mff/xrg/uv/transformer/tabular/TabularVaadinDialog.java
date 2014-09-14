@@ -9,12 +9,16 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
+import cz.cuni.mff.xrg.uv.transformer.tabular.column.NamedCell_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyGroup;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyGroupAdv;
+import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyNamedCell;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserXls;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -57,6 +61,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checCsvkHasHeader;
 
+    private TextField txtXlsSheetName;
+
     /**
      * Layout for basic column mapping.
      */
@@ -67,9 +73,16 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
      */
     private GridLayout advancedLayout;
 
+    /**
+     * Layout for xls.
+     */
+    private GridLayout xlsStaticLayout;
+
     private final List<PropertyGroup> basisMapping = new ArrayList<>();
 
     private final List<PropertyGroupAdv> advancedMapping = new ArrayList<>();
+
+    private final List<PropertyNamedCell> xlsNamedCells = new ArrayList<>();
 
     private Panel mainPanel;
 
@@ -103,8 +116,9 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
 		this.optionTableType = new OptionGroup("Choose the input type:");
         this.optionTableType.setImmediate(true);
-		this.optionTableType.addItem(ParserType.CSV);
-		this.optionTableType.addItem(ParserType.DBF);
+        for (ParserType type : ParserType.values()) {
+            this.optionTableType.addItem(type);
+        }
         this.optionTableType.setNullSelectionAllowed(false);
         this.optionTableType.setValue(ParserType.CSV);
 		generalLayout.addComponent(this.optionTableType);
@@ -183,20 +197,16 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         csvLayout.addComponent(new Label("CSV specific settings"));
 
         this.txtCsvQuoteChar = new TextField("Quote char");
-//        this.txtCsvQuoteChar.setInputPrompt("\"");
-        this.txtCsvQuoteChar.setNullRepresentation("");
+        //this.txtCsvQuoteChar.setInputPrompt("\"");
         this.txtCsvQuoteChar.setRequired(true);
         csvLayout.addComponent(this.txtCsvQuoteChar);
 
         this.txtCsvDelimeterChar = new TextField("Delimiter char");
-//        this.txtCsvDelimeterChar.setInputPrompt(",");
-        this.txtCsvDelimeterChar.setNullRepresentation("");
+        //this.txtCsvDelimeterChar.setInputPrompt(",");
         this.txtCsvDelimeterChar.setRequired(true);
         csvLayout.addComponent(this.txtCsvDelimeterChar);
 
         this.txtCsvLinesToIgnore = new TextField("Skip n first lines");
-        this.txtCsvLinesToIgnore.setNullRepresentation("");
-        this.txtCsvQuoteChar.setRequired(true);
         csvLayout.addComponent(this.txtCsvLinesToIgnore);
 
         this.checCsvkHasHeader = new CheckBox("Has header");
@@ -204,17 +214,30 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                         + "The columns are then accessible under names col0, col1, ..");
         csvLayout.addComponent(this.checCsvkHasHeader);
 
+        // XLS
+        
+        final FormLayout xlsLayout = new FormLayout();
+		xlsLayout.setImmediate(true);
+        xlsLayout.setSpacing(true);
+		xlsLayout.setWidth("100%");
+		xlsLayout.setHeight("-1px");
+        xlsLayout.addComponent(new Label("XLS specific settings"));        
+        
+        this.txtXlsSheetName = new TextField("Sheet name");
+        this.txtXlsSheetName.setNullRepresentation("");
+        this.txtXlsSheetName.setNullSettingAllowed(true);
+        this.txtXlsSheetName.setDescription("Name of sheet to parse, leave empty to parse every sheet in given file.");
+        xlsLayout.addComponent(this.txtXlsSheetName);
+
+        xlsLayout.addComponent(new Label("Use property name '" + ParserXls.SHEET_COLUMN_NAME + "' to refer to sheet name."));
+
         // add change listener
         this.optionTableType.addValueChangeListener(new Property.ValueChangeListener() {
 
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 final ParserType value = (ParserType)event.getProperty().getValue();
-                boolean csvEnabled = ParserType.CSV == value;
-                txtCsvQuoteChar.setEnabled(csvEnabled);
-                txtCsvDelimeterChar.setEnabled(csvEnabled);
-                txtCsvLinesToIgnore.setEnabled(csvEnabled);
-                checCsvkHasHeader.setEnabled(csvEnabled);
+                setControllStates(value);
             }
         });
 
@@ -260,16 +283,38 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.advancedLayout.addComponent(new Label("Template"));
         this.advancedLayout.setColumnExpandRatio(1, 0.7f);
 
+        // ----------------------- Mapping - xls -----------------------
+
+        this.xlsStaticLayout = new GridLayout(3, 1);
+		this.xlsStaticLayout.setWidth("100%");
+		this.xlsStaticLayout.setHeight("-1px");
+        this.xlsStaticLayout.setImmediate(true);
+        this.xlsStaticLayout.setSpacing(true);
+        this.xlsStaticLayout.setMargin(true);
+
+        Label lblXlsName = new Label("Name");
+        lblXlsName.setDescription("Name of static value, given value can be used to refer to static cells.");
+        this.xlsStaticLayout.addComponent(lblXlsName);
+        this.xlsStaticLayout.setColumnExpandRatio(0, 0.6f);
+
+        this.xlsStaticLayout.addComponent(new Label("Column number"));
+        this.xlsStaticLayout.setColumnExpandRatio(1, 0.2f);
+
+        this.xlsStaticLayout.addComponent(new Label("Row number"));
+        this.xlsStaticLayout.setColumnExpandRatio(2, 0.2f);
+
         // -------------------------------------------------------------
 
         final TabSheet propertiesTab = new TabSheet();
         propertiesTab.setSizeFull();
 
         propertiesTab.addTab(this.basicLayout, "Simple");
-        Tab tab = propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
-        tab.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } is part of column name"
+        Tab tabAdv = propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
+        tabAdv.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } is part of column name"
                 + "then before use they must be escaped ie. \\{ or \\} should be used."
                 + "Use \"...\" to denote literal and <...>  to denote uri. '...' then represent the content of literal/uri.");
+        Tab tabXls = propertiesTab.addTab(this.xlsStaticLayout, "Xls mapping");
+        tabXls.setDescription("Can be used for static mapping of cells to named cells. Named cells are accesible as extension in every row.");
 
         // -------------------------------------------------------------
 
@@ -281,7 +326,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         configLayout.addComponent(generalLayout);
         configLayout.addComponent(csvLayout);
-
+        configLayout.addComponent(xlsLayout);
 
         // main layout for whole dialog
         mainLayout = new VerticalLayout();
@@ -308,6 +353,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                     addSimplePropertyMapping(null, null);
                 } else if (propertiesTab.getSelectedTab() == advancedLayout) {
                     addAdvancedPropertyMapping(null, null);
+                } else if (propertiesTab.getSelectedTab() == xlsStaticLayout) {
+                    if (xlsStaticLayout.isEnabled()) {
+                        addXlsMapping(null, null, null);
+                    }
                 } else {
                     LOG.error("No tabs selected!");
                 }
@@ -376,6 +425,27 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     }
 
     /**
+     * Based on given type update properties.
+     *
+     * @param value
+     */
+    private void setControllStates(ParserType value) {
+        boolean csvEnabled = value == ParserType.CSV;
+        boolean xlsEnabled = value == ParserType.XLS;
+
+        txtCsvQuoteChar.setEnabled(csvEnabled);
+        txtCsvDelimeterChar.setEnabled(csvEnabled);
+        txtCsvLinesToIgnore.setEnabled(csvEnabled);
+        checCsvkHasHeader.setEnabled(csvEnabled);
+
+        xlsStaticLayout.setEnabled(xlsEnabled);
+        txtXlsSheetName.setEnabled(xlsEnabled);
+        for (PropertyNamedCell namedCell : xlsNamedCells) {
+            namedCell.setEnabled(xlsEnabled);
+        }        
+    }
+
+    /**
      * Add new line (component) into tab "Simple" mapping.
      *
      * @param name
@@ -402,6 +472,22 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         if (uri != null && template != null) {
             newGroup.set(uri, template);
+        }
+    }
+
+    /**
+     * Add new line into "xls" mapping.
+     * 
+     * @param name
+     * @param column
+     * @param row
+     */
+    private void addXlsMapping(String name, Integer column, Integer row) {
+        final PropertyNamedCell newNamedCell = new PropertyNamedCell(xlsStaticLayout);
+        xlsNamedCells.add(newNamedCell);
+
+        if (name != null && column != null && row != null) {
+            newNamedCell.set(name, column, row);
         }
     }
 
@@ -464,7 +550,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
         txtBaseUri.setValue(uriStr);
         //
-        // column mapping
+        // column/cell mapping
         //
         loadColumnMapping(c.getColumnsInfo(), c.getColumnsInfoAdv());
         //
@@ -480,6 +566,13 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             txtCsvDelimeterChar.setValue(",");
             txtCsvLinesToIgnore.setValue("0");
             checCsvkHasHeader.setValue(true);
+        }
+        if (c.getTableType() == ParserType.XLS) {
+            txtXlsSheetName.setValue(c.getXlsSheetName());
+            loadCellMapping(c.getNamedCells());
+        } else {
+            txtXlsSheetName.setValue("");
+            loadCellMapping(Collections.EMPTY_LIST);
         }
         //
         // other data
@@ -498,6 +591,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkAdvancedKeyColumn.setValue(c.isAdvancedKeyColumn());
         checkGenerateLabels.setValue(c.isGenerateLabels());
         checkGenerateRowTriple.setValue(c.isGenerateRowTriple());
+        //
+        // enable/disable controlls
+        //
+        setControllStates(c.getTableType());
     }
 
 	@Override
@@ -541,6 +638,13 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                 throw new DPUConfigException("Wrong format of lines to skip.",
                         ex);
             }
+        } else if (value == ParserType.XLS) {
+            String xlsSheetName = txtXlsSheetName.getValue();
+            if (xlsSheetName == null || xlsSheetName.isEmpty()) {
+                xlsSheetName = null;
+            }
+            cnf.setXlsSheetName(xlsSheetName);
+            storeCellMapping(cnf.getNamedCells());
         }
         //
         // other data
@@ -641,6 +745,24 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
     }
 
+    private void loadCellMapping(List<NamedCell_V1> namedCells) {
+        int index = 0;
+        for (NamedCell_V1 item : namedCells) {
+            if (index >= xlsNamedCells.size()) {
+                addXlsMapping(item.getName(), item.getColumnNumber(),
+                        item.getRowNumber());
+            } else {
+                xlsNamedCells.get(index).set(item);
+            }
+
+            index++;
+        }
+        // clear old
+        for (;index < xlsNamedCells.size(); ++index) {
+            xlsNamedCells.get(index).clear();
+        }
+    }
+
     private void storeColumnMapping(Map<String, ColumnInfo_V1> basic,
             List<TabularConfig_V2.AdvanceMapping> advance) throws DPUConfigException {
         //
@@ -661,6 +783,15 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             if (uri != null && template != null &&
                     !uri.isEmpty() && !template.isEmpty()) {
                 advance.add(new TabularConfig_V2.AdvanceMapping(uri, template));
+            }
+        }
+    }
+
+    private void storeCellMapping(List<NamedCell_V1> namedCells) throws DPUConfigException {
+        for (PropertyNamedCell item : xlsNamedCells) {
+            NamedCell_V1 namedCell = item.get();
+            if (namedCell != null) {
+                namedCells.add(namedCell);
             }
         }
     }

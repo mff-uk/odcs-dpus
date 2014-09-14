@@ -19,17 +19,29 @@
 	</properties>
 	
 	<dependencies>
-        <dependency>
+        <dependency> <!-- dbf -->
 		    <groupId>org.jamel.dbf</groupId>
 		    <artifactId>dbf-reader</artifactId>
 		    <version>0.0.3</version>
             <scope>compile</scope>
         </dependency>
-		<dependency>
+		<dependency> <!-- csv -->
 		    <groupId>net.sf.supercsv</groupId>
 		    <artifactId>super-csv</artifactId>
 		    <version>2.1.0</version>
             <scope>compile</scope>
+		</dependency>
+        <dependency> <!-- xls -->
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.10-FINAL</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.10-FINAL</version>
+			<scope>provided</scope>
 		</dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>

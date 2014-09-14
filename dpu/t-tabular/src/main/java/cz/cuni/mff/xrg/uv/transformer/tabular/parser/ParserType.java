@@ -6,7 +6,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
  * @author Škoda Petr
  */
 public enum ParserType {
-
     CSV,
-    DBF
+    DBF,
+    XLS
 }
