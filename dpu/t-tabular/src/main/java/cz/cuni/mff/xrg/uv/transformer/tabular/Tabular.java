@@ -69,16 +69,23 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
         // prepare parser based on type
         //
         final Parser parser;
-        if (config.getTableType() == ParserType.CSV) {
-            parser = new ParserCsv(config.getParserCsvConfig(),
+        switch(config.getTableType()) {
+            case CSV:
+                parser = new ParserCsv(config.getParserCsvConfig(),
                     tableToRdf, context);
-        } else if (config.getTableType() == ParserType.DBF) {
-            parser = new ParserDbf(config.getParserDbfConfig(),
+                break;
+            case DBF:
+                parser = new ParserDbf(config.getParserDbfConfig(),
                     tableToRdf, context);
-        } else {
-            context.sendMessage(DPUContext.MessageType.ERROR,
+                break;
+            case XLS:
+                parser = new ParserXls(config.getParserXlsConfig(),
+                    tableToRdf, context);
+                break;
+            default:
+                context.sendMessage(DPUContext.MessageType.ERROR,
                     "Unknown table file: " + config.getTableType());
-            return;
+                return;
         }
         //
         // execute ever files

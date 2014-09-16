@@ -4,13 +4,10 @@ import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
 import eu.unifiedviews.dpu.DPUContext;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
@@ -54,8 +51,8 @@ public class ParserCsv implements Parser {
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(inFile);
-                InputStreamReader inputStreamReader = new InputStreamReader(
-                        fileInputStream, config.encoding);
+                InputStreamReader inputStreamReader = getInputStream(
+                        fileInputStream);
                 BufferedReader bufferedReader = new BufferedReader(
                         inputStreamReader);
                 CsvListReader csvListReader = new CsvListReader(bufferedReader,
@@ -108,6 +105,22 @@ public class ParserCsv implements Parser {
         }
     }
 
-
+    /**
+     * Create {@link InputStreamReader}. If "UTF-8" as encoding is given then
+     * {@link BOMInputStream} is used as intermedian between given
+     * fileInputStream and output {@link InputStreamReader} to remove
+     * possible BOM mark at the start of "UTF" files.
+     *
+     * @param fileInputStream
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private InputStreamReader getInputStream(FileInputStream fileInputStream) throws UnsupportedEncodingException {
+        if (config.encoding.compareToIgnoreCase("UTF-8") == 0) {
+            return new InputStreamReader(new BOMInputStream(fileInputStream, false), config.encoding);
+        } else {
+            return new InputStreamReader(fileInputStream, config.encoding);
+        }
+    }
 
 }

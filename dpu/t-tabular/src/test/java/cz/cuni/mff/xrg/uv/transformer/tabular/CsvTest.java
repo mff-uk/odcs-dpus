@@ -11,7 +11,6 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsv;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import eu.unifiedviews.dpu.DPUContext;
-import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -132,7 +131,7 @@ public class CsvTest {
 
         // prepare tabular parser config
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
-        
+
         TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
                 false, Collections.EMPTY_LIST, false, false, true);
@@ -146,6 +145,37 @@ public class CsvTest {
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, "|", "Cp1250",
                 1, 10, false, true);
+
+        // go go go
+        ParserCsv parser = new ParserCsv(csvConfig, tabular, context);
+        parser.parse(csvFile);
+    }
+
+//    @Test
+    public void UZJ() throws OperationFailedException, ParseFailed {
+        // Test support for UTF-* with BOM
+        //
+        
+        final File csvFile = ResourceAccess.getFile("UZJ.csv");
+        LOG.info(">>>>> {} ", csvFile.toString());
+
+        // prepare tabular parser config
+        HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
+        columnInfo.put("KODCIS", new ColumnInfo_V1("http://localhost/KODCIS") );
+        TableToRdfConfig tabularConfig = new TableToRdfConfig("KODCIS",
+                "http://localhost/", columnInfo, false, "http://localhost/Row",
+                false, Collections.EMPTY_LIST, false, false, false);
+
+        // prepare rdf data unit
+        SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
+
+        // prepare tabular parser
+        TableToRdf tabular = new TableToRdf(tabularConfig, outRdf,
+                new ValueFactoryImpl());
+
+        // prepare csv configuration
+        ParserCsvConfig csvConfig = new ParserCsvConfig(null, ";", "UTF-8",
+                0, 10, true, true);
 
         // go go go
         ParserCsv parser = new ParserCsv(csvConfig, tabular, context);
