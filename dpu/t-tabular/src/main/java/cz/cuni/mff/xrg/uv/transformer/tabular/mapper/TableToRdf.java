@@ -43,6 +43,8 @@ public class TableToRdf {
 
     private final URI typeUri;
 
+    URI tableSubject = null;
+
     public TableToRdf(TableToRdfConfig config, SimpleRdfWrite outRdf,
             ValueFactory valueFactory) {
         this.config = config;
@@ -84,7 +86,7 @@ public class TableToRdf {
                 outRdf.add(subj, predicate, value);
             }
         }
-        // add row data - number, class
+        // add row data - number, class, connection to table
         if (config.generateRowTriple) {
             outRdf.add(subj, TabularOntology.URI_ROW_NUMBER,
                     valueFactory.createLiteral(rowNumber));
@@ -92,6 +94,18 @@ public class TableToRdf {
         if (rowClass != null) {
             outRdf.add(subj, typeUri, rowClass);
         }
+        if (tableSubject != null) {
+            outRdf.add(tableSubject, TabularOntology.URI_TABLE_HAS_ROW, subj);
+        }
+    }
+
+    /**
+     * Set subject that will be used as table subject.
+     *
+     * @param newTableSubject Null to turn this functionality off.
+     */
+    public void setTableSubject(URI newTableSubject) {
+        tableSubject = newTableSubject;
     }
 
     /**

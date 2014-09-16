@@ -137,6 +137,8 @@ public class TabularConfig_V2 {
      */
     private boolean generateRowTriple = true;
 
+    private boolean useTableSubject = false;
+
     public TabularConfig_V2() {
     }
 
@@ -298,6 +300,14 @@ public class TabularConfig_V2 {
 
     public void setGenerateRowTriple(boolean generateRowTriple) {
         this.generateRowTriple = generateRowTriple;
+    }
+
+    public boolean isUseTableSubject() {
+        return useTableSubject;
+    }
+
+    public void setUseTableSubject(boolean useTableSubject) {
+        this.useTableSubject = useTableSubject;
     }
 
     public TableToRdfConfig getTableToRdfConfig() {

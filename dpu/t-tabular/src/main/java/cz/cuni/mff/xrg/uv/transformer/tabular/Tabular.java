@@ -21,6 +21,7 @@ import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
+import org.openrdf.model.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,8 +105,19 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
             rdfTableWrap.setOutputGraph(entry.getSymbolicName());
             // output data
             try {
-                parser.parse(new File(
-                        java.net.URI.create(entry.getFileURIString())));
+                if (config.isUseTableSubject()) {
+                    URI tableURI = rdfTableWrap.getValueFactory().createURI(
+                            entry.getFileURIString());
+                    tableToRdf.setTableSubject(tableURI);
+                    // add info about symbolic name
+                    rdfTableWrap.add(tableURI,
+                            TabularOntology.URI_TABLE_SYMBOLIC_NAME,
+                            rdfTableWrap.getValueFactory().createLiteral(
+                                    entry.getSymbolicName()));
+                }
+
+                parser.parse(new File(java.net.URI.create(
+                        entry.getFileURIString())));
             } catch(ParseFailed ex) {
                 context.sendMessage(DPUContext.MessageType.ERROR,
                         "Failed to convert file",
