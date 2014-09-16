@@ -8,9 +8,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.params.HttpConnectionParams;
-import org.apache.commons.httpclient.params.HttpParams;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

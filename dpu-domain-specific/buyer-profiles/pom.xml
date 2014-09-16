@@ -42,6 +42,12 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.odcs</groupId>
+            <artifactId>module-test</artifactId>
+            <version>1.3.0</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- compile library -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
@@ -69,6 +75,12 @@
             <artifactId>service-serialization-xml</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-test</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>test</scope>
         </dependency>
 	</dependencies>
 </project>
