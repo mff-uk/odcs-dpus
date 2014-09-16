@@ -32,32 +32,32 @@ public abstract class DpuAdvancedBase<CONFIG>
      */
     public class Context {
 
-        private final DPU dpu;
+        final DPU dpu;
 
         /**
          * Execution context.
          */
-        private DPUContext dpuContext;
+        DPUContext dpuContext;
 
         /**
          * Configuration manager.
          */
-        private ConfigManager configManager = null;
+        ConfigManager configManager = null;
 
         /**
          * Serialisation service for root configuration.
          */
-        private final SerializationXmlGeneral serializationXml;
+        final SerializationXmlGeneral serializationXml;
 
         /**
          * List of used ad-dons.
          */
-        private final List<AddonInitializer.AddonInfo> addons;
+        final List<AddonInitializer.AddonInfo> addons;
 
         /**
          * DPU's configuration.
          */
-        private CONFIG config;
+        CONFIG config = null;
 
         /**
          * History of configuration class, if set used instead of
@@ -114,7 +114,7 @@ public abstract class DpuAdvancedBase<CONFIG>
     /**
      * Holds all variables of this class.
      */
-    private final Context masterContext;
+    final Context masterContext;
 
     /**
      * Used to make {@link DPUContext} accessible to DPUs.
@@ -150,8 +150,10 @@ public abstract class DpuAdvancedBase<CONFIG>
         // prepare configuration
         //
         try {
-            this.masterContext.config = this.masterContext.configManager.get(
-                    DPU_CONFIG_NAME, this.masterContext.configHistory);
+            if (this.masterContext.config == null) {
+                this.masterContext.config = this.masterContext.configManager.get(
+                        DPU_CONFIG_NAME, this.masterContext.configHistory);
+            }
         } catch (ConfigException ex) {
             context.sendMessage(MessageType.ERROR,
                     "Configuration prepareation failed.", "", ex);
