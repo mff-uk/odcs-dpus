@@ -1,11 +1,13 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
+import cz.cuni.mff.xrg.uv.transformer.tabular.column.NamedCell_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGeneratorReplace;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserCsvConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserXlsConfig;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,6 +77,11 @@ public class TabularConfig_V2 {
      */
     private List<AdvanceMapping> columnsInfoAdv = new LinkedList<>();
 
+    /**
+     * Named cells for xls.
+     */
+    private List<NamedCell_V1> namedCells = new LinkedList<>();
+
     private String quoteChar = "\"";
 
     private String delimiterChar = ",";
@@ -109,6 +116,11 @@ public class TabularConfig_V2 {
      * If null no class is set.
      */
     private String rowsClass;
+
+    /**
+     * Sheet name.
+     */
+    private String xlsSheetName = null;
 
     /**
      * If checked same row counter is used for all files. 
@@ -224,12 +236,28 @@ public class TabularConfig_V2 {
         this.columnsInfoAdv = columnsInfoAdv;
     }
 
+    public List<NamedCell_V1> getNamedCells() {
+        return namedCells;
+    }
+
+    public void setNamedCells(List<NamedCell_V1> namedCells) {
+        this.namedCells = namedCells;
+    }
+
     public String getRowsClass() {
         return rowsClass;
     }
 
     public void setRowsClass(String columnClass) {
         this.rowsClass = columnClass;
+    }
+
+    public String getXlsSheetName() {
+        return xlsSheetName;
+    }
+
+    public void setXlsSheetName(String xlsSheetName) {
+        this.xlsSheetName = xlsSheetName;
     }
 
     public boolean isIgnoreBlankCells() {
@@ -287,6 +315,13 @@ public class TabularConfig_V2 {
 
     public ParserDbfConfig getParserDbfConfig() {
         return new ParserDbfConfig(encoding,
+                rowsLimit == null || rowsLimit == -1 ? null : rowsLimit,
+                staticRowCounter);
+    }
+
+    public ParserXlsConfig getParserXlsConfig() {
+        return new ParserXlsConfig(xlsSheetName, linesToIgnore, hasHeader,
+                namedCells, 
                 rowsLimit == null || rowsLimit == -1 ? null : rowsLimit,
                 staticRowCounter);
     }

@@ -202,8 +202,7 @@ public class Extractor
         context.sendMessage(DPUContext.MessageType.INFO, "Uchazeči: " + s.numuchazeci);
         context.sendMessage(DPUContext.MessageType.INFO, "Dodavatelé: " + s.numdodavatele);
         context.sendMessage(DPUContext.MessageType.INFO, "Subdodavatelé: " + s.numsub);
-        context.sendMessage(DPUContext.MessageType.INFO, "Více dodavatelů u jedné zakázky: " + s.multiDodavatel);
-        
+        context.sendMessage(DPUContext.MessageType.INFO, "Více dodavatelů u jedné zakázky: " + s.multiDodavatel);        
     }
-    
+
 }

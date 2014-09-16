@@ -31,7 +31,7 @@ public class TableToRdfConfigurator {
      *
      * @param tableToRdf
      * @param header
-     * @param data
+     * @param data Contains first data row, or ColumnType if type is already known.
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
@@ -162,6 +162,11 @@ public class TableToRdfConfigurator {
         // add columns from user - Template Mapping
         // TODO: we do not support this functionality ..
         for (String key: unused.keySet()) {
+            if (key.isEmpty()) {
+                // such values got into configuration, so we ignore them
+                //     - bug fix
+                continue;
+            }
             LOG.warn("Column '{}' (uri:{}) ignored as does not match original columns.",
                     key, unused.get(key).getURI());
         }
@@ -207,6 +212,14 @@ public class TableToRdfConfigurator {
      */
     private static ColumnType guessType(String columnName, Object value,
             Boolean useDataType) {
+
+        if (value instanceof ColumnType) {
+            ColumnType type = (ColumnType)value;
+            if (type == ColumnType.Auto) {
+                throw new RuntimeException("ColumnType.Auto!");
+            }
+            return type;
+        }
 
         if (useDataType != null && useDataType) {
             if (value instanceof Date) {
