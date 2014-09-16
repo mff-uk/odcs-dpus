@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -246,9 +247,7 @@ public class Cache {
                     out = "";
                     if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
                     {
-                        BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-                        fw.close();
-                        out = "";
+                    	FileUtils.write(hFile, out, "UTF-8");
                         break;
                     }
                 
@@ -271,8 +270,7 @@ public class Cache {
                         out = "";
                         if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
                         {
-                            BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-                            fw.close();
+                        	FileUtils.write(hFile, out, "UTF-8");
                             break;
                         }
                     }
@@ -281,8 +279,7 @@ public class Cache {
                          logger.info("File not found: " + ex.getMessage() + " " + url);
                         if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
                         {
-                            BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-                            fw.close();
+                        	FileUtils.write(hFile, out, "UTF-8");
                         }
                         out = "";
                         break;
@@ -295,16 +292,13 @@ public class Cache {
             logger.warn("Warning. Max attempts reached. Skipping: " + url.getHost() + url.getPath());
             if (!url.getHost().equals("www.vestnikverejnychzakazek.cz"))
             {
-                BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-                fw.close();
+            	FileUtils.write(hFile, out, "UTF-8");
             }
             out = "";
         }
         try 
         {
-            BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-            fw.append(out);
-            fw.close();
+        	FileUtils.write(hFile, out, "UTF-8");
             logger.debug(Integer.toString(++downloaded));
         }
         catch (Exception e)
@@ -318,7 +312,7 @@ public class Cache {
         
     } else {
         //logger.info("Using cache for URL: " + url.getHost() + url.getFile());
-        out = IOUtils.toString(new FileInputStream(hFile), "UTF-8");
+        out = FileUtils.readFileToString(hFile, "UTF-8");
     }
     
     ValueFactory valueFactory = stats.getValueFactory();
@@ -350,9 +344,9 @@ public class Cache {
                             valueFactory.createLiteral("false", valueFactory.createURI(xsdPrefix + "boolean")));
                 }
             }
-            outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host, Parser.xmlParser());            
+            outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes("UTF-8")), "UTF-8", host, Parser.xmlParser());            
         }
-        else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes()), "UTF-8", host);    
+        else outdoc = Jsoup.parse(new ByteArrayInputStream(out.getBytes("UTF-8")), "UTF-8", host);    
         
         return outdoc;
     }
