@@ -8,10 +8,10 @@
 	</parent>    
 	<groupId>eu.unifiedviews.plugins</groupId>
 	<artifactId>t-rdfStatementParser</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>bundle</packaging>
 	<name>t-RdfStatementParser</name>
-	<description></description>
+	<description>Based on given actions create new triples. Only created triples are put to the output.</description>
 	
 	<properties>    
 		<dpu.package>eu.unifiedviews.plugins.transformer.rdfstatementparser</dpu.package>

@@ -1,16 +1,15 @@
 package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.SelectQuery;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
@@ -19,6 +18,7 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
@@ -54,9 +54,9 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof NameValuePair) {
-                NameValuePair left = (NameValuePair) obj;
-                return name.equals(left.name)
-                        && value.equals(left.value);
+                NameValuePair right = (NameValuePair) obj;
+                return name.equals(right.name)
+                        && value.equals(right.value);
             }
             return super.equals(obj);
         }
@@ -87,7 +87,6 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
                 groupNames.add(groups.group(1));
             }
         }
-
     }
 
     public static final String SUBJECT_BINDING = "subject";
@@ -98,12 +97,14 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
     @DataUnit.AsInput(name = "input")
     public RDFDataUnit rdfInData;
 
-    private SimpleRdfRead inData;
+    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "rdfInData")
+    public SimpleRdfRead inData;
 
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit rdfOutData;
 
-    private SimpleRdfWrite outData;
+    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "rdfOutData")
+    public SimpleRdfWrite outData;
 
     private ValueFactory valueFactory;
 
@@ -119,23 +120,18 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
     private final Map<String, RegExpInfo> regExpCache = new HashMap<>();
 
     public RdfStatementParser() {
-        super(RdfStatementParserConfig_V1.class, AddonInitializer.noAddons());
-    }
-
-    @Override
-    protected void innerInit() throws DataUnitException {
-        super.innerInit();
-
-        inData = SimpleRdfFactory.create(rdfInData, context);
-
-        outData = SimpleRdfFactory.create(rdfOutData, context);
-        outData.setPolicy(AddPolicy.BUFFERED);
-
-        valueFactory = outData.getValueFactory();
+        super(RdfStatementParserConfig_V1.class, AddonInitializer.create(new SimpleRdfConfigurator(RdfStatementParser.class)));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
+        try {
+            valueFactory = outData.getValueFactory();
+        } catch (OperationFailedException ex) {
+            SendMessage.sendMessage(context, ex);
+            return;
+        }
+
         regExpCache.clear();
         // get input and iterate over it
         try {
@@ -173,10 +169,20 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
         for (String name : binding.getBindingNames()) {
             if (!name.equals(SUBJECT_BINDING)) {
                 final Value value = binding.getBinding(name).getValue();
+                String label = null;
+                if (config.isTransferLabels() && value instanceof Literal) {
+                    final Literal literal = (Literal)value;
+                    // try to get language or data type
+                    label = literal.getLanguage();
+                    if (label == null) {
+                        label = literal.getDatatype().stringValue();
+                    }
+                }
+
                 // parse ie. apply actions from configuration
                 try {
                     applyActions(subject,
-                            new NameValuePair(name, value.stringValue()));
+                            new NameValuePair(name, value.stringValue()), label);
                 } catch (OperationFailedException ex) {
                     throw new DPUException("failed to process statement.", ex);
                 }
@@ -190,9 +196,12 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
      * @param subject
      * @param name
      * @param value
+     * @param label Label for newly created triple, null if no label should be used.
      */
-    private void applyActions(URI subject, NameValuePair initialAction)
+    private void applyActions(URI subject, NameValuePair initialAction, String label)
             throws OperationFailedException {
+
+        LOG.debug("applyActions('{}', '{}')", subject.stringValue(), initialAction.value);
 
         // used to determine if we already wisit given state or not
         final Set<NameValuePair> history = new HashSet<>();
@@ -203,6 +212,7 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
 
         while (!stack.isEmpty()) {
             final NameValuePair toProcess = stack.pop();
+            LOG.debug("toProcess = name:'{}', value: '{}'", toProcess.name, toProcess.value);
             for (String key : config.getActions().keySet()) {
                 if (key.compareTo(toProcess.name) != 0) {
                     // does not match, skip
@@ -215,8 +225,9 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
                         = config.getActions().get(key);
                 switch (info.getActionType()) {
                     case CreateTriple:
+                        LOG.trace("\tcreateTriple('{}', '{}', '{}')", subject.stringValue(), info.getActionData(), toProcess.value);
                         createTriple(subject, info.getActionData(),
-                                toProcess.value);
+                                toProcess.value, label);
                         break;
                     case RegExp:
                         // get object with prepared regular expresion
@@ -224,11 +235,10 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
                             regExpCache.put(info.getActionData(),
                                     new RegExpInfo(info.getActionData()));
                         }
-                        final RegExpInfo regExp = regExpCache.get(info
-                                .getActionData());
+                        LOG.trace("\tRegExp : '{}'", info.getActionData());
+                        final RegExpInfo regExp = regExpCache.get(info.getActionData());
                         // apply
-                        final Matcher matcher = regExp.pattern.matcher(
-                                toProcess.value);
+                        final Matcher matcher = regExp.pattern.matcher(toProcess.value);
                         while (matcher.find()) {
                             for (String groupName : regExp.groupNames) {
                                 final String groupValue = matcher.group(
@@ -261,13 +271,20 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
      *
      * @param subject
      * @param predicateStr
-     * @param object
+     * @param objectStr
+     * @param label Null if no label should be used.
      * @throws OperationFailedException
      */
-    private void createTriple(URI subject, String predicateStr, String object)
+    private void createTriple(URI subject, String predicateStr, String objectStr, String label)
             throws OperationFailedException {
         final URI predicate = valueFactory.createURI(predicateStr);
-        outData.add(subject, predicate, valueFactory.createLiteral(object));
+        final Literal object;
+        if (label == null) {
+            object = valueFactory.createLiteral(objectStr);
+        } else {
+            object = valueFactory.createLiteral(objectStr, label);
+        }
+        outData.add(subject, predicate, object);
     }
 
 }

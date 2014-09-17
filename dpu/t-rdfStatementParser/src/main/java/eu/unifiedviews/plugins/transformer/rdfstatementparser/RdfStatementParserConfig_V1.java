@@ -66,6 +66,8 @@ public class RdfStatementParserConfig_V1 {
      */
     private String selectQuery = "SELECT * WHERE {?subject ?p ?o}";
 
+    private boolean transferLabels = false;
+
     public RdfStatementParserConfig_V1() {
     }
 
@@ -85,4 +87,12 @@ public class RdfStatementParserConfig_V1 {
         this.selectQuery = selectQuery;
     }
 
+    public boolean isTransferLabels() {
+        return transferLabels;
+    }
+
+    public void setTransferLabels(boolean transferLabels) {
+        this.transferLabels = transferLabels;
+    }
+    
 }

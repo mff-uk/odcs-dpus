@@ -5,6 +5,7 @@ import com.vaadin.data.Item;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
@@ -25,10 +26,13 @@ public class RdfStatementParserVaadinDialog
 
     private Table tableAction;
 
+    private CheckBox checkTransferLabels;
+
     private Integer rowIndex = 0;
 
     public RdfStatementParserVaadinDialog() {
-        super(RdfStatementParserConfig_V1.class, AddonInitializer.noAddons());
+        super(RdfStatementParserConfig_V1.class, 
+                AddonInitializer.create(new SimpleRdfConfigurator(RdfStatementParser.class)));
 
         buildLayout();
     }
@@ -38,7 +42,7 @@ public class RdfStatementParserVaadinDialog
             throws DPUConfigException {
 
         txtQuery.setValue(conf.getSelectQuery());
-
+        checkTransferLabels.setValue(conf.isTransferLabels());
         tableAction.removeAllItems();
         for (String key : conf.getActions().keySet()) {
             final RdfStatementParserConfig_V1.ActionInfo actionInfo
@@ -61,7 +65,7 @@ public class RdfStatementParserVaadinDialog
 
         final RdfStatementParserConfig_V1 conf = new RdfStatementParserConfig_V1();
         conf.setSelectQuery(txtQuery.getValue());
-
+        conf.setTransferLabels(checkTransferLabels.getValue() == null ? false : checkTransferLabels.getValue());
         for (Object key : tableAction.getItemIds()) {
             final Item item = tableAction.getItem(key);
 
@@ -104,9 +108,9 @@ public class RdfStatementParserVaadinDialog
 
         mainLayout.addComponent(new Label(
                 "Query used to get values.Query must select "
-                + "URI as ?subject, this value will be used as subject "
-                + "to generated triples. If selected value is '?o' then this"
-                + "value can be refered from action table as 'o'."));
+                + "URI as <b>?subject</b>, this value will be used as subject "
+                + "to generated triples. Selected values for example '?o' then this "
+                + "value can be refered from action table as 'o'.", ContentMode.HTML));
 
         txtQuery = new TextArea();
         txtQuery.setWidth("100%");
@@ -114,6 +118,10 @@ public class RdfStatementParserVaadinDialog
         txtQuery.setRequired(true);
         txtQuery.setRequiredError("Query must be provided.");
         mainLayout.addComponent(txtQuery);
+
+        checkTransferLabels = new CheckBox("Transfer labels");
+        checkTransferLabels.setDescription("If checked then labels from selected statments are applied to newly created. Use to transfer for example language tags.");
+        mainLayout.addComponent(checkTransferLabels);
 
         mainLayout.addComponent(new Label(
                 "Action list. Use bindings from query"
