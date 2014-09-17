@@ -53,6 +53,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checkGenerateRowTriple;
 
+    private CheckBox checkTableSubject;
+
     private TextField txtCsvQuoteChar;
 
     private TextField txtCsvDelimeterChar;
@@ -186,6 +188,12 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.checkGenerateRowTriple = new CheckBox("Generate row column");
         this.checkGenerateRowTriple.setDescription("If checked then column with row number is generated for each row.");
         checkLayout.addComponent(this.checkGenerateRowTriple);
+
+        this.checkTableSubject = new CheckBox("Generate subject for table.");
+        this.checkTableSubject.setDescription("If checked then a subject for each table that point to all rows in given table is created. "
+                + "Used predicate is '" + TabularOntology.TABLE_HAS_ROW + "'. By predicate '" + TabularOntology.TABLE_SYMBOLIC_NAME + "'."
+                + "Symbolic name of source file is also attached.");
+        checkLayout.addComponent(this.checkTableSubject);
 
         // -------------------------- CSV ----------------------------
 
@@ -591,6 +599,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkAdvancedKeyColumn.setValue(c.isAdvancedKeyColumn());
         checkGenerateLabels.setValue(c.isGenerateLabels());
         checkGenerateRowTriple.setValue(c.isGenerateRowTriple());
+        checkTableSubject.setValue(c.isUseTableSubject());
         //
         // enable/disable controlls
         //
@@ -670,6 +679,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         cnf.setAdvancedKeyColumn(checkAdvancedKeyColumn.getValue());
         cnf.setGenerateLabels(checkGenerateLabels.getValue());
         cnf.setGenerateRowTriple(checkGenerateRowTriple.getValue());
+        cnf.setUseTableSubject(checkTableSubject.getValue());
 
         final String rowsClass = txtRowsClass.getValue();
         if (rowsClass == null || rowsClass.isEmpty()) {
