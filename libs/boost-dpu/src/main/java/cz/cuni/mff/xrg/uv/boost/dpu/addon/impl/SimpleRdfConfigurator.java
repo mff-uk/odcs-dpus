@@ -406,18 +406,20 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
             config = context.getConfigManager().get(USED_CONFIG_NAME,
                     Configuration.class);
         } catch (ConfigException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
-                    "Addon failed to load configuration",
-                    "Failed to load configuration for: " + ADDON_NAME
-                    + " default configuration is used.", ex);
+            LOG.debug("Addon failed to load configuration, default used.");
+//            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
+//                    "Addon failed to load configuration",
+//                    "Failed to load configuration for: " + ADDON_NAME
+//                    + " default configuration is used.", ex);
             config = new Configuration();
         }
 
         if (config == null) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
-                    "Addon configuration is null.",
-                    "Failed to load configuration for: " + ADDON_NAME
-                    + " default configuration is used.");
+            LOG.debug("Addon configuration is null, default used.");
+//            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
+//                    "Addon configuration is null.",
+//                    "Failed to load configuration for: " + ADDON_NAME
+//                    + " default configuration is used.");
             config = new Configuration();
         }
 
@@ -499,7 +501,7 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         }
         // get symbolic name / graph URI
         String usedName = c.value;
-        if (usedName == null) {
+        if (usedName == null || usedName.isEmpty()) {
             // generate
             usedName = generatedNamePrefix
                     + Long.toString((new Date()).getTime());
