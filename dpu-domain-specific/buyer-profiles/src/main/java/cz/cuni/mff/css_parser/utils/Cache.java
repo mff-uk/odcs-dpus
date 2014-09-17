@@ -107,7 +107,13 @@ public class Cache {
         oURL = new URL(p_sURL);
         oURL.openConnection();
         logger.debug("Calling toString " + p_sURL);
-        sResponse = IOUtils.toString(oURL, "UTF-8");
+        try {
+        	sResponse = IOUtils.toString(oURL, "UTF-8");
+        }
+        catch (Exception e)
+        {
+        	logger.error("Exception in toString: " + e.getLocalizedMessage(), e);
+        }
         logger.debug("Got " + p_sURL);
 
         return sResponse;

@@ -3,10 +3,14 @@ package cz.opendata.linked.buyer_profiles;
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBaseTest;
 import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
+
 import org.junit.Test;
 
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+
 import java.io.File;
+
 import org.openrdf.rio.RDFFormat;
 
 public class ScrapeTest {
@@ -34,16 +38,16 @@ public class ScrapeTest {
         // here we can simply pre-fill input data unit with content from 
         // resource file
         
-        RDFDataUnit contracts = env.createRdfOutput("contracts", false);
-        RDFDataUnit profiles = env.createRdfOutput("profiles", false);
+        WritableFilesDataUnit contracts = env.createFilesOutput("contracts");
+        WritableFilesDataUnit profiles = env.createFilesOutput("profiles");
         RDFDataUnit profile_stats = env.createRdfOutput("profile_statistics", false);
         
         try {
             // run the execution
             env.run(extractor);
 // TODO: add loadToFile method - possibly into test environment?
-            InputOutput.loadToFile(contracts, new File("C:\\temp\\contracts.ttl"), RDFFormat.TURTLE);
-            InputOutput.loadToFile(profiles, new File("C:\\temp\\profiles.ttl"), RDFFormat.TURTLE);
+            //InputOutput.loadToFile(contracts, new File("C:\\temp\\contracts.ttl"), RDFFormat.TURTLE);
+            //InputOutput.loadToFile(profiles, new File("C:\\temp\\profiles.ttl"), RDFFormat.TURTLE);
             InputOutput.loadToFile(profile_stats, new File("C:\\temp\\profile_stats.ttl"), RDFFormat.TURTLE);
         }
         catch(Exception e) {
