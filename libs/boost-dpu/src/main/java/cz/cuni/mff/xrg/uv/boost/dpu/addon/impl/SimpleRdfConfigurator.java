@@ -431,9 +431,11 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
                 RdfWriteConfig c = config.writeSettings.get(
                         dataUnitInfo.dataUnitName);
                 if (c == null) {
-                    context.getDpuContext().sendMessage(
-                            DPUContext.MessageType.WARNING,
-                            "Configuration for '" + dataUnitInfo.dataUnitName + "' was not found, default is used.");
+                    LOG.debug("Configuration for '{}' not found, default used.",
+                            dataUnitInfo.dataUnitName);
+//                    context.getDpuContext().sendMessage(
+//                            DPUContext.MessageType.WARNING,
+//                            "Configuration for '" + dataUnitInfo.dataUnitName + "' was not found, default is used.");
                     c = new RdfWriteConfig();
                 }
                 if (!setRdfWrite(context, dataUnitInfo, dpuInstance, c, config)) {
