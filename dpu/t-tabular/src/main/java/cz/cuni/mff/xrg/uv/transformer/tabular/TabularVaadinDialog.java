@@ -65,6 +65,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private TextField txtXlsSheetName;
 
+    private TextField txtXlsLinesToIgnore;
+
     /**
      * Layout for basic column mapping.
      */
@@ -238,6 +240,9 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         xlsLayout.addComponent(this.txtXlsSheetName);
 
         xlsLayout.addComponent(new Label("Use property name '" + ParserXls.SHEET_COLUMN_NAME + "' to refer to sheet name."));
+
+        this.txtXlsLinesToIgnore = new TextField("Skip n first lines");
+        xlsLayout.addComponent(this.txtXlsLinesToIgnore);
 
         // add change listener
         this.optionTableType.addValueChangeListener(new Property.ValueChangeListener() {
@@ -448,6 +453,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         xlsStaticLayout.setEnabled(xlsEnabled);
         txtXlsSheetName.setEnabled(xlsEnabled);
+        txtXlsLinesToIgnore.setEnabled(xlsEnabled);
         for (PropertyNamedCell namedCell : xlsNamedCells) {
             namedCell.setEnabled(xlsEnabled);
         }        
@@ -577,9 +583,11 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
         if (c.getTableType() == ParserType.XLS) {
             txtXlsSheetName.setValue(c.getXlsSheetName());
+            txtXlsLinesToIgnore.setValue(c.getLinesToIgnore().toString());
             loadCellMapping(c.getNamedCells());
         } else {
             txtXlsSheetName.setValue("");
+            txtXlsLinesToIgnore.setValue("");
             loadCellMapping(Collections.EMPTY_LIST);
         }
         //
@@ -652,6 +660,19 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             if (xlsSheetName == null || xlsSheetName.isEmpty()) {
                 xlsSheetName = null;
             }
+
+            try {
+                final String linesToSkipStr = txtXlsLinesToIgnore.getValue();
+                if (linesToSkipStr == null) {
+                    cnf.setLinesToIgnore(0);
+                } else {
+                    cnf.setLinesToIgnore(Integer.parseInt(linesToSkipStr));
+                }
+            } catch (NumberFormatException ex) {
+                throw new DPUConfigException("Wrong format of lines to skip.",
+                        ex);
+            }
+
             cnf.setXlsSheetName(xlsSheetName);
             storeCellMapping(cnf.getNamedCells());
         }
