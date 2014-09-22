@@ -113,6 +113,7 @@ public class Cache {
         catch (Exception e)
         {
         	logger.error("Exception in toString: " + e.getLocalizedMessage(), e);
+        	throw e;
         }
         logger.debug("Got " + p_sURL);
 
