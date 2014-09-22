@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 /**
@@ -202,13 +203,7 @@ public class Cache {
             }
             try 
             {
-            	FileOutputStream fos = new FileOutputStream(hFile);
-            	OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-            	BufferedWriter fw = new BufferedWriter(osw);
-                fw.append(out);
-                fw.close();
-                osw.close();
-                fos.close();
+            	FileUtils.write(hFile, out, "UTF-8");
             }
             catch (Exception e)
             {

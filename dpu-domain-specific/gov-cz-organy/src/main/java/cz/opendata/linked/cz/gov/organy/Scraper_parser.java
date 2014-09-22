@@ -67,7 +67,7 @@ public class Scraper_parser extends ScrapingTemplate {
         {
         	try {
 				//logger.debug(doc);
-				File f = new File(URI.create(list.addNewFile(url.toString())));
+				File f = new File(URI.create(list.addNewFile(url.toString() + docType)));
 				FileUtils.writeStringToFile(f, doc);
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
@@ -80,8 +80,8 @@ public class Scraper_parser extends ScrapingTemplate {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
         	try {
 				//logger.debug(doc);
-				File f = new File(URI.create(details.addNewFile(url.toString())));
-				FileUtils.writeStringToFile(f, doc);
+				File f = new File(URI.create(details.addNewFile(url.toString() + docType)));
+				FileUtils.writeStringToFile(f, doc, "UTF-8");
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {
