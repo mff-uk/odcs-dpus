@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
@@ -56,8 +57,11 @@ extends DpuAdvancedBase<ExtractorConfig>
     @DataUnit.AsOutput(name = "Geocoordinates")
     public WritableRDFDataUnit outGeo;    
     
+	@SimpleRdfConfigurator.Configure(dataUnitFieldName="outGeo")
+	public SimpleRdfWrite geoValueFacWrap;
+    
     public Extractor() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
     }
 
     @Override
@@ -73,7 +77,6 @@ extends DpuAdvancedBase<ExtractorConfig>
 
         final SimpleRdfRead gmlPointsWrap = SimpleRdfFactory.create(gmlPoints, context);    
         
-        final SimpleRdfWrite geoValueFacWrap = SimpleRdfFactory.create(outGeo, context);        
         final ValueFactory geoValueFactory = geoValueFacWrap.getValueFactory();
                 
         String countQuery = 
