@@ -14,8 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import org.jsoup.nodes.Document;
 import org.openrdf.model.ValueFactory;
@@ -33,6 +32,8 @@ import org.slf4j.LoggerFactory;
  * @author Jakub Starka
  */
 public abstract class ScrapingTemplate {
+    
+    public Logger logger;
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(
             ScrapingTemplate.class);
@@ -80,8 +81,13 @@ public abstract class ScrapingTemplate {
                     continue;
                 }
                 Document doc = Cache.getDocument(p.url, 10);
-                toParse.addAll(this.getLinks(doc, p.type, p.url));
-                this.parse(doc, p.type, p.url);
+                if (doc != null) {
+	                toParse.addAll(this.getLinks(doc, p.type, p.url));
+	                this.parse(doc, p.type, p.url);
+                }
+                else {
+                	logger.warn("Document null: " + p.url);
+                }
                 parsed.add(p);
             } catch (IOException ex) {
                 LOG.error("IOException in parse", ex);

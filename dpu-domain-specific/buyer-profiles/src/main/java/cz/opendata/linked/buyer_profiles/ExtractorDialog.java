@@ -9,6 +9,7 @@ import com.vaadin.ui.TextField;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 
 /**
@@ -29,7 +30,7 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     private TextField maxAttempts;
     
     public ExtractorDialog() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
         buildMainLayout();
         Panel panel = new Panel();
         panel.setSizeFull();

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -26,13 +27,16 @@ public class Extractor
 extends DpuAdvancedBase<ExtractorConfig> 
 {
 
-    @DataUnit.AsOutput(name = "output")
+	@SimpleRdfConfigurator.Configure(dataUnitFieldName="output")
+	public SimpleRdfWrite outputWrap;
+	
+	@DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit output;
 
     private Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
     }
 
     @Override
@@ -43,10 +47,6 @@ extends DpuAdvancedBase<ExtractorConfig>
     @Override
     protected void innerExecute() throws DPUException, DataUnitException
     {
-        SimpleRdfWrite outputWrap = SimpleRdfFactory.create(output, context);
-        outputWrap.setPolicy(AddPolicy.BUFFERED);
-        
-        // vytvorime si parser
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");

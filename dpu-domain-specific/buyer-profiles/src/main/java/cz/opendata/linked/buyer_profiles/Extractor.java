@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -47,13 +48,16 @@ public class Extractor
     @DataUnit.AsOutput(name = "profiles")
     public WritableFilesDataUnit profilesDataUnit;
 
+    @SimpleRdfConfigurator.Configure(dataUnitFieldName="profileStatistics")
+    public SimpleRdfWrite profileStatisticsWrap;
+    
     @DataUnit.AsOutput(name = "profile_statistics")
     public WritableRDFDataUnit profileStatistics;
 
     private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
     }
      
     @Override
@@ -64,11 +68,6 @@ public class Extractor
     @Override
     protected void innerExecute() throws DPUException, DataUnitException
     {
-        // zalozeni wrapu
-        final SimpleRdfWrite profileStatisticsWrap = SimpleRdfFactory.create(profileStatistics, context);
-        profileStatisticsWrap.setPolicy(AddPolicy.BUFFERED);        
-        
-        // vytvorime si parser        
         Cache.logger = LOG;
         Cache.rewriteCache = config.isRewriteCache();
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");

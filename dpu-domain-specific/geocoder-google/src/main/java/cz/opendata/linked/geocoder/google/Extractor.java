@@ -29,6 +29,7 @@ import com.google.code.geocoder.model.GeocoderStatus;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -61,8 +62,11 @@ extends DpuAdvancedBase<ExtractorConfig>
     @DataUnit.AsOutput(name = "Geocoordinates")
     public WritableRDFDataUnit outGeo;    
     
+    @SimpleRdfConfigurator.Configure(dataUnitFieldName="outGeo")
+    public SimpleRdfWrite outGeoWrap;
+    
     public Extractor() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
     }
 
     @Override

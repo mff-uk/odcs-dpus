@@ -26,7 +26,6 @@ import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 
 public class Parser extends ScrapingTemplate {
     
-    public Logger logger;
     private int count = 0;
     private int total;
     

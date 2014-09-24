@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
@@ -31,7 +32,10 @@ public class Extractor
 extends DpuAdvancedBase<ExtractorConfig> 
 {
 
-    @DataUnit.AsOutput(name = "output")
+	@SimpleRdfConfigurator.Configure(dataUnitFieldName="outputDataUnit")
+	public SimpleRdfWrite outputWrap;
+	
+	@DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit outputDataUnit;
     
     @DataUnit.AsInput(name = "input")
@@ -40,7 +44,7 @@ extends DpuAdvancedBase<ExtractorConfig>
     private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
     }
 
     @Override
@@ -52,8 +56,6 @@ extends DpuAdvancedBase<ExtractorConfig>
     protected void innerExecute() throws DPUException, DataUnitException
     {
         final SimpleRdfRead inputWrap = SimpleRdfFactory.create(inputDataUnit, context);
-        final SimpleRdfWrite outputWrap = SimpleRdfFactory.create(outputDataUnit, context);
-        outputWrap.setPolicy(AddPolicy.BUFFERED);
         
         // vytvorime si parser
         Cache.setInterval(config.getInterval());
