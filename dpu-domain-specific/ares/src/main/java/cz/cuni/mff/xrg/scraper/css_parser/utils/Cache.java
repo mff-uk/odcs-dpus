@@ -12,6 +12,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Entities.EscapeMode;
@@ -206,9 +207,7 @@ public class Cache {
             }
             try 
             {
-                BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(hFile), "UTF-8"));
-                fw.append(out.outerHtml());
-                fw.close();
+            	FileUtils.write(hFile, out.outerHtml(), "UTF-8");
                 ++downloaded;
             }
             catch (Exception e)
@@ -225,10 +224,10 @@ public class Cache {
             if (datatype.equals("xml"))
             {
                                 
-                                //TODO in case of exception thrown, fis is not properly closed
-                                FileInputStream fis = new FileInputStream(hFile);
-                                out = Jsoup.parse(fis, "UTF-8", host, Parser.xmlParser());
-                                fis.close();
+                //TODO in case of exception thrown, fis is not properly closed
+                FileInputStream fis = new FileInputStream(hFile);
+                out = Jsoup.parse(fis, "UTF-8", host, Parser.xmlParser());
+                fis.close();
 
             }
             else

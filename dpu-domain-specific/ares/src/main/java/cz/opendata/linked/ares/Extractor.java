@@ -217,7 +217,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
@@ -239,7 +239,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
@@ -267,7 +267,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outOR.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
@@ -288,7 +288,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outOR.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
@@ -316,7 +316,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
@@ -337,7 +337,7 @@ extends DpuAdvancedBase<ExtractorConfig>
                             if (config.isGenerateOutput()) {
                 				try {
 									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml());
+									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
 								} catch (DataUnitException e) {
 									LOG.error(e.getLocalizedMessage(), e);
 								}
