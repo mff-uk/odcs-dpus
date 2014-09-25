@@ -61,11 +61,13 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private TextField txtCsvLinesToIgnore;
 
-    private CheckBox checCsvkHasHeader;
+    private CheckBox checkCsvHasHeader;
 
     private TextField txtXlsSheetName;
 
     private TextField txtXlsLinesToIgnore;
+
+    private CheckBox checkXlsHasHeader;
 
     /**
      * Layout for basic column mapping.
@@ -219,10 +221,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtCsvLinesToIgnore = new TextField("Skip n first lines");
         csvLayout.addComponent(this.txtCsvLinesToIgnore);
 
-        this.checCsvkHasHeader = new CheckBox("Has header");
-        this.checCsvkHasHeader.setDescription("Uncheck if there is no header in given file. "
+        this.checkCsvHasHeader = new CheckBox("Has header");
+        this.checkCsvHasHeader.setDescription("Uncheck if there is no header in given file. "
                         + "The columns are then accessible under names col0, col1, ..");
-        csvLayout.addComponent(this.checCsvkHasHeader);
+        csvLayout.addComponent(this.checkCsvHasHeader);
 
         // XLS
         
@@ -243,6 +245,11 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
         this.txtXlsLinesToIgnore = new TextField("Skip n first lines");
         xlsLayout.addComponent(this.txtXlsLinesToIgnore);
+
+        this.checkXlsHasHeader = new CheckBox("Has header");
+        this.checkXlsHasHeader.setDescription("Uncheck if there is no header in given file. "
+                        + "The columns are then accessible under names col0, col1, ..");
+        xlsLayout.addComponent(this.checkXlsHasHeader);
 
         // add change listener
         this.optionTableType.addValueChangeListener(new Property.ValueChangeListener() {
@@ -449,11 +456,12 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         txtCsvQuoteChar.setEnabled(csvEnabled);
         txtCsvDelimeterChar.setEnabled(csvEnabled);
         txtCsvLinesToIgnore.setEnabled(csvEnabled);
-        checCsvkHasHeader.setEnabled(csvEnabled);
+        checkCsvHasHeader.setEnabled(csvEnabled);
 
         xlsStaticLayout.setEnabled(xlsEnabled);
         txtXlsSheetName.setEnabled(xlsEnabled);
         txtXlsLinesToIgnore.setEnabled(xlsEnabled);
+        checkXlsHasHeader.setEnabled(xlsEnabled);
         for (PropertyNamedCell namedCell : xlsNamedCells) {
             namedCell.setEnabled(xlsEnabled);
         }        
@@ -574,21 +582,23 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
             txtCsvQuoteChar.setValue(c.getQuoteChar());
             txtCsvDelimeterChar.setValue(c.getDelimiterChar());
             txtCsvLinesToIgnore.setValue(c.getLinesToIgnore().toString());
-            checCsvkHasHeader.setValue(c.isHasHeader());
+            checkCsvHasHeader.setValue(c.isHasHeader());
         } else {
             txtCsvQuoteChar.setValue("\"");
             txtCsvDelimeterChar.setValue(",");
             txtCsvLinesToIgnore.setValue("0");
-            checCsvkHasHeader.setValue(true);
+            checkCsvHasHeader.setValue(true);
         }
         if (c.getTableType() == ParserType.XLS) {
             txtXlsSheetName.setValue(c.getXlsSheetName());
             txtXlsLinesToIgnore.setValue(c.getLinesToIgnore().toString());
             loadCellMapping(c.getNamedCells());
+            checkXlsHasHeader.setValue(c.isIgnoreBlankCells());
         } else {
             txtXlsSheetName.setValue("");
             txtXlsLinesToIgnore.setValue("");
             loadCellMapping(Collections.EMPTY_LIST);
+            checkXlsHasHeader.setValue(false);
         }
         //
         // other data
@@ -655,6 +665,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                 throw new DPUConfigException("Wrong format of lines to skip.",
                         ex);
             }
+            cnf.setHasHeader(checkCsvHasHeader.getValue());
         } else if (value == ParserType.XLS) {
             String xlsSheetName = txtXlsSheetName.getValue();
             if (xlsSheetName == null || xlsSheetName.isEmpty()) {
@@ -675,6 +686,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
             cnf.setXlsSheetName(xlsSheetName);
             storeCellMapping(cnf.getNamedCells());
+
+            cnf.setHasHeader(checkXlsHasHeader.getValue());
         }
         //
         // other data
@@ -693,7 +706,6 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         }
 
         cnf.setTableType((ParserType)optionTableType.getValue());
-        cnf.setHasHeader(checCsvkHasHeader.getValue());
         cnf.setGenerateNew(checkGenerateNew.getValue());
         cnf.setIgnoreBlankCells(checkIgnoreBlankCell.getValue());
         cnf.setStaticRowCounter(checkStaticRowCounter.getValue());

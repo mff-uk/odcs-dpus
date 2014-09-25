@@ -30,7 +30,7 @@ public class TableToRdfConfigurator {
      * Configure given {@link TableToRdf} convertor.
      *
      * @param tableToRdf
-     * @param header
+     * @param header 
      * @param data Contains first data row, or ColumnType if type is already known.
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
