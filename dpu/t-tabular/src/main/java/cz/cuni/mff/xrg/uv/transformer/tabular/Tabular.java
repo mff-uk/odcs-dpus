@@ -15,12 +15,16 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.parser.*;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
+import eu.unifiedviews.dataunit.files.FilesDataUnit.Entry;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dataunit.fileshelper.FilesHelper;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
+import java.util.Iterator;
+import java.util.Set;
 import org.openrdf.model.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,18 +95,24 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
         //
         // execute ever files
         //
-        final FilesDataUnit.Iteration iteration = inFilesTable.getIteration();
-        getAddon(CloseCloseable.class).add(iteration);
+//        final FilesDataUnit.Iteration iteration = inFilesTable.getIteration();
+//        getAddon(CloseCloseable.class).add(iteration);
 
-        if (!iteration.hasNext()) {
-            context.sendMessage(DPUContext.MessageType.ERROR, "No input files!");
-            return;
-        }
+//        if (!iteration.hasNext()) {
+//            context.sendMessage(DPUContext.MessageType.ERROR, "No input files!");
+//            return;
+//        }
+
+        // fix for problem with repository
+        Set<Entry> filesInputSet = FilesHelper.getFiles(inFilesTable);
+        Iterator<Entry> iteration = filesInputSet.iterator();
 
         while(iteration.hasNext()) {
             final FilesDataUnit.Entry entry = iteration.next();
             // set output graph
             rdfTableWrap.setOutputGraph(entry.getSymbolicName());
+            context.sendMessage(DPUContext.MessageType.INFO,
+                    "Processing file: '" + entry.getSymbolicName() + "'");
             // output data
             try {
                 if (config.isUseTableSubject()) {
@@ -138,7 +148,4 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
             }
         }
     }
-
-
-
 }
