@@ -122,22 +122,23 @@ public class ParserXls implements Parser {
         //
         final List<String> namedCells = new LinkedList<>();
         for (NamedCell_V1 namedCell : config.namedCells) {
-            final Row row = sheet.getRow(namedCell.getRowNumber());
+            final Row row = sheet.getRow(namedCell.getRowNumber() - 1);
             if (row == null) {
                 throw new ParseFailed("Row for named cell is null! (" +
                         namedCell.getName() + ")");
             }
-            final Cell cell = row.getCell(namedCell.getColumnNumber());
+            final Cell cell = row.getCell(namedCell.getColumnNumber() - 1);
             if (cell == null) {
-                throw new ParseFailed("Row for cell cell is null! (" +
+                throw new ParseFailed("Cell for named cell is null! (" +
                         namedCell.getName() + ")");
             }
             // get value and add to namedCells
             final String value = getCellValue(cell);
-            namedCells.add(value);
+            LOG.debug("static cell {} = {}", namedCell.getName(), value);
+            namedCells.add(value);            
         }
         //
-        // parse data row by ror
+        // parse data row by row
         //
         if (config.rowLimit == null) {
             LOG.debug("Row limit: not used");
@@ -150,11 +151,16 @@ public class ParserXls implements Parser {
         }
         // go
         boolean headerGenerated = false;
+
+        if (config.rowLimit != null) {
+            // limit number of lines
+            dataEndAtRow = startRow + config.rowLimit;
+        }
+
         for (Integer rowNumPerFile = startRow; rowNumPerFile < dataEndAtRow; ++rowNumber, ++rowNumPerFile) {
             if (context.canceled()) {
                 break;
             }
-
             // skip till data
             if (rowNumPerFile < config.numberOfStartLinesToIgnore) {
                 continue;
@@ -210,10 +216,10 @@ public class ParserXls implements Parser {
                     parsedRow.add(getCellValue(cell));
                 }
             }
+            // add named columns first !!
+            parsedRow.addAll(namedCells);
             // add global data
             parsedRow.add(wb.getSheetName(sheetIndex));
-            // add named columns
-            parsedRow.addAll(namedCells);
             // convert into table
             tableToRdf.paserRow((List) parsedRow, rowNumber);
 

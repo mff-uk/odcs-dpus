@@ -69,6 +69,11 @@ public class PropertyNamedCell {
         namedCoord.setColumnNumber(column);
         namedCoord.setName(name);
         namedCoord.setRowNumber(row);
+
+        if (namedCoord.getColumnNumber() < 1 && namedCoord.getRowNumber() < 1) {
+            throw new DPUConfigException("Row and column for 'Xls mapping' must be greater then 1.");
+        }
+
         return namedCoord;
     }
 
