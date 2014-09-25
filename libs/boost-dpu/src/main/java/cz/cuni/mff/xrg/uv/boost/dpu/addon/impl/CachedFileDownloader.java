@@ -1,6 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
 
-import com.vaadin.ui.Label;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
@@ -63,6 +63,12 @@ public class CachedFileDownloader
          */
         private Integer maxPause = 2000;
 
+        /**
+         * If true then data are always downloaded and existing data in caches
+         * are rewritten.
+         */
+        private Boolean rewriteCache = false;
+
         public Configuration() {
         }
 
@@ -90,6 +96,14 @@ public class CachedFileDownloader
             this.maxPause = maxPause;
         }
 
+        public Boolean isRewriteCache() {
+            return rewriteCache;
+        }
+
+        public void setRewriteCache(Boolean rewriteCache) {
+            this.rewriteCache = rewriteCache;
+        }
+
     }
 
     /**
@@ -102,6 +116,8 @@ public class CachedFileDownloader
         private TextField txtMaxPause;
 
         private TextField txtMinPause;
+
+        private CheckBox checkRewriteCache;
 
         public VaadinDialog() {
             super(Configuration.class);
@@ -119,35 +135,35 @@ public class CachedFileDownloader
             mainLayout.setSpacing(true);
             mainLayout.setMargin(true);
 
-            mainLayout.addComponent(new Label(
-                    "Max number of attemps to download a single file, use -1 for infinity"));
-            txtMaxAttemps = new TextField();
-            txtMaxAttemps.setWidth("100%");
+
+            txtMaxAttemps = new TextField("Max number of attemps to download a single file, use -1 for infinity");
+            txtMaxAttemps.setWidth("5em");
             txtMaxAttemps.setRequired(true);
             mainLayout.addComponent(txtMaxAttemps);
 
-            mainLayout.addComponent(new Label(
-                    "Max pause in ms between downloads"));
-            txtMaxPause = new TextField();
-            txtMaxPause.setWidth("100%");
+            txtMaxPause = new TextField("Max pause in ms between downloads");
+            txtMaxPause.setWidth("10em");
             txtMaxPause.setRequired(true);
             mainLayout.addComponent(txtMaxPause);
 
-            mainLayout.addComponent(new Label(
-                    "Min pause in ms between downloads"));
-            txtMinPause = new TextField();
-            txtMinPause.setWidth("100%");
+            txtMinPause = new TextField("Min pause in ms between downloads");
+            txtMinPause.setWidth("10em");
             txtMinPause.setRequired(true);
             mainLayout.addComponent(txtMinPause);
+
+            checkRewriteCache = new CheckBox("Rewrite cache");
+            checkRewriteCache.setDescription("If checked then files are always downloaded and existing files in caches are rewritten.");
+            mainLayout.addComponent(checkRewriteCache);
 
             setCompositionRoot(mainLayout);
         }
 
         @Override
-        protected void setConfiguration(Configuration conf) throws DPUConfigException {
-            txtMaxAttemps.setValue(conf.getMaxAttemps().toString());
-            txtMaxPause.setValue(conf.getMaxPause().toString());
-            txtMinPause.setValue(conf.getMinPause().toString());
+        protected void setConfiguration(Configuration c) throws DPUConfigException {
+            txtMaxAttemps.setValue(c.getMaxAttemps().toString());
+            txtMaxPause.setValue(c.getMaxPause().toString());
+            txtMinPause.setValue(c.getMinPause().toString());
+            checkRewriteCache.setValue(c.isRewriteCache());
         }
 
         @Override
@@ -173,6 +189,8 @@ public class CachedFileDownloader
                 throw new ConfigException(
                         "max pause must be greater then min pause");
             }
+
+            c.setRewriteCache(checkRewriteCache.getValue());
 
             return c;
         }
@@ -217,7 +235,7 @@ public class CachedFileDownloader
                     "Failed to load configuration for: " + ADDON_NAME
                     + " default configuration is used.", ex);
 
-            // TODO use default configuration
+            this.config  = new Configuration();
         }
 
         if (this.config == null) {
@@ -226,7 +244,7 @@ public class CachedFileDownloader
                     "Failed to load configuration for: " + ADDON_NAME
                     + " default configuration is used.");
 
-            // TODO use default
+            this.config  = new Configuration();
         }
 
         return true;
@@ -290,7 +308,7 @@ public class CachedFileDownloader
         // check for file existance
         //
         final File file = new File(baseDirectory, fileName);
-        if (file.exists()) {
+        if (file.exists() && !config.rewriteCache) {
             LOG.info("get({}) - file from cache ", fileUrl.toString());
             return file;
         }
