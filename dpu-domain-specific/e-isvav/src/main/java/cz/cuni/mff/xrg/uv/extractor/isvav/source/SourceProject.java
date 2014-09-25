@@ -10,7 +10,7 @@ public class SourceProject extends AbstractSource {
 	/**
 	 * currentYear=2014&stavFazeKod= -> rok je k tomu abychom vedeli k jakemu roku se ma vztahova stav (pokud specifikovan)
 	 */
-	private static final String URL_FILTER = "http://www.isvav.cz/findProjectByFilter.do?typVyhledavani=easy&prjIntCode=&prjIntName=&providerCode=&updateForm=&activityType=&activityCode=&branchCode=&typOboru=1&keyword=&currentYear=2014&stavFazeKod=&stavovyFiltrRok=2000&rolePrijemce=2&nazevPrijemce=&vyzOrg=0&vyzOrgRok=2014&roleResitele=3&personSurname=&sortType=0&formType=0";
+	private static final String URL_FILTER = "http://www.isvav.cz/findProjectByFilter.do?typVyhledavani=easy&prjIntCode=&prjIntName=&providerCode=&updateForm=&activityType=&activityCode=&branchCode=&typOboru=1&keyword=&currentYear=&stavFazeKod=&stavovyFiltrRok=&rolePrijemce=2&nazevPrijemce=&vyzOrg=0&vyzOrgRok=&roleResitele=3&personSurname=&sortType=0&formType=0";
 
 	/**
 	 * Views:

@@ -29,20 +29,20 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.3.3</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
-        <dependency> <!-- dependency of httpclient -->
+<!--        <dependency>  dependency of httpclient
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.3.1</version>
             <scope>compile</scope>
         </dependency>
-        <dependency> <!-- dependency of httpclient -->
+        <dependency>  dependency of httpclient 
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.9</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>

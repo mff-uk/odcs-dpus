@@ -28,6 +28,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,8 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
     @Override
     protected void innerExecute() throws DPUException, DataUnitException {
         // create sources
-		List<AbstractSource> usedSource = createSource();
+		final List<AbstractSource> usedSource = createSource();
+        context.sendMessage(DPUContext.MessageType.INFO, "Extracting files ...");
 		// for each source
 		int index = 0;
 		for (AbstractSource source : usedSource) {
@@ -63,9 +65,12 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 				return;
 			} else {
 				context.sendMessage(DPUContext.MessageType.INFO,
-                        "File extracted",
+                        "File extracted " + Integer.toString(index) + "/" + usedSource.size(),
 						"Extracted file saved into: " + filename);
 			}
+            if (context.canceled()) {
+                break;
+            }
 		}
 	}
 
@@ -132,20 +137,33 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		final HttpGet httpget = new HttpGet(source.getFilterUri());
 		final HttpClientContext httpContext = HttpClientContext.create();
 		try (CloseableHttpResponse response = httpclient.execute(httpget, httpContext)) {
-			CookieStore cookieStore = httpContext.getCookieStore();
-			Iterator<Cookie> iter = cookieStore.getCookies().iterator();
+            final CookieStore cookieStore = httpContext.getCookieStore();
+			final Iterator<Cookie> iter = cookieStore.getCookies().iterator();
 			while(iter.hasNext()) {
 				final Cookie cookie = iter.next();
 				if (cookie.getName().compareTo("JSESSIONID") == 0) {
 					sessionID = cookie.getValue();
 				}
 			}
+            // get number of records to download
+            final String responseString = EntityUtils.toString(response.getEntity());
+            final String indexStartStr = "<span class=\"total\">";
+            int indexStart = responseString.indexOf(indexStartStr);
+            final String toDownload;
+            if (indexStart != -1) {
+                int indexEnd = responseString.indexOf("</span>", indexStart);
+                toDownload = responseString.substring(indexStart + indexStartStr.length(), indexEnd);
+            } else {
+                toDownload = "0";
+            }
+            LOG.info("Downloading: {} records", toDownload);
+
 		} catch (IOException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Can't connect to filter page.", ex);
 			return false;
 		}
-		
+
 		final URL dataUrl;
 		try {
 			dataUrl = new URL(source.getDownloadUri(sessionID));
@@ -154,7 +172,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
                     "Extraction failed", "Failed to create download URL.", ex);
 			return false;
 		}
-		
+
 		try {
 			FileUtils.copyURLToFile(dataUrl, target);
 		} catch (IOException ex) {
@@ -162,7 +180,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
                     "Extraction failed", "Failed to download file.", ex);
 			return false;
 		}
-		
+
 		return true;
 	}
 	

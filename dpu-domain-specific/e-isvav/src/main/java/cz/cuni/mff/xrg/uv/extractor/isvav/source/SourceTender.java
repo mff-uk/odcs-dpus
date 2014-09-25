@@ -7,7 +7,7 @@ package cz.cuni.mff.xrg.uv.extractor.isvav.source;
  */
 public class SourceTender extends AbstractSource {
 	
-	private static final String URL_FILTER = "http://www.isvav.cz/findTenderByFilter.do?kodSouteze=&soutezStavSouteze=&providerCode=&soutezTypAktivity=&activityCode=&rokVyhlaseni=2000&soutezniRok=&datumVyhlaseniOd=&datumVyhlaseniDo=&soutezniLhutaOd=&soutezniLhutaDo=&datumVyhlaseniVysledkuOd=&datumVyhlaseniVysledkuDo=&sortField=souidk&sortType=0";
+	private static final String URL_FILTER = "http://www.isvav.cz/findTenderByFilter.do?kodSouteze=&soutezStavSouteze=&providerCode=&soutezTypAktivity=&activityCode=&rokVyhlaseni=&soutezniRok=&datumVyhlaseniOd=&datumVyhlaseniDo=&soutezniLhutaOd=&soutezniLhutaDo=&datumVyhlaseniVysledkuOd=&datumVyhlaseniVysledkuDo=&sortField=souidk&sortType=0";
 	
 	/**
 	 * Views:
