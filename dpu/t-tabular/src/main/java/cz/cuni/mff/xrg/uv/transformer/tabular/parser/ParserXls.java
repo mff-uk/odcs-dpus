@@ -81,10 +81,13 @@ public class ParserXls implements Parser {
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
     public void parseSheet(Workbook wb, Integer sheetIndex) throws ParseFailed, OperationFailedException {
+
+        LOG.debug("parseSheet({}, {})", wb.getSheetName(sheetIndex), sheetIndex);
+
         // for every row
         final Sheet sheet = wb.getSheetAt(sheetIndex);
         int dataEndAtRow = sheet.getLastRowNum();
-        if (config.numberOfStartLinesToIgnore < dataEndAtRow) {
+        if (config.numberOfStartLinesToIgnore > dataEndAtRow) {
             // no data to parse
             return;
         }
@@ -112,6 +115,8 @@ public class ParserXls implements Parser {
         } else {
             columnNames = null;
         }
+
+
         //
         // prepare static cells
         //
@@ -227,17 +232,25 @@ public class ParserXls implements Parser {
      */
     private String getCellValue(Cell cell) throws IllegalArgumentException {
         switch (cell.getCellType()) {
+            case Cell.CELL_TYPE_BLANK:
+                return null;
             case Cell.CELL_TYPE_BOOLEAN:
                 if (cell.getBooleanCellValue())	{
                     return "true";
                 } else {
                     return "false";
                 }
+            case Cell.CELL_TYPE_ERROR:
+            case Cell.CELL_TYPE_FORMULA:
+                throw new IllegalArgumentException(
+                        "Wrong cell type: " + cell.getCellType());
+            case Cell.CELL_TYPE_NUMERIC:
+                return Double.toString(cell.getNumericCellValue());
             case Cell.CELL_TYPE_STRING:
                 return cell.getStringCellValue();
             default:
-                // get as string
-                return cell.getStringCellValue();
+                throw new IllegalArgumentException(""
+                        + "Unknown cell type: "  + cell.getCellType());
         }
     }
 
