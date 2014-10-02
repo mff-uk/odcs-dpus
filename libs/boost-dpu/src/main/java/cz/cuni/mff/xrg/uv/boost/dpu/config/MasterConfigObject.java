@@ -10,6 +10,8 @@ import java.util.Map;
  */
 public class MasterConfigObject {
 
+    public static final String CONFIG_NAME = "master_config_object";
+
     private Map<String, String> configurations = new HashMap<>();
     
     public Map<String, String> getConfigurations() {

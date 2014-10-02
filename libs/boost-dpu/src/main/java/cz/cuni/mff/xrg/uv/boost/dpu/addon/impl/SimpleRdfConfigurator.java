@@ -2,11 +2,12 @@ package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.ExecutableAddon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonWithVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.*;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  */
 public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
-        implements AddonWithVaadinDialog<SimpleRdfConfigurator.Configuration> {
+        implements ExecutableAddon, ConfigurableAddon<SimpleRdfConfigurator.Configuration> {
 
     public static final String USED_CONFIG_NAME
             = "addon/simpleRdfConfigurator";
@@ -349,6 +350,8 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
      */
     private final List<SimpleRdfWrite> rdfToFlush = new LinkedList<>();
 
+    private DpuAdvancedBase.Context context;
+
     public SimpleRdfConfigurator(Class<T> clazz) {
         // gather data about fields
         for (Field field : clazz.getFields()) {
@@ -399,7 +402,25 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
     }
 
     @Override
-    public boolean preAction(DpuAdvancedBase.Context context) {
+    public void init(DpuAdvancedBase.Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public boolean execute(ExecutionPoint execPoint) {
+
+        switch (execPoint) {
+            case PRE_EXECUTE:
+                return preAction(context);
+            case POST_EXECUTE:            
+                postAction(context);
+                return true;
+            default:
+                return true;
+        }
+    }
+    
+    private boolean preAction(DpuAdvancedBase.Context context) {
         Configuration config;
         try {
             // load configuration
@@ -450,8 +471,7 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         return true;
     }
 
-    @Override
-    public void postAction(DpuAdvancedBase.Context context) {
+    private void postAction(DpuAdvancedBase.Context context) {
         for (SimpleRdfWrite item : rdfToFlush) {
             try {
                 item.flushBuffer();

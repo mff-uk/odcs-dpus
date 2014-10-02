@@ -1,7 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.*;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.*;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
@@ -14,6 +13,7 @@ import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.dpu.config.DPUConfigurable;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         /**
          * Configuration manager.
          */
-        ConfigManager configManager = null;
+        final ConfigManager configManager;
 
         /**
          * Serialisation service for root configuration.
@@ -63,7 +63,7 @@ public abstract class DpuAdvancedBase<CONFIG>
          * History of configuration class, if set used instead of
          * {@link #configClass}.
          */
-        private final ConfigHistory<CONFIG> configHistory;
+        final ConfigHistory<CONFIG> configHistory;
 
         public Context(DPU dpu, List<AddonInitializer.AddonInfo> addons,
                 ConfigHistory<CONFIG> configHistory) {
@@ -74,6 +74,14 @@ public abstract class DpuAdvancedBase<CONFIG>
                     "MasterConfigObject");            
             this.addons = addons;
             this.configHistory = configHistory;
+            // create config manager
+            List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
+            for (AddonInitializer.AddonInfo item : addons) {
+                if (item.getAddon() instanceof ConfigTransformerAddon) {
+                    configAddons.add((ConfigTransformerAddon)item.getAddon());
+                }
+            }
+            this.configManager = new ConfigManager(this.serializationXml, configAddons);
         }
 
         public DPU getDpu() {
@@ -127,16 +135,26 @@ public abstract class DpuAdvancedBase<CONFIG>
     protected CONFIG config;
 
     /**
-     * If true then we run in test mode and add-ons will not be executed.
+     * If true then add-ons will not be executed.
      */
-    private boolean testMode = false;
+    private boolean executeAddons = false;
 
+    /**
+     *
+     * @param configClass
+     * @param addons Must not be null!
+     */
     public DpuAdvancedBase(Class<CONFIG> configClass,
             List<AddonInitializer.AddonInfo> addons) {
         this.masterContext = new Context(this, addons,
                 ConfigHistory.createNoHistory(configClass));
     }
 
+    /**
+     *
+     * @param configHistory
+     * @param addons Must not be null!
+     */
     public DpuAdvancedBase(ConfigHistory<CONFIG> configHistory,
             List<AddonInitializer.AddonInfo> addons) {
         this.masterContext = new Context(this, addons, configHistory);
@@ -147,13 +165,17 @@ public abstract class DpuAdvancedBase<CONFIG>
         // set context
         this.masterContext.dpuContext = context;
         //
+        // initialize addons
+        //
+        for (AddonInitializer.AddonInfo addon : this.masterContext.addons) {
+            addon.getAddon().init(masterContext);
+        }
+        //
         // prepare configuration
         //
         try {
-            if (this.masterContext.config == null) {
-                this.masterContext.config = this.masterContext.configManager.get(
+            this.masterContext.config = this.masterContext.configManager.get(
                         DPU_CONFIG_NAME, this.masterContext.configHistory);
-            }
         } catch (ConfigException ex) {
             context.sendMessage(MessageType.ERROR,
                     "Configuration prepareation failed.", "", ex);
@@ -183,24 +205,9 @@ public abstract class DpuAdvancedBase<CONFIG>
         // execute - Addon.preAction
         //
         boolean executeDpu = true;
-        if (!testMode) {
-            for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
-                try {
-                    if (item.getAddon().preAction(this.masterContext)) {
-                        // ok continue
-                    } else {
-                        // failed
-                        context.sendMessage(MessageType.ERROR, "Addon failed: "
-                                + item.getClass().getSimpleName());
-                        executeDpu = false;
-                    }
-                } catch (RuntimeException ex) {
-                    context.sendMessage(MessageType.ERROR,
-                            "Addon.preAction throws: "
-                            + item.getClass().getSimpleName(), "", ex);
-                    executeDpu = false;
-                }
-            }
+        if (!executeAddons) {
+            executeDpu = executeAddons(
+                    ExecutableAddon.ExecutionPoint.PRE_EXECUTE);
         }
         //
         // execute - user code
@@ -243,49 +250,14 @@ public abstract class DpuAdvancedBase<CONFIG>
         //
         // execute - Addon.postAction
         //
-        if (!testMode) {
-            for (AddonInitializer.AddonInfo item : this.masterContext.addons) {
-                try {
-                    item.getAddon().postAction(this.masterContext);
-                } catch (RuntimeException ex) {
-                    context.sendMessage(MessageType.ERROR,
-                            "Addon.postAction throws: "
-                            + item.getClass().getSimpleName(), "", ex);
-                }
-            }
+        if (!executeAddons) {
+            executeAddons(ExecutableAddon.ExecutionPoint.POST_EXECUTE);
         }
     }
 
     @Override
     public void configure(String config) throws DPUConfigException {
-        try {
-            // parseconfiguration
-            final MasterConfigObject masterConfig
-                    = this.masterContext.serializationXml.convert(
-                            MasterConfigObject.class, config);
-            // wrap inside ConfigManager
-            this.masterContext.configManager = new ConfigManager(masterConfig,
-                    this.masterContext.serializationXml);
-        } catch (SerializationXmlFailure ex) {
-            throw new DPUConfigException("Conversion failed.", ex);
-        } catch (java.lang.ClassCastException e) {
-            // try direct conversion
-            // TODO update : move into addon
-            try {
-                final CONFIG dpuConfig = masterContext.serializationXml.convert(
-                        masterContext.configHistory.getFinalClass(), config);
-                final MasterConfigObject masterConfig = new MasterConfigObject();
-                masterContext.configManager = new ConfigManager(masterConfig, masterContext.serializationXml);
-
-                if (masterContext.configHistory == null) {
-                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
-                } else {
-                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
-                }
-            } catch (SerializationXmlFailure ex) {
-                throw new DPUConfigException("Conversion failed for prime class", ex);
-            }
-        }
+        this.masterContext.configManager.setMasterConfig(config);
     }
 
     @Override
@@ -318,6 +290,34 @@ public abstract class DpuAdvancedBase<CONFIG>
     }
 
     /**
+     * Execute all {@link ExecutableAddon}s of this DPU.
+     *
+     * @param execPoint
+     * @return
+     */
+    private boolean executeAddons(ExecutableAddon.ExecutionPoint execPoint) {
+        boolean result = true;
+        for (AddonInitializer.AddonInfo addon : this.masterContext.addons) {
+            if (addon.getAddon() instanceof ExecutableAddon) {
+                final ExecutableAddon execAddon = (ExecutableAddon)addon.getAddon();
+                try {
+                    LOG.debug("Executing '{}' with on '{}' point",
+                            execAddon.getClass().getSimpleName(),
+                            execPoint.toString());
+                    result &= execAddon.execute(execPoint);
+                } catch (AddonException ex) {
+                   context.sendMessage(MessageType.ERROR,
+                            "Addon throws: "
+                            + addon.getClass().getSimpleName(), "", ex);
+                    result = false;
+                }
+            } else {
+            }
+        }
+        return result;
+    }
+
+    /**
      * Return first {@link Addon} with given class.
      *
      * @param <T>
@@ -338,7 +338,7 @@ public abstract class DpuAdvancedBase<CONFIG>
      * be executed!
      */
     public void setTestMode() {
-        this.testMode = true;
+        this.executeAddons = true;
     }
 
     /**

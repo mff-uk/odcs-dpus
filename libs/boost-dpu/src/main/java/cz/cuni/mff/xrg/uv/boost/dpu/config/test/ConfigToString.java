@@ -6,6 +6,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
+import java.util.Collections;
 
 /**
  * Convert given configuration into string. Result string then can be used
@@ -28,8 +29,10 @@ public class ConfigToString {
      */
     public static <C> String convert(C config) throws SerializationXmlFailure {
         SerializationXmlGeneral serialization = SerializationXmlFactory.serializationXmlGeneral();
-        MasterConfigObject masterConfig = new MasterConfigObject();
-        ConfigManager configManager = new ConfigManager(masterConfig, serialization);
+        MasterConfigObject masterConfig = new MasterConfigObject();        
+        ConfigManager configManager = new ConfigManager(serialization,
+                Collections.EMPTY_LIST);
+        configManager.setMasterConfig(masterConfig);
         configManager.set(config, DpuAdvancedBase.DPU_CONFIG_NAME);
         return serialization.convert(masterConfig);
     }

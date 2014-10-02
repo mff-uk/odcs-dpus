@@ -5,10 +5,11 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.CancelledException;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.ExecutableAddon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonWithVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  */
 public class CachedFileDownloader
-        implements AddonWithVaadinDialog<CachedFileDownloader.Configuration> {
+        implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
 
     public static final String USED_USER_DIRECTORY
             = "addon/cachedFileDownloader";
@@ -217,11 +218,23 @@ public class CachedFileDownloader
      */
     private File baseDirectory = null;
 
+    private DpuAdvancedBase.Context context;
+
     public CachedFileDownloader() {
     }
 
     @Override
-    public boolean preAction(DpuAdvancedBase.Context context) {
+    public void init(DpuAdvancedBase.Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public boolean execute(ExecutionPoint execPoint) {
+
+        if (execPoint != ExecutionPoint.PRE_EXECUTE) {
+            return true;
+        }
+
         this.dpuContext = context.getDpuContext();
         this.baseDirectory = new File(this.dpuContext.getUserDirectory(),
                 USED_USER_DIRECTORY);
@@ -248,11 +261,6 @@ public class CachedFileDownloader
         }
 
         return true;
-    }
-
-    @Override
-    public void postAction(DpuAdvancedBase.Context context) {
-        // do nothing
     }
 
     @Override
@@ -291,9 +299,6 @@ public class CachedFileDownloader
      * @return
      */
     public File get(URL fileUrl) throws AddonException, IOException {
-        if (baseDirectory == null) {
-            throw new AddonException("Not initialized!");
-        }
         //
         // prepare file name
         //
@@ -304,12 +309,39 @@ public class CachedFileDownloader
             throw new RuntimeException("Hard coded encoding is not supported!!",
                     ex);
         }
+        return get(fileName, fileUrl);
+    }
+
+    /**
+     * If file of given name exists, then it's returned. If not then is
+     * downloaded from given uri, saved under given name and then returned.
+     *
+     * @param fileName
+     * @param fileUrl
+     * @return
+     * @throws AddonException
+     * @throws IOException
+     */
+    public File get(String fileName, URL fileUrl) throws AddonException, IOException {
+        if (baseDirectory == null) {
+            throw new AddonException("Not initialized!");
+        }
+        //
+        // made name secure
+        try {
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException("Hard coded encoding is not supported!!",
+                    ex);
+        }
+        //
         //
         // check for file existance
         //
         final File file = new File(baseDirectory, fileName);
         if (file.exists() && !config.rewriteCache) {
-            LOG.info("get({}) - file from cache ", fileUrl.toString());
+            LOG.info("get({}, {}) - file from cache ", fileName,
+                    fileUrl.toString());
             return file;
         }
         //
@@ -322,7 +354,8 @@ public class CachedFileDownloader
             // try to download
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
-                LOG.info("get({}) - file downloaded ", fileUrl.toString());
+                LOG.info("get({}, {}) - file downloaded ",
+                        fileName, fileUrl.toString());
                 return file;
             } catch (IOException ex) {
                 LOG.warn("Failed to download file from {} attemp {}/{}",
@@ -340,7 +373,8 @@ public class CachedFileDownloader
         if (dpuContext.canceled()) {
             throw new CancelledException();
         } else {
-            throw new IOException("Can't obtain file.");
+            throw new IOException("Can't obtain file: '" + fileUrl.toString() +
+                    "' named: '" + fileName + "'");
         }
     }
 

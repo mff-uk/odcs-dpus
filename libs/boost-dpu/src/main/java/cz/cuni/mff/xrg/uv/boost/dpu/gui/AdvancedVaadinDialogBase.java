@@ -4,6 +4,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
@@ -14,6 +15,7 @@ import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -71,12 +73,21 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
                 .serializationXmlGeneral();
         this.serializationXml.addAlias(MasterConfigObject.class,
                 "MasterConfigObject");
-        this.configManager = new ConfigManager(new MasterConfigObject(),
-                serializationXml);
         this.configHistory = ConfigHistory.createNoHistory(configClass);
         // addons - add dialogs
         this.addons = new LinkedList<>();
         this.tabSheet = new TabSheet();
+
+        // create config manager
+        List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
+        for (AddonInitializer.AddonInfo item : addons) {
+            if (item.getAddon() instanceof ConfigTransformerAddon) {
+                configAddons.add((ConfigTransformerAddon)item.getAddon());
+            }
+        }
+        this.configManager = new ConfigManager(serializationXml, configAddons);
+
+        // build main layout
         buildMainLayout(addons);
     }
 
@@ -85,12 +96,21 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         this.serializationXml = SerializationXmlFactory
                 .serializationXmlGeneral();
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
-        this.configManager = new ConfigManager(new MasterConfigObject(),
-                serializationXml);
         this.configHistory = configHistory;
         // addons - add dialogs
         this.addons = new LinkedList<>();
         this.tabSheet = new TabSheet();
+
+        // create config manager
+        List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
+        for (AddonInitializer.AddonInfo item : addons) {
+            if (item.getAddon() instanceof ConfigTransformerAddon) {
+                configAddons.add((ConfigTransformerAddon)item.getAddon());
+            }
+        }
+        this.configManager = new ConfigManager(serializationXml, configAddons);
+
+        // build main layout
         buildMainLayout(addons);
     }
 
@@ -103,9 +123,9 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         tabSheet.setSizeFull();
 
         for (AddonInitializer.AddonInfo addonInfo : addons) {
-            if (addonInfo.getAddon() instanceof AddonWithVaadinDialog) {
-                final AddonWithVaadinDialog addonWithDialog
-                        = (AddonWithVaadinDialog) addonInfo.getAddon();
+            if (addonInfo.getAddon() instanceof ConfigurableAddon) {
+                final ConfigurableAddon addonWithDialog
+                        = (ConfigurableAddon) addonInfo.getAddon();
                 final AddonVaadinDialogBase dialog = addonWithDialog.getDialog();
                 if (dialog == null) {
                     LOG.error("Dialog is ignored as it's null: {}",
@@ -159,27 +179,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
 
     @Override
     public void setConfig(String conf) throws DPUConfigException {
-        try {
-            // parse configuration
-            final MasterConfigObject masterConfig
-                    = serializationXml.convert(MasterConfigObject.class, conf);
-            // wrap inside ConfigManager
-            configManager = new ConfigManager(masterConfig, serializationXml);
-        } catch (SerializationXmlFailure ex) {
-            throw new DPUConfigException("Conversion failed.", ex);
-        } catch (java.lang.ClassCastException e) {
-            // try direct conversion
-            // TODO update > use somehow in configurations ?
-            try {
-                final CONFIG dpuConfig = serializationXml.convert(
-                        configHistory.getFinalClass(), conf);
-                final MasterConfigObject masterConfig = new MasterConfigObject();
-                configManager = new ConfigManager(masterConfig, serializationXml);
-                configManager.set(dpuConfig, DPU_CONFIG_NAME);
-            } catch (Exception ex) {
-                throw new DPUConfigException("Conversion failed for prime class", ex);
-            }
-        }
+        configManager.setMasterConfig(conf);
         //
         // configure DPU
         //
@@ -195,24 +195,24 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
 
     @Override
     public String getConfig() throws DPUConfigException {
-        final ConfigManager newConfigManager = new ConfigManager(
-                new MasterConfigObject(), serializationXml);
+        // clear config mamanger
+        configManager.setMasterConfig(new MasterConfigObject());
         //
         // get configuration from DPU
         //
         CONFIG dpuConfig = getConfiguration();
-        newConfigManager.set(dpuConfig, DpuAdvancedBase.DPU_CONFIG_NAME);
+        configManager.set(dpuConfig, DpuAdvancedBase.DPU_CONFIG_NAME);
         //
         // get configuration from addons
         //
         for (AddonVaadinDialogBase dialogs : addons) {
-            dialogs.storeConfig(newConfigManager);
+            dialogs.storeConfig(configManager);
         }
         //
         // convert all into a string
         //
         try {
-            return serializationXml.convert(newConfigManager.getMasterConfig());
+            return serializationXml.convert(configManager.getMasterConfig());
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
         }
