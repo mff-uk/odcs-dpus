@@ -1,16 +1,20 @@
 package cz.cuni.mff.xrg.uv.extractor.isvav;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.extractor.isvav.source.*;
 import cz.cuni.mff.xrg.uv.utils.dataunit.files.CreateFile;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +49,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 	public WritableFilesDataUnit outFilesData;
 	
 	public Isvav() {
-		super(IsvavConfig_V1.class, AddonInitializer.noAddons());
+		super(IsvavConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
 	}
 
     @Override
@@ -58,12 +62,13 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		for (AbstractSource source : usedSource) {
 			final String filename = String.format("%s-%d.zip", 
 					source.getBaseFileName(), index++);
-			final File file = CreateFile.createFile(outFilesData, filename);
-			// download file
-			if (!downloadData(context, source, file)) {
-				// extraction failed
-				return;
-			} else {
+			final File file = downloadData(context, source);
+            if (file != null) {
+                // file has been downloaded
+                outFilesData.addExistingFile(filename, file.toURI().toString());
+                Manipulator.add(outFilesData, filename,
+                    VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
+                    filename);
 				context.sendMessage(DPUContext.MessageType.INFO,
                         "File extracted " + Integer.toString(index) + "/" + usedSource.size(),
 						"Extracted file saved into: " + filename);
@@ -123,14 +128,13 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 	}
 	
 	/**
-	 * Download data from given source and save them into given file.
+	 * Download data from given source.
 	 * 
 	 * @param context
 	 * @param source
-	 * @param target 
-	 * @return False if extraction failed.
+	 * @return Downloaded file.
 	 */
-	protected boolean downloadData(DPUContext context, AbstractSource source, File target) {
+	protected File downloadData(DPUContext context, AbstractSource source) {
 		String sessionID = null;
 		
 		final CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -161,7 +165,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		} catch (IOException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Can't connect to filter page.", ex);
-			return false;
+			return null;
 		}
 
 		final URL dataUrl;
@@ -170,18 +174,17 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		} catch (MalformedURLException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Failed to create download URL.", ex);
-			return false;
+			return null;
 		}
 
+        CachedFileDownloader downloader = getAddon(CachedFileDownloader.class);
 		try {
-			FileUtils.copyURLToFile(dataUrl, target);
-		} catch (IOException ex) {
+            return downloader.get(dataUrl);
+		} catch (IOException | AddonException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Failed to download file.", ex);
-			return false;
+			return null;
 		}
-
-		return true;
 	}
 	
 }

@@ -5,6 +5,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
@@ -15,7 +16,7 @@ public class IsvavVaadinDialog extends AdvancedVaadinDialogBase<IsvavConfig_V1> 
     private OptionGroup optionExportType;
     
 	public IsvavVaadinDialog() {
-		super(IsvavConfig_V1.class, AddonInitializer.noAddons());
+		super(IsvavConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
 
 		buildLayout();
 	}
