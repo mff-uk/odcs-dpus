@@ -20,12 +20,12 @@ public class SourceProgramme extends AbstractSource {
 	 */
 	public SourceProgramme(String exportType) {
 		super(String.format(URL_FILTER, "1991", "2019"), 
-                URL_DOWNLOAD + exportType, "Programme");
+                URL_DOWNLOAD + exportType, "Programme-1991-2019");
 	}
 	
 	public SourceProgramme(String exportType, String from, String to) {
 		super(String.format(URL_FILTER, from, to), 
-                URL_DOWNLOAD + exportType, "Programme");
+                URL_DOWNLOAD + exportType, "Programme-" + from + "-" + to);
 	}	
 
 }

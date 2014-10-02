@@ -17,14 +17,14 @@ public abstract class AbstractSource {
 	private final String downloadUri;
 
 	/**
-	 * Base name for output file.
+	 * Unique file name for given source.
 	 */
-	private final String baseFileName;
+	private final String fileName;
 	
-	protected AbstractSource(String filterUri, String downloadUri, String baseFileName) {
+	protected AbstractSource(String filterUri, String downloadUri, String fileName) {
 		this.filterUri = filterUri;
 		this.downloadUri = downloadUri;
-		this.baseFileName = baseFileName;
+		this.fileName = fileName;
 	}
 
 	public String getFilterUri() {
@@ -41,8 +41,8 @@ public abstract class AbstractSource {
 		return String.format(downloadUri, sessionId);
 	}
 
-	public String getBaseFileName() {
-		return baseFileName;
+	public String getFileName() {
+		return fileName;
 	}
 	
 }

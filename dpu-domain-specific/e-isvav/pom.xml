@@ -9,7 +9,7 @@
     <artifactId>e-isvav</artifactId>
     <name>e-Isvav</name>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>bundle</packaging>
     <description>Extract data from isvav. Extraction of results utilize current system time (year) to determine last period for extraction.</description>
     

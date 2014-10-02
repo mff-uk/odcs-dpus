@@ -6,7 +6,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.extractor.isvav.source.*;
-import cz.cuni.mff.xrg.uv.utils.dataunit.files.CreateFile;
 import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -24,7 +23,6 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -58,20 +56,21 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		final List<AbstractSource> usedSource = createSource();
         context.sendMessage(DPUContext.MessageType.INFO, "Extracting files ...");
 		// for each source
-		int index = 0;
+        int index = 0;
 		for (AbstractSource source : usedSource) {
-			final String filename = String.format("%s-%d.zip", 
-					source.getBaseFileName(), index++);
-			final File file = downloadData(context, source);
+            // we rely on fixed order of sources and different
+            // base file names
+			final String fileName = source.getFileName() + ".zip";
+			final File file = downloadData(context, source, fileName);
             if (file != null) {
                 // file has been downloaded
-                outFilesData.addExistingFile(filename, file.toURI().toString());
-                Manipulator.add(outFilesData, filename,
+                outFilesData.addExistingFile(fileName, file.toURI().toString());
+                Manipulator.add(outFilesData, fileName,
                     VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
-                    filename);
+                    fileName);
 				context.sendMessage(DPUContext.MessageType.INFO,
-                        "File extracted " + Integer.toString(index) + "/" + usedSource.size(),
-						"Extracted file saved into: " + filename);
+                        "File extracted " + Integer.toString(index++) + "/" + usedSource.size(),
+						"Extracted file saved into: " + fileName);
 			}
             if (context.canceled()) {
                 break;
@@ -132,9 +131,10 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 	 * 
 	 * @param context
 	 * @param source
+     * @param fileName
 	 * @return Downloaded file.
 	 */
-	protected File downloadData(DPUContext context, AbstractSource source) {
+	protected File downloadData(DPUContext context, AbstractSource source, String fileName) {
 		String sessionID = null;
 		
 		final CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -179,7 +179,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 
         CachedFileDownloader downloader = getAddon(CachedFileDownloader.class);
 		try {
-            return downloader.get(dataUrl);
+            return downloader.get(fileName, dataUrl);
 		} catch (IOException | AddonException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Failed to download file.", ex);

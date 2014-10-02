@@ -16,7 +16,7 @@ public class SourceResult extends AbstractSource {
 	
 	public SourceResult(String exportType, String year) {
 		super(String.format(URL_FILTER, year, year), 
-                URL_DOWNLOAD + exportType, "Result");
+                URL_DOWNLOAD + exportType, "Result-" + year);
 	}
 	
 }
