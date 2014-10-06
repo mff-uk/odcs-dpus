@@ -52,9 +52,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
 
     public HtmlCss() {
         super(HtmlCssConfig_V1.class,
-                AddonInitializer
-                .create(new SimpleRdfConfigurator(HtmlCss.class),
-                        new CloseCloseable()));
+                AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class), new CloseCloseable()));
     }
 
     @Override
@@ -81,9 +79,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
             while (iter.hasNext()) {
                 final FilesDataUnit.Entry entry = iter.next();
                 LOG.info("Parsing file: {}", entry);
-                final Document doc = Jsoup.parse(
-                        new File(java.net.URI.create(entry.getFileURIString())),
-                        null);
+                Document doc = Jsoup.parse(new File(java.net.URI.create(entry.getFileURIString())), null);
                 outData.setOutputGraph(entry.getFileURIString());
                 parse(valueFactory, doc);
             }
@@ -92,8 +88,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
         } catch (DataUnitException ex) {
             SendMessage.sendMessage(context, ex);
         } catch (IOException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR,
-                    "Can't parse given document.", "", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR, "Can't parse given document.", "", ex);
         }
     }
 
@@ -111,75 +106,60 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     private void parse(ValueFactory valueFactory, Document doc)
             throws OperationFailedException, DataUnitException, IOException {
         int index = 0;
-        for (HtmlCssConfig_V1.NamedQuery q : config.getQueries()) {
+        Integer tableIndex = 0;
+        for (HtmlCssConfig_V1.Query q : config.getQueries()) {
             LOG.trace("query: {}", q.getQuery());
-            final URI subject = valueFactory.createURI(
-                    "http://localhost/temp/" + Integer.toString(index));
-            int tableIndex = 0;
+            final URI subject = valueFactory.createURI("http://localhost/temp/" + Integer.toString(index));            
             final URI predicate = valueFactory.createURI(q.getPredicate());
             final Elements elements = doc.select(q.getQuery());
             LOG.trace("\tresult size: {}", elements.size());
             for (Element element : elements) {
-                final String value;
-                if (q.getAttrName() == null) {
-                    value = element.text();
-                } else {
-                    value = element.attr(q.getAttrName());
-                }
-
                 switch (q.getType()) {
-                    case TABLE:
-                        parseTable(valueFactory, subject, predicate, element,
-                                tableIndex++);
+                    case HTML:
+                        outData.add(subject, predicate, valueFactory.createLiteral(element.html()));
+                        break;
+                    case TABLE_HTML:
+                    case TABLE_LINKS:
+                    case TABLE_TEXT:
+                        parseTable(valueFactory, subject, predicate, element, tableIndex++, q.getType());
                         break;
                     case TEXT:
-                        parseText(valueFactory, subject, predicate, value);
+                        final String value;
+                        if (q.getAttrName() == null) {
+                            value = element.text();
+                        } else {
+                            value = element.attr(q.getAttrName());
+                        }
+                        outData.add(subject, predicate, valueFactory.createLiteral(value));
                         break;
-                    default:
-                        LOG.warn("Unwknown type '{}' ignored", q.getType());
                 }
             }
         }
     }
 
     /**
-     * Process given value as a text.
-     *
-     * @param valueFactory
-     * @param subject
-     * @param predicate
-     * @param value
-     * @throws OperationFailedException
-     */
-    private void parseText(ValueFactory valueFactory, URI subject, URI predicate,
-            String value) throws OperationFailedException {
-        outData.add(subject, predicate, valueFactory.createLiteral(value));
-    }
-
-    /**
-     * Process given values as a table. Given value is converted into csv
-     * and saved into file.
+     * Process given values as a table. Given value is converted into csv and saved into file.
      *
      * @param valueFactory
      * @param subject
      * @param predicate
      * @param element
      * @param index
+     * @param type Table type.
      */
-    private void parseTable(ValueFactory valueFactory, URI subject, URI predicate,
-            Element elementTable, int index)
+    private void parseTable(ValueFactory valueFactory, URI subject, URI predicate, Element elementTable,
+            Integer index, HtmlCssConfig_V1.ElementType type)
             throws OperationFailedException, DataUnitException, IOException {
         LOG.trace("parseTable(,{},{},,{})", subject, predicate, index);
-        final URI fileURI = valueFactory.createURI(
-                "http://localhost/temp/resource/table/" + Integer.toString(index));
+        final URI fileURI = valueFactory.createURI("http://localhost/temp/resource/table/"
+                + index.toString());
         outData.add(subject, predicate, fileURI);
         // parse value and create file
         File tableFile = CreateFile.createFile(outFilesData, fileURI.stringValue());
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(tableFile), "UTF-8"))) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(tableFile), "UTF-8"))) {
             final Elements elements = elementTable.select("tr");
-            
+
             int firstLineSize = -1;
             for (Element line : elements) {
                 final Elements cells = line.select("td,th");
@@ -192,8 +172,29 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                     } else {
                         writer.write(",");
                     }
+
+                    // get value based on type
+                    String value;
+                    switch (type) {
+                        case TABLE_HTML:
+                            value = cell.html();
+                            break;
+                        case TABLE_LINKS:
+                            if (cell.childNodes().size() == 1 && cell.childNodes().get(0).hasAttr("href")) {
+                                Element single = cell.child(0);
+                                value = single.attr("href");
+                            } else {
+                                value = cell.text();
+                            }
+                            break;
+                        default:
+                            value = cell.text();
+                            break;
+                    }
+
                     // get value and espace "
-                    final String value = cell.text().replaceAll("\"", "\\\"");
+                    value = value.replaceAll("\"", "\\\"");
+
                     writer.write("\"");
                     writer.write(value);
                     writer.write("\"");
@@ -213,4 +214,3 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     }
 
 }
-

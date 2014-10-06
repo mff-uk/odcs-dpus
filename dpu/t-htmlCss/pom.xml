@@ -8,14 +8,10 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>t-htmlCss</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>bundle</packaging>
 	<name>t-HtmlCss</name>
-	<description>Can be iused to parse html with css selector.
-        Values can be parsed as:
-        * "text" - Added as objects directly.
-        * "table" - A csv file (quote=" sep=,) will be created as a subject the symbolic name (URI) is then used as object.
-    </description>
+	<description>Can be used to parse html with css selectors.</description>
 	
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.uv.transformer</dpu.package>
@@ -36,6 +32,12 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dialog</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+        </dependency>
         <!-- dependecy for boost-dpu -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
@@ -54,6 +56,12 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
