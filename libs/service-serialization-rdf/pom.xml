@@ -21,11 +21,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-rdf</artifactId>
+            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
+            <type>jar</type>
             <scope>provided</scope>
-        </dependency>        
+        </dependency>
     </dependencies> 
     
 </project>
