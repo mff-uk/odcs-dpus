@@ -392,6 +392,11 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
     }
 
     @Override
+    public Class<SimpleRdfConfigurator.Configuration> getConfigClass() {
+        return SimpleRdfConfigurator.Configuration.class;
+    }
+
+    @Override
     public String getDialogCaption() {
         return ADDON_NAME;
     }

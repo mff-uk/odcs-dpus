@@ -167,8 +167,13 @@ public abstract class DpuAdvancedBase<CONFIG>
         //
         // initialize addons
         //
-        for (AddonInitializer.AddonInfo addon : this.masterContext.addons) {
-            addon.getAddon().init(masterContext);
+        try {
+            for (AddonInitializer.AddonInfo addon : this.masterContext.addons) {
+                addon.getAddon().init(masterContext);
+            }
+        } catch (AddonException ex) {
+            context.sendMessage(MessageType.ERROR,
+                    "Addon initialization failed.", "", ex);
         }
         //
         // prepare configuration

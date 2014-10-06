@@ -20,6 +20,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
+import javax.net.ssl.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,7 +230,7 @@ public class CachedFileDownloader
     }
 
     @Override
-    public boolean execute(ExecutionPoint execPoint) {
+    public boolean execute(ExecutionPoint execPoint) throws AddonException {
 
         if (execPoint != ExecutionPoint.PRE_EXECUTE) {
             return true;
@@ -260,7 +261,21 @@ public class CachedFileDownloader
             this.config  = new Configuration();
         }
 
+        // ignore for ssh
+        try {
+            setTrustAllCerts();
+        } catch (Exception ex) {
+            throw new AddonException("setTrustAllCerts throws", ex);
+        }
+
+        // ...
+
         return true;
+    }
+
+    @Override
+    public Class<CachedFileDownloader.Configuration> getConfigClass() {
+        return CachedFileDownloader.Configuration.class;
     }
 
     @Override
@@ -405,6 +420,36 @@ public class CachedFileDownloader
         nextDownload = (new Date()).getTime()
                 + (long) ((Math.random() * (config.maxPause - config.minPause))
                 + config.minPause);
+    }
+
+    public static void setTrustAllCerts() throws Exception
+    {
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
+                public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
+            }
+        };
+
+        // Install the all-trusting trust manager
+        try {
+            SSLContext sc = SSLContext.getInstance( "SSL" );
+            sc.init( null, trustAllCerts, new java.security.SecureRandom() );
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(
+                new HostnameVerifier() {
+                    public boolean verify(String urlHostName, SSLSession session) {
+                        return true;
+                    }
+                });
+        }
+        catch ( Exception e ) {
+            //We can not recover from this exception.
+            e.printStackTrace();
+        }
     }
 
 }

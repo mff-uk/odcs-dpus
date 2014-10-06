@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config.test;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
@@ -27,7 +28,7 @@ public class ConfigToString {
      * @return
      * @throws cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure
      */
-    public static <C> String convert(C config) throws SerializationXmlFailure {
+    public static <C> String convert(C config) throws SerializationXmlFailure, ConfigException {
         SerializationXmlGeneral serialization = SerializationXmlFactory.serializationXmlGeneral();
         MasterConfigObject masterConfig = new MasterConfigObject();        
         ConfigManager configManager = new ConfigManager(serialization,

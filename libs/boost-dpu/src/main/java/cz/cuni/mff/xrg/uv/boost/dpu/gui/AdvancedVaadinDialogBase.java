@@ -120,6 +120,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
      * @param addons
      */
     private void buildMainLayout(List<AddonInitializer.AddonInfo> addons) {
+        setSizeFull();
         tabSheet.setSizeFull();
 
         for (AddonInitializer.AddonInfo addonInfo : addons) {

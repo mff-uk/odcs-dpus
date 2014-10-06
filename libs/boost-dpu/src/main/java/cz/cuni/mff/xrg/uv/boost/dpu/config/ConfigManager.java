@@ -105,8 +105,9 @@ public class ConfigManager {
         }
     }
 
-    public void setMasterConfig(MasterConfigObject masterConfig) {
+    public void setMasterConfig(MasterConfigObject masterConfig) throws ConfigException {
         this.masterConfig = masterConfig;
+        configureAddons();
     }
 
     /**
@@ -123,7 +124,8 @@ public class ConfigManager {
         } catch (SerializationXmlFailure | RuntimeException ex) {
             throw new ConfigException("Conversion of master config failed.", ex);
         }
-
+        configureAddons();
+        
         // TODO update : move into addon
 //        try {
 //            // parseconfiguration
@@ -158,16 +160,27 @@ public class ConfigManager {
         return masterConfig;
     }
 
-    private String transformString(String name, String value) {
+    private String transformString(String name, String value) throws ConfigException{
         for (ConfigTransformerAddon addon : configTransformers) {
             value = addon.transformString(name, value);
         }
         return value;
     }
 
-    private <TYPE> void transformObject(String name, TYPE value) {
+    private <TYPE> void transformObject(String name, TYPE value) throws ConfigException{
         for (ConfigTransformerAddon addon : configTransformers) {
             addon.transformObject(name, value);
+        }
+    }
+
+    /**
+     * Load configuration into add-ons. So they are ready to be used.
+     * 
+     * @throws ConfigException
+     */
+    private void configureAddons() throws ConfigException {
+        for (ConfigTransformerAddon addon : configTransformers) {
+            addon.configure(this);
         }
     }
 

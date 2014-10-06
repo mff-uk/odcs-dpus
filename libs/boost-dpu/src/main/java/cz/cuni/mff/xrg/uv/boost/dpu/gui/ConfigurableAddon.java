@@ -13,14 +13,20 @@ public interface ConfigurableAddon<CONFIG> extends Addon {
 
     /**
      * 
+     * @return Class of used configuration class.
+     */
+    Class<CONFIG> getConfigClass();
+
+    /**
+     * 
      * @return Caption that is used for {@link AddonVaadinDialogBase}.
      */
-    public String getDialogCaption();
+    String getDialogCaption();
 
     /**
      * 
      * @return Respective configuration dialog.
      */
-    public AddonVaadinDialogBase<CONFIG> getDialog();
+    AddonVaadinDialogBase<CONFIG> getDialog();
 
 }

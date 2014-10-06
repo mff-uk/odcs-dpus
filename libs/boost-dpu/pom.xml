@@ -22,6 +22,12 @@
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>provided</scope>
