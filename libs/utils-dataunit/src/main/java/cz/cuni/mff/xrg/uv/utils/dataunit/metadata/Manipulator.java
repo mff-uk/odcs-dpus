@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * created and used repeatedly.
  *
  * <pre>
- * {@core
+ * {@code
  * // set path to given file with respective symbolicName
  * Manipulator.add(WritableFilesDataUnit, symbolicName,
  *      VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
