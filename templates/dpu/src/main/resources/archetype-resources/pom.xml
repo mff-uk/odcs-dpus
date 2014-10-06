@@ -26,7 +26,21 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dialog</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
         <!-- dependecy for boost-dpu -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
@@ -44,6 +58,12 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
