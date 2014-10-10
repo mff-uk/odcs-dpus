@@ -50,6 +50,16 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     @SimpleRdfConfigurator.Configure(dataUnitFieldName = "outRdfData")
     public SimpleRdfWrite outData;
 
+    /**
+     * Index for tables.
+     */
+    private Integer tableIndex = 0;
+
+    /**
+     * Index for files.
+     */
+    private Integer index = 0;
+
     public HtmlCss() {
         super(HtmlCssConfig_V1.class,
                 AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class), new CloseCloseable()));
@@ -105,11 +115,10 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      */
     private void parse(ValueFactory valueFactory, Document doc)
             throws OperationFailedException, DataUnitException, IOException {
-        int index = 0;
-        Integer tableIndex = 0;
+        final URI subject = valueFactory.createURI("http://localhost/temp/" + Integer.toString(index++));
+
         for (HtmlCssConfig_V1.Query q : config.getQueries()) {
-            LOG.trace("query: {}", q.getQuery());
-            final URI subject = valueFactory.createURI("http://localhost/temp/" + Integer.toString(index));            
+            LOG.trace("query: {}", q.getQuery());            
             final URI predicate = valueFactory.createURI(q.getPredicate());
             final Elements elements = doc.select(q.getQuery());
             LOG.trace("\tresult size: {}", elements.size());
@@ -125,9 +134,10 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                         break;
                     case TEXT:
                         final String value;
-                        if (q.getAttrName() == null) {
+                        if (q.getAttrName() == null || q.getAttrName().isEmpty()) {
                             value = element.text();
                         } else {
+                            LOG.info("Attribute used!");
                             value = element.attr(q.getAttrName());
                         }
                         outData.add(subject, predicate, valueFactory.createLiteral(value));
