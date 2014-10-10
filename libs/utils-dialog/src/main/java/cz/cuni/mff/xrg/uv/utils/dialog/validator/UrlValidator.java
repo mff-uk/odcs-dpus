@@ -18,6 +18,10 @@ public class UrlValidator implements Validator {
     public UrlValidator() {
     }
 
+    /**
+     *
+     * @param emptyAllowed If true then empty value is considered to be a valid url.
+     */
     public UrlValidator(boolean emptyAllowed) {
         this.emptyAllowed = emptyAllowed;
     }
