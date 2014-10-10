@@ -352,6 +352,10 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
 
     private DpuAdvancedBase.Context context;
 
+    /**
+     *
+     * @param clazz DPU class.
+     */
     public SimpleRdfConfigurator(Class<T> clazz) {
         // gather data about fields
         for (Field field : clazz.getFields()) {
