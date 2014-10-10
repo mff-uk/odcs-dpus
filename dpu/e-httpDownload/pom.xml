@@ -10,7 +10,7 @@
 	<artifactId>e-HttpDownload</artifactId>
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
-	<name>HttpDownload</name>
+	<name>e-HttpDownload</name>
 	<description>Description of HttpDownload.</description>
 	
 	<properties>    
