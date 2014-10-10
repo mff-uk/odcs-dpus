@@ -77,6 +77,12 @@ public class ParserCsv implements Parser {
             //
             int rowNumPerFile = 0;
             List<String> row = csvListReader.read();
+            if (row == null) {
+                // no data
+                LOG.info("No data found!");
+                return;
+            }
+
             // configure parser
             TableToRdfConfigurator.configure(tableToRdf, header, (List)row);
             // go ...

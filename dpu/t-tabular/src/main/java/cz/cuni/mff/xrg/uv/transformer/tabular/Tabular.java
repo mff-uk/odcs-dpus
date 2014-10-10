@@ -26,13 +26,14 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 import org.openrdf.model.URI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+/**
+ *
+ * @author Škoda Petr
+ */
 @DPU.AsTransformer
 public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;
@@ -107,7 +108,7 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
         Set<Entry> filesInputSet = FilesHelper.getFiles(inFilesTable);
         Iterator<Entry> iteration = filesInputSet.iterator();
 
-        while(iteration.hasNext()) {
+        while(iteration.hasNext() && !context.canceled()) {
             final FilesDataUnit.Entry entry = iteration.next();
             // set output graph
             rdfTableWrap.setOutputGraph(entry.getSymbolicName());
