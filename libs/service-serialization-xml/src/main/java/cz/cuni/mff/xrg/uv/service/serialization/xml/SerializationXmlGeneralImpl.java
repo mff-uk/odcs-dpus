@@ -19,6 +19,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Is not thread save.
  *
+ * Known limitation:
+ * <ul>
+ * <li>Only first level (direct) fields are initialized if newly added to given class.<li>
+ * </ul>
+ *
  * @author Škoda Petr
  */
 public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
@@ -27,6 +32,8 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
             SerializationXmlGeneralImpl.class);
 
     protected final XStream xstream;
+
+    protected Class<?> loadedMainClass;
 
     protected final LinkedList<String> loadedFields = new LinkedList<>();
 
@@ -37,8 +44,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
             protected MapperWrapper wrapMapper(MapperWrapper next) {
                 return new MapperWrapper(next) {
                     @Override
-                    public boolean shouldSerializeMember(Class definedIn,
-                            String fieldName) {
+                    public boolean shouldSerializeMember(Class definedIn, String fieldName) {
                         // the goal of this is to ignore missing fields
                         if (definedIn == Object.class) {
                             // skip the missing
@@ -47,7 +53,11 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                         }
 
                         if (super.shouldSerializeMember(definedIn, fieldName)) {
-                            loadedFields.add(fieldName);
+                            if (loadedMainClass == definedIn) {
+                                // support only 1. level
+                                loadedFields.add(fieldName);
+                            } else {
+                            }
                             return true;
                         } else {
                             return false;
@@ -71,8 +81,9 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
 
     @Override
     public synchronized <T> T convert(Class<T> clazz, String string) throws SerializationXmlFailure {
-        LOG.debug("convert for: {}", clazz.getSimpleName());
-        // clear the skip list
+        LOG.debug("convert called for class: {}", clazz.getSimpleName());
+        // clear the skip list and set main class
+        loadedMainClass = clazz;
         loadedFields.clear();
         T object = (T) convert(clazz.getClassLoader(), string);
         if (object == null) {
@@ -89,7 +100,6 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                 if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
                     continue;
                 }
-
                 if (loadedFields.contains(field.getName())) {
                     // ok, has been loaded
                 } else {
@@ -159,6 +169,7 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
      */
     protected <T> void copyFields(Class<T> clazz, T source, T target,
             List<String> fieldNames) {
+        LOG.trace("copyFields for: {}", fieldNames.size());
         for (String fieldName : fieldNames) {
             try {
                 final PropertyDescriptor descriptor = new PropertyDescriptor(
@@ -182,6 +193,8 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                 // set to object
                 writeMethod.invoke(target, value);
 
+                LOG.trace("{}.{} source value: {}", clazz.getSimpleName(), fieldName, value);
+
                 // read value from target back
                 Object valueCheck = readMethod.invoke(target);
 
@@ -189,10 +202,10 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                     if (value != null) {
                         LOG.error("{} : Target value is null and source is not!", fieldName);
                     } else {
-                        LOG.debug("{}: Both values are null.", fieldName);
+                        LOG.trace("{}: Both values are null.", fieldName);
                     }
                 } else if (valueCheck == value) {
-                    LOG.debug("{} : both values are equal.", fieldName);
+                    LOG.trace("{} : both values are equal.", fieldName);
                 } else {
                     LOG.error("{} : Not equals!", fieldName);
 
