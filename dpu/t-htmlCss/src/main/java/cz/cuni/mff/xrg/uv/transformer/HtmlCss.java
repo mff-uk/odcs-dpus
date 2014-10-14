@@ -203,7 +203,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                     }
 
                     // get value and espace "
-                    value = value.replaceAll("\"", "\\\"");
+                    value = value.replaceAll("\"", "\"\"");
 
                     writer.write("\"");
                     writer.write(value);
@@ -214,7 +214,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                 if (firstLineSize == -1) {
                     firstLineSize = lineSize;
                 }
-                // add cells to fit the firstLineSize
+                // add empty cells to fit the firstLineSize
                 for (int i = lineSize; i < firstLineSize; ++i) {
                     writer.write(",\"\"");
                 }
