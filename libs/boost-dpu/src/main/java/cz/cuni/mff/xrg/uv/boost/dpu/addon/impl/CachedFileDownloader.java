@@ -18,6 +18,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import javax.net.ssl.*;
@@ -411,7 +413,7 @@ public class CachedFileDownloader
     private void waitForNextDownload() {
         while ((new Date()).getTime() < nextDownload && !dpuContext.canceled()) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
 
             }
@@ -422,14 +424,22 @@ public class CachedFileDownloader
                 + config.minPause);
     }
 
+    /**
+     * We will trust all certificates!
+     * 
+     * @throws Exception
+     */
     public static void setTrustAllCerts() throws Exception
     {
         TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
+                @Override
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
+                @Override
                 public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
+                @Override
                 public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
             }
         };
@@ -441,14 +451,14 @@ public class CachedFileDownloader
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier(
                 new HostnameVerifier() {
+                    @Override
                     public boolean verify(String urlHostName, SSLSession session) {
                         return true;
                     }
                 });
         }
-        catch ( Exception e ) {
-            //We can not recover from this exception.
-            e.printStackTrace();
+        catch (KeyManagementException | NoSuchAlgorithmException ex) {
+            LOG.error("Can't install all-trusting trus manager", ex);
         }
     }
 
