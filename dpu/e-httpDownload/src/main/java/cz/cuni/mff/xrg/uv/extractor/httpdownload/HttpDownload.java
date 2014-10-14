@@ -87,7 +87,7 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
             }
             // prepare virtual path
             String virtualPath = info.getVirtualPath();
-            if (virtualPath == null) {
+            if (virtualPath == null || virtualPath.isEmpty()) {
                 // just use some ..
                 virtualPath = String.format("file-%d", index++);
             }

@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>e-HttpDownload</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>bundle</packaging>
 	<name>e-HttpDownload</name>
 	<description>Description of HttpDownload.</description>
