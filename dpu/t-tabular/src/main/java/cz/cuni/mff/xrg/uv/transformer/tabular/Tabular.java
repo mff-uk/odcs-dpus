@@ -26,6 +26,8 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 import org.openrdf.model.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -34,6 +36,7 @@ import org.openrdf.model.URI;
 @DPU.AsTransformer
 public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;
@@ -114,6 +117,7 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
             rdfTableWrap.setOutputGraph(entry.getSymbolicName());
             context.sendMessage(DPUContext.MessageType.INFO,
                     "Processing file: '" + entry.getSymbolicName() + "'");
+            LOG.trace("entry: {}", entry);
             // output data
             try {
                 if (config.isUseTableSubject()) {

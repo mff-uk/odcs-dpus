@@ -55,6 +55,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checkTableSubject;
 
+    private CheckBox checkAutoAsString;
+
     private TextField txtCsvQuoteChar;
 
     private TextField txtCsvDelimeterChar;
@@ -198,6 +200,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
                 + "Used predicate is '" + TabularOntology.TABLE_HAS_ROW + "'. By predicate '" + TabularOntology.TABLE_SYMBOLIC_NAME + "'."
                 + "Symbolic name of source file is also attached.");
         checkLayout.addComponent(this.checkTableSubject);
+
+        this.checkAutoAsString = new CheckBox("Auto type as string");
+        this.checkAutoAsString.setDescription("If set then all auto types are considered to be strings. This can be usefull with full column mapping to enforce same type over all the columns and get rid of warning messages.");
+        checkLayout.addComponent(this.checkAutoAsString);
 
         // -------------------------- CSV ----------------------------
 
@@ -618,6 +624,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkGenerateLabels.setValue(c.isGenerateLabels());
         checkGenerateRowTriple.setValue(c.isGenerateRowTriple());
         checkTableSubject.setValue(c.isUseTableSubject());
+        checkAutoAsString.setValue(c.isAutoAsStrings());
         //
         // enable/disable controlls
         //
@@ -713,6 +720,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         cnf.setGenerateLabels(checkGenerateLabels.getValue());
         cnf.setGenerateRowTriple(checkGenerateRowTriple.getValue());
         cnf.setUseTableSubject(checkTableSubject.getValue());
+        cnf.setAutoAsStrings(checkAutoAsString.getValue());
 
         final String rowsClass = txtRowsClass.getValue();
         if (rowsClass == null || rowsClass.isEmpty()) {
@@ -729,7 +737,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         //
         // additional checks
         //
-        if (!cnf.isGenerateNew() && cnf.getColumnsInfo().isEmpty()) {
+        if (!cnf.isGenerateNew() && cnf.getColumnsInfo().isEmpty() && cnf.getColumnsInfoAdv().isEmpty()) {
             throw new DPUConfigException("Specify at least one column mapping or check 'Full column mapping' option.");
         }
 

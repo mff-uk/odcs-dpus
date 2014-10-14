@@ -114,8 +114,12 @@ public class TableToRdfConfigurator {
                 columnInfo.setURI(prepareAsUri(columnInfo.getURI(), config));
             }
             if (columnInfo.getType() == ColumnType.Auto) {
-                columnInfo.setType(guessType(columnName, data.get(index),
-                        columnInfo.isUseTypeFromDfb()));
+                if (config.autoAsStrings) {
+                    columnInfo.setType(ColumnType.String);
+                } else {
+                    columnInfo.setType(guessType(columnName, data.get(index),
+                            columnInfo.isUseTypeFromDfb()));
+                }
             }
             //
             // generate tableToRdf configuration from 'columnInfo'

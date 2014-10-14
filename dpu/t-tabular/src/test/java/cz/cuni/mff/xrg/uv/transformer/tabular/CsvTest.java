@@ -49,7 +49,7 @@ public class CsvTest {
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                Collections.EMPTY_LIST, false, true, true);
+                Collections.EMPTY_LIST, false, true, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -78,7 +78,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, false, null, false,
-                Collections.EMPTY_LIST, false, false, true);
+                Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -106,7 +106,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                Collections.EMPTY_LIST, false, false, true);
+                Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -134,7 +134,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
-                false, Collections.EMPTY_LIST, false, false, true);
+                false, Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -164,7 +164,7 @@ public class CsvTest {
         columnInfo.put("KODCIS", new ColumnInfo_V1("http://localhost/KODCIS") );
         TableToRdfConfig tabularConfig = new TableToRdfConfig("KODCIS",
                 "http://localhost/", columnInfo, false, "http://localhost/Row",
-                false, Collections.EMPTY_LIST, false, false, false);
+                false, Collections.EMPTY_LIST, false, false, false, false);
 
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;

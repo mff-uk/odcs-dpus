@@ -12,12 +12,16 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Škoda Petr
  */
 public class TabularConfig_V2 {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TabularConfig_V2.class);
 
     public static class AdvanceMapping {
         
@@ -138,6 +142,11 @@ public class TabularConfig_V2 {
     private boolean generateRowTriple = true;
 
     private boolean useTableSubject = false;
+
+    /**
+     * If checked then type auto is always set to string.
+     */
+    private boolean autoAsStrings = false;
 
     public TabularConfig_V2() {
     }
@@ -310,10 +319,18 @@ public class TabularConfig_V2 {
         this.useTableSubject = useTableSubject;
     }
 
+    public Boolean isAutoAsStrings() {
+        return autoAsStrings;
+    }
+
+    public void setAutoAsStrings(Boolean autoAsStrings) {
+        this.autoAsStrings = autoAsStrings;
+    }
+
     public TableToRdfConfig getTableToRdfConfig() {
         return new TableToRdfConfig(keyColumn, baseURI, columnsInfo,
                 generateNew, rowsClass, ignoreBlankCells, columnsInfoAdv,
-                advancedKeyColumn, generateLabels, generateRowTriple);
+                advancedKeyColumn, generateLabels, generateRowTriple, autoAsStrings);
     }
 
     public ParserCsvConfig getParserCsvConfig() {
