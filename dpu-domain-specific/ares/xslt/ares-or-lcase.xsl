@@ -296,7 +296,9 @@
             <rdf:type rdf:resource="http://www.w3.org/ns/regorg#RegisteredOrganization"/>
             <adms:identifier rdf:resource="{f:icoBasedURI($ico,concat('identifier/',$ico))}"/>
             <gr:legalName><xsl:value-of select="normalize-space(d:of)"/></gr:legalName>
-            <dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:dzor)"/></dcterms:issued>
+			<xsl:if test="d:dzor">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:dzor)"/></dcterms:issued>
+			</xsl:if>
 			<xsl:apply-templates>
 				<xsl:with-param name="ico" select="$ico"/>
 			</xsl:apply-templates>
