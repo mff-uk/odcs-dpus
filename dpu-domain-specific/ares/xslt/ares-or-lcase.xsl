@@ -374,14 +374,22 @@
 	<xsl:template match="d:kap" mode="linked">
 		<!-- Kapitál -->
 		<xsl:param name="ico"/>
-		<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}">
-			<gr:hasCurrency>CZK</gr:hasCurrency>
-			<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="normalize-space(d:za/d:vk/d:kc/text())"/></gr:hasCurrencyValue>
-		</gr:PriceSpecification>
+		<xsl:if test="d:za/d:vk/d:kc/text()">
+			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}">
+				<gr:hasCurrency>CZK</gr:hasCurrency>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:za/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+			</gr:PriceSpecification>
+		</xsl:if>
+		<xsl:if test="d:kj/d:vk/d:kc/text()">
+			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}">
+				<gr:hasCurrency>CZK</gr:hasCurrency>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:kj/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+			</gr:PriceSpecification>
+		</xsl:if>
         <xsl:if test="d:za/d:spl/d:kc">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital-splaceno')}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="normalize-space(d:za/d:spl/d:kc/text())"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:za/d:spl/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
         </xsl:if>
         <xsl:if test="d:akcie">
@@ -404,7 +412,7 @@
 		<xsl:for-each select="d:em">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, concat('emise/',count(./preceding-sibling::*)+1,'/hodnota'))}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="normalize-space(d:h/text())"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:h/text()),',','.')"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:for-each>
 		<xsl:apply-templates select="d:em/*" mode="linked">
@@ -582,21 +590,22 @@
 				<lodares:splaceno rdf:resource="{$currentURI}/splaceno"/>
 			</xsl:if>
 			<xsl:if test="d:vks/d:spl/d:prc">
-				<lodares:splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"><xsl:value-of select="normalize-space(d:vks/d:spl/d:prc/text())"/></lodares:splaceno-procent>
+				<lodares:splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(replace(normalize-space(d:vks/d:spl/d:prc/text()),'%',''),',','.')"/></lodares:splaceno-procent>
 			</xsl:if>
 
 			<lodares:obchodni-podil-spolecnika><xsl:value-of select="normalize-space(d:vks/d:op/d:t/text())"/></lodares:obchodni-podil-spolecnika>
 		</lodares:SpolecnictviSVkladem>
 
-		<gr:PriceSpecification rdf:about="{$currentURI}/vklad">
-			<gr:hasCurrency>CZK</gr:hasCurrency>
-			<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="normalize-space(d:vks/d:vk/d:kc/text())"/></gr:hasCurrencyValue>
-		</gr:PriceSpecification>
-
+		<xsl:if test="d:vks/d:vk/d:kc/text()">
+			<gr:PriceSpecification rdf:about="{$currentURI}/vklad">
+				<gr:hasCurrency>CZK</gr:hasCurrency>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:vks/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+			</gr:PriceSpecification>
+		</xsl:if>
 		<xsl:if test="d:vks/d:spl/d:kc">
 			<gr:PriceSpecification rdf:about="{$currentURI}/splaceno">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="normalize-space(d:vks/d:spl/d:kc/text())"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:vks/d:spl/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:if>
 
@@ -620,7 +629,9 @@
 
 		<lodares:ZastavaniFunkceVStatutarnimOrganu rdf:about="{f:getZastavaniFunkceVStatutarnimOrganuURI($ico, d:c)}">
 			<dcterms:title><xsl:value-of select="normalize-space(d:c/d:f/text())"/></dcterms:title>
-			<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			<xsl:if test="d:c/d:vf/d:dza/text()">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			</xsl:if>
 			<lodares:funkce-v-statutarnim-organu rdf:resource="{f:pathIdURI($funkceVStatutarnimOrganuScheme, normalize-space(d:c/d:f/text()))}"/>
 		</lodares:ZastavaniFunkceVStatutarnimOrganu>
 
@@ -642,7 +653,9 @@
 
 		<lodares:ZastavaniFunkceVPredstavenstvu rdf:about="{f:getZastavaniFunkceVPredstavenstvuURI($ico, d:c)}">
 			<dcterms:title><xsl:value-of select="normalize-space(d:c/d:f/text())"/></dcterms:title>
-			<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			<xsl:if test="d:c/d:vf/d:dza/text()">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			</xsl:if>
 			<lodares:funkce-v-predstavenstvu rdf:resource="{f:pathIdURI($funkceVPredstavenstvuScheme, normalize-space(d:c/d:f/text()))}"/>
 		</lodares:ZastavaniFunkceVPredstavenstvu>
 
@@ -664,7 +677,9 @@
 
 		<lodares:ZastavaniFunkceVDozorciRade rdf:about="{f:getZastavaniFunkceVDozorciRadeURI($ico, d:c)}">
 			<dcterms:title><xsl:value-of select="normalize-space(d:c/d:f/text())"/></dcterms:title>
-			<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			<xsl:if test="d:c/d:vf/d:dza/text()">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:vf/d:dza/text())"/></dcterms:issued>
+			</xsl:if>
 			<lodares:funkce-v-predstavenstvu rdf:resource="{f:pathIdURI($funkceVDozorciRadeScheme, normalize-space(d:c/d:f/text()))}"/>
 		</lodares:ZastavaniFunkceVDozorciRade>
 
