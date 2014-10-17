@@ -25,17 +25,16 @@ public class ValueGeneratorTyped extends ValueGeneratorReplace {
 
     @Override
     public Value generateValue(List<Object> row, ValueFactory valueFactory) {
-        final String rawResult = process(row);
+        final String rawResult = super.process(row);
         if (rawResult == null) {
             return null;
         }
 
-        return valueFactory.createLiteral(rawResult,typeUri);
+        return valueFactory.createLiteral(rawResult, typeUri);
     }
 
     @Override
-    public void compile(Map<String, Integer> nameToIndex,
-            ValueFactory valueFactory) throws ParseFailed {
+    public void compile(Map<String, Integer> nameToIndex, ValueFactory valueFactory) throws ParseFailed {
         super.compile(nameToIndex, valueFactory);
         typeUri = valueFactory.createURI(typeStr);
     }

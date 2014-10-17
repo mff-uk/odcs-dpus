@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,7 +43,10 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
      */
     private class TokenReplace extends Token {
 
-        int index;
+        /**
+         * Index from row to pick up.
+         */
+        private final int index;
 
         public TokenReplace(int index) {
             this.index = index;
@@ -57,7 +58,8 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
             if (object == null) {
                 return null;
             } else {
-                return object.toString();
+                final String value = object.toString();
+                return value;
             }
         }
 
@@ -84,9 +86,6 @@ public abstract class ValueGeneratorReplace implements ValueGenerator {
         }
 
     }
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ValueGeneratorReplace.class);
 
     /**
      * Used URI for column.

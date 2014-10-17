@@ -47,16 +47,13 @@ public class ParserCsv implements Parser {
 
         // set if for first time or if we use static row counter
         if (!config.checkStaticRowCounter || rowNumber == 0) {
-           rowNumber = config.hasHeader ? 2 : 1;
+            rowNumber = config.hasHeader ? 2 : 1;
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(inFile);
-                InputStreamReader inputStreamReader = getInputStream(
-                        fileInputStream);
-                BufferedReader bufferedReader = new BufferedReader(
-                        inputStreamReader);
-                CsvListReader csvListReader = new CsvListReader(bufferedReader,
-                        csvPreference)) {
+                InputStreamReader inputStreamReader = getInputStream(fileInputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                CsvListReader csvListReader = new CsvListReader(bufferedReader, csvPreference)) {
             //
             // ignore initial ? lines
             //
@@ -84,18 +81,17 @@ public class ParserCsv implements Parser {
             }
 
             // configure parser
-            TableToRdfConfigurator.configure(tableToRdf, header, (List)row);
+            TableToRdfConfigurator.configure(tableToRdf, header, (List) row);
             // go ...
             if (config.rowLimit == null) {
                 LOG.debug("Row limit: not used");
             } else {
                 LOG.debug("Row limit: {}", config.rowLimit);
             }
-            while (row != null && 
-                    (config.rowLimit == null || rowNumPerFile < config.rowLimit) &&
-                    !context.canceled()) {
+            while (row != null && (config.rowLimit == null || rowNumPerFile < config.rowLimit)
+                    && !context.canceled()) {
                 // cast string to objects
-                tableToRdf.paserRow((List)row, rowNumber);
+                tableToRdf.paserRow((List) row, rowNumber);
                 // read next row
                 rowNumber++;
                 rowNumPerFile++;
@@ -106,16 +102,14 @@ public class ParserCsv implements Parser {
                 }
             }
         } catch (IOException ex) {
-            throw new ParseFailed("Parse of '" + inFile.toString() + "' failed",
-                    ex);
+            throw new ParseFailed("Parse of '" + inFile.toString() + "' failed", ex);
         }
     }
 
     /**
-     * Create {@link InputStreamReader}. If "UTF-8" as encoding is given then
-     * {@link BOMInputStream} is used as intermedian between given
-     * fileInputStream and output {@link InputStreamReader} to remove
-     * possible BOM mark at the start of "UTF" files.
+     * Create {@link InputStreamReader}. If "UTF-8" as encoding is given then {@link BOMInputStream} is used
+     * as intermedian between given fileInputStream and output {@link InputStreamReader} to remove possible
+     * BOM mark at the start of "UTF" files.
      *
      * @param fileInputStream
      * @return

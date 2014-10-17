@@ -12,6 +12,9 @@ import org.openrdf.model.ValueFactory;
  */
 public class ValueGeneratorString extends ValueGeneratorReplace {
 
+    /**
+     * Value of language that that will be attached to string.
+     */
     private final String language;
 
     public ValueGeneratorString(URI uri, String template, String language) {
@@ -21,7 +24,7 @@ public class ValueGeneratorString extends ValueGeneratorReplace {
 
     @Override
     public Value generateValue(List<Object> row, ValueFactory valueFactory) {
-        final String rawResult = process(row);
+        final String rawResult = super.process(row);
         if (rawResult == null) {
             return null;
         }
