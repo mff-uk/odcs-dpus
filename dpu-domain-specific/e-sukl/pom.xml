@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>e-sukl</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<packaging>bundle</packaging>
 	<name>e-Sukl</name>
 	<description>Extract data from sukl.</description>

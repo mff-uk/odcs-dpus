@@ -5,6 +5,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.SelectQuery;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
@@ -26,6 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -69,6 +72,9 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private static final String CSS_SELECTOR
             = "div#medicine-box>table.zebra.vertical tbody tr";
 
+    private static final String NAME_REGEXP_STR = 
+            "(?<csen>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\((?<la>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\)$";
+    
     @DataUnit.AsInput(name = "SkosNotation")
     public RDFDataUnit rdfInSkosNotation;
 
@@ -95,6 +101,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * Store info about files on output as files can be shared.
      */
     private final Set<String> downloadedFiles = new HashSet<>();
+
+    private final Pattern nameRegExp = Pattern.compile(NAME_REGEXP_STR);
 
     public Sukl() {
         super(SuklConfig_V1.class,
@@ -152,11 +160,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             Manipulator.dump(filesOutTexts);
 
         } catch (OperationFailedException ex) {
-            throw new DPUException("Operation failed.", ex);
+            SendMessage.sendMessage(context, ex);
         } catch (QueryEvaluationException ex) {
             throw new DPUException("Query execution failed.", ex);
         } catch (DataUnitException ex) {
-            
+            SendMessage.sendMessage(context, ex);
         }
         // log number of files
         context.sendMessage(DPUContext.MessageType.INFO, filesOnOutput.toString() + " files downloaded.");
@@ -169,10 +177,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
 
     @Override
     public void processStatement(BindingSet binding) throws DPUException {
-        final String notation = binding.getBinding(SKOSNOTATION_BINDING)
-                .getValue().stringValue();
-        final URI subject = (URI) binding.getBinding(SUBJECT_BINDING)
-                .getValue();
+        final String notation = binding.getBinding(SKOSNOTATION_BINDING).getValue().stringValue();
+        final URI subject = (URI) binding.getBinding(SUBJECT_BINDING).getValue();
         // get information for given notation
         try {
             downloadInfo(subject, notation);
@@ -191,7 +197,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * Download info for medicament with given skos:notation number.
      *
      * @param subject
-     * @param notation
+     * @param notation Id of given medicament.
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
      * @throws java.io.IOException
      */
@@ -202,8 +208,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         //
         // parse info cz
         //
-        final File fileInfoCz = downloaderService.get(
-                URI_BASE_INFO_CZ + notation);
+        final File fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
         final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
         parseNameCz(subject, docInfoCz);
 
@@ -211,8 +216,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         // parse 'en' only if we get the czech one
         // as if we not nor english is probably provided
         //
-        final File fileInfoEn = downloaderService.get(
-                URI_BASE_INFO_EN + notation);
+        final File fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
         final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
         parseNameEn(subject, docInfoEn);
 
@@ -235,8 +239,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
-            if (element.getElementsByTag("th").first().text().compareTo(
-                    "Účinná látka") == 0) {
+            if (element.getElementsByTag("th").first().text().compareTo("Účinná látka") == 0) {
                 final String val = element.getElementsByTag("td").first().html();
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
@@ -246,14 +249,14 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 }
 
                 final String[] substances = val.split("<br />");
-
                 for (String substance : substances) {
                     substance = substance.trim();
                     // get names
-                    final String nameCs = substance.substring(0,
-                            substance.indexOf("("));
-                    final String nameLa = substance.substring(
-                            substance.indexOf("(") + 1, substance.indexOf(")"));
+                    LOG.info("regexp:'{}'", substance);
+                    final Matcher match = nameRegExp.matcher(substance);
+                    LOG.info("match:{}", match.matches());
+                    final String nameCs = match.group("csen").trim();
+                    final String nameLa = match.group("la").trim();
                     // add
                     addIngredient(subject, nameLa, nameCs, "cs");
                 }
@@ -272,8 +275,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
-            if (element.getElementsByTag("th").first().text().compareTo(
-                    "Active substance") == 0) {
+            if (element.getElementsByTag("th").first().text().compareTo("Active substance") == 0) {
                 final String val = element.getElementsByTag("td").first().html();
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
@@ -286,10 +288,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 for (String substance : substances) {
                     substance = substance.trim();
                     // get names
-                    final String nameEn = substance.substring(0,
-                            substance.indexOf("("));
-                    final String nameLa = substance.substring(
-                            substance.indexOf("(") + 1, substance.indexOf(")"));
+                    LOG.info("regexp:'{}'", substance);
+                    final Matcher match = nameRegExp.matcher(substance);
+                    LOG.info("match:{}", match.matches());
+                    final String nameEn = match.group("csen").trim();
+                    final String nameLa = match.group("la").trim();
                     addIngredient(subject, nameLa, nameEn, "en");
                 }
             }
@@ -300,7 +303,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * Create record for given ingredient and bind it to given subject.
      *
      * @param subject
-     * @param nameLa Identifier of ingredient - name in latin.
+     * @param nameLa  Identifier of ingredient - name in latin.
      * @param name
      * @param lang
      * @throws OperationFailedException
@@ -325,8 +328,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * @param subject
      * @param notation
      * @param doc
-     * @throws
-     * cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
+     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
      * @throws java.io.IOException
      */
