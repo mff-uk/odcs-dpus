@@ -76,16 +76,20 @@ public class TableToRdfConfigurator {
                 columnName = "col" + Integer.toString(index + 1);
             }
             LOG.debug("New column found '{}'", columnName);
+            // check for null
+            if (columnName == null) {
+                LOG.warn("Column with name='null' is ignored.");
+                continue;
+            }
             // add column name
             tableToRdf.nameToIndex.put(columnName, index);
             //
             // test for key
             //
             if (config.keyColumn != null && !config.advancedKeyColumn &&
-                    columnName.compareTo(config.keyColumn) == 0) {
+                    config.keyColumn.compareTo(columnName) == 0) {
                 // we construct tempalte and use it
-                keyTemplateStr =
-                        "<" + prepareAsUri("{", config) + columnName + "}>";
+                keyTemplateStr = "<" + prepareAsUri("{", config) + columnName + "}>";
             }
             //
             // check for user template
@@ -108,8 +112,7 @@ public class TableToRdfConfigurator {
             // fill other values if needed
             //
             if (columnInfo.getURI() == null) {
-                columnInfo.setURI(config.baseURI +
-                        Utils.convertStringToURIPart(columnName));
+                columnInfo.setURI(config.baseURI + Utils.convertStringToURIPart(columnName));
             } else {
                 columnInfo.setURI(prepareAsUri(columnInfo.getURI(), config));
             }
