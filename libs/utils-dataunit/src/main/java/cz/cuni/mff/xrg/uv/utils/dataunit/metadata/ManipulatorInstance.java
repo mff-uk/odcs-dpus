@@ -15,13 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Can read metadata.
  *
  * @author Škoda Petr
  */
 public class ManipulatorInstance implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ManipulatorInstance.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ManipulatorInstance.class);
 
     protected static final String SYMBOLIC_NAME_BINDING = "symbolicName";
 
@@ -29,7 +29,7 @@ public class ManipulatorInstance implements AutoCloseable {
 
     protected static final String OBJECT_BINDING = "object";
 
-    private static final String SELECT
+    private static final String SELECT_QUERY
             = "SELECT ?" + OBJECT_BINDING + " WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
@@ -55,26 +55,30 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     protected final DatasetImpl dataset;
 
-    ManipulatorInstance(RepositoryConnection connection,
-            Set<URI> readGraph,
-            String symbolicName, boolean closeConnectionOnClose)
-            throws DataUnitException {
+    /**
+     *
+     * @param connection
+     * @param readGraph
+     * @param symbolicName           Symbolic name to which this instance is bound. Can be changed later.
+     * @param closeConnectionOnClose If true then given connection is close one this instance is closed.
+     * @throws DataUnitException
+     */
+    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraph, String symbolicName,
+            boolean closeConnectionOnClose) throws DataUnitException {
         this.connection = connection;
         this.symbolicName = symbolicName;
         this.closeConnectionOnClose = closeConnectionOnClose;
         this.dataset = new DatasetImpl();
-        // add read graphs
+        // Add read graphs.
         for (URI uri : readGraph) {
             this.dataset.addDefaultGraph(uri);
         }
     }
 
     /**
-     * Get a strings stored under given predicate. For metadata under current
-     * {@link #symbolicName}.
-     * 
-     * If more strings are stored under given predicate then one of them
-     * is returned.
+     * Get a strings stored under given predicate. For metadata under current {@link #symbolicName}.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
      *
      * @param predicate Must be valid URI in string form.
      * @return
@@ -83,21 +87,14 @@ public class ManipulatorInstance implements AutoCloseable {
     public String getFirst(String predicate) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery
-                    = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING,
-                    valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING,
-                    valueFactory.createURI(predicate));
-
+            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
+            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
+            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             tupleQuery.setDataset(dataset);
-            //
-            // return first result
-            //
+            // Return first result.
             final TupleQueryResult result = tupleQuery.evaluate();
             if (result.hasNext()) {
-                return result.next().getBinding(OBJECT_BINDING).
-                        getValue().stringValue();
+                return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
             }
             return null;
         } catch (MalformedQueryException | QueryEvaluationException | RepositoryException ex) {
@@ -106,8 +103,7 @@ public class ManipulatorInstance implements AutoCloseable {
     }
 
     /**
-     * Get all strings stored under given predicate. For metadata under current
-     * {@link #symbolicName}.
+     * Get all strings stored under given predicate. For metadata under current {@link #symbolicName}.
      *
      * @param predicate Must be valid URI in string form.
      * @return
@@ -116,22 +112,15 @@ public class ManipulatorInstance implements AutoCloseable {
     public List<String> getAll(String predicate) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery
-                    = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING,
-                    valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING,
-                    valueFactory.createURI(predicate));
-
+            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
+            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
+            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             tupleQuery.setDataset(dataset);
-            //
-            // store all results into list
-            //
+            // Store all the results into list.
             final TupleQueryResult result = tupleQuery.evaluate();
             final List<String> resultList = new LinkedList<>();
             while (result.hasNext()) {
-                final String value = result.next().getBinding(OBJECT_BINDING).
-                        getValue().stringValue();
+                final String value = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
                 resultList.add(value);
             }
             return resultList;
@@ -141,9 +130,9 @@ public class ManipulatorInstance implements AutoCloseable {
     }
 
     /**
-     * Change used symbolic name. By this operation {@link ManipulatorInstance}
-     * can be modified to work with other metadata object.
-     * 
+     * Change used symbolic name. By this operation {@link ManipulatorInstance} can be modified to work with
+     * other metadata object.
+     *
      * @param symbolicName
      */
     public void setSymbolicName(String symbolicName) {
