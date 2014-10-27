@@ -7,9 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base mock class for {@link DPUContext}. Can be used for testing of simple 
- * DPUs that use context only for message publication and cancelled state
- * check.
+ * Base mock class for {@link DPUContext}. Can be used for testing of simple DPUs that use context only for
+ * message publication and cancelled state check.
  *
  * @author Škoda Petr
  */
@@ -24,14 +23,12 @@ public class DPUContextMockBase implements DPUContext {
     }
 
     @Override
-    public void sendMessage(MessageType type, String shortMessage,
-            String fullMessage) {
+    public void sendMessage(MessageType type, String shortMessage, String fullMessage) {
         LOG.info("sendMessage({}, \"{}\", \"{}\")", type, shortMessage, fullMessage);
     }
 
     @Override
-    public void sendMessage(MessageType type, String shortMessage,
-            String fullMessage, Exception exception) {
+    public void sendMessage(MessageType type, String shortMessage, String fullMessage, Exception exception) {
         LOG.info("sendMessage({}, \"{}\", \"{}\", ...)", type, shortMessage, fullMessage, exception);
     }
 
