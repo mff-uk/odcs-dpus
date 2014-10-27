@@ -10,6 +10,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * Reflection based table, that can be easily used to represent the container in configuration. Table 
+ * does not use table component but rather generate layout from single components as it's provide
+ * possibility to validate each cell.
  *
  * @author Škoda Petr
  * @param <T>
@@ -34,6 +37,9 @@ public class ComponentTable<T> extends CustomComponent {
 
     }
 
+    /**
+     * Informations about a single column in this table.
+     */
     public static class ColumnInfo {
 
         private final String propertyName;
@@ -73,23 +79,36 @@ public class ComponentTable<T> extends CustomComponent {
 
     private final Map<String, ColumnInfo> columnsInfo = new LinkedHashMap<>();
 
+    /**
+     * Class of represented objects.
+     */
     private final Class<T> clazz;
 
+    /**
+     * Can be used to customize table behaviour.
+     */
     private Policy<T> policy = new Policy<>();
 
+    /**
+     * Main layout.
+     */
     private GridLayout componentLayout;
 
     public ComponentTable(Class<T> clazz, ColumnInfo ... columnsInfo) {
         this.clazz = clazz;
-        // prepare columnsInfo
+        // Prepare columnsInfo.
         for (ColumnInfo info : columnsInfo) {
             this.columnsInfo.put(info.propertyName, info);
         }
-        // build all
+        // Build all.
         buildColumnsInfo();
         buildLayout();
     }
 
+    /**
+     *
+     * @param data New table data.
+     */
     public void setValue(Collection<T> data) {
         int index = 0;
         Iterator<T> iter = data.iterator();
@@ -106,12 +125,17 @@ public class ComponentTable<T> extends CustomComponent {
 
             ++index;
         }
-        // set other to null
+        // Set other rows to null - empty.
         for (; index < items.size(); index++) {
             setItemValueEmpty(items.get(index));
         }
     }
 
+    /**
+     *
+     * @return Non empty rows in table.
+     * @throws DPUConfigException
+     */
     public Collection<T> getValue() throws DPUConfigException {
         final List<T> data = new ArrayList<>(items.size());
 
@@ -141,12 +165,12 @@ public class ComponentTable<T> extends CustomComponent {
         mainLayout.setSpacing(true);
         mainLayout.setMargin(true);
 
-        // prepare layout
+        // Prepare layout.
         componentLayout = new GridLayout(columnsInfo.size(), 1);
         componentLayout.setWidth("100%");
         componentLayout.setHeight("-1px");
         componentLayout.setSpacing(true);
-        // add header
+        // Add headers.
         int columnIndex = 0;
         for (String key : columnsInfo.keySet()) {
             final ColumnInfo info = columnsInfo.get(key);
@@ -166,7 +190,7 @@ public class ComponentTable<T> extends CustomComponent {
         });
         mainLayout.addComponent(btnAddItem);
 
-        // and set as composition root
+        // Set as composition root.
         setCompositionRoot(mainLayout);
     }
 
@@ -177,7 +201,7 @@ public class ComponentTable<T> extends CustomComponent {
         for (ColumnInfo info : columnsInfo.values()) {
             try {
                 final PropertyDescriptor propDesc = new PropertyDescriptor(info.propertyName, clazz);
-                // set properties
+                // Set properties.
                 info.type = propDesc.getPropertyType();
                 info.readMethod = propDesc.getReadMethod();
                 info.writeMethod = propDesc.getWriteMethod();
@@ -188,7 +212,7 @@ public class ComponentTable<T> extends CustomComponent {
     }
 
     /**
-     * Create field for given column.
+     * Create field representation (Vaadin component) for given column.
      *
      * @param info
      * @return
@@ -198,7 +222,7 @@ public class ComponentTable<T> extends CustomComponent {
 
         if (type.isEnum()) {
             final ComboBox comboBox = new ComboBox();
-            // pre-fill with options
+            // Pre-fill with options - enum members.
             final Object[] values = type.getEnumConstants();
             for (Object value : values) {
                 comboBox.addItem(value);
@@ -225,6 +249,11 @@ public class ComponentTable<T> extends CustomComponent {
         return textField;
     }
 
+    /**
+     *
+     * @param item Representation of row.
+     * @param value Value that should be set to given row.
+     */
     private void setItemValue(Item item, T value) {
         for (ColumnInfo info : columnsInfo.values()) {
             final Object propertyValue;
@@ -250,6 +279,12 @@ public class ComponentTable<T> extends CustomComponent {
         }
     }
 
+    /**
+     *
+     * @param item Item ie. row.
+     * @return Current value, is not null.
+     * @throws DPUConfigException
+     */
     private T getItemValue(Item item) throws DPUConfigException {
 
         final T value;
@@ -278,17 +313,15 @@ public class ComponentTable<T> extends CustomComponent {
     }
 
     /**
-     * Create new empty item.
+     * Create new empty item (row).
      */
     private Item createNewItem() {
         final Item newItem = new Item();
-
         for (String key : columnsInfo.keySet()) {
             ColumnInfo info = columnsInfo.get(key);
             final Field newField = createField(info);
-            // add to layout
+            // Add component to layout and to newly emerging item.
             componentLayout.addComponent(newField);
-            // add to item
             newItem.fields.put(key, newField);
         }
         items.add(newItem);
