@@ -20,60 +20,41 @@ import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ * @author Škoda Petr
+ */
 @DPU.AsExtractor
 public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(HttpDownload.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HttpDownload.class);
 
-    @DataUnit.AsInput(name = "config", optional = true)
+    @DataUnit.AsInput(name = "config", optional = true, description = "DPU's configuration.")
     public RDFDataUnit inRdfToDownload;
 
-    @DataUnit.AsOutput(name = "files")
+    @DataUnit.AsOutput(name = "files", description = "Downloaded files.")
     public WritableFilesDataUnit outFilesFiles;
 
     public HttpDownload() {
         super(ConfigHistory.create(HttpDownloadConfig_V1.class,
                 "eu.unifiedviews.plugins.extractor.httpdownload.HttpDownloadConfig_V1")
                 .addCurrent(HttpDownloadConfig_V2.class),
-                AddonInitializer.create(new CachedFileDownloader(), new ConfigurationFromRdf("inRdfToDownload")));
+                AddonInitializer.create(new CachedFileDownloader(),
+                        new ConfigurationFromRdf("inRdfToDownload")));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
-
-        ///
-        
-//        SerializationRdf<HttpDownloadConfig_V2> serializationRdf =
-//                SerializationRdflFactory.serializationRdfSimple(HttpDownloadConfig_V2.class);
-//
-//        if(inRdfToDownload != null) {
-//            LOG.info("Loading configuration from RDF!");
-//
-//            ValueFactory valueFactory = new ValueFactoryImpl();
-//            try {
-//            serializationRdf.convert(inRdfToDownload,
-//                    valueFactory.createURI("http://config/httpDownloader"),
-//                    config,
-//                    new SerializationRdf.Configuration());
-//            } catch (SerializationRdfFailure ex) {
-//                throw new DPUException(ex);
-//            }
-//        } else {
-//            LOG.warn("inRdfToDownload is NULL!");
-//        }
-
-        ///
-
         context.sendMessage(DPUContext.MessageType.INFO,
-                String.format("%d file to download", config.getToDownload()
-                        .size()));
+                String.format("%d file to download", config.getToDownload().size()));
 
         int index = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {
@@ -85,22 +66,26 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
                 LOG.error("Wrong URI format: {}", info.getUri(), ex);
                 continue;
             }
-            // prepare virtual path
+            // Prepare virtual path.
             String virtualPath = info.getVirtualPath();
             if (virtualPath == null || virtualPath.isEmpty()) {
-                // just use some ..
-                virtualPath = String.format("file-%d", index++);
+                // Just use something as virtual path.
+                final String uriTail = info.getUri().substring(info.getUri().lastIndexOf("/") + 1);
+                try {
+                    virtualPath = URLEncoder.encode(uriTail, "UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    context.sendMessage(DPUContext.MessageType.ERROR, "UTF-8 is not supported!", "", ex);
+                    return;
+                }
             }
-            // download
+            // Download file.
             try {
                 downloadFile(url, virtualPath, virtualPath);
             } catch (DataUnitException ex) {
                 SendMessage.sendMessage(context, ex);
                 return;
             } catch (AddonException | IOException ex) {
-                context.sendMessage(DPUContext.MessageType.ERROR,
-                        "Can't download file: " + info.getUri(), "",
-                        ex);
+                SendMessage.sendError(context, "Download failed", ex, "File: %s", info.getUri());
                 return;
             }
         }
@@ -122,16 +107,13 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
      * @throws IOException
      * @throws DataUnitException
      */
-    private void downloadFile(URL sourceUri, String symbolicName,
-            String virtualPath) throws AddonException, IOException, DataUnitException {
+    private void downloadFile(URL sourceUri, String symbolicName, String virtualPath)
+            throws AddonException, IOException, DataUnitException {
         final File file = getAddon(CachedFileDownloader.class).get(sourceUri);
         outFilesFiles.addExistingFile(symbolicName, file.toURI().toString());
 
-        // TODO we can add more metadata here
-        // set metadata
-        Manipulator.set(outFilesFiles, symbolicName,
-                VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
-
+        // TODO We can add more metadata here ...
+        Manipulator.set(outFilesFiles, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
     }
 
 }
