@@ -10,8 +10,7 @@ import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import java.util.Collections;
 
 /**
- * Convert given configuration into string. Result string then can be used
- * to configure DPUs.
+ * Convert given configuration into string. Result string then can be used to configure DPUs.
  *
  * @author Škoda Petr
  */
@@ -27,12 +26,12 @@ public class ConfigToString {
      * @param config
      * @return
      * @throws cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure
+     * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
      */
     public static <C> String convert(C config) throws SerializationXmlFailure, ConfigException {
         SerializationXmlGeneral serialization = SerializationXmlFactory.serializationXmlGeneral();
         MasterConfigObject masterConfig = new MasterConfigObject();        
-        ConfigManager configManager = new ConfigManager(serialization,
-                Collections.EMPTY_LIST);
+        ConfigManager configManager = new ConfigManager(serialization, Collections.EMPTY_LIST);
         configManager.setMasterConfig(masterConfig);
         configManager.set(config, DpuAdvancedBase.DPU_CONFIG_NAME);
         return serialization.convert(masterConfig);

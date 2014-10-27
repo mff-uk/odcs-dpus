@@ -28,32 +28,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Provide cache for files.
+ * Main functionality:
+ * <ul>
+ *  <li>Download files from given URL</li>
+ *  <li>Contains optional simple file cache</li>
+ *  <li>User can specify the pause between downloads</li>
+ * </ul>
  *
+ * TODO: Should use versioned configuration. The configuration class should be renamed to "Configuration_V1".
+ *
+ * @see cz.cuni.mff.xrg.uv.boost.dpu.addonAddon
  * @author Škoda Petr
  */
 public class CachedFileDownloader
-        implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
+    implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
 
-    public static final String USED_USER_DIRECTORY
-            = "addon/cachedFileDownloader";
+    public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
 
-    public static final String USED_CONFIG_NAME
-            = "addon/cachedFileDownloader";
+    public static final String USED_CONFIG_NAME = "addon/cachedFileDownloader";
 
-    public static final String ADDON_NAME
-            = "Cached file downloader";
+    public static final String ADDON_NAME = "Cached file downloader";
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            CachedFileDownloader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CachedFileDownloader.class);
 
     /**
-     * Addons' configuration.
+     * Configuration class.
      */
     public static class Configuration {
 
         /**
-         * Max number of attempts to download singe file.
+         * Max number of attempts to download single file.
          */
         private Integer maxAttemps = 10;
 
@@ -111,7 +115,7 @@ public class CachedFileDownloader
     }
 
     /**
-     * Addon's configuration dialog.
+     * Vaadin configuration dialog.
      */
     public class VaadinDialog extends AddonVaadinDialogBase<Configuration> {
 
@@ -139,8 +143,8 @@ public class CachedFileDownloader
             mainLayout.setSpacing(true);
             mainLayout.setMargin(true);
 
-
             txtMaxAttemps = new TextField("Max number of attemps to download a single file, use -1 for infinity");
+            txtMaxAttemps.setDescription("Set to 0 to use only files from cache.");
             txtMaxAttemps.setWidth("5em");
             txtMaxAttemps.setRequired(true);
             mainLayout.addComponent(txtMaxAttemps);
@@ -172,10 +176,8 @@ public class CachedFileDownloader
 
         @Override
         protected Configuration getConfiguration() throws DPUConfigException {
-            if (!txtMaxAttemps.isValid() || !txtMaxPause.isValid()
-                    || !txtMinPause.isValid()) {
-                throw new DPUConfigException("All values for " + ADDON_NAME
-                        + " must be provided.");
+            if (!txtMaxAttemps.isValid() || !txtMaxPause.isValid() || !txtMinPause.isValid()) {
+                throw new DPUConfigException("All values for " + ADDON_NAME + " must be provided.");
             }
 
             final Configuration c = new Configuration();
@@ -185,42 +187,38 @@ public class CachedFileDownloader
                 c.setMaxPause(Integer.parseInt(txtMaxPause.getValue()));
                 c.setMinPause(Integer.parseInt(txtMinPause.getValue()));
             } catch (NumberFormatException ex) {
-                throw new ConfigException("Provided valuas must be numbers",
-                        ex);
+                throw new ConfigException("Provided valuas must be numbers.", ex);
             }
 
             if (c.getMaxPause() < c.getMinPause()) {
-                throw new ConfigException(
-                        "max pause must be greater then min pause");
+                throw new ConfigException("Max pause must be greater then min pause.");
             }
 
             c.setRewriteCache(checkRewriteCache.getValue());
-
             return c;
         }
 
     }
 
     /**
-     * Addon's configuration.
+     * Used configuration.
      */
     private Configuration config = new Configuration();
 
     /**
-     * Context of our master DPU.
+     * Time of next download. Used to create randomly distributes pauses between downloads.
+     * Should be ignored if cache is used.
      */
-    private DPUContext dpuContext = null;
-
-    /**
-     * Time of next download.
-     */
-    private long nextDownload = (new Date()).getTime();
+    private long nextDownload = new Date().getTime();
 
     /**
      * Base directory where store files.
      */
     private File baseDirectory = null;
 
+    /**
+     * DPU's master context.
+     */
     private DpuAdvancedBase.Context context;
 
     public CachedFileDownloader() {
@@ -232,47 +230,38 @@ public class CachedFileDownloader
     }
 
     @Override
-    public boolean execute(ExecutionPoint execPoint) throws AddonException {
+    public void execute(ExecutionPoint execPoint) throws AddonException {
 
         if (execPoint != ExecutionPoint.PRE_EXECUTE) {
-            return true;
+            return;
         }
-
-        this.dpuContext = context.getDpuContext();
-        this.baseDirectory = new File(this.dpuContext.getUserDirectory(),
-                USED_USER_DIRECTORY);
+        // Prepare cache directory.
+        final DPUContext dpuContext = context.getDpuContext();
+        this.baseDirectory = new File(dpuContext.getUserDirectory(), USED_USER_DIRECTORY);
         try {
-            // load configuration
-            this.config = context.getConfigManager().get(USED_CONFIG_NAME,
-                    Configuration.class);
+            // Load configuration.
+            this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration.class);
         } catch (ConfigException ex) {
-            this.dpuContext.sendMessage(DPUContext.MessageType.WARNING,
-                    "Addon failed to load configuration",
-                    "Failed to load configuration for: " + ADDON_NAME
-                    + " default configuration is used.", ex);
-
+            dpuContext.sendMessage(DPUContext.MessageType.WARNING, "Addon failed to load configuration",
+                    "Failed to load configuration for: " + ADDON_NAME + " default configuration is used.", ex);
             this.config  = new Configuration();
         }
 
         if (this.config == null) {
-            this.dpuContext.sendMessage(DPUContext.MessageType.WARNING,
-                    "Addon configuration is null.",
-                    "Failed to load configuration for: " + ADDON_NAME
-                    + " default configuration is used.");
-
+            dpuContext.sendMessage(DPUContext.MessageType.WARNING, "Addon configuration is null.",
+                    "Failed to load configuration for: " + ADDON_NAME + " default configuration is used.");
             this.config  = new Configuration();
         }
 
-        // ignore for ssh
+        LOG.info("BaseDirectory: {}", baseDirectory);
+
+        // Ignore all certificates, added because of MICR_3 pipeline.
+        // TODO: should be more focused on current job, not generaly remove the ssh check!
         try {
             setTrustAllCerts();
         } catch (Exception ex) {
             throw new AddonException("setTrustAllCerts throws", ex);
         }
-
-        // ...
-
-        return true;
     }
 
     @Override
@@ -291,13 +280,11 @@ public class CachedFileDownloader
     }
 
     /**
-     * Downloaded given file and store it into a cache. If file is presented in
-     * cache the is returned. If URI is in bad format then throw
-     * {@link AddonException}.
+     * Downloaded given file and store it into a cache. If file is presented in cache the is returned.
      *
      * @param fileUrl
      * @return
-     * @throws AddonException
+     * @throws AddonException Is thrown in case of wrong URL format.
      * @throws IOException
      */
     public File get(String fileUrl) throws AddonException, IOException {
@@ -309,33 +296,24 @@ public class CachedFileDownloader
     }
 
     /**
-     * Downloaded given file and store it into a cache. If file is presented in
-     * cache the is returned.
+     * Downloaded given file and store it into a cache. If file is presented in cache the is returned.
      *
-     * @param fileURI
+     * @param fileUrl
      * @return
+     * @throws AddonException Is thrown in case of wrong URL format.
+     * @throws IOException
      */
     public File get(URL fileUrl) throws AddonException, IOException {
-        //
-        // prepare file name
-        //
-        final String fileName;
-        try {
-            fileName = URLEncoder.encode(fileUrl.toString(), "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException("Hard coded encoding is not supported!!",
-                    ex);
-        }
-        return get(fileName, fileUrl);
+        return get(fileUrl.toString(), fileUrl);
     }
 
     /**
-     * If file of given name exists, then it's returned. If not then is
-     * downloaded from given uri, saved under given name and then returned.
+     * If file of given name exists, then it's returned. If not then is downloaded from given URL,
+     * saved under given name and then returned.
      *
      * @param fileName
      * @param fileUrl
-     * @return
+     * @return Can return null!
      * @throws AddonException
      * @throws IOException
      */
@@ -343,55 +321,50 @@ public class CachedFileDownloader
         if (baseDirectory == null) {
             throw new AddonException("Not initialized!");
         }
-        //
-        // made name secure
+        // Made name secure, so we can use it as a file name.
         try {
             fileName = URLEncoder.encode(fileName, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException("Hard coded encoding is not supported!!",
-                    ex);
+            throw new RuntimeException("Hard coded encoding is not supported!!", ex);
         }
-        //
-        //
-        // check for file existance
-        //
+        // Check for file existance, ie. can we use cached file?
         final File file = new File(baseDirectory, fileName);
+        LOG.debug("file: {} rewrite: {}", file.toString(), config.rewriteCache);
         if (file.exists() && !config.rewriteCache) {
-            LOG.info("get({}, {}) - file from cache ", fileName,
-                    fileUrl.toString());
+            LOG.info("get({}, {}) - file from cache ", fileName, fileUrl.toString());
             return file;
         }
-        //
-        // download
-        //
+        // Check if we should download file.
+        if (config.maxAttemps == 0) {
+            LOG.info("No file found for: {}, {}", fileName, fileUrl);
+            return null;
+        }
+        // Download file with some level of fault tolerance.
         int attempCounter = config.maxAttemps;
-        while (attempCounter != 0 && !dpuContext.canceled()) {
-            // wait before download
+        while (attempCounter != 0 && !context.getDpuContext().canceled()) {
+            // Wait before download.
             waitForNextDownload();
-            // try to download
+            // Try to download file.
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
-                LOG.info("get({}, {}) - file downloaded ",
-                        fileName, fileUrl.toString());
+                LOG.info("get({}, {}) - file downloaded ", fileName, fileUrl.toString());
                 return file;
             } catch (IOException ex) {
-                LOG.warn("Failed to download file from {} attemp {}/{}",
-                        fileUrl.toString(), attempCounter, config.maxAttemps,
-                        ex);
+                LOG.warn("Failed to download file from {} attemp {}/{}", fileUrl.toString(), attempCounter,
+                        config.maxAttemps, ex);
             }
-            // decrease attemp counted if not set to infinity = -1
+            // Decrease attemp counted if not set to infinity = -1.
             if (attempCounter > 0) {
                 --attempCounter;
             }
         }
-        //
-        // download failed
-        //
-        if (dpuContext.canceled()) {
+        // If we are here we does not manage to download file. So check for the reason.
+        if (context.getDpuContext().canceled()) {
+            // Execution has been canceled.
             throw new CancelledException();
         } else {
-            throw new IOException("Can't obtain file: '" + fileUrl.toString() +
-                    "' named: '" + fileName + "'");
+            // We were unable to download file in given number of attemps, we have faild.
+            throw new IOException("Can't obtain file: '" + fileUrl.toString() + "' named: '" + fileName + "'");
         }
     }
 
@@ -408,24 +381,26 @@ public class CachedFileDownloader
     }
 
     /**
-     * Wait before next download. BVefore leaving set time for next download.
+     * Wait before next download. Before leaving set time for next download.
      */
     private void waitForNextDownload() {
-        while ((new Date()).getTime() < nextDownload && !dpuContext.canceled()) {
+        while ((new Date()).getTime() < nextDownload && !context.getDpuContext().canceled()) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
 
             }
         }
-        // determine min time for next download
-        nextDownload = (new Date()).getTime()
-                + (long) ((Math.random() * (config.maxPause - config.minPause))
-                + config.minPause);
+        // Determine min time for next download, ie. time when next file can be downloaded.
+        nextDownload = new Date().getTime() +
+                (long) (Math.random() * (config.maxPause - config.minPause) + config.minPause);
     }
 
     /**
      * We will trust all certificates!
+     *
+     * Code source is MICR_3 DPU.
+     * TODO: Do not trust all certificates globally.
      * 
      * @throws Exception
      */
@@ -444,7 +419,7 @@ public class CachedFileDownloader
             }
         };
 
-        // Install the all-trusting trust manager
+        // Install the all-trusting trust manager.
         try {
             SSLContext sc = SSLContext.getInstance( "SSL" );
             sc.init( null, trustAllCerts, new java.security.SecureRandom() );

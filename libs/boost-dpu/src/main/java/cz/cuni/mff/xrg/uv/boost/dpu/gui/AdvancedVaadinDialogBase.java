@@ -24,15 +24,14 @@ import org.slf4j.LoggerFactory;
 import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase.DPU_CONFIG_NAME;
 
 /**
+ * Base class for DPU's configuration dialogs.
  *
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AdvancedVaadinDialogBase<CONFIG>
-        extends AbstractConfigDialog<MasterConfigObject> {
+public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDialog<MasterConfigObject> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            AdvancedVaadinDialogBase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AdvancedVaadinDialogBase.class);
 
     private ConfigDialogContext context;
 
@@ -55,30 +54,29 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     /**
      * Main tab sheet.
      */
-    private final TabSheet tabSheet;
+    private final TabSheet tabSheet = new TabSheet();
 
     /**
-     * List of configurable addons.
+     * List of configurable add-ons.
      */
-    private final List<AddonVaadinDialogBase> addons;
+    private final List<AddonVaadinDialogBase> addons = new LinkedList<>();
 
     /**
      * Currently set main sheet.
      */
     private Tab mainTab = null;
 
-    public AdvancedVaadinDialogBase(Class<CONFIG> configClass,
-            List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory
-                .serializationXmlGeneral();
-        this.serializationXml.addAlias(MasterConfigObject.class,
-                "MasterConfigObject");
-        this.configHistory = ConfigHistory.createNoHistory(configClass);
-        // addons - add dialogs
-        this.addons = new LinkedList<>();
-        this.tabSheet = new TabSheet();
+    /**
+     * Store value of last set configuration.
+     */
+    private String lastSetConfiguration = null;
 
-        // create config manager
+    public AdvancedVaadinDialogBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
+        this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        // This alias is also set in DpuAdvancedBase, they muset be tha same!
+        this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
+        this.configHistory = ConfigHistory.createNoHistory(configClass);
+        // Create config manager.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
         for (AddonInitializer.AddonInfo item : addons) {
             if (item.getAddon() instanceof ConfigTransformerAddon) {
@@ -86,22 +84,17 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             }
         }
         this.configManager = new ConfigManager(serializationXml, configAddons);
-
-        // build main layout
+        // Build main layout.
         buildMainLayout(addons);
     }
 
     public AdvancedVaadinDialogBase(ConfigHistory<CONFIG> configHistory,
             List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory
-                .serializationXmlGeneral();
+        this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        // This alias is also set in DpuAdvancedBase, they muset be tha same!
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
         this.configHistory = configHistory;
-        // addons - add dialogs
-        this.addons = new LinkedList<>();
-        this.tabSheet = new TabSheet();
-
-        // create config manager
+        // Create config manager.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
         for (AddonInitializer.AddonInfo item : addons) {
             if (item.getAddon() instanceof ConfigTransformerAddon) {
@@ -109,28 +102,25 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
             }
         }
         this.configManager = new ConfigManager(serializationXml, configAddons);
-
-        // build main layout
+        // Build main layout.
         buildMainLayout(addons);
     }
 
     /**
-     * Build main layout and add dialogs for addons.
+     * Build main layout and add dialogs for add-ons.
      *
      * @param addons
      */
     private void buildMainLayout(List<AddonInitializer.AddonInfo> addons) {
         setSizeFull();
         tabSheet.setSizeFull();
-
+        // Prepare add-ons.
         for (AddonInitializer.AddonInfo addonInfo : addons) {
             if (addonInfo.getAddon() instanceof ConfigurableAddon) {
-                final ConfigurableAddon addonWithDialog
-                        = (ConfigurableAddon) addonInfo.getAddon();
+                final ConfigurableAddon addonWithDialog  = (ConfigurableAddon) addonInfo.getAddon();
                 final AddonVaadinDialogBase dialog = addonWithDialog.getDialog();
                 if (dialog == null) {
-                    LOG.error("Dialog is ignored as it's null: {}",
-                            addonWithDialog.getDialogCaption());
+                    LOG.error("Dialog is ignored as it's null: {}", addonWithDialog.getDialogCaption());
                 } else {
                     dialog.buildLayout();
                     addTab(dialog, addonWithDialog.getDialogCaption());
@@ -138,19 +128,18 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
                 }
             }
         }
-
         super.setCompositionRoot(tabSheet);
     }
 
     @Override
     protected void setCompositionRoot(Component compositionRoot) {
         if (mainTab != null && mainTab.getComponent().equals(compositionRoot)) {
-            // already set
+            // Already set, just update selected tab index.
             tabSheet.setSelectedTab(0);
             return;
         }
         final Tab newTab = tabSheet.addTab(compositionRoot, "DPU configuration");
-        // remove old one if set
+        // Remove old one if set, and set new as a master tab (tab with DPU's configuration).
         if (mainTab != null) {
             tabSheet.removeTab(mainTab);
         }
@@ -160,10 +149,9 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     }
 
     /**
-     * Add new tab under given name.
      * 
-     * @param component
-     * @param caption
+     * @param component Tab to add.
+     * @param caption Tab name.
      */
     protected void addTab(Component component, String caption) {
         final Tab newTab = tabSheet.addTab(component, caption);
@@ -174,6 +162,10 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
         this.context = newContext;
     }
 
+    /**
+     *
+     * @return Dialog context.
+     */
     protected ConfigDialogContext getContext() {
         return this.context;
     }
@@ -181,43 +173,34 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     @Override
     public void setConfig(String conf) throws DPUConfigException {
         configManager.setMasterConfig(conf);
-        //
-        // configure DPU
-        //
+        // Configure DPU's dialog.
         final CONFIG dpuConfig = configManager.get(DPU_CONFIG_NAME, configHistory);
         setConfiguration(dpuConfig);
-        //
-        // configure addons
-        //
+        // Configura add-ons.
         for (AddonVaadinDialogBase dialogs : addons) {
             dialogs.loadConfig(configManager);
         }
+        // Update last configuration.
+        this.lastSetConfiguration  = conf;
     }
 
     @Override
     public String getConfig() throws DPUConfigException {
-        // clear config mamanger
+        // Clear config mamanger.
         configManager.setMasterConfig(new MasterConfigObject());
-        //
-        // get configuration from DPU
-        //
+        // Get configuration from DPU.
         CONFIG dpuConfig = getConfiguration();
         configManager.set(dpuConfig, DpuAdvancedBase.DPU_CONFIG_NAME);
-        //
-        // get configuration from addons
-        //
+        // Get configuration from addons.
         for (AddonVaadinDialogBase dialogs : addons) {
             dialogs.storeConfig(configManager);
         }
-        //
-        // convert all into a string
-        //
+        // Convert all into a string.
         try {
             return serializationXml.convert(configManager.getMasterConfig());
         } catch (SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
         }
-
     }
 
     @Override
@@ -232,11 +215,29 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
 
     @Override
     public boolean hasConfigChanged() {
-        return false;
+        // We utilize string form of configuration to decide it the configuration has changed or not.
+        // This could be done probably better, but not in general case.
+        final String configString;
+        try {
+            configString = getConfig();
+        } catch (DPUConfigException ex) {
+            // Exception according to definition return false.
+            LOG.warn("Dialog configuration is invalid. It's assumed unchanged: ", ex);
+            return false;
+        } catch (Throwable ex) {
+            LOG.warn("Unexpected exception. Configuration is assumed to be unchanged.", ex);
+            return false;
+        }
+
+        if (this.lastSetConfiguration == null) {
+            return configString == null;
+        } else {
+            return this.lastSetConfiguration.compareTo(configString) != 0;
+        }
     }
 
     /**
-     * Set configuration for dialog.
+     * Set DPU's configuration for dialog.
      *
      * @param conf
      * @throws eu.unifiedviews.dpu.config.DPUConfigException
@@ -244,7 +245,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG>
     protected abstract void setConfiguration(CONFIG conf) throws DPUConfigException;
 
     /**
-     * Get dialog configuration.
+     * Get DPU's dialog configuration.
      *
      * @return
      * @throws eu.unifiedviews.dpu.config.DPUConfigException

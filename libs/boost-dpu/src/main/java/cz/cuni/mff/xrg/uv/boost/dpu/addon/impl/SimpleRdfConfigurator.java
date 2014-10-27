@@ -2,16 +2,17 @@ package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
 
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.ExecutableAddon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
+import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.*;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,23 +24,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Initialise annotated {@link SimpleRdfWrite} classes. Also at the end call
- * {@link SimpleRdfWrite#flushBuffer()}.
+ * Main functionality:
+ * <ul>
+ *  <li>Initialise annotated {@link SimpleRdfWrite} classes</li>
+ *  <li>At the end of DPU's execution call {@link SimpleRdfWrite#flushBuffer()}</li>
+ *  <li>User can set used buffer size</li>
+ *  <li>User can set used mode buffered/immediate</li>
+ *  <li>Set symbolic name, based on user provided configuration.</li>
+ *  <li>Provide auto generation of symbolic names.</li>
+ * </ul>
+ * 
+ * Sample usage:
+ * <pre>
+ * {@code 
+ * 
+ * }
+ * </pre>
+ * 
+ * TODO: Add support for direct use of buffered connection. Ie. there will be opened connection, 
+ *  and triples will be added into this connection directly, but the transaction will not be closed/opened
+ *  for every statement. See core/t-Tabular for more details.
+ * TODO: Used versioned configuration, change configuration name to Configuration_V1.
  *
- *
+ * @see cz.cuni.mff.xrg.uv.boost.dpu.addonAddon
  * @author Škoda Petr
  */
 public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         implements ExecutableAddon, ConfigurableAddon<SimpleRdfConfigurator.Configuration> {
 
-    public static final String USED_CONFIG_NAME
-            = "addon/simpleRdfConfigurator";
+    public static final String USED_CONFIG_NAME = "addon/simpleRdfConfigurator";
 
-    public static final String ADDON_NAME
-            = "Simple RDF";
+    public static final String ADDON_NAME = "Simple RDF";
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            SimpleRdfConfigurator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleRdfConfigurator.class);
 
     /**
      * Use to annotate {@link SimpleRdfRead} and {@link SimpleRdfWrite} classes
@@ -66,8 +83,8 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         private boolean advancedMode = false;
 
         /**
-         * User provided value - symbolic name or URI based on
-         * {@link #advancedMode}. If null then automatic values is generated.
+         * User provided value - symbolic name or URI based on {@link #advancedMode}. If null then automatic
+         * values is generated.
          */
         private String value = null;
 
@@ -93,17 +110,22 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
     }
 
     /**
-     * Add-on's configuration.
+     * Configuration.
      */
     public static class Configuration {
 
+        /**
+         * If true then buffered mode is used.
+         */
         private Boolean buffered = true;
 
+        /**
+         * Size of the buffer.
+         */
         private Integer bufferSize = 50000;
 
         /**
-         * Configuration stored under user visible (annotation.name) names of
-         * dataUnits.
+         * Configuration stored under user visible (annotation.name) names of dataUnits.
          */
         private Map<String, RdfWriteConfig> writeSettings = new LinkedHashMap<>();
 
@@ -156,8 +178,7 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
 
             checkAdvancedMode = new CheckBox();
             layout.addComponent(checkAdvancedMode);
-            layout.setComponentAlignment(checkAdvancedMode,
-                    Alignment.MIDDLE_CENTER);
+            layout.setComponentAlignment(checkAdvancedMode, Alignment.MIDDLE_CENTER);
 
             txtValue = new TextField();
             txtValue.setWidth("100%");
@@ -170,16 +191,15 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         }
 
         public RdfWriteConfig getConfig() throws DPUConfigException {
-            RdfWriteConfig c = new RdfWriteConfig();
+            final RdfWriteConfig c = new RdfWriteConfig();
 
             c.setAdvancedMode(checkAdvancedMode.getValue());
             c.setValue(txtValue.getValue());
 
             if (c.isAdvancedMode()) {
-                // perform checks on value
+                // Perform checks on value.
                 if (c.getValue() == null || c.getValue().trim().isEmpty()) {
-                    throw new DPUConfigException(
-                            "URI must be set for advanced mode.");
+                    throw new DPUConfigException("URI must be set for advanced mode.");
                 }
             }
             return c;
@@ -187,6 +207,9 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
 
     }
 
+    /**
+     * Configuration dialog.
+     */
     public class VaadinDialog extends AddonVaadinDialogBase<Configuration> {
 
         private CheckBox checkBuffered;
@@ -218,15 +241,14 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
 
                         @Override
                         public void valueChange(Property.ValueChangeEvent event) {
-                            Boolean value = (Boolean) event.getProperty()
-                            .getValue();
+                            Boolean value = (Boolean) event.getProperty().getValue();
                             if (value != null) {
                                 txtBufferSize.setEnabled(value);
                             }
                         }
                     });
 
-            // components for mapping
+            // Components for mapping.
             final GridLayout gridLayout = new GridLayout(3, 1);
             gridLayout.setSpacing(true);
             gridLayout.setSizeFull();
@@ -241,18 +263,18 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
             gridLayout.addComponent(lblAdvMode);
             gridLayout.setColumnExpandRatio(1, 0.0f);
 
-            gridLayout.addComponent(new Label(
-                    "Symbolic name / URI (in advanced mode)"));
+            gridLayout.addComponent(new Label("Symbolic name / URI (in advanced mode)"));
             gridLayout.setColumnExpandRatio(2, 1.0f);
 
             for (RdfSimpleField item : rdfDataUnits) {
-                if (!item.writable) {
-                    // skip nonwritable
+                if (!item.isWritable) {
+                    // Skip nonwritable RDFDataUnit, as for them we do not set symbolic names, or anything
+                    // else.
                     continue;
                 }
+                // TODO Dialog-utils ComponenetTable can be used to handle this task.
                 final String name = item.getDataUnitFieldName();
-                mapping.put(name,
-                        new RdfWriteConfigComponent(gridLayout, name));
+                mapping.put(name, new RdfWriteConfigComponent(gridLayout, name));
             }
             mainLayout.addComponent(gridLayout);
             setCompositionRoot(mainLayout);
@@ -293,15 +315,12 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
                     throw new DPUConfigException("Buffer size must be number.");
                 }
                 if (bufferSize < 1) {
-                    throw new DPUConfigException(
-                            "Buffer size must be greater then 0.");
+                    throw new DPUConfigException("Buffer size must be greater then 0.");
                 }
                 c.setBufferSize(bufferSize);
             }
-            // store
             for (String name : mapping.keySet()) {
-                c.getWriteMapping().put(name,
-                        mapping.get(name).getConfig());
+                c.getWriteMapping().put(name, mapping.get(name).getConfig());
             }
             return c;
         }
@@ -309,8 +328,7 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
     }
 
     /**
-     * Contains information about a single filed of type {@link SimpleRdf} or
-     * {@link SimpleRdfWrite}.
+     * Contains information about a single field of type {@link SimpleRdf} or {@link SimpleRdfWrite}.
      */
     public static class RdfSimpleField {
 
@@ -324,17 +342,16 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
         private final String dataUnitName;
 
         /**
-         * If true then {@link SimpleRdfWritable} is represented;otherwise,
-         * {@link SimpleRdfRead} is represented.
+         * If true then {@link SimpleRdfWritable} is represented;otherwise, {@link SimpleRdfRead} is
+         * represented.
          */
-        private final boolean writable;
+        private final boolean isWritable;
 
-        public RdfSimpleField(Field field, Field dataUnitField,
-                String dataUnitName, boolean writable) {
+        public RdfSimpleField(Field field, Field dataUnitField, String dataUnitName, boolean writable) {
             this.field = field;
             this.dataUnitField = dataUnitField;
             this.dataUnitName = dataUnitName;
-            this.writable = writable;
+            this.isWritable = writable;
         }
 
         public String getDataUnitFieldName() {
@@ -343,6 +360,9 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
 
     }
 
+    /**
+     * Informations about discovered DPU data units.
+     */
     private final List<RdfSimpleField> rdfDataUnits = new LinkedList<>();
 
     /**
@@ -350,6 +370,9 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
      */
     private final List<SimpleRdfWrite> rdfToFlush = new LinkedList<>();
 
+    /**
+     * DPU's context.
+     */
     private DpuAdvancedBase.Context context;
 
     /**
@@ -357,42 +380,37 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
      * @param clazz DPU class.
      */
     public SimpleRdfConfigurator(Class<T> clazz) {
-        // gather data about fields
+        // Gather data about fields.
         for (Field field : clazz.getFields()) {
             if (!field.isAnnotationPresent(Configure.class)) {
-                // skip not annotated
+                // Skip not annotated field.
                 continue;
             }
             final Configure annotation = field.getAnnotation(Configure.class);
+            final String annotatedFieldName = annotation.dataUnitFieldName();
             final Field dataunitField;
             try {
-                dataunitField = clazz.getField(annotation.dataUnitFieldName());
+                dataunitField = clazz.getField(annotatedFieldName);
             } catch (NoSuchFieldException ex) {
-                LOG.error("No field for {}.", annotation.dataUnitFieldName());
+                LOG.error("No field for {}.", annotatedFieldName);
                 continue;
             }
-            Class<?> c = dataunitField.getType();
             if (field.getType() == SimpleRdfWrite.class) {
                 if (dataunitField.getType() != WritableRDFDataUnit.class) {
-                   LOG.error("Filed: {} does not bind to RDFDataUnit",
-                           annotation.dataUnitFieldName());
+                   LOG.error("Filed: {} does not bind to RDFDataUnit",annotatedFieldName);
                    continue;
                 }
-                rdfDataUnits.add(new RdfSimpleField(field, dataunitField,
-                        annotation.dataUnitFieldName(), true));
+                rdfDataUnits.add(new RdfSimpleField(field, dataunitField, annotatedFieldName, true));
             } else if (field.getType() == SimpleRdfRead.class) {
                 if (dataunitField.getType() != RDFDataUnit.class) {
-                   LOG.error("Filed: {} does not bind to RDFDataUnit",
-                           annotation.dataUnitFieldName());
+                   LOG.error("Filed: {} does not bind to RDFDataUnit",annotatedFieldName);
                    continue;
                 }
-                rdfDataUnits.add(new RdfSimpleField(field, dataunitField,
-                        annotation.dataUnitFieldName(), false));
+                rdfDataUnits.add(new RdfSimpleField(field, dataunitField, annotatedFieldName, false));
             } else {
                 LOG.error("Anotation on non SimpleRdf field ingnored!");
             }
         }
-
     }
 
     @Override
@@ -416,68 +434,50 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
     }
 
     @Override
-    public boolean execute(ExecutionPoint execPoint) {
+    public void execute(ExecutionPoint execPoint) throws AddonException {
 
         switch (execPoint) {
             case PRE_EXECUTE:
-                return preAction(context);
+                preAction(context);
+                break;
             case POST_EXECUTE:            
                 postAction(context);
-                return true;
+                break;
             default:
-                return true;
+                break;
         }
     }
     
-    private boolean preAction(DpuAdvancedBase.Context context) {
+    private void preAction(DpuAdvancedBase.Context context) throws AddonException {
         Configuration config;
         try {
-            // load configuration
-            config = context.getConfigManager().get(USED_CONFIG_NAME,
-                    Configuration.class);
+            // Load configuration for this addon.
+            config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration.class);
         } catch (ConfigException ex) {
             LOG.debug("Addon failed to load configuration, default used.");
-//            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
-//                    "Addon failed to load configuration",
-//                    "Failed to load configuration for: " + ADDON_NAME
-//                    + " default configuration is used.", ex);
             config = new Configuration();
         }
 
         if (config == null) {
             LOG.debug("Addon configuration is null, default used.");
-//            context.getDpuContext().sendMessage(DPUContext.MessageType.WARNING,
-//                    "Addon configuration is null.",
-//                    "Failed to load configuration for: " + ADDON_NAME
-//                    + " default configuration is used.");
             config = new Configuration();
         }
 
         final T dpuInstance = (T) context.getDpu();
-        // bind and set
+        // Create instances, set them and assign them to fields.
         for (RdfSimpleField dataUnitInfo : rdfDataUnits) {
 
-            if (dataUnitInfo.writable) {
-                RdfWriteConfig c = config.writeSettings.get(
-                        dataUnitInfo.dataUnitName);
+            if (dataUnitInfo.isWritable) {
+                RdfWriteConfig c = config.writeSettings.get(dataUnitInfo.dataUnitName);
                 if (c == null) {
-                    LOG.debug("Configuration for '{}' not found, default used.",
-                            dataUnitInfo.dataUnitName);
-//                    context.getDpuContext().sendMessage(
-//                            DPUContext.MessageType.WARNING,
-//                            "Configuration for '" + dataUnitInfo.dataUnitName + "' was not found, default is used.");
+                    LOG.debug("Configuration for '{}' not found, default used.", dataUnitInfo.dataUnitName);
                     c = new RdfWriteConfig();
                 }
-                if (!setRdfWrite(context, dataUnitInfo, dpuInstance, c, config)) {
-                    return false;
-                }
+                setRdfWrite(context, dataUnitInfo, dpuInstance, c, config);
             } else {
-                if (!setRdfRead(context, dataUnitInfo, dpuInstance)) {
-                    return false;
-                }
+                setRdfRead(context, dataUnitInfo, dpuInstance);
             }
         }
-        return true;
     }
 
     private void postAction(DpuAdvancedBase.Context context) {
@@ -485,117 +485,88 @@ public class SimpleRdfConfigurator<T extends DpuAdvancedBase>
             try {
                 item.flushBuffer();
             } catch (OperationFailedException ex) {
-                context.getDpuContext().sendMessage(
-                        DPUContext.MessageType.ERROR, "Can't flush buffer.", "",
-                        ex);
+                SendMessage.sendMessage(context.getDpuContext(), ex);
             }
         }
     }
 
-    private boolean setRdfWrite(DpuAdvancedBase.Context context,
-            RdfSimpleField dataUnitInfo, T dpuInstance, RdfWriteConfig c,
-            Configuration config) {
-        // prepare prefix for generated names
-        final String generatedNamePrefix = "generated/"
-                + context.getDpu().getClass().getSimpleName() + "/";
-        // get data unit
+    private void setRdfWrite(DpuAdvancedBase.Context context, RdfSimpleField dataUnitInfo, T dpuInstance,
+            RdfWriteConfig c, Configuration config) throws AddonException {
+        // Prepare prefix for generated names.
+        final String generatedNamePrefix = "generated/" + context.getDpu().getClass().getSimpleName() + "/";
+        // Get data unit.
         final WritableRDFDataUnit dataUnit;
         try {
-            dataUnit = (WritableRDFDataUnit) dataUnitInfo.dataUnitField.get(
-                    dpuInstance);
+            dataUnit = (WritableRDFDataUnit) dataUnitInfo.dataUnitField.get(dpuInstance);
         } catch (IllegalAccessException | IllegalArgumentException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Illegal operation during binding.", "", ex);
-            return false;
+            throw new AddonException("Illegal operation during binding.", ex);
         }
 
         if (dataUnit == null) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "DataUnit '" + dataUnitInfo.dataUnitName + "' is null!");
-            return false;
+            throw new AddonException("DataUnit %s is null!", dataUnitInfo.dataUnitName);
         }
 
-        // create isntance of SimpleRdfWrite
+        // Create isntance of SimpleRdfWrite.
         SimpleRdfWrite simpleRdfWrite;
         try {
-            simpleRdfWrite = SimpleRdfFactory.create(dataUnit,
-                    context.getDpuContext());
+            simpleRdfWrite = SimpleRdfFactory.create(dataUnit, context.getDpuContext());
         } catch (OperationFailedException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Can not create SimpleRdfWrite", "", ex);
-            return false;
+            throw new AddonException("Can not create SimpleRdfWrite.", ex);
         }
-        // set
+        // Set field to out instance.
         if (config.isBuffered()) {
             simpleRdfWrite.setPolicy(AddPolicy.BUFFERED);
             simpleRdfWrite.setBufferSize(config.bufferSize);
         }
-        // get symbolic name / graph URI
+        // Get symbolic name / graph URI.
         String usedName = c.value;
         if (usedName == null || usedName.isEmpty()) {
-            // generate
-            usedName = generatedNamePrefix
-                    + Long.toString((new Date()).getTime());
+            // Generate name.
+            usedName = generatedNamePrefix + Long.toString((new Date()).getTime());
         }
 
-        // set symbolic name / graph URI
+        // Set symbolic name / graph URI.
         try {
             simpleRdfWrite.setOutputGraph(usedName);
-            LOG.info("'{}' used as a symbolic name for '{}'", usedName,
-                    dataUnitInfo.dataUnitName);
+            LOG.info("'{}' used as a symbolic name for '{}'", usedName, dataUnitInfo.dataUnitName);
         } catch (OperationFailedException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Failed to set graph name.", "", ex);
-            return false;
+            throw new AddonException("Failed to set graph name.", ex);
         }
 
         try {
-            // set SimpleRdfWrite back to instance
+            // Set SimpleRdfWrite back to instance.
             dataUnitInfo.field.set(dpuInstance, simpleRdfWrite);
         } catch (IllegalAccessException | IllegalArgumentException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Illegal operation during binding.", "", ex);
-            return false;
+            throw new AddonException("Illegal operation during binding.", ex);
         }
 
-        // add to storage
+        // Save the instance so we can close and flush at the end of execution.
         rdfToFlush.add(simpleRdfWrite);
-
-        return true;
     }
 
-    private boolean setRdfRead(DpuAdvancedBase.Context context,
-            RdfSimpleField dataUnitInfo, T dpuInstance) {
-        // get data unit
+    private void setRdfRead(DpuAdvancedBase.Context context, RdfSimpleField dataUnitInfo, T dpuInstance) 
+            throws AddonException {
+        // Get data unit.
         final RDFDataUnit dataUnit;
         try {
             dataUnit = (RDFDataUnit) dataUnitInfo.dataUnitField.get(dpuInstance);
         } catch (IllegalAccessException | IllegalArgumentException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Illegal operation during binding.", "", ex);
-            return false;
+            throw new AddonException("Illegal operation during binding.", ex);
         }
 
         SimpleRdfRead simpleRdfRead;
         try {
-            simpleRdfRead = SimpleRdfFactory.create(dataUnit,
-                    context.getDpuContext());
+            simpleRdfRead = SimpleRdfFactory.create(dataUnit, context.getDpuContext());
         } catch (OperationFailedException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Can not create SimpleRdfWrite", "", ex);
-            return false;
+            throw new AddonException("Can not create SimpleRdfRead.", ex);
         }
 
         try {
-            // set SimpleRdfWrite back to instance
+            // Set SimpleRdfWrite to instance = assign to field.
             dataUnitInfo.field.set(dpuInstance, simpleRdfRead);
         } catch (IllegalAccessException | IllegalArgumentException ex) {
-            context.getDpuContext().sendMessage(DPUContext.MessageType.ERROR,
-                    "Illegal operation during binding.", "", ex);
-            return false;
+            throw new AddonException("Illegal operation during binding.", ex);
         }
-
-        return true;
     }
 
 }

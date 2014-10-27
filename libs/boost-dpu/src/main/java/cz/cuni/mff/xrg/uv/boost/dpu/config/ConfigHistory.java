@@ -22,72 +22,64 @@ public class ConfigHistory<CONFIG> {
     /**
      *
      * @param endOfHistory
-     * @param finalClass If null then class from endOfHistory is used.
+     * @param finalClass   If null then class from endOfHistory is used.
      */
     ConfigHistory(ConfigHistoryEntry<?, CONFIG> endOfHistory, Class<CONFIG> finalClass) {
         this.endOfHistory = endOfHistory;
         if (finalClass == null) {
-            // we know this as the only option we can get here
-            // is by ConfigHistoryEntry.addCurrent
-            // which adds the final version of config ie. CONFIG
-            this.finalClass = (Class<CONFIG>)endOfHistory.configClass;
+            // We know this as the only option we can get here is by ConfigHistoryEntry.addCurrent
+            // which adds the final version of config ie. CONFIG.
+            this.finalClass = (Class<CONFIG>) endOfHistory.configClass;
         } else {
             this.finalClass = finalClass;
         }
     }
 
-    CONFIG parse(String config, SerializationXmlGeneral serializer) throws SerializationXmlFailure, ConfigException {
-        //
-        // checkif it's not the last class
-        //
+    CONFIG parse(String config, SerializationXmlGeneral serializer)
+            throws SerializationXmlFailure, ConfigException {
+        // Checkif it's not the last class (configuration).
         final String finalClassName = getClassName(finalClass);
         if (config.contains(finalClassName)) {
-            // ok, just convert
+            // It's just convert and retunr.
             return serializer.convert(finalClass, config);
         }
-        //
-        // go down to deep past, if you can
-        //
+        // Let's enter the past ..
         if (endOfHistory == null) {
-            LOG.error("Can't parse config for ({}), there is no history, value is: {}", finalClassName, config);
+            LOG
+                    .error("Can't parse config for ({}), there is no history, value is: {}", finalClassName,
+                            config);
             throw new ConfigException("Can't parse given object");
         }
 
         Object object = null;
-        ConfigHistoryEntry<?,?> current = endOfHistory;
+        ConfigHistoryEntry<?, ?> current = endOfHistory;
+        // Search for mathicng class in history.
         do {
             if (config.contains(current.alias)) {
-                // we got it
                 object = serializer.convert(current.configClass, config);
                 break;
             }
-            // move to next
             current = current.previous;
         } while (current != null);
-        
+        // Check that we have something.
         if (object == null) {
-            // we can not work with this object
             throw new ConfigException("Can't parse given object");
         }
-        //
-        // and back from darkness
-        //
-        // we have the configuration object, now we must rely on compile time
-        // check that we can update to CONFIG
-        //
+        // We have the configuration object and we will update it as we can - call toNextVersion.
+        // The compile time check secure that the last conversion return CONFIG object.
         while (!object.getClass().equals(finalClass)) {
             if (object instanceof VersionedConfig) {
-                object = ((VersionedConfig)object).toNextVersion();
+                object = ((VersionedConfig) object).toNextVersion();
             } else {
-                // we can convert anymore
+                // We can convert anymore.
                 throw new ConfigException("Can't update given configuration to current.");
             }
         }
-        return (CONFIG)object;
+        return (CONFIG) object;
     }
 
     /**
-     * 
+     *
      * @return Final class in configuration class ie. the current configuration.
      */
     public Class<CONFIG> getFinalClass() {
@@ -95,9 +87,11 @@ public class ConfigHistory<CONFIG> {
     }
 
     private static String getClassName(Class<?> clazz) {
+        // Get class name and update it into way in which xStream use it
+        // so we can search in string directly.
         String className = clazz.getCanonicalName().replace("_", "__");
         if (clazz.getEnclosingClass() != null) {
-            // change last dot into _-
+            // Change last "." into "_-" used for sub classes - addon configurations.
             int lastDot = className.lastIndexOf(".");
             className = className.substring(0, lastDot) + "_-" + className.substring(lastDot + 1);
         }
@@ -105,8 +99,7 @@ public class ConfigHistory<CONFIG> {
     }
 
     /**
-     * Call {@link #create(java.lang.Class, java.lang.String)} with allias
-     * equals to given class name.
+     * Call {@link #create(java.lang.Class, java.lang.String)} with alias equals to given class name.
      *
      * @param <T>
      * @param <S>
@@ -126,13 +119,14 @@ public class ConfigHistory<CONFIG> {
      * @param alias
      * @return
      */
-    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz, String alias) {
+    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz,
+            String alias) {
         return new ConfigHistoryEntry<>(alias, clazz, null);
     }
 
     /**
      * Create representation for configuration class without history.
-     * 
+     *
      * @param <T>
      * @param clazz
      * @return

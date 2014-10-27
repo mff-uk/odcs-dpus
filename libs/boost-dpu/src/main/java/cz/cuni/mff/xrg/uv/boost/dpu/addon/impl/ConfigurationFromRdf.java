@@ -24,8 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Provide possibility to configure DPU with Rdf data.
+ * Provide possibility to configure DPU with RDF data from {@link RDFDataUnit}. Currently support update
+ * of only the main DPU's configuration.
  *
+ * See UK-E-HttpDownload for sample usage.
+ *
+ * Experimental add-on!!
+ * TODO: Use bindings to translate properties, provide full configuration dialog (with base URIs) and 
+ *  scan for properties in DPU's configuration.
+ *
+ * @see cz.cuni.mff.xrg.uv.boost.dpu.addonAddon
  * @author Škoda Petr
  */
 public class ConfigurationFromRdf implements
@@ -37,9 +45,21 @@ public class ConfigurationFromRdf implements
 
     public static final String ADDON_NAME = "Configure from Rdf";
 
+    /**
+     * Represents configuration for a single "named configuration" ie. configuration that should be edited.
+     */
     public static class ObjectConfiguration_V1 {
 
+        /**
+         * Subject used as root for configuration.
+         */
         private String mainUri;
+
+        /**
+         * Translation-binding for configuration properties. Store (URI, binding), where binding is
+         * property name.
+         */
+        private final HashMap<String, String> binding = new LinkedHashMap<>();
 
         public ObjectConfiguration_V1() {
         }
@@ -56,7 +76,15 @@ public class ConfigurationFromRdf implements
 
     public static class Configuration_V1 {
 
+        /**
+         * Store configurations under configuration names.
+         */
         private HashMap<String, ObjectConfiguration_V1> config = new LinkedHashMap<>();
+
+        /**
+         * Base URI used for predicated.
+         */
+        private String basePredicateUri = null;
 
         public Configuration_V1() {
 
@@ -70,8 +98,19 @@ public class ConfigurationFromRdf implements
             this.config = config;
         }
 
+        public String getBasePredicateUri() {
+            return basePredicateUri;
+        }
+
+        public void setBasePredicateUri(String basePredicateUri) {
+            this.basePredicateUri = basePredicateUri;
+        }
+
     }
 
+    /**
+     * Configuration dialog.
+     */
     public class VaadinDialog extends AddonVaadinDialogBase<Configuration_V1> {
 
         public final ObjectConfiguration_V1 dpuConfig = new ObjectConfiguration_V1();
@@ -87,7 +126,7 @@ public class ConfigurationFromRdf implements
             mainLayout.setSpacing(true);
             mainLayout.setMargin(true);
 
-            final TextField txtMainUri = new TextField("Main uri:",
+            final TextField txtMainUri = new TextField("Uri of main subject:",
                     new MethodProperty<String>(dpuConfig, "mainUri"));
             txtMainUri.setWidth("100%");
             mainLayout.addComponent(txtMainUri);
@@ -117,13 +156,19 @@ public class ConfigurationFromRdf implements
 
     }
 
-    private DpuAdvancedBase.Context context;
-
+    /**
+     * Configuration.
+     */
     private Configuration_V1 configuration;
 
-    private final SerializationRdf serialization
-            = SerializationRdfFactory.serializationRdfSimple(Object.class);
+    /**
+     * Provides conversion from RDF into limited POJO.
+     */
+    private final SerializationRdf serialization = SerializationRdfFactory.rdfSimple(Object.class);
 
+    /**
+     * Source of triples with configurations.
+     */
     private RDFDataUnit configRdfDataUnit = null;
 
     /**
@@ -131,6 +176,9 @@ public class ConfigurationFromRdf implements
      */
     private final String configRdfDataUnitName;
 
+    /**
+     * Factory for RDF related objects.
+     */
     private final ValueFactory valueFactory = new ValueFactoryImpl();
 
     public ConfigurationFromRdf(String configRdfDataUnitName) {
@@ -149,16 +197,15 @@ public class ConfigurationFromRdf implements
 
     @Override
     public AddonVaadinDialogBase<Configuration_V1> getDialog() {
-        // get info
+        // Gather information about DPU's configuration.
         gatherInformations();
-        // create dialog
+        // Crete dialog. The dialog utilize previously created knowledge.
         return new VaadinDialog();
     }
 
     @Override
     public void init(DpuAdvancedBase.Context context) throws AddonException {
-        this.context = context;
-        // get RDFDataUnit
+        // Get RDFDataUnit that will be used as a source for triples.
         try {
             final Field field = context.getDpu().getClass().getField(configRdfDataUnitName);
             if (context.getDpu() == null) {
@@ -166,7 +213,7 @@ public class ConfigurationFromRdf implements
             }
             final Object obj = field.get(context.getDpu());
             if (obj == null) {
-                LOG.info("Given field is null, name: '{}'", configRdfDataUnitName);
+                LOG.info("Given field is null, name: '{}' -> no RDF configuration.", configRdfDataUnitName);
                 return;
             }
 
@@ -200,12 +247,14 @@ public class ConfigurationFromRdf implements
         if (configRdfDataUnit == null) {
             return;
         }
-
+        // Should we transform/update this configuration/object?
         if (configuration.getConfig().containsKey(configName)) {
-            ObjectConfiguration_V1 c = configuration.getConfig().get(configName);
-            // update
+            // Get configuration for given object.
+            final ObjectConfiguration_V1 c = configuration.getConfig().get(configName);
             try {
-                serialization.rdfToObject(configRdfDataUnit, valueFactory.createURI(c.getMainUri()), config);
+                // TODO Do not use default configuration object.
+                serialization.rdfToObject(configRdfDataUnit, valueFactory.createURI(c.getMainUri()), config,
+                    new SerializationRdf.Configuration());
             } catch (SerializationRdfFailure ex) {
                 throw new ConfigException("Can't deserialize configuration.", ex);
             }
@@ -213,16 +262,10 @@ public class ConfigurationFromRdf implements
     }
 
     /**
-     * Gather informations about other add-ons and dpu's configuration.
+     * Gather informations about DPU's configuration.
      */
     private void gatherInformations() {
-//        final List<AddonInitializer.AddonInfo> addons = context.getAddons();
-//        for (AddonInitializer.AddonInfo addonInfo : addons) {
-//            if (addonInfo.getAddon() instanceof ConfigurableAddon) {
-//                final Class<?> cnfClass = ((ConfigurableAddon) addonInfo.getAddon()).getConfigClass();
-//                // get information about class
-//            }
-//        }
+        // TODO ..
     }
 
 }

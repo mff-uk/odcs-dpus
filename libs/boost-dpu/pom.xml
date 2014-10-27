@@ -32,6 +32,7 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Libraries provided by UV. -->
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
