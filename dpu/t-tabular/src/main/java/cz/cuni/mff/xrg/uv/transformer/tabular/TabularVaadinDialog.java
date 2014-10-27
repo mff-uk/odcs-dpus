@@ -143,6 +143,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtKeyColumnName.setNullRepresentation("");
         this.txtKeyColumnName.setNullSettingAllowed(true);
         this.txtKeyColumnName.setWidth("100%");
+        this.txtKeyColumnName.setDescription("Name of column that will be appended to 'Resource URI base' and"
+                + " used as subject for rows. This can be changed by checking 'Advanced key column'");
         generalLayout.addComponent(this.txtKeyColumnName);
 
         this.txtEncoding = new TextField("Encoding");
@@ -184,7 +186,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkLayout.addComponent(checkStaticRowCounter);
 
         this.checkAdvancedKeyColumn = new CheckBox("Advanced key column");
-        this.checkAdvancedKeyColumn.setDescription("If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used a subject without any additional changes.");
+        this.checkAdvancedKeyColumn.setDescription("If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used as subject without any additional changes.");
         checkLayout.addComponent(this.checkAdvancedKeyColumn);
 
         this.checkGenerateLabels = new CheckBox("Generate labels");
