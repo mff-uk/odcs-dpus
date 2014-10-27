@@ -8,10 +8,10 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>e-sukl</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<packaging>bundle</packaging>
 	<name>e-Sukl</name>
-	<description>Extract data from sukl.</description>
+	<description>Extract data from SUKL.</description>
 	
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.uv.extractor.sukl</dpu.package>

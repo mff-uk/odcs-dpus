@@ -1,7 +1,5 @@
 package cz.cuni.mff.xrg.uv.extractor.sukl;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,46 +9,49 @@ import org.junit.Test;
  */
 public class SubstanceNameParse {
 
-    private static String regExp = "(?<csen>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\((?<la>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\)$";
-
     @Test
     public void simpleName() {
         String name = "RIVASTIGMIN-HYDROGEN-TARTAR&Aacute;T (RIVASTIGMINI TARTRAS)";
 
-        Pattern pattern = Pattern.compile(regExp);
-        Matcher matcher = pattern.matcher(name);
-
-        System.out.println(matcher.matches());
-
-        String cs = matcher.group("csen").trim();
-        String la = matcher.group("la").trim();
+        int index = Utils.getLastOpeningBraceIndex(name);
+        String cs = name.substring(0, index).trim();
+        String la = name.substring(index + 1, name.length() - 1);
 
         System.out.println("> " + cs);
         System.out.println("> " + la);
 
         Assert.assertEquals("RIVASTIGMIN-HYDROGEN-TARTAR&Aacute;T", cs);
         Assert.assertEquals("RIVASTIGMINI TARTRAS", la);
-
     }
 
     @Test
     public void withBraces() {
         String name = "ETHANOL 96 % (V/V) (ETHANOLUM 96% (V/V))";
 
-        Pattern pattern = Pattern.compile(regExp);
-        Matcher matcher = pattern.matcher(name);
-
-        System.out.println(matcher.matches());
-
-        String cs = matcher.group("csen").trim();
-        String la = matcher.group("la").trim();
+        int index = Utils.getLastOpeningBraceIndex(name);
+        String cs = name.substring(0, index).trim();
+        String la = name.substring(index + 1, name.length() - 1);
 
         System.out.println("> " + cs);
         System.out.println("> " + la);
 
         Assert.assertEquals("ETHANOL 96 % (V/V)", cs);
         Assert.assertEquals("ETHANOLUM 96% (V/V)", la);
+    }
 
+    @Test
+    public void problemCase_1() {
+        String name = "INFLUENZA A/TEXAS (H3N2) (SPLIT VIRION) (INFLUAENZAE VIRI A/TEXAS (H3N2) FRAGMENTUM)";
+
+        int index = Utils.getLastOpeningBraceIndex(name);
+        String cs = name.substring(0, index).trim();
+        String la = name.substring(index + 1, name.length() - 1);
+
+        System.out.println("> " + cs);
+        System.out.println("> " + la);
+
+        Assert.assertEquals("INFLUENZA A/TEXAS (H3N2) (SPLIT VIRION)", cs);
+        Assert.assertEquals("INFLUAENZAE VIRI A/TEXAS (H3N2) FRAGMENTUM", la);
     }
 
 }
