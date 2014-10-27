@@ -20,9 +20,9 @@ import org.openrdf.query.TupleQueryResult;
  * SelectQuery.iterate(rdf, query, new SelectQuery.BindingIterator() {
  *  @Override
  *  public void processStatement(BindingSet binding) throws DPUException {
- *      // process binding here
+ *      // Process binding here.
  *      String s = binding.getBinding("s").getValue().getStringValue();
- *      // you can throw DPUException to terminate the iteration
+ *      // You can throw DPUException to terminate the iteration.
  *  }
  * });
  * }
@@ -64,8 +64,7 @@ public class SelectQuery {
      */
     public static void iterate(SimpleRdfRead rdf, String query, BindingIterator iterator, DPUContext context)
             throws OperationFailedException, QueryEvaluationException, DPUException {
-        try (ConnectionPair<TupleQueryResult> connection =
-                rdf.executeSelectQuery(query)) {
+        try (ConnectionPair<TupleQueryResult> connection = rdf.executeSelectQuery(query)) {
             final TupleQueryResult result = connection.getObject();
             while (result.hasNext() && !context.canceled()) {
                 final BindingSet bindingSet = result.next();

@@ -14,8 +14,8 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 
 /**
- * Wrap for {@link RDFDataUnit} aims to provide more user friendly way how to
- * handler RDF functionality and also reduce code duplicity.
+ * Wrap for {@link RDFDataUnit} aims to provide more user friendly way how to handler RDF functionality and
+ * also reduce code duplicity.
  *
  * @author Škoda Petr
  */
@@ -51,15 +51,12 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
         this.dataUnit = dataUnit;
         this.context = context;
         this.readSetCurrent = new HashSet<>();
-        // set read contexts
+        // Set read contexts.
         setCurrentReadSetToAll();
     }
 
     /**
-     * In case of multiple calls the dame {@link ValueFactory} will be returned.
-     *
-     * @return Value factory for wrapped {@link RDFDataUnit}
-     * @throws OperationFailedException
+     * {@inheritDoc}
      */
     @Override
     public ValueFactory getValueFactory() throws OperationFailedException {
@@ -72,86 +69,67 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
     }
 
     /**
-     * Eagerly load all triples and store them into list.
-     *
-     * @return List of all triples in the repository.
-     * @throws OperationFailedException
+     * {@inheritDoc}
      */
     @Override
     public List<Statement> getStatements() throws OperationFailedException {
-        List<Statement> statemens = new ArrayList<>();
+        final List<Statement> statemens = new ArrayList<>();
         try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
-            RepositoryResult<Statement> repoResult
-                    = conn.c().getStatements(null, null, null, true,
-                            readSetCurrent.toArray(new URI[0]));
-            // add all data into list
+            final RepositoryResult<Statement> repoResult = conn.c().getStatements(null, null, null, true,
+                    readSetCurrent.toArray(new URI[0]));
+            // Add all data into list.
             while (repoResult.hasNext()) {
                 Statement next = repoResult.next();
                 statemens.add(next);
             }
             return statemens;
         } catch (RepositoryException ex) {
-            throw new OperationFailedException(
-                    "Failed to get statements from repository.", ex);
+            throw new OperationFailedException("Failed to get statements from repository.", ex);
         }
     }
 
     /**
-     * Execute given select query and return result. See {@link ConnectionPair}
-     * for more information about usage.
-     *
-     * @param query SPARQL select query
-     * @return
-     * @throws OperationFailedException
+     * {@inheritDoc}
      */
     @Override
     public ConnectionPair<TupleQueryResult> executeSelectQuery(String query)
             throws OperationFailedException {
-        // the connction needs to stay open during the whole query
-        ClosableConnection conn = new ClosableConnection(dataUnit);
+        // The connction needs to stay open during the whole query.
+        final ClosableConnection conn = new ClosableConnection(dataUnit);
         try {
-            // prepare query
-            TupleQuery tupleQuery = conn.c().prepareTupleQuery(
-                    QueryLanguage.SPARQL, query);
-            // prepare dataset
+            // Prepare query
+            TupleQuery tupleQuery = conn.c().prepareTupleQuery(QueryLanguage.SPARQL, query);
+            // Prepare dataset.
             tupleQuery.setDataset(prepareReadDataSet(readSetCurrent));
-            // wrap result and return
+            // Wrap result and return.
             return new ConnectionPair<>(conn.c(), tupleQuery.evaluate());
-        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
+        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException ex) {
             conn.close();
-            throw new OperationFailedException("Failed to execute select query.",
-                    e);
+            throw new OperationFailedException("Failed to execute select query.", ex);
         }
     }
 
     /**
-     * Execute given construct query and return result. See
-     * {@link ConnectionPair} for more information about usage.
-     *
-     * @param query SPARQL construct query
-     * @return
-     * @throws OperationFailedException
+     * {@inheritDoc}
      */
     @Override
     public ConnectionPair<Graph> executeConstructQuery(String query) throws OperationFailedException {
-        // the connction needs to stay open during the whole query
-        ClosableConnection conn = new ClosableConnection(dataUnit);
+        // The connction needs to stay open during the whole query.
+        final ClosableConnection conn = new ClosableConnection(dataUnit);
         try {
-            // prepare query
-            GraphQuery graphQuery = conn.c().prepareGraphQuery(
-                    QueryLanguage.SPARQL,
-                    query);
+            // Prepare query.
+            final GraphQuery graphQuery = conn.c().prepareGraphQuery(QueryLanguage.SPARQL, query);
             graphQuery.setDataset(prepareReadDataSet(readSetCurrent));
-            // evaluate
-            GraphQueryResult result = graphQuery.evaluate();
-            // convert into graph
-            Model resultGraph = QueryResults.asModel(result);
-            // wrap result and return
+            // Evaluate query.
+            final GraphQueryResult result = graphQuery.evaluate();
+            // Convert into model - this load the result into memory.
+            // TODO It can be better to use custom list as it may provide better performance in some cases.
+            final Model resultGraph = QueryResults.asModel(result);
+            // Wrap result and return.
             return new ConnectionPair<>(conn.c(), (Graph) resultGraph);
-        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
+        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException ex) {
             conn.close();
-            throw new OperationFailedException(
-                    "Failed to execute construct query.", e);
+            throw new OperationFailedException("Failed to execute construct query.", ex);
         }
     }
 
@@ -169,13 +147,13 @@ class SimpleRdfReadImpl implements SimpleRdfRead {
                 readSetCurrent.add(iter.next().getDataGraphURI());
             }
         } catch (DataUnitException ex) {
-            throw new OperationFailedException(
-                    "Failed to get list of data graph names.", ex);
+            throw new OperationFailedException("Failed to get list of data graph names.", ex);
         }
     }
 
     /**
      * Prepare dataset with all given URIs as default graphs.
+     *
      * @param graphs
      * @return
      */

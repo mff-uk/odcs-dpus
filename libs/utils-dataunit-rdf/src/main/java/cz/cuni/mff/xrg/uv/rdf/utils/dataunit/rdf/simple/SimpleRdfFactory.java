@@ -11,19 +11,19 @@ import eu.unifiedviews.dpu.DPUContext;
  * @author Škoda Petr
  */
 public class SimpleRdfFactory {
-    
+
     private SimpleRdfFactory() {
-        
+
     }
-    
-    public static SimpleRdfRead create(RDFDataUnit dataUnit, DPUContext context) 
+
+    public static SimpleRdfRead create(RDFDataUnit dataUnit, DPUContext context)
             throws OperationFailedException {
         return new SimpleRdfReadImpl(dataUnit, context);
     }
 
-    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit,
-            DPUContext context) throws OperationFailedException {
+    public static SimpleRdfWrite create(WritableRDFDataUnit dataUnit, DPUContext context)
+            throws OperationFailedException {
         return new SimpleRdfWriteImpl(dataUnit, context);
     }
-    
+
 }

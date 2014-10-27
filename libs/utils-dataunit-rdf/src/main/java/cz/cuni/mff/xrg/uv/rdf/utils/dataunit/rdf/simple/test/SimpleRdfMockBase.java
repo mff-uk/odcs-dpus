@@ -16,12 +16,11 @@ import org.openrdf.query.TupleQueryResult;
  *
  * <pre>
  * {@code
- * // print all added triples into standart output
- SimpleRdfWrite outRdf = new SimpleRdfMockBase() {
-  @Override
+ * // Print all added triples into standart output.
+ * SimpleRdfWrite outRdf = new SimpleRdfMockBase() {
+ *  @Override
  *  public void add(Resource s, URI p, Value o) throws OperationFailedException {
- *      System.out.println("> " +  s.stringValue() + " " +
- *          p.stringValue() + " " + o.stringValue());
+ *      System.out.println("> " +  s.stringValue() + " " + p.stringValue() + " " + o.stringValue());
  *  }
  * };
  * }

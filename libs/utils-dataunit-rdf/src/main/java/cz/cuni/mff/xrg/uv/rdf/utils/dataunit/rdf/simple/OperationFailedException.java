@@ -3,8 +3,7 @@ package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple;
 import eu.unifiedviews.dataunit.DataUnitException;
 
 /**
- * General exception used to report operation failure in {@link SimpleRdfRead}
- * and {@link SimpleRdfWrite}.
+ * General exception used to report operation failure in {@link SimpleRdfRead} and {@link SimpleRdfWrite}.
  *
  * @author Škoda Petr
  */
