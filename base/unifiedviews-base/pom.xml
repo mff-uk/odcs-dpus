@@ -18,19 +18,19 @@
     </developers>
 
     <properties>
-        <!-- min. uv version - version of libs. during development -->
+        <!-- Min. uv version - version of libs. during development. -->
         <unifiedviews.version>1.0.0</unifiedviews.version>
         <unifiedviews.version.max>2.0.0</unifiedviews.version.max>
-        <!-- version of UK libraries -->
+        <!-- Version of UK libraries. -->
         <uk.version.min>1.1.1</uk.version.min>
         <uk.version.max>1.2.0</uk.version.max>
-        <!-- used bundle plugin version -->
+        <!-- Used bundle plugin version. -->
         <bundle.plugin.version>2.3.7</bundle.plugin.version>
-        <!-- used version of slf4j -->
+        <!-- Used version of slf4j. -->
         <slf4j.version>1.7.7</slf4j.version>
-        <!-- centralized storage for sasamne.version -->
-        <sesame.version>2.7.11</sesame.version>
-        <!-- system properties -->
+        <!-- Centralized storage for sasamne.version. -->
+        <sesame.version>2.7.13</sesame.version>
+        <!-- System properties. -->
         <project.java.version>1.7</project.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>                

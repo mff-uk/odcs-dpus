@@ -14,14 +14,14 @@
     <description>Base project for libraries.</description>
 
     <properties>
-        <!-- must end with comma if not empty -->
+        <!-- Must end with comma if not empty. -->
         <osgi.import></osgi.import>
-        <!-- value used for maven-bundle-plugin.Export-Package -->
+        <!-- Value used for maven-bundle-plugin.Export-Package. -->
         <osgi.export>${project.groupId}.*;version="${project.version}"</osgi.export>
     </properties>
 
     <dependencies>
-        <dependency> <!-- logback as implementation org.slf4j -->
+        <dependency> <!-- Logback as implementation org.slf4j for testing. -->
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.0.13</version>
@@ -61,7 +61,7 @@
                             ${osgi.import}
                             *
                         </Import-Package>
-                        <!-- dependencies embedding -->
+                        <!-- Dependencies embedding. -->
                         <Embed-Dependency>*;scope=compile|system</Embed-Dependency>
                         <Embed-Directory>dependency</Embed-Directory>
                         <Embed-StripGroup>false</Embed-StripGroup>                        
