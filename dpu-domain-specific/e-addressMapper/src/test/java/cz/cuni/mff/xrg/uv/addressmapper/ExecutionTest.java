@@ -5,8 +5,6 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
-import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.odcs.rdf.exceptions.RDFException;
 import cz.cuni.mff.xrg.uv.addressmapper.mapping.AddressLocalityMapper;
 import cz.cuni.mff.xrg.uv.addressmapper.mapping.AddressRegionMapper;
 import cz.cuni.mff.xrg.uv.addressmapper.mapping.PostalCodeMapper;
@@ -14,7 +12,9 @@ import cz.cuni.mff.xrg.uv.addressmapper.mapping.StreetAddressMapper;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.service.external.ExternalFailure;
+import cz.cuni.mff.xrg.uv.test.boost.dpu.DPUContextMockBase;
 import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
+import cz.cuni.mff.xrg.uv.test.boost.rdf.RDFDataUnitFactory;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUException;
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.logging.Level;
 import org.junit.Test;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,16 +40,15 @@ public class ExecutionTest {
             ExecutionTest.class);
 
     //@Test
-    public void test() throws OperationFailedException, QueryEvaluationException, ExternalFailure, RDFException, ConfigException {
+    public void test() throws OperationFailedException, QueryEvaluationException, ExternalFailure, 
+            ConfigException, RepositoryException {
         configLogger();
         parse("d:/Temp/01/input-test.ttl");
     }
 
     private void configLogger() {
-        final LoggerContext loggerContext = (LoggerContext) LoggerFactory
-                .getILoggerFactory();
+        final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         
-        // remove all loggers
         //loggerContext.reset();
 
         PatternLayoutEncoder ple = new PatternLayoutEncoder();
@@ -77,19 +77,18 @@ public class ExecutionTest {
         logbackLogger.addAppender(fileAppender);
     }
 
-    private void parse(String fileName) throws OperationFailedException, QueryEvaluationException, ExternalFailure, RDFException, ConfigException {
+    private void parse(String fileName) throws OperationFailedException, QueryEvaluationException, 
+            ExternalFailure, ConfigException, RepositoryException {
         LOG.info(">>>>> parse({})", fileName.substring(fileName.lastIndexOf("/")));
-        
-        TestEnvironment env = new TestEnvironment();
 
-        // create data units
-        WritableRDFDataUnit inUlice = env.createRdfInput("seznamUlic", false);
-        WritableRDFDataUnit inObce = env.createRdfInput("seznamObci", false);
-        WritableRDFDataUnit inCastiObci = env.createRdfInput("seznamCastiObci", false);
-        WritableRDFDataUnit inKraj = env.createRdfInput("seznamKraju", false);        
-        WritableRDFDataUnit address = env.createRdfInput("postalAddress", false);        
-        WritableRDFDataUnit output = env.createRdfOutput("mapping", false);
-        WritableRDFDataUnit log = env.createRdfOutput("log", false);
+        // createInMemory data units
+        WritableRDFDataUnit inUlice = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit inObce = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit inCastiObci = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit inKraj = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit address = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit output = RDFDataUnitFactory.createInMemory();
+        WritableRDFDataUnit log = RDFDataUnitFactory.createInMemory();
         // load data
         try {
             // aditional data
@@ -105,7 +104,6 @@ public class ExecutionTest {
             InputOutput.extractFromFile(new File(fileName),
                     RDFFormat.TURTLE, address);
         } catch (Exception ex) {
-            env.release();
             LOG.error("Faield to load input data.", ex);
             return;
         }
@@ -136,8 +134,20 @@ public class ExecutionTest {
 
         };
 
+        // we are in test mode
+        main.setTestMode();
+        
+        // bind data units
+        main.inRdfUlice = inUlice;
+        main.inRdfCastiObci = inCastiObci;
+        main.inRdfKraje = inKraj;
+        main.inRdfObce = inObce;
+        main.inRdfUlice = inUlice;
+        main.outRdfLog = log;
+        main.outRdfMapping = output;
+
         try {
-            env.run(main);
+            main.execute(new DPUContextMockBase());
             // store results
             InputOutput.loadToFile(output, new File("d:/Temp/01/out-mapping.ttl"), 
                     RDFFormat.TURTLE);
@@ -146,7 +156,7 @@ public class ExecutionTest {
         } catch (Exception ex) {
             LOG.error("DPU failed", ex);
         } finally {
-            env.release();
+
         }
         
     }
