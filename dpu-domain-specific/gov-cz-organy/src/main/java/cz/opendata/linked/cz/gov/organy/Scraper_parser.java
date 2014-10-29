@@ -68,7 +68,7 @@ public class Scraper_parser extends ScrapingTemplate {
         	try {
 				//logger.debug(doc);
 				File f = new File(URI.create(list.addNewFile(url.toString() + docType)));
-				FileUtils.writeStringToFile(f, doc);
+				FileUtils.writeStringToFile(f, doc, "UTF-8");
 			} catch (DataUnitException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {

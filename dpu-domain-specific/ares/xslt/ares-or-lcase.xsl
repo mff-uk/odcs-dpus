@@ -646,7 +646,9 @@
 		<lodares:ClenstviVPredstavenstvu rdf:about="{f:getClenstviVPredstavenstvuURI($ico, d:c)}">
 			<dcterms:title><xsl:value-of select="f:getClenTitle(d:c)"/></dcterms:title>
 			<lodares:clen-predstavenstva rdf:resource="{f:getClenURI(d:c)}"/>
-			<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:cle/d:dza/text())"/></dcterms:issued>
+			<xsl:if test="d:c/d:cle/d:dza/text()">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:cle/d:dza/text())"/></dcterms:issued>
+			</xsl:if>
 			<lodares:zastavani-funkce-v-predstavenstvu rdf:resource="{f:getZastavaniFunkceVPredstavenstvuURI($ico, d:c)}"/>
 			<lodares:kod-angm rdf:resource="{f:pathIdURI($kodAngmScheme, normalize-space(d:c/d:kan/text()))}"/>
 		</lodares:ClenstviVPredstavenstvu>
@@ -669,9 +671,11 @@
 		<!-- Dozorčí rada -->
 		<lodares:ClenstviVDozorciRade rdf:about="{f:getClenstviVDozorciRadeURI($ico, d:c)}">
 			<dcterms:title><xsl:value-of select="f:getClenTitle(d:c)"/></dcterms:title>
-			<lodares:clen-predstavenstva rdf:resource="{f:getClenURI(d:c)}"/>
-			<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:cle/d:dza/text())"/></dcterms:issued>
-			<lodares:zastavani-funkce-v-predstavenstvu rdf:resource="{f:getZastavaniFunkceVDozorciRadeURI($ico, d:c)}"/>
+			<lodares:clen-v-dozorci-rade rdf:resource="{f:getClenURI(d:c)}"/>
+			<xsl:if test="d:c/d:cle/d:dza/text()">
+				<dcterms:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"><xsl:value-of select="normalize-space(d:c/d:cle/d:dza/text())"/></dcterms:issued>
+			</xsl:if>
+			<lodares:zastavani-funkce-v-dozorci-rade rdf:resource="{f:getZastavaniFunkceVDozorciRadeURI($ico, d:c)}"/>
 			<lodares:kod-angm rdf:resource="{f:pathIdURI($kodAngmScheme, normalize-space(d:c/d:kan/text()))}"/>
 		</lodares:ClenstviVDozorciRade>
 
