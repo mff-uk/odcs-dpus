@@ -89,6 +89,11 @@
 		</xsl:if>
 	</xsl:function>
     
+	<xsl:function name="f:fixPrice" as="xs:string">
+		<xsl:param name="price" as="xs:string"/>
+		<xsl:value-of select="replace(normalize-space(replace(replace(replace($price,';00',''),'Kč',''),'.-','')),',','.')"/>
+	</xsl:function>
+
 	<xsl:function name="f:getClenTitle" as="xs:string">
 		<xsl:param name="context" as="node()"/>
 		<xsl:if test="$context/d:fo">
@@ -358,8 +363,11 @@
 		<!-- Kapitál -->
 		<xsl:param name="ico"/>
         <lodares:zakladni-kapital rdf:resource="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}"/>
-        <xsl:if test="d:za/d:spl/d:kc">
+        <xsl:if test="d:za/d:spl/d:kc and not(contains(d:za/d:spl/d:kc/text(), '%'))">
 			<lodares:zakladni-kapital-splaceno rdf:resource="{f:icoBasedDomainURI($ico, 'zakladni-kapital-splaceno')}"/>
+        </xsl:if>
+        <xsl:if test="d:za/d:spl/d:kc and contains(d:za/d:spl/d:kc/text(), '%')">
+			<lodares:zakladni-kapital-splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"><xsl:value-of select="normalize-space(d:za/d:spl/d:kc//text())"/></lodares:zakladni-kapital-splaceno-procent>
         </xsl:if>
         <xsl:if test="d:za/d:spl/d:prc">
 			<lodares:zakladni-kapital-splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"><xsl:value-of select="normalize-space(d:za/d:spl/d:prc/text())"/></lodares:zakladni-kapital-splaceno-procent>
@@ -377,19 +385,19 @@
 		<xsl:if test="d:za/d:vk/d:kc/text()">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:za/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="f:fixPrice(d:za/d:vk/d:kc/text())"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:if>
 		<xsl:if test="d:kj/d:vk/d:kc/text()">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital')}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:kj/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="f:fixPrice(d:kj/d:vk/d:kc/text())"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:if>
-        <xsl:if test="d:za/d:spl/d:kc">
+        <xsl:if test="d:za/d:spl/d:kc and not(contains(d:za/d:spl/d:kc/text, '%'))">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, 'zakladni-kapital-splaceno')}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:za/d:spl/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="f:fixPrice(d:za/d:spl/d:kc/text())"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
         </xsl:if>
         <xsl:if test="d:akcie">
@@ -412,7 +420,7 @@
 		<xsl:for-each select="d:em">
 			<gr:PriceSpecification rdf:about="{f:icoBasedDomainURI($ico, concat('emise/',count(./preceding-sibling::*)+1,'/hodnota'))}">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:h/text()),',','.')"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="f:fixPrice(d:h/text())"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:for-each>
 		<xsl:apply-templates select="d:em/*" mode="linked">
@@ -586,8 +594,11 @@
 			</xsl:if>
 			<lodares:vklad rdf:resource="{$currentURI}/vklad"/>
 
-			<xsl:if test="d:vks/d:spl/d:kc">
+			<xsl:if test="d:vks/d:spl/d:kc and not(contains(d:vks/d:spl/d:kc/text(), '%'))">
 				<lodares:splaceno rdf:resource="{$currentURI}/splaceno"/>
+			</xsl:if>
+			<xsl:if test="d:vks/d:spl/d:kc and contains(d:vks/d:spl/d:kc/text(), '%')">
+				<lodares:splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"><xsl:value-of select="replace(replace(normalize-space(d:vks/d:spl/d:kc/text()),'%',''),',','.')"/></lodares:splaceno-procent>
 			</xsl:if>
 			<xsl:if test="d:vks/d:spl/d:prc">
 				<lodares:splaceno-procent rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(replace(normalize-space(d:vks/d:spl/d:prc/text()),'%',''),',','.')"/></lodares:splaceno-procent>
@@ -599,10 +610,10 @@
 		<xsl:if test="d:vks/d:vk/d:kc/text()">
 			<gr:PriceSpecification rdf:about="{$currentURI}/vklad">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
-				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:vks/d:vk/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
+				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="f:fixPrice(d:vks/d:vk/d:kc/text())"/></gr:hasCurrencyValue>
 			</gr:PriceSpecification>
 		</xsl:if>
-		<xsl:if test="d:vks/d:spl/d:kc">
+		<xsl:if test="d:vks/d:spl/d:kc and not(contains(d:vks/d:spl/d:kc/text(), '%'))">
 			<gr:PriceSpecification rdf:about="{$currentURI}/splaceno">
 				<gr:hasCurrency>CZK</gr:hasCurrency>
 				<gr:hasCurrencyValue rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"><xsl:value-of select="replace(normalize-space(d:vks/d:spl/d:kc/text()),',','.')"/></gr:hasCurrencyValue>
