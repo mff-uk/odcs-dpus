@@ -13,6 +13,13 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 public interface ConfigurableAddon<CONFIG> extends Addon {
 
     /**
+     * Initialise add-on with configuration context. Used from DPU dialog. This function should not throw!
+     *
+     * @param context
+     */
+    void init(AdvancedVaadinDialogBase.Context context);
+
+    /**
      * 
      * @return Class of used configuration class.
      */

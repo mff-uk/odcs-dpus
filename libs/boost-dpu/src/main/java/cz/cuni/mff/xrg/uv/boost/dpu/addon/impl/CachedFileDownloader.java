@@ -27,6 +27,8 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+
 /**
  * Main functionality:
  * <ul>
@@ -227,6 +229,11 @@ public class CachedFileDownloader
     @Override
     public void init(DpuAdvancedBase.Context context) {
         this.context = context;
+    }
+
+    @Override
+    public void init(AdvancedVaadinDialogBase.Context context) {
+        // Do nothing here.
     }
 
     @Override
