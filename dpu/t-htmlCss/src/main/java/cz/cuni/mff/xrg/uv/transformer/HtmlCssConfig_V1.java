@@ -5,110 +5,115 @@ import java.util.List;
 
 /**
  * DPU's configuration class.
+ *
+ * @author Škoda Petr
  */
 public class HtmlCssConfig_V1 {
 
-    public enum ElementType {
+    public enum ActionType {
         /**
-         * Extract content as text.
+         * Execute jsoup query from action data.
+         */
+        QUERY,
+        /**
+         * Extract content as value string.
          */
         TEXT,
         /**
-         * Extract content as html.
+         * Extract content as html string.
          */
         HTML,
         /**
-         * Extract table as text.
+         * Select attribute of given name. Attribute's name is stored in actin data.
          */
-        TABLE_TEXT,
+        ATTRIBUTE,
         /**
-         * Extract table as text, if there is direct link in cell, then its href attribute is extracted.
+         * Create predicate with given value as an object. Predicate is stored in under action data.
          */
-        TABLE_LINKS,
+        OUTPUT,
         /**
-         * Extract table as html.
+         * Create subject used by {@link #OUTPUT} in subtree. Action data contains subject class, that
+         * is created to identify subject.
+         * If action data == null, then can be used to create a common subject for a sub tree.
          */
-        TABLE_HTML
+        SUBJECT,
+        /**
+         * Given list of elements put each element into separated group.
+         */
+        UNLIST
     }
 
-    public static class Query {
+    public static class Action {
 
         /**
-         * Query in jsoup.
+         * Name of action. This value is used to match named output on which this query is executed.
          */
-        private String query = "";
+        private String name = HtmlCss.SUBJECT_URI_TEMPLATE;
 
         /**
-         * Predicate used for data.
+         * Determine type of an action.
          */
-        private String predicate = "";
+        private ActionType type = ActionType.TEXT;
 
         /**
-         * Name of attribute to select, if set then value of given attribute is used for further processing.
+         * Data for action, based on {@link #type}.
          */
-        private String attrName = null;
+        private String actionData = "";
 
         /**
-         * Type of extraction.
+         * Name out output, if any.
          */
-        private ElementType type = ElementType.TEXT;
+        private String outputName = "";
 
-        public Query() {
+        public Action() {
         }
 
-        public Query(String query, String predicate, String attrName, ElementType type) {
-            this.query = query;
-            this.predicate = predicate;
-            this.attrName = attrName;
-            this.type = type;
+        public String getName() {
+            return name;
         }
 
-        public String getQuery() {
-            return query;
+        public void setName(String name) {
+            this.name = name;
         }
 
-        public void setQuery(String query) {
-            this.query = query;
-        }
-
-        public String getPredicate() {
-            return predicate;
-        }
-
-        public void setPredicate(String predicate) {
-            this.predicate = predicate;
-        }
-
-        public String getAttrName() {
-            return attrName;
-        }
-
-        public void setAttrName(String attrName) {
-            this.attrName = attrName;
-        }
-
-        public ElementType getType() {
+        public ActionType getType() {
             return type;
         }
 
-        public void setType(ElementType type) {
+        public void setType(ActionType type) {
             this.type = type;
         }
 
+        public String getActionData() {
+            return actionData;
+        }
+
+        public void setActionData(String actionData) {
+            this.actionData = actionData;
+        }
+
+        public String getOutputName() {
+            return outputName;
+        }
+
+        public void setOutputName(String outputName) {
+            this.outputName = outputName;
+        }
+        
     }
 
-    private List<Query> queries = new LinkedList<>();
+    private List<Action> actions = new LinkedList<>();
 
     public HtmlCssConfig_V1() {
 
     }
 
-    public List<Query> getQueries() {
-        return queries;
+    public List<Action> getActions() {
+        return actions;
     }
 
-    public void setQueries(List<Query> queries) {
-        this.queries = queries;
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
 }
