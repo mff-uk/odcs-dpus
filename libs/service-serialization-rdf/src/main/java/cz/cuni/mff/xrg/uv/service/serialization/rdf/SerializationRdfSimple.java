@@ -15,6 +15,8 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.service.serialization.rdf.utils.FieldTypeGetter;
+
 /**
  * Very simple rdf serialisation class for string and integers.
  *
@@ -97,7 +99,7 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
         }
 
         LOG.debug("Statements about subject({}): {}", rootUri.stringValue(), statements.size());
-
+        
         final Class<?> clazz = object.getClass();
         for (Statement statement : statements) {
             if (statement.getSubject().stringValue().compareTo(rootUri.stringValue()) != 0) {
@@ -109,10 +111,17 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
             String fieldName = config.getPropertyMap().get(predicateStr);
             if (fieldName == null) {
                 // No mapping for this, so we parse the uri by hand.
-                fieldName = predicateStr.substring(config.getOntologyPrefix().length());
-            }
+                if (predicateStr.length() > config.getOntologyPrefix().length()) {
+                    fieldName = predicateStr.substring(config.getOntologyPrefix().length());
+                } else {
+                    // Too short, skip the value.
+                    LOG.debug("{} --> too short", predicateStr);
+                    continue;
+                }
+            }            
             // Get string value of current statement.
             final String objectStr = statement.getObject().stringValue();
+            LOG.debug("{} --> {} with value {}", predicateStr, fieldName, objectStr);
             // Get field type.
             try {
                 final PropertyDescriptor propDesc = new PropertyDescriptor(fieldName, clazz);
@@ -126,7 +135,7 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
                 } else if (Collection.class.isAssignableFrom(propClass)) {
                     // It's a collections.
                     final Field field = clazz.getDeclaredField(fieldName);
-                    final Class<?> innerClass = getCollectionGenericType(field.getGenericType());
+                    final Class<?> innerClass = FieldTypeGetter.getCollectionGenericType(field.getGenericType());
                     if (innerClass == null) {
                         throw new SerializationRdfFailure("Can't get type of Collection for: " + fieldName);
                     }
@@ -191,29 +200,7 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
         }
     }
 
-    /**
-     * Get type of collection.
-     *
-     * @param genType
-     * @return Null if type can not be obtained.
-     */
-    private Class<?> getCollectionGenericType(Type genType) {
-        if (!(genType instanceof ParameterizedType)) {
-            LOG.warn("Superclass it not ParameterizedType");
-            return null;
-        }
-        final Type[] params = ((ParameterizedType) genType).getActualTypeArguments();
-        // We know there should be just one for Collection.
-        if (params.length != 1) {
-            LOG.warn("Unexpected number of generic types: {} (1 expected)", params.length);
-            return null;
-        }
-        if (!(params[0] instanceof Class)) {
-            LOG.warn("Unexpected type '{}'", params[0].toString());
-            return null;
-        }
-        return (Class<?>) params[0];
-    }
+
 
     /**
      * Try to deserialise an object. If only literal is given then tries to construct the object directly,

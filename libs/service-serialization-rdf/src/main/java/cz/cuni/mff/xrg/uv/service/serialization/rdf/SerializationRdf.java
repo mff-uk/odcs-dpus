@@ -7,6 +7,8 @@ import java.util.Map;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provide serialisation of simple POJO classes into rdf statements and back.
@@ -26,6 +28,8 @@ public interface SerializationRdf<T> {
      */
     public class Configuration {
 
+        private static final Logger LOG = LoggerFactory.getLogger(SerializationRdf.class);
+
         /**
          * Must end with "/".
          */
@@ -37,7 +41,8 @@ public interface SerializationRdf<T> {
         private String resourcesPrefix = SerializationRdfOntology.BASE_URI_RESOURCE;
 
         /**
-         * Property map (uri; property). To denote property under some other property use '.'.
+         * Property map (uri, property). To denote property under some other property use '.'.
+         * Must not have null values as "property".
          */
         private final Map<String, String> propertyMap = new HashMap<>();
 
@@ -54,11 +59,13 @@ public interface SerializationRdf<T> {
             this.ontologyPrefix = config.ontologyPrefix + property + "/";
             this.resourcesPrefix = config.resourcesPrefix + property + "/";
             // Copy properties.
+            LOG.trace("Sub-config for: {}", property);
             for (String propertyUri : config.propertyMap.keySet()) {
                 final String propertyName = config.propertyMap.get(propertyUri);
-                // Check if it's under given property.
-                if (propertyName.startsWith(property)) {
+                // Check if it's under given property and check that we do not insert out selfs.
+                if (propertyName.startsWith(property) && propertyName.length() > property.length()) {
                     final String newPropertyName = propertyName.substring(property.length() + 1);
+                    LOG.trace("{} -> {} (old: '{}')", propertyUri, newPropertyName, propertyName);
                     propertyMap.put(propertyUri, newPropertyName);
                 }
             }
