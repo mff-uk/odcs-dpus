@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>e-HttpDownload</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<packaging>bundle</packaging>
 	<name>e-HttpDownload</name>
 	<description>Description of HttpDownload. List of files to download can be configured from RDF input.</description>
