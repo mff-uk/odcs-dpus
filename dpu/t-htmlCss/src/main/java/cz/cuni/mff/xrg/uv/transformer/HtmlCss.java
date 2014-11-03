@@ -148,7 +148,8 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                 LOG.info("Parsing file: {}", entry);
                 Document doc = Jsoup.parse(new File(java.net.URI.create(entry.getFileURIString())), null);
                 outData.setOutputGraph(entry.getFileURIString());
-                parse(valueFactory, doc);
+                // TODO Better generation for subjects.
+                parse(valueFactory, doc, entry.getFileURIString());
             }
         } catch (OperationFailedException ex) {
             throw new DPUException(ex);
@@ -169,9 +170,20 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      *
      * @param fileUriStr
      * @param doc
+     * @param docUri
      */
-    private void parse(ValueFactory valueFactory, Document doc)
+    private void parse(ValueFactory valueFactory, Document doc, String docUri)
             throws OperationFailedException, DataUnitException, IOException, WrongActionArgs {
+        // Root subject and hasPredicate.
+        final URI rootClass = valueFactory.createURI(config.getClassAsStr());
+        final URI rootHasPredicate = valueFactory.createURI(config.getHasPredicateAsStr());
+        // Create root subject.
+        final URI rootSubject = valueFactory.createURI(docUri);
+        // Insert initial data
+        outData.add(rootSubject, 
+                valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                rootClass);
+        // start and parse
         int subjectIndex = 0;
         final Stack<NamedData> states = new Stack();
         states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(),
@@ -185,9 +197,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                     // Execute action.
                     switch (action.getType()) {
                         case ATTRIBUTE:
-                            if (state.elements == null) {
-                                throw new WrongActionArgs("Elements are null for action: " + action.getName());
-                            }
+                            checkElementNotNull(state);
                             // Check for attribute existance. It it exists then extract its value.
                             if (state.elements.size() == 1
                                     && state.elements.get(0).hasAttr(action.getActionData())) {
@@ -200,9 +210,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                             }
                             break;
                         case HTML:
-                            if (state.elements == null) {
-                                throw new WrongActionArgs("Elements are null for action: " + action.getName());
-                            }
+                            checkElementNotNull(state);
                             // Get value as html.
                             states.add(new NamedData(state, action, state.elements.html()));
                             break;
@@ -222,11 +230,11 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                             if (state.subjectClass != null) {
                                 outData.add(state.subject, rdfType, state.subjectClass);
                             }
+                            // Connect to root subject.
+                            outData.add(rootSubject, rootHasPredicate, state.subject);
                             break;
                         case QUERY:
-                            if (state.elements == null) {
-                                throw new WrongActionArgs("Elements are null for action: " + action.getName());
-                            }
+                            checkElementNotNull(state);
                             // Execute query and store result.
                             states.add(new NamedData(state, action,
                                     state.elements.select(action.getActionData())));
@@ -239,16 +247,12 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                                     createSubject(valueFactory, action.getActionData())));
                             break;
                         case TEXT:
-                            if (state.elements == null) {
-                                throw new WrongActionArgs("Elements are null for action: " + action.getName());
-                            }
+                            checkElementNotNull(state);
                             // Get value as a string.
                             states.add(new NamedData(state, action, state.elements.text()));
                             break;
                         case UNLIST:
-                            if (state.elements == null) {
-                                throw new WrongActionArgs("Elements are null for action: " + action.getName());
-                            }
+                            checkElementNotNull(state);
                             for (Element subElement : state.elements) {
                                 states.add(new NamedData(state, action, new Elements(subElement)));
                             }
@@ -272,6 +276,17 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
             return null;
         }
         return valueFactory.createURI(subjectUri);
+    }
+
+    /**
+     *
+     * @param state If elements of given object is null then this method throws an exception.
+     * @throws WrongActionArgs
+     */
+    private void checkElementNotNull(NamedData state) throws WrongActionArgs {
+        if (state.elements == null) {
+            throw new WrongActionArgs("Elements are null for action: " + state.name);
+        }
     }
 
 }

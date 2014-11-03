@@ -104,6 +104,10 @@ public class HtmlCssConfig_V1 {
 
     private List<Action> actions = new LinkedList<>();
 
+    private String classAsStr = "http://unifiedviews.eu/e-htmlCss/Page";
+    
+    private String hasPredicateAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/hasObject";
+
     public HtmlCssConfig_V1() {
 
     }
@@ -116,4 +120,20 @@ public class HtmlCssConfig_V1 {
         this.actions = actions;
     }
 
+    public String getClassAsStr() {
+        return classAsStr;
+    }
+
+    public void setClassAsStr(String classAsStr) {
+        this.classAsStr = classAsStr;
+    }
+
+    public String getHasPredicateAsStr() {
+        return hasPredicateAsStr;
+    }
+
+    public void setHasPredicateAsStr(String hasPredicateAsStr) {
+        this.hasPredicateAsStr = hasPredicateAsStr;
+    }
+    
 }
