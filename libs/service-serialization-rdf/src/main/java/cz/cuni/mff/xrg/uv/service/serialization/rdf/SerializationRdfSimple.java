@@ -54,14 +54,14 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
     }
 
     @Override
-    public List<Statement> objectToRdf(T object, URI rootUri, ValueFactory valueFactory, Configuration config)
+    public List<Statement> objectToRdf(T object, Resource rootResource, ValueFactory valueFactory, Configuration config)
             throws SerializationRdfFailure {
         throw new UnsupportedOperationException();
     }
 
 
     @Override
-    public void rdfToObject(RDFDataUnit rdf, URI rootUri, T object, Configuration config)
+    public void rdfToObject(RDFDataUnit rdf, Resource rootResource, T object, Configuration config)
             throws SerializationRdfFailure {
         RepositoryConnection conn = null;
         try {
@@ -74,9 +74,9 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
                 }
             }
             final FromRdfContext context = new FromRdfContext(conn, sourceGraphs.toArray(new URI[0]));
-            convertFromRdf(context, rootUri, object, config);
+            convertFromRdf(context, rootResource, object, config);
         } catch (DataUnitException | RepositoryException ex) {
-            throw new SerializationRdfFailure("Can't get satements about: " + rootUri.stringValue(), ex);
+            throw new SerializationRdfFailure("Can't get satements about: " + rootResource.stringValue(), ex);
         } finally {
             if (conn != null) {
                 try {
@@ -88,21 +88,21 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
         }
     }
 
-    private void convertFromRdf(FromRdfContext context, URI rootUri, Object object, Configuration config)
+    private void convertFromRdf(FromRdfContext context, Resource rootResource, Object object, Configuration config)
             throws SerializationRdfFailure, RepositoryException {
         // Get rdf data about given URI.
         final List<Statement> statements = new ArrayList<>(20);
         RepositoryResult<Statement> repoResult = 
-                context.conn.getStatements(rootUri, null, null, true, context.graphs);
+                context.conn.getStatements(rootResource, null, null, true, context.graphs);
         while (repoResult.hasNext()) {
             statements.add(repoResult.next());
         }
 
-        LOG.debug("Statements about subject({}): {}", rootUri.stringValue(), statements.size());
+        LOG.debug("Statements about subject({}): {}", rootResource.stringValue(), statements.size());
         
         final Class<?> clazz = object.getClass();
         for (Statement statement : statements) {
-            if (statement.getSubject().stringValue().compareTo(rootUri.stringValue()) != 0) {
+            if (statement.getSubject().stringValue().compareTo(rootResource.stringValue()) != 0) {
                 // Skip as it does not corespond to us - our object, subject.
                 continue;
             }

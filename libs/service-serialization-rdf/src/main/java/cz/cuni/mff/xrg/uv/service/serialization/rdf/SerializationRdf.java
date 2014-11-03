@@ -4,8 +4,9 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,24 +101,24 @@ public interface SerializationRdf<T> {
     /**
      *
      * @param rdf
-     * @param rootUri Root subject for object representation.
+     * @param rootResource Root subject for object representation.
      * @param object
      * @param config
      * @throws SerializationRdfFailure
      */
-    void rdfToObject(RDFDataUnit rdf, URI rootUri, T object, Configuration config)
+    void rdfToObject(RDFDataUnit rdf, Resource rootResource, T object, Configuration config)
             throws SerializationRdfFailure;
 
     /**
      *
      * @param object Instance of object for conversion.
-     * @param rootUri
+     * @param rootRersource
      * @param valueFactory
      * @param config
      * @return
      * @throws SerializationRdfFailure
      */
-    List<Statement> objectToRdf(T object, URI rootUri, ValueFactory valueFactory, Configuration config)
+    List<Statement> objectToRdf(T object, Resource rootRersource, ValueFactory valueFactory, Configuration config)
             throws SerializationRdfFailure;
 
 }
