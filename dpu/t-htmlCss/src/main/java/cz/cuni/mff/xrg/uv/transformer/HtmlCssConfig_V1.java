@@ -104,7 +104,7 @@ public class HtmlCssConfig_V1 {
 
     private List<Action> actions = new LinkedList<>();
 
-    private String classAsStr = "http://unifiedviews.eu/e-htmlCss/Page";
+    private String classAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/Page";
     
     private String hasPredicateAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/hasObject";
 
