@@ -18,12 +18,20 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +39,8 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.service.serialization.rdf.utils.FieldTypeGetter;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.helpers.dataunit.rdfhelper.RDFHelper;
 
 /**
  * Provide possibility to configure DPU with RDF data from {@link RDFDataUnit}. Currently support update of
@@ -44,8 +54,7 @@ import cz.cuni.mff.xrg.uv.service.serialization.rdf.utils.FieldTypeGetter;
  *
  * See UK-E-HttpDownload for sample usage.
  *
- * Experimental add-on!! TODO: Use bindings to translate properties, provide full configuration dialog (with
- * base URIs) and scan for properties in DPU's configuration.
+ * <b>Experimental add-on!!</b>
  *
  * @see cz.cuni.mff.xrg.uv.boost.dpu.addonAddon
  * @author Škoda Petr
@@ -65,9 +74,9 @@ public class ConfigurationFromRdf implements
     public static class ObjectConfiguration_V1 {
 
         /**
-         * Subject used as root for configuration.
+         * Subject used as root for configuration. Can be null to disable the configuration process.
          */
-        private String mainUri;
+        private String mainSubjectClass = null;
 
         /**
          * Prefix used for non-binded configuration properties.
@@ -83,12 +92,12 @@ public class ConfigurationFromRdf implements
         public ObjectConfiguration_V1() {
         }
 
-        public String getMainUri() {
-            return mainUri;
+        public String getMainSubjectClass() {
+            return mainSubjectClass;
         }
 
-        public void setMainUri(String mainUri) {
-            this.mainUri = mainUri;
+        public void setMainSubjectClass(String mainSubjectClass) {
+            this.mainSubjectClass = mainSubjectClass;
         }
 
         public String getOntologyUriPrefix() {
@@ -161,10 +170,10 @@ public class ConfigurationFromRdf implements
 
             mainLayout.addComponent(description);
 
-            final TextField txtSubject = new TextField("Configuration subject:",
-                    new MethodProperty<String>(dpuConfig, "mainUri"));
-            txtSubject.setWidth("100%");
-            mainLayout.addComponent(txtSubject);
+            final TextField txtRootClass = new TextField("Configuration class:",
+                    new MethodProperty<String>(dpuConfig, "mainSubjectClass"));
+            txtRootClass.setWidth("100%");
+            mainLayout.addComponent(txtRootClass);
 
             final TextField txtOntologyPrefix = new TextField("Base ontology prefix:",
                     new MethodProperty<String>(dpuConfig, "ontologyUriPrefix"));
@@ -198,7 +207,7 @@ public class ConfigurationFromRdf implements
             if (conf.getConfig().containsKey(DpuAdvancedBase.DPU_CONFIG_NAME)) {
                 ObjectConfiguration_V1 source = conf.getConfig().get(DpuAdvancedBase.DPU_CONFIG_NAME);
                 // Create reverse hash map.
-                Map<String, String> reverseMap = new HashMap<String, String>();
+                Map<String, String> reverseMap = new HashMap<>();
                 for (String key : source.getBinding().keySet()) {
                     reverseMap.put(source.getBinding().get(key), key);
                 }
@@ -209,7 +218,7 @@ public class ConfigurationFromRdf implements
                     txtURI.setValue(reverseMap.get(fieldName));
                 }
                 // Load other values.
-                dpuConfig.setMainUri(source.getMainUri());
+                dpuConfig.setMainSubjectClass(source.getMainSubjectClass());
                 dpuConfig.setOntologyUriPrefix(source.getOntologyUriPrefix());
             }
         }
@@ -342,14 +351,25 @@ public class ConfigurationFromRdf implements
                 LOG.warn("Null value stored in configuration under '{}'.", configName);
                 return;
             }
-            // Copy configuration.
+            // Prepare configuration for conversion.
             final SerializationRdf.Configuration serializerConfig = new SerializationRdf.Configuration();
             serializerConfig.setOntologyPrefix(c.getOntologyUriPrefix());
             serializerConfig.getPropertyMap().putAll(c.getBinding());
-            // Do the transformation.
+            // Get subjects of required type.
+            if (c.mainSubjectClass == null || c.mainSubjectClass.isEmpty()) {
+                // No configuration class is set, ignore.
+                return;
+            }
+            final URI subjectClass = valueFactory.createURI(c.mainSubjectClass);
+            // Get first subject.
+            List<Resource> resources = getSubjectsOfClass(configRdfDataUnit, subjectClass);
+            if (resources.isEmpty()) {
+                // No configuration object of our class.
+                return;
+            }
+            // Use the first object to configure.
             try {
-                serialization.rdfToObject(configRdfDataUnit, valueFactory.createURI(c.getMainUri()), config,
-                        serializerConfig);
+                serialization.rdfToObject(configRdfDataUnit, resources.get(0), config, serializerConfig);
             } catch (SerializationRdfFailure ex) {
                 throw new ConfigException("Can't deserialize configuration.", ex);
             }
@@ -393,6 +413,46 @@ public class ConfigurationFromRdf implements
             clazz = FieldTypeGetter.getCollectionGenericType(field.getGenericType());
         }
         return clazz;
+    }
+
+    /**
+     *
+     * @param dataUnit
+     * @param subjectClass
+     * @return Subject of given class.
+     */
+    private List<Resource> getSubjectsOfClass(RDFDataUnit dataUnit, URI subjectClass) {
+        RepositoryConnection connection = null;
+        RepositoryResult<Statement> repoResult = null;
+        final List<Resource> result = new ArrayList<>(10);
+        try {
+            connection = configRdfDataUnit.getConnection();
+            repoResult = connection.getStatements(null,
+                    valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                    subjectClass, true, RDFHelper.getGraphsURIArray(dataUnit));
+            while (repoResult.hasNext()) {
+                result.add(repoResult.next().getSubject());
+            }
+        } catch (DataUnitException | RepositoryException ex) {
+            LOG.error("Can't obtain configuration subjects.", ex);
+            return Collections.EMPTY_LIST;
+        } finally {
+            if (repoResult != null) {
+                try {
+                    repoResult.close();
+                } catch (RepositoryException ex) {
+                    LOG.warn("Close method failed.", ex);
+                }
+            }
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (RepositoryException ex) {
+                    LOG.warn("Close method failed.", ex);
+                }
+            }
+        }
+        return result;
     }
 
 }
