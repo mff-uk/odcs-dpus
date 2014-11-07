@@ -7,10 +7,10 @@
         <artifactId>unifiedviews-dpu-base</artifactId>
         <version>1.1.1</version>
     </parent>    
-    <artifactId>E-gov_cz_smlouvy</artifactId>
+    <artifactId>UK-gov_cz_smlouvy</artifactId>
     <name>ext. gov cz smlouvy</name>
     <packaging>bundle</packaging>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <description>This extractor scrapes Smlouvy from portal.gov.cz</description>
 
     <properties>    

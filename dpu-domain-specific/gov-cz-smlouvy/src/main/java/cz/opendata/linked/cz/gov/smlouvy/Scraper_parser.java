@@ -1,26 +1,27 @@
 package cz.opendata.linked.cz.gov.smlouvy;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dataunit.file.handlers.FileHandler;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
-import org.openrdf.model.ValueFactory;
+import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.helpers.dataunit.maphelper.MapHelpers;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -30,8 +31,7 @@ import org.openrdf.model.ValueFactory;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-    public FileDataUnit smlouvy, objednavky, plneni, smlouvy_roky, objednavky_roky, plneni_roky;
-    public SimpleRdfWrite smlouvy_meta, objednavky_meta, plneni_meta;
+    public WritableFilesDataUnit smlouvy, objednavky, plneni, smlouvy_roky, objednavky_roky, plneni_roky;
     public int numSmlouvy = 0, numObjednavky = 0, numPlneni = 0;
     public int numSmlouvyRoks = 0, numObjednavkyRoks = 0, numPlneniRoks = 0;
     public int currentSmlouvy = 0, currentObjednavky = 0, currentPlneni = 0;
@@ -126,80 +126,55 @@ public class Scraper_parser extends ScrapingTemplate{
     
     @Override
     protected void parse(String doc, String docType, URL url) {
-        String paramUri = url.toString() + "/param";
         try {
             switch (docType) {
                 case "detail-s":
                     logger.debug("Processing smlouva " + ++currentSmlouvy + "/" + numSmlouvy + ": " + url.toString());
-                    FileHandler fhs = smlouvy.getRootDir().addNewFile(url.toString());
-                    fhs.setContent(doc);
-                    final ValueFactory smlouvyValueFactory = smlouvy_meta.getValueFactory();
-                    smlouvy_meta.add(smlouvyValueFactory.createURI(url.toString()), 
-                            smlouvyValueFactory.createURI(OdcsTerms.DATA_UNIT_FILE_PATH_PREDICATE), 
-                            smlouvyValueFactory.createLiteral(fhs.getRootedPath()));
-                    smlouvy_meta.add(
-                            smlouvyValueFactory.createURI(url.toString()), 
-                            smlouvyValueFactory.createURI(OdcsTerms.XSLT_PARAM_PREDICATE), 
-                            smlouvyValueFactory.createURI(paramUri));
-                    smlouvy_meta.add(smlouvyValueFactory.createURI(paramUri), 
-                            smlouvyValueFactory.createURI(OdcsTerms.XSLT_PARAM_NAME_PREDICATE), 
-                            smlouvyValueFactory.createLiteral("recordid"));
-                    smlouvy_meta.add(smlouvyValueFactory.createURI(paramUri), 
-                            smlouvyValueFactory.createURI(OdcsTerms.XSLT_PARAM_VALUE_PREDICATE), 
-                            smlouvyValueFactory.createLiteral(url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1")));
+                    
+                    File fs = new File(URI.create(smlouvy.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fs, doc, "UTF-8");
+                    
+                    Map<String, String> xsltParamsMapS = new HashMap<String, String>();
+                    xsltParamsMapS.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
+                    MapHelpers.putMap(smlouvy, url.toString(), "xsltParameters", xsltParamsMapS);
+                    
                     break;
                 case "detail-o":
                     logger.debug("Processing objednávka " + ++currentObjednavky + "/" + numObjednavky + ": " + url.toString());
-                    FileHandler fho = objednavky.getRootDir().addNewFile(url.toString());
-                    fho.setContent(doc);
-                    final ValueFactory objednavkyValueFactory = objednavky_meta.getValueFactory();
-                    objednavky_meta.add(objednavkyValueFactory.createURI(url.toString()), 
-                            objednavkyValueFactory.createURI(OdcsTerms.DATA_UNIT_FILE_PATH_PREDICATE), 
-                            objednavkyValueFactory.createLiteral(fho.getRootedPath()));
-                    objednavky_meta.add(objednavkyValueFactory.createURI(url.toString()), 
-                            objednavkyValueFactory.createURI(OdcsTerms.XSLT_PARAM_PREDICATE), 
-                            objednavkyValueFactory.createURI(paramUri));
-                    objednavky_meta.add(objednavkyValueFactory.createURI(paramUri), 
-                            objednavkyValueFactory.createURI(OdcsTerms.XSLT_PARAM_NAME_PREDICATE), 
-                            objednavkyValueFactory.createLiteral("recordid"));
-                    objednavky_meta.add(objednavkyValueFactory.createURI(paramUri), 
-                            objednavkyValueFactory.createURI(OdcsTerms.XSLT_PARAM_VALUE_PREDICATE), 
-                            objednavkyValueFactory.createLiteral(url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1")));
-                    //objednavky.addTriple(objednavky.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), objednavky.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),objednavky.createLiteral(doc));
+
+                    File fo = new File(URI.create(smlouvy.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fo, doc, "UTF-8");
+                    
+                    Map<String, String> xsltParamsMapO = new HashMap<String, String>();
+                    xsltParamsMapO.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
+                    MapHelpers.putMap(objednavky, url.toString(), "xsltParameters", xsltParamsMapO);
+                    
                     break;
                 case "detail-p":
                     logger.debug("Processing plnění " + ++currentPlneni + "/" + numPlneni + ": " + url.toString());
-                    FileHandler fhp = plneni.getRootDir().addNewFile(url.toString());
-                    fhp.setContent(doc);
-                    final ValueFactory plneniValueFactory = plneni_meta.getValueFactory();
-                    plneni_meta.add(plneniValueFactory.createURI(url.toString()), 
-                            plneniValueFactory.createURI(OdcsTerms.DATA_UNIT_FILE_PATH_PREDICATE), 
-                            plneniValueFactory.createLiteral(fhp.getRootedPath()));
-                    plneni_meta.add(plneniValueFactory.createURI(url.toString()), 
-                            plneniValueFactory.createURI(OdcsTerms.XSLT_PARAM_PREDICATE), 
-                            plneniValueFactory.createURI(paramUri));
-                    plneni_meta.add(plneniValueFactory.createURI(paramUri), 
-                            plneniValueFactory.createURI(OdcsTerms.XSLT_PARAM_NAME_PREDICATE), 
-                            plneniValueFactory.createLiteral("recordid"));
-                    plneni_meta.add(plneniValueFactory.createURI(paramUri), 
-                            plneniValueFactory.createURI(OdcsTerms.XSLT_PARAM_VALUE_PREDICATE), 
-                            plneniValueFactory.createLiteral(url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1")));
-                    //plneni.addTriple(smlouvy.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), plneni.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),plneni.createLiteral(doc));
+
+                    File fp = new File(URI.create(smlouvy.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fp, doc, "UTF-8");
+                    
+                    Map<String, String> xsltParamsMapP = new HashMap<String, String>();
+                    xsltParamsMapP.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
+                    MapHelpers.putMap(objednavky, url.toString(), "xsltParameters", xsltParamsMapP);
+                    
                     break;
                 case "seznamrok-s":
                     logger.debug("Processing yearly list of smlouva " + ++currentSmlouvyRoks + "/" + numSmlouvyRoks + ": " + url.toString());
-                    smlouvy_roky.getRootDir().addNewFile(url.toString()).setContent(doc);
-                    //smlouvy_roky.addTriple(smlouvy_roky.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), smlouvy_roky.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),smlouvy_roky.createLiteral(doc));
+                    File fss = new File(URI.create(smlouvy_roky.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fss, doc, "UTF-8");
                     break;
                 case "seznamrok-o":
                     logger.debug("Processing yearly list of objednávka " + ++currentObjednavkyRoks + "/" + numObjednavkyRoks + ": " + url.toString());
-                    objednavky_roky.getRootDir().addNewFile(url.toString()).setContent(doc);
-                    //objednavky_roky.addTriple(objednavky_roky.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), objednavky_roky.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),objednavky_roky.createLiteral(doc));
+                    File fso = new File(URI.create(objednavky_roky.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fso, doc, "UTF-8");
                     break;
                 case "seznamrok-p":
                     logger.debug("Processing yearly list of plnění " + ++currentPlneniRoks + "/" + numPlneniRoks + ": " + url.toString());
-                    plneni_roky.getRootDir().addNewFile(url.toString()).setContent(doc);
-                    //plneni_roky.addTriple(smlouvy_roky.createURI("http://linked.opendata.cz/ontology/odcs/DataUnit"), plneni_roky.createURI("http://linked.opendata.cz/ontology/odcs/xmlValue"),plneni_roky.createLiteral(doc));
+                    File fsp = new File(URI.create(plneni_roky.addNewFile(url.toString())));
+					FileUtils.writeStringToFile(fsp, doc, "UTF-8");
                     break;
             }
         }
