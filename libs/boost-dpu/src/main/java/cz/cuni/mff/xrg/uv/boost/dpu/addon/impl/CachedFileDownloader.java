@@ -21,20 +21,26 @@ import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.net.ssl.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 
 /**
  * Main functionality:
  * <ul>
- *  <li>Download files from given URL</li>
- *  <li>Contains optional simple file cache</li>
- *  <li>User can specify the pause between downloads</li>
+ * <li>Download files from given URL</li>
+ * <li>Contains optional simple file cache</li>
+ * <li>User can specify the pause between downloads</li>
  * </ul>
  *
  * TODO: Should use versioned configuration. The configuration class should be renamed to "Configuration_V1".
@@ -43,9 +49,11 @@ import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
  * @author Škoda Petr
  */
 public class CachedFileDownloader
-    implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
+        implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
 
     public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
+
+    public static final String CACHE_FILE = "addon/cachedFileDownloader/cacheContent.xml";
 
     public static final String USED_CONFIG_NAME = "addon/cachedFileDownloader";
 
@@ -74,10 +82,14 @@ public class CachedFileDownloader
         private Integer maxPause = 2000;
 
         /**
-         * If true then data are always downloaded and existing data in caches
-         * are rewritten.
+         * If true then data are always downloaded and existing data in caches are rewritten.
          */
-        private Boolean rewriteCache = false;
+        private boolean rewriteCache = false;
+
+        /**
+         * If true then simple (file name based) cache is used. If false complex cache is used.
+         */
+        private boolean simpleCache = false;
 
         public Configuration() {
         }
@@ -114,6 +126,14 @@ public class CachedFileDownloader
             this.rewriteCache = rewriteCache;
         }
 
+        public Boolean isSimpleCache() {
+            return simpleCache;
+        }
+
+        public void setSimpleCache(Boolean simpleCache) {
+            this.simpleCache = simpleCache;
+        }
+
     }
 
     /**
@@ -128,6 +148,8 @@ public class CachedFileDownloader
         private TextField txtMinPause;
 
         private CheckBox checkRewriteCache;
+
+        private CheckBox checkComplexCache;
 
         public VaadinDialog() {
             super(Configuration.class);
@@ -145,25 +167,32 @@ public class CachedFileDownloader
             mainLayout.setSpacing(true);
             mainLayout.setMargin(true);
 
-            txtMaxAttemps = new TextField("Max number of attemps to download a single file, use -1 for infinity");
-            txtMaxAttemps.setDescription("Set to 0 to use only files from cache.");
+            txtMaxAttemps = new TextField(
+                    "Max number of attemps to download a single file, use -1 for infinity");
+            txtMaxAttemps.setDescription("Set to 0 to use only files from cache:");
             txtMaxAttemps.setWidth("5em");
             txtMaxAttemps.setRequired(true);
             mainLayout.addComponent(txtMaxAttemps);
 
-            txtMaxPause = new TextField("Max pause in ms between downloads");
+            txtMaxPause = new TextField("Max pause in ms between downloads:");
             txtMaxPause.setWidth("10em");
             txtMaxPause.setRequired(true);
             mainLayout.addComponent(txtMaxPause);
 
-            txtMinPause = new TextField("Min pause in ms between downloads");
+            txtMinPause = new TextField("Min pause in ms between downloads:");
             txtMinPause.setWidth("10em");
             txtMinPause.setRequired(true);
             mainLayout.addComponent(txtMinPause);
 
-            checkRewriteCache = new CheckBox("Rewrite cache");
-            checkRewriteCache.setDescription("If checked then files are always downloaded and existing files in caches are rewritten.");
+            checkRewriteCache = new CheckBox("Rewrite cache:");
+            checkRewriteCache.setDescription(
+                    "If checked then files are always downloaded and existing files in caches are rewritten.");
             mainLayout.addComponent(checkRewriteCache);
+
+            checkComplexCache = new CheckBox("Use complex cache:");
+            checkComplexCache.setDescription("If checked the only one instance of this DPU should be running"
+                    + "at a time. Complex cache can handle larger URIs.");
+            mainLayout.addComponent(checkComplexCache);
 
             setCompositionRoot(mainLayout);
         }
@@ -174,6 +203,7 @@ public class CachedFileDownloader
             txtMaxPause.setValue(c.getMaxPause().toString());
             txtMinPause.setValue(c.getMinPause().toString());
             checkRewriteCache.setValue(c.isRewriteCache());
+            checkComplexCache.setValue(!c.isSimpleCache());
         }
 
         @Override
@@ -197,7 +227,65 @@ public class CachedFileDownloader
             }
 
             c.setRewriteCache(checkRewriteCache.getValue());
+            c.setSimpleCache(!checkComplexCache.getValue());
             return c;
+        }
+
+    }
+
+    /**
+     * Represents a single file in a cache.
+     */
+    public static class CacheRecord {
+
+        private String file;
+
+        public CacheRecord() {
+        }
+
+        public CacheRecord(String file) {
+            this.file = file;
+        }
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
+        }
+
+    }
+
+    public static class CachedFileDownloaderCache {
+
+        /**
+         * Used to generate new unique file names.
+         */
+        private long counter = 0;
+
+        /**
+         * Store content of file cache.
+         */
+        private Map<String, CacheRecord> cacheContent = new HashMap<>();
+
+        public CachedFileDownloaderCache() {
+        }
+
+        public long getCounter() {
+            return counter;
+        }
+
+        public void setCounter(long counter) {
+            this.counter = counter;
+        }
+
+        public Map<String, CacheRecord> getCacheContent() {
+            return cacheContent;
+        }
+
+        public void setCacheContent(Map<String, CacheRecord> cacheContent) {
+            this.cacheContent = cacheContent;
         }
 
     }
@@ -208,8 +296,8 @@ public class CachedFileDownloader
     private Configuration config = new Configuration();
 
     /**
-     * Time of next download. Used to create randomly distributes pauses between downloads.
-     * Should be ignored if cache is used.
+     * Time of next download. Used to create randomly distributes pauses between downloads. Should be ignored
+     * if cache is used.
      */
     private long nextDownload = new Date().getTime();
 
@@ -223,7 +311,18 @@ public class CachedFileDownloader
      */
     private DpuAdvancedBase.Context context;
 
+    /**
+     * Store content of file cache.
+     */
+    private CachedFileDownloaderCache cache = new CachedFileDownloaderCache();
+
+    /**
+     * Serialization service.
+     */
+    private final SerializationXmlGeneral serializer;
+
     public CachedFileDownloader() {
+        serializer = SerializationXmlFactory.serializationXmlGeneral();
     }
 
     @Override
@@ -238,30 +337,44 @@ public class CachedFileDownloader
 
     @Override
     public void execute(ExecutionPoint execPoint) throws AddonException {
+        final DPUContext dpuContext = context.getDpuContext();
+        // File with store cache content.
+        this.baseDirectory = new File(new File(java.net.URI.create(dpuContext.getDpuInstanceDirectory())),
+                USED_USER_DIRECTORY);
+        this.baseDirectory.mkdirs();
+
+        final File cacheFile = new File(this.baseDirectory, CACHE_FILE);
+        if (execPoint == ExecutionPoint.POST_EXECUTE) {
+            // Save cache into file.
+            if (!config.simpleCache) {
+                saveComplexCache(cacheFile);
+            }
+            return;
+        }
 
         if (execPoint != ExecutionPoint.PRE_EXECUTE) {
             return;
         }
-        // Prepare cache directory.
-        final DPUContext dpuContext = context.getDpuContext();
-        this.baseDirectory = new File(dpuContext.getUserDirectory(), USED_USER_DIRECTORY);
+        // Prepare cache directory.        
         try {
             // Load configuration.
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration.class);
         } catch (ConfigException ex) {
-            dpuContext.sendMessage(DPUContext.MessageType.WARNING, "Addon failed to load configuration",
-                    "Failed to load configuration for: " + ADDON_NAME + " default configuration is used.", ex);
-            this.config  = new Configuration();
+            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration", ex, 
+                    "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
+            this.config = new Configuration();
         }
 
         if (this.config == null) {
-            dpuContext.sendMessage(DPUContext.MessageType.WARNING, "Addon configuration is null.",
-                    "Failed to load configuration for: " + ADDON_NAME + " default configuration is used.");
-            this.config  = new Configuration();
+            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration",
+                    "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
+            this.config = new Configuration();
         }
-
         LOG.info("BaseDirectory: {}", baseDirectory);
-
+        // Load file with cache content.
+        if (!config.simpleCache) {
+            loadComplexCache(cacheFile);
+        }
         // Ignore all certificates, added because of MICR_3 pipeline.
         // TODO: should be more focused on current job, not generaly remove the ssh check!
         try {
@@ -315,10 +428,10 @@ public class CachedFileDownloader
     }
 
     /**
-     * If file of given name exists, then it's returned. If not then is downloaded from given URL,
-     * saved under given name and then returned.
+     * If file of given name exists, then it's returned. If not then is downloaded from given URL, saved under
+     * given name and then returned.
      *
-     * @param fileName
+     * @param fileName Must not be null. Unique identification for the given file.
      * @param fileUrl
      * @return Can return null!
      * @throws AddonException
@@ -334,11 +447,16 @@ public class CachedFileDownloader
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException("Hard coded encoding is not supported!!", ex);
         }
-        // Check for file existance, ie. can we use cached file?
-        final File file = new File(baseDirectory, fileName);
-        LOG.debug("file: {} rewrite: {}", file.toString(), config.rewriteCache);
+        // Get file name.
+        final File file;
+        if (config.simpleCache) {
+            file = getFileNameFromSimpleCache(fileName, fileUrl);
+        } else {
+            file = getFileNameFromComplexCache(fileName, fileUrl);
+        }
+        // Check cache.
         if (file.exists() && !config.rewriteCache) {
-            LOG.info("get({}, {}) - file from cache ", fileName, fileUrl.toString());
+            LOG.debug("get({}, {}) - file from cache ", fileName, fileUrl.toString());
             return file;
         }
         // Check if we should download file.
@@ -354,7 +472,9 @@ public class CachedFileDownloader
             // Try to download file.
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
-                LOG.info("get({}, {}) - file downloaded ", fileName, fileUrl.toString());
+                LOG.debug("get({}, {}) - file downloaded ", fileName, fileUrl.toString());
+                //  Add record to the cache.
+                cache.cacheContent.put(fileName, new CacheRecord(file.getAbsolutePath()));
                 return file;
             } catch (IOException ex) {
                 LOG.warn("Failed to download file from {} attemp {}/{}", fileUrl.toString(), attempCounter,
@@ -376,8 +496,7 @@ public class CachedFileDownloader
     }
 
     /**
-     * Get all given files and store them in a cache. The files are downloaded
-     * in given order.
+     * Get all given files and store them in a cache. The files are downloaded in given order.
      *
      * @param uris
      */
@@ -399,48 +518,110 @@ public class CachedFileDownloader
             }
         }
         // Determine min time for next download, ie. time when next file can be downloaded.
-        nextDownload = new Date().getTime() +
-                (long) (Math.random() * (config.maxPause - config.minPause) + config.minPause);
+        nextDownload = new Date().getTime()
+                + (long) (Math.random() * (config.maxPause - config.minPause) + config.minPause);
     }
 
     /**
      * We will trust all certificates!
      *
-     * Code source is MICR_3 DPU.
-     * TODO: Do not trust all certificates globally.
-     * 
+     * Code source is MICR_3 DPU. TODO: Do not trust all certificates globally.
+     *
      * @throws Exception
      */
-    public static void setTrustAllCerts() throws Exception
-    {
+    public static void setTrustAllCerts() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
                 @Override
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
+
                 @Override
-                public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
+                public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                }
+
                 @Override
-                public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) {    }
+                public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                }
             }
         };
 
         // Install the all-trusting trust manager.
         try {
-            SSLContext sc = SSLContext.getInstance( "SSL" );
-            sc.init( null, trustAllCerts, new java.security.SecureRandom() );
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier(
-                new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String urlHostName, SSLSession session) {
-                        return true;
-                    }
-                });
-        }
-        catch (KeyManagementException | NoSuchAlgorithmException ex) {
+                    new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String urlHostName, SSLSession session) {
+                            return true;
+                        }
+                    });
+        } catch (KeyManagementException | NoSuchAlgorithmException ex) {
             LOG.error("Can't install all-trusting trus manager", ex);
+        }
+    }
+
+    private File getFileNameFromSimpleCache(String fileName, URL fileUrl) {
+        return new File(baseDirectory, fileName);
+    }
+
+    private File getFileNameFromComplexCache(String fileName, URL fileUrl) {
+        // Check for file existance in complex cache.
+        if (cache.cacheContent.containsKey(fileName)) {
+            final CacheRecord record = cache.cacheContent.get(fileName);
+            if (record != null) {
+                final File file = new File(record.file);
+                if (file.exists() && !config.rewriteCache) {
+                    return file;
+                }
+            } else {
+                LOG.warn("Record in cache is null for: {}", fileName);
+            }
+        }
+        final File newFile = new File(baseDirectory, Long.toString(cache.counter++));
+        cache.cacheContent.put(fileName, new CacheRecord(newFile.toString()));
+        return newFile;
+    }
+
+    /**
+     * Load complex cache from given file.
+     *
+     * @param cacheFile
+     * @throws AddonException
+     */
+    private void loadComplexCache(File cacheFile) throws AddonException {
+        try {
+            if (!config.rewriteCache) {
+                final String cacheAsStr = FileUtils.readFileToString(cacheFile);
+                cache = serializer.convert(CachedFileDownloaderCache.class, cacheAsStr);
+            }
+        } catch (IOException ex) {
+            //throw new AddonException("Can't read cache into from file.", ex);
+            SendMessage.sendWarn(context.getDpuContext(), ADDON_NAME,
+                    "Can't read cache file from: '%s'. This is normal if DPU is running for the first time.",
+                    cacheFile.toString());
+        } catch (SerializationXmlFailure ex) {
+            throw new AddonException("Can't deserialize cache from string.", ex);
+        }
+    }
+
+    /**
+     * Save complex cache into given file.
+     *
+     * @param cacheFile
+     * @throws AddonException
+     */
+    private void saveComplexCache(File cacheFile) throws AddonException {
+        try {
+            final String cacheAsStr = serializer.convert(cache);
+            FileUtils.writeStringToFile(cacheFile, cacheAsStr, "UTF-8");
+        } catch (SerializationXmlFailure ex) {
+            throw new AddonException("Can't serialialize cache content into a string.", ex);
+        } catch (IOException ex) {
+            throw new AddonException("Can't save cache into a file.", ex);
         }
     }
 
