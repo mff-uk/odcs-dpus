@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * See main DPU's configuration for more details about fields meaning.
  *
  * @author Škoda Petr
  */
@@ -54,12 +55,15 @@ public class TableToRdfConfig {
 
     final boolean autoAsStrings;
 
+    final boolean generateTableClass;
+
     public TableToRdfConfig(String keyColumnName, String baseURI,
             Map<String, ColumnInfo_V1> columnsInfo, boolean generateNew,
             String rowsClass, boolean ignoreBlankCells,
             List<TabularConfig_V2.AdvanceMapping> columnsInfoAdv,
             boolean advancedKeyColumn, boolean generateLabels,
-            boolean generateRowTriple, boolean autoAsStrings) {
+            boolean generateRowTriple, boolean autoAsStrings,
+            boolean generateTableRowClass) {
         this.keyColumn = keyColumnName;
         this.baseURI = baseURI;
         this.columnsInfo = columnsInfo != null ? columnsInfo :
@@ -73,6 +77,7 @@ public class TableToRdfConfig {
         this.generateLabels = generateLabels;
         this.generateRowTriple = generateRowTriple;
         this.autoAsStrings = autoAsStrings;
+        this.generateTableClass = generateTableRowClass;
     }
 
 }
