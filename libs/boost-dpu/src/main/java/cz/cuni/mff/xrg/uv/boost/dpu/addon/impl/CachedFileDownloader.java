@@ -53,7 +53,7 @@ public class CachedFileDownloader
 
     public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
 
-    public static final String CACHE_FILE = "addon/cachedFileDownloader/cacheContent.xml";
+    public static final String CACHE_FILE = "cacheContent.xml";
 
     public static final String USED_CONFIG_NAME = "addon/cachedFileDownloader";
 
