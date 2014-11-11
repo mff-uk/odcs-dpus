@@ -104,6 +104,20 @@ public class SendMessage {
     }
 
     /**
+     * Send formated {@link DPUContext.MessageType#WARNING} message.
+     *
+     * @param context
+     * @param caption    Caption ie. short message.
+     * @param exception
+     * @param bodyFormat
+     * @param params
+     */
+    public static void sendWarn(DPUContext context, String caption, Exception exception,
+            String bodyFormat, Object... params) {
+        sendMessage(context, DPUContext.MessageType.WARNING, caption, exception, bodyFormat, params);
+    }
+
+    /**
      * Send formated {@link DPUContext.MessageType#INFO} message.
      *
      * @param context

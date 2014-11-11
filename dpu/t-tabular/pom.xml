@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>cz.cuni.mff.xrg.uv</groupId>
-		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.1.1</version>
-	</parent>    
-	<groupId>cz.cuni.mff.xrg.uv</groupId>
-	<artifactId>t-tabular</artifactId>
-	<version>1.1.5</version>
-	<packaging>bundle</packaging>
-	<name>t-Tabular</name>
-	<description>Convert tabular data into rdf data.</description>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <artifactId>t-tabular</artifactId>
+    <version>1.1.6</version>
+    <packaging>bundle</packaging>
+    <name>t-Tabular</name>
+    <description>Convert tabular data into rdf data.</description>
 	
-	<properties>    
-		<dpu.package>cz.cuni.mff.xrg.uv.transformer.tabular</dpu.package>
-		<dpu.mainClass>Tabular</dpu.mainClass>
-	</properties>
+    <properties>
+        <dpu.package>cz.cuni.mff.xrg.uv.transformer.tabular</dpu.package>
+        <dpu.mainClass>Tabular</dpu.mainClass>
+    </properties>
 	
-	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
-        <dependency> <!-- dbf -->
-		    <groupId>org.jamel.dbf</groupId>
-		    <artifactId>dbf-reader</artifactId>
-		    <version>0.0.3</version>
+        <dependency> <!-- Dbf. -->
+            <groupId>org.jamel.dbf</groupId>
+            <artifactId>dbf-reader</artifactId>
+            <version>0.0.3</version>
             <scope>compile</scope>
         </dependency>
-		<dependency> <!-- csv -->
-		    <groupId>net.sf.supercsv</groupId>
-		    <artifactId>super-csv</artifactId>
-		    <version>2.1.0</version>
+        <dependency> <!-- Csv. -->
+            <groupId>net.sf.supercsv</groupId>
+            <artifactId>super-csv</artifactId>
+            <version>2.1.0</version>
             <scope>compile</scope>
-		</dependency>
-        <dependency> <!-- xls -->
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>3.10-FINAL</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-			<version>3.10-FINAL</version>
-			<scope>provided</scope>
-		</dependency>
+        </dependency>
+        <dependency> <!-- Xls. -->
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.10-FINAL</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.10-FINAL</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-        <!-- compile library -->
+        <!-- Compile dependencies -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit</artifactId>
@@ -82,6 +82,6 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-	</dependencies>	
+    </dependencies>
 	
 </project>

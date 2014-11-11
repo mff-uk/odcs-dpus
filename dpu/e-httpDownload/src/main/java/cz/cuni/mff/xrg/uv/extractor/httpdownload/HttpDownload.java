@@ -54,7 +54,7 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
     @Override
     protected void innerExecute() throws DPUException {
         context.sendMessage(DPUContext.MessageType.INFO,
-                String.format("%d file to download", config.getToDownload().size()));
+                String.format("%d file(s) to download", config.getToDownload().size()));
 
         int index = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {

@@ -45,13 +45,14 @@ public class TableToRdf {
 
     URI tableSubject = null;
 
+    boolean tableInfoGenerated = false;
+
     public TableToRdf(TableToRdfConfig config, SimpleRdfWrite outRdf,
             ValueFactory valueFactory) {
         this.config = config;
         this.outRdf = outRdf;
         this.valueFactory = valueFactory;
-        this.typeUri = valueFactory.createURI(
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+        this.typeUri = valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
     }
 
     public void paserRow(List<Object> row, int rowNumber) throws OperationFailedException {
@@ -88,14 +89,20 @@ public class TableToRdf {
         }
         // add row data - number, class, connection to table
         if (config.generateRowTriple) {
-            outRdf.add(subj, TabularOntology.URI_ROW_NUMBER,
-                    valueFactory.createLiteral(rowNumber));
+            outRdf.add(subj, TabularOntology.URI_ROW_NUMBER, valueFactory.createLiteral(rowNumber));
         }
         if (rowClass != null) {
             outRdf.add(subj, typeUri, rowClass);
         }
         if (tableSubject != null) {
             outRdf.add(tableSubject, TabularOntology.URI_TABLE_HAS_ROW, subj);
+        }
+        // Add table statistict only for the first time.
+        if (!tableInfoGenerated && tableSubject != null) {
+            tableInfoGenerated = true;
+            if (config.generateTableClass) {
+                outRdf.add(tableSubject, TabularOntology.URI_RDF_A_PREDICATE, TabularOntology.URI_TABLE_CLASS);
+            }
         }
     }
 
@@ -106,6 +113,7 @@ public class TableToRdf {
      */
     public void setTableSubject(URI newTableSubject) {
         tableSubject = newTableSubject;
+        tableInfoGenerated = false;
     }
 
     /**
