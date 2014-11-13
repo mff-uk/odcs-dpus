@@ -33,7 +33,7 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     private static final String SELECT_QUERY
             = "SELECT %s ?" + OBJECT_BINDING + " WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ;"
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
             + "}";
 

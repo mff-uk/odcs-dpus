@@ -19,24 +19,22 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
     /**
      * %s stand for write graph name.
      */
-    private static final String UPDATE_QUERY
-            = "WITH <%s> "
-            + "DELETE {?s ?" + PREDICATE_BINDING + " ?o } "
-            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
+    private static final String UPDATE_QUERY = "WITH <%s> \n"
+            + "DELETE { ?entry ?" + PREDICATE_BINDING + " ?value }\n"
+            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
             + "WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
-            + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o } "
-            + " } ";
+            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
+            + "?" + PREDICATE_BINDING + " ?value . "
+            + "}";
 
 
     /**
      * %s stand for write graph name.
      */
-    private static final String INSERT_QUERY
-            = "WITH <%s> "
-            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
+    private static final String INSERT_QUERY = "WITH <%s>\n"
+            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
             + "WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
             + " } ";
 
     /**
