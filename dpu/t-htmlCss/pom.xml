@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>t-htmlCss</artifactId>
-	<version>2.1.</version>
+	<version>2.1.1</version>
 	<packaging>bundle</packaging>
 	<name>t-HtmlCss</name>
 	<description>Can be used to parse html with css selectors.</description>
