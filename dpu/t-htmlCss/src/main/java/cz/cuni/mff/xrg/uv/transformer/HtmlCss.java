@@ -117,6 +117,11 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     @SimpleRdfConfigurator.Configure(dataUnitFieldName = "outRdfData")
     public SimpleRdfWrite outData;
 
+    /**
+     * Used to generate original subjects.
+     */
+    private int subjectIndex = 0;
+
     public HtmlCss() {
         super(HtmlCssConfig_V1.class,
                 AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class), new CloseCloseable()));
@@ -174,17 +179,22 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      */
     private void parse(ValueFactory valueFactory, Document doc, String docUri)
             throws OperationFailedException, DataUnitException, IOException, WrongActionArgs {
-        // Root subject and hasPredicate.
-        final URI rootClass = valueFactory.createURI(config.getClassAsStr());
-        final URI rootHasPredicate = valueFactory.createURI(config.getHasPredicateAsStr());
+        final URI rootHasPredicate;
+        if (config.getHasPredicateAsStr() != null && !config.getHasPredicateAsStr().isEmpty()) {
+            rootHasPredicate = valueFactory.createURI(config.getHasPredicateAsStr());
+        } else {
+            rootHasPredicate = null;
+        }
         // Create root subject.
         final URI rootSubject = valueFactory.createURI(docUri);
         // Insert initial data
-        outData.add(rootSubject, 
-                valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                rootClass);
-        // start and parse
-        int subjectIndex = 0;
+        if (config.getClassAsStr() != null && !config.getClassAsStr().isEmpty()) {
+            final URI rootClass = valueFactory.createURI(config.getClassAsStr());
+            outData.add(rootSubject,
+                    valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                    rootClass);
+        }
+        // Start and parse.
         final Stack<NamedData> states = new Stack();
         states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(),
                 valueFactory.createURI(SUBJECT_URI_TEMPLATE + Integer.toString(subjectIndex++))));
@@ -231,7 +241,9 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                                 outData.add(state.subject, rdfType, state.subjectClass);
                             }
                             // Connect to root subject.
-                            outData.add(rootSubject, rootHasPredicate, state.subject);
+                            if (rootHasPredicate != null) {
+                                outData.add(rootSubject, rootHasPredicate, state.subject);
+                            }
                             break;
                         case QUERY:
                             checkElementNotNull(state);

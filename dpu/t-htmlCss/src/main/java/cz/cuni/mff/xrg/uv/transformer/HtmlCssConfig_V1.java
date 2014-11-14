@@ -104,8 +104,14 @@ public class HtmlCssConfig_V1 {
 
     private List<Action> actions = new LinkedList<>();
 
+    /**
+     * Can be null, in such case no value should be generated.
+     */
     private String classAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/Page";
-    
+
+    /**
+     * Can be null, in such case no value is generated.
+     */
     private String hasPredicateAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/hasObject";
 
     public HtmlCssConfig_V1() {

@@ -92,13 +92,13 @@ public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_
 
         txtClass = new TextField("Root subject class:");
         txtClass.setWidth("100%");
-        txtClass.addValidator(new UrlValidator(false));
+        txtClass.addValidator(new UrlValidator(true));
         txtClass.setImmediate(true);
         mainLayout.addComponent(txtClass);
 
         txtHasPredicate = new TextField("Root has predicate:");
         txtHasPredicate.setWidth("100%");
-        txtHasPredicate.addValidator(new UrlValidator(false));
+        txtHasPredicate.addValidator(new UrlValidator(true));
         txtHasPredicate.setImmediate(true);
         mainLayout.addComponent(txtHasPredicate);
 
