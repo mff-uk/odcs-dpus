@@ -5,6 +5,7 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.HelpHolder;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
@@ -24,7 +25,8 @@ public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_
     private TextField txtHasPredicate;
 
     public HtmlCssVaadinDialog() {
-        super(HtmlCssConfig_V1.class, AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class)));
+        super(HtmlCssConfig_V1.class, AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class),
+                new HelpHolder(HtmlCssHelp.HELP)));
         buildLayout();
         buildAdvancedLayout();
     }

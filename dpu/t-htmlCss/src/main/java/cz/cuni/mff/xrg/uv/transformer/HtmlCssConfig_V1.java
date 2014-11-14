@@ -18,7 +18,7 @@ public class HtmlCssConfig_V1 {
          */
         QUERY,
         /**
-         * Extract content as value string.
+         * Extract content as string.
          *
          * Action data: none
          */
@@ -36,7 +36,8 @@ public class HtmlCssConfig_V1 {
          */
         ATTRIBUTE,
         /**
-         * Create predicate with given value as an object as a subject used last defined subject.
+         * Create statement with input value as an object, as a subject use given predicate
+         * and as a subject used last defined subject.
          *
          * Action data: Used predicate.
          */
@@ -57,7 +58,7 @@ public class HtmlCssConfig_V1 {
          */
         UNLIST,
         /**
-         * Set URI used as subject class.
+         * Set given URI as a subject class.
          *
          * Action data: subject class
          */
