@@ -169,27 +169,27 @@ public class CachedFileDownloader
 
             txtMaxAttemps = new TextField(
                     "Max number of attemps to download a single file, use -1 for infinity");
-            txtMaxAttemps.setDescription("Set to 0 to use only files from cache:");
+            txtMaxAttemps.setDescription("Set to 0 to use only files from cache");
             txtMaxAttemps.setWidth("5em");
             txtMaxAttemps.setRequired(true);
             mainLayout.addComponent(txtMaxAttemps);
 
-            txtMaxPause = new TextField("Max pause in ms between downloads:");
+            txtMaxPause = new TextField("Max pause in ms between downloads");
             txtMaxPause.setWidth("10em");
             txtMaxPause.setRequired(true);
             mainLayout.addComponent(txtMaxPause);
 
-            txtMinPause = new TextField("Min pause in ms between downloads:");
+            txtMinPause = new TextField("Min pause in ms between downloads");
             txtMinPause.setWidth("10em");
             txtMinPause.setRequired(true);
             mainLayout.addComponent(txtMinPause);
 
-            checkRewriteCache = new CheckBox("Rewrite cache:");
+            checkRewriteCache = new CheckBox("Rewrite cache");
             checkRewriteCache.setDescription(
                     "If checked then files are always downloaded and existing files in caches are rewritten.");
             mainLayout.addComponent(checkRewriteCache);
 
-            checkComplexCache = new CheckBox("Use complex cache:");
+            checkComplexCache = new CheckBox("Use complex cache");
             checkComplexCache.setDescription("If checked the only one instance of this DPU should be running"
                     + "at a time. Complex cache can handle larger URIs.");
             mainLayout.addComponent(checkComplexCache);
