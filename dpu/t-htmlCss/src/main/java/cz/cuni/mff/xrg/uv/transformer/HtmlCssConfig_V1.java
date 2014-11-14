@@ -12,35 +12,56 @@ public class HtmlCssConfig_V1 {
 
     public enum ActionType {
         /**
-         * Execute jsoup query from action data.
+         * Execute JSOUP query.
+         *
+         * Action data: JSOUP query
          */
         QUERY,
         /**
          * Extract content as value string.
+         *
+         * Action data: none
          */
         TEXT,
         /**
          * Extract content as html string.
+         *
+         * Action data: none
          */
         HTML,
         /**
-         * Select attribute of given name. Attribute's name is stored in actin data.
+         * Select attribute of given name.
+         *
+         * Action data: Name of the attribute.
          */
         ATTRIBUTE,
         /**
-         * Create predicate with given value as an object. Predicate is stored in under action data.
+         * Create predicate with given value as an object as a subject used last defined subject.
+         *
+         * Action data: Used predicate.
          */
-        OUTPUT,
+        OUTPUT, // LITERAL
         /**
-         * Create subject used by {@link #OUTPUT} in subtree. Action data contains subject class, that
-         * is created to identify subject.
-         * If action data == null, then can be used to create a common subject for a sub tree.
+         * Create new subject used by {@link #OUTPUT}. If has predicate is given, then create a new level.
+         * Ie. create new subject, create statement: current subject, has predicate, new subject.
+         * And set new subject as a current subject. If no predicate is given then just create a new subject
+         * and preserve the parent. Subject class is not changed by this option.
+         *
+         * Action data: Has predicate.
          */
         SUBJECT,
         /**
          * Given list of elements put each element into separated group.
+         *
+         * Action data: none
          */
-        UNLIST
+        UNLIST,
+        /**
+         * Set URI used as subject class.
+         *
+         * Action data: subject class
+         */
+        SUBJECT_CLASS
     }
 
     public static class Action {
@@ -133,7 +154,7 @@ public class HtmlCssConfig_V1 {
     public void setClassAsStr(String classAsStr) {
         this.classAsStr = classAsStr;
     }
-
+    
     public String getHasPredicateAsStr() {
         return hasPredicateAsStr;
     }
@@ -141,5 +162,5 @@ public class HtmlCssConfig_V1 {
     public void setHasPredicateAsStr(String hasPredicateAsStr) {
         this.hasPredicateAsStr = hasPredicateAsStr;
     }
-    
+
 }

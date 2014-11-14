@@ -47,6 +47,9 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
          */
         private final Elements elements;
 
+        /**
+         * Current subject.
+         */
         private final URI subject;
 
         /**
@@ -60,42 +63,90 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
         private final String value;
 
         /**
+         * Parent subject, we can connect to it.
+         */
+        private final URI parentSubject;
+
+        /**
+         * Connection predicate between subject and parentSubject.
+         */
+        private final URI hasPredicate;
+
+        /**
          * Used to create a first object.
          *
          * @param name
          * @param elements
          * @param subject
          */
-        public NamedData(String name, Elements elements, URI subject) {
+        public NamedData(String name, Elements elements, URI subject, URI parentSubject, URI hasPredicate) {
             this.name = name;
             this.elements = elements;
             this.subject = subject;
             this.subjectClass = null;
             this.value = null;
+            this.parentSubject = parentSubject;
+            this.hasPredicate = hasPredicate;
         }
 
+        /**
+         * Create a copy of given subject, just set given elements.
+         *
+         * @param source
+         * @param action
+         * @param elements
+         */
         public NamedData(NamedData source, HtmlCssConfig_V1.Action action, Elements elements) {
             this.name = action.getOutputName();
             this.elements = elements;
             this.subject = source.subject;
             this.subjectClass = source.subjectClass;
             this.value = null;
+            this.parentSubject = source.parentSubject;
+            this.hasPredicate = source.hasPredicate;
         }
 
-        public NamedData(NamedData source, HtmlCssConfig_V1.Action action, URI subject, URI subjectClass) {
+        /**
+         *
+         * @param source
+         * @param action
+         * @param subject      Should never be null!
+         * @param subjectClass If null then parent value is used.
+         * @param hasPredicate If null, then subject stay on same level.
+         */
+        public NamedData(NamedData source, HtmlCssConfig_V1.Action action, URI subject, URI subjectClass,
+                URI hasPredicate) {
             this.name = action.getOutputName();
             this.elements = source.elements;
             this.subject = subject;
-            this.subjectClass = subjectClass;
+            this.subjectClass = subjectClass == null ? source.subjectClass : subjectClass;
             this.value = source.value;
+            if (hasPredicate == null) {
+                // Same level.
+                this.parentSubject = source.parentSubject;
+                this.hasPredicate = source.hasPredicate;
+            } else {
+                // New level.
+                this.parentSubject = source.subject;
+                this.hasPredicate = hasPredicate;
+            }
         }
 
+        /**
+         * Create a copy of given subject, just set given text.
+         *
+         * @param source
+         * @param action
+         * @param elements
+         */
         public NamedData(NamedData source, HtmlCssConfig_V1.Action action, String value) {
             this.name = action.getOutputName();
             this.elements = null;
             this.subject = source.subject;
             this.subjectClass = source.subjectClass;
             this.value = value;
+            this.parentSubject = source.parentSubject;
+            this.hasPredicate = source.hasPredicate;
         }
 
     }
@@ -179,12 +230,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      */
     private void parse(ValueFactory valueFactory, Document doc, String docUri)
             throws OperationFailedException, DataUnitException, IOException, WrongActionArgs {
-        final URI rootHasPredicate;
-        if (config.getHasPredicateAsStr() != null && !config.getHasPredicateAsStr().isEmpty()) {
-            rootHasPredicate = valueFactory.createURI(config.getHasPredicateAsStr());
-        } else {
-            rootHasPredicate = null;
-        }
+       final URI defaultHasPredicate = createUri(valueFactory, config.getHasPredicateAsStr());
         // Create root subject.
         final URI rootSubject = valueFactory.createURI(docUri);
         // Insert initial data
@@ -196,8 +242,8 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
         }
         // Start and parse.
         final Stack<NamedData> states = new Stack();
-        states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(),
-                valueFactory.createURI(SUBJECT_URI_TEMPLATE + Integer.toString(subjectIndex++))));
+        states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(), rootSubject, null, null));
+
         final URI rdfType = valueFactory.createURI(RDF_TYPE_PREDICATE);
         while (!states.isEmpty() && !context.canceled()) {
             // Get group and apply actions.
@@ -233,16 +279,17 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                                             + action.getActionData());
                                 }
                             }
-                            // Crreate triple.
-                            outData.add(state.subject, valueFactory.createURI(action.getActionData()),
+                            // Create triple.
+                            outData.add(state.subject,
+                                    valueFactory.createURI(action.getActionData()),
                                     valueFactory.createLiteral(state.value));
                             // Create triple with type.
                             if (state.subjectClass != null) {
                                 outData.add(state.subject, rdfType, state.subjectClass);
                             }
-                            // Connect to root subject.
-                            if (rootHasPredicate != null) {
-                                outData.add(rootSubject, rootHasPredicate, state.subject);
+                            // Connect to parent subject.
+                            if (state.parentSubject != null && state.hasPredicate != null) {
+                                outData.add(state.parentSubject, state.hasPredicate, state.subject);
                             }
                             break;
                         case QUERY:
@@ -252,11 +299,13 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                                     state.elements.select(action.getActionData())));
                             break;
                         case SUBJECT:
+                            // Test given data.
+                            final URI hasPredicate = createUri(valueFactory, action.getActionData());
+                            final URI newSubject = valueFactory.createURI(SUBJECT_URI_TEMPLATE
+                                    + Integer.toString(subjectIndex++));
                             // Create a new subject with given type and put it into the tree.
-                            states.add(new NamedData(state, action,
-                                    valueFactory.createURI(SUBJECT_URI_TEMPLATE
-                                            + Integer.toString(subjectIndex++)),
-                                    createSubject(valueFactory, action.getActionData())));
+                            states.add(new NamedData(state, action, newSubject, null, 
+                                    hasPredicate == null ? defaultHasPredicate : hasPredicate));
                             break;
                         case TEXT:
                             checkElementNotNull(state);
@@ -268,6 +317,10 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                             for (Element subElement : state.elements) {
                                 states.add(new NamedData(state, action, new Elements(subElement)));
                             }
+                            break;
+                        case SUBJECT_CLASS:
+                            final URI classUri = createUri(valueFactory, action.getActionData());
+                            states.add(new NamedData(state, action, null, classUri, null));
                             break;
                         default:
                             break;
@@ -283,11 +336,15 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      * @param subjectURI   Can be null or empty.
      * @return
      */
-    private URI createSubject(ValueFactory valueFactory, String subjectUri) {
-        if (subjectUri == null || subjectUri.isEmpty()) {
-            return null;
+    private URI createUri(ValueFactory valueFactory, String uriString) {
+        try {
+            if (uriString != null && !uriString.isEmpty()) {
+                return valueFactory.createURI(uriString);
+            }
+        } catch (RuntimeException ex) {
+            LOG.error("Can't generate URI for value: {}", uriString, ex);
         }
-        return valueFactory.createURI(subjectUri);
+        return null;
     }
 
     /**

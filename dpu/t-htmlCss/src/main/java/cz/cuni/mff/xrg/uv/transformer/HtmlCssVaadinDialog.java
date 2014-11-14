@@ -90,13 +90,14 @@ public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_
         mainLayout.setMargin(true);
         mainLayout.setSpacing(true);
 
-        txtClass = new TextField("Root subject class:");
+        txtClass = new TextField("Root subject class");
         txtClass.setWidth("100%");
         txtClass.addValidator(new UrlValidator(true));
         txtClass.setImmediate(true);
         mainLayout.addComponent(txtClass);
 
-        txtHasPredicate = new TextField("Root has predicate:");
+        txtHasPredicate = new TextField("Default has predicate");
+        txtHasPredicate.setDescription("If set then it's used as a default predicate for all SUBJECTS, ie. all subjects have action data set to this value by default.");
         txtHasPredicate.setWidth("100%");
         txtHasPredicate.addValidator(new UrlValidator(true));
         txtHasPredicate.setImmediate(true);
