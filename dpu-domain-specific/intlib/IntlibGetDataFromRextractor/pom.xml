@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cz.cuni.mff.xrg.uv</groupId>
+		<artifactId>unifiedviews-dpu-base</artifactId>
+		<version>1.1.1</version>
+	</parent>    
+	<groupId>eu.unifiedviews</groupId>
+	<artifactId>IntlibGetDataFromRextractor</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+	<name>IntlibGetDataFromRextractor</name>
+	<description>Description of IntlibGetDataFromRextractor.</description>
+	
+	<properties>    
+		<dpu.package>eu.unifiedviews.intlib.getdatafromrextractor</dpu.package>
+		<dpu.mainClass>IntlibGetDataFromRextractor</dpu.mainClass>
+	</properties>
+
+	<dependencies>
+        <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dialog</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <!-- dependecy for boost-dpu -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-files</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>	
+	
+</project>
