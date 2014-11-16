@@ -5,7 +5,7 @@
 package cz.cuni.mff.xrg.scraper.lib.template;
 
 import cz.cuni.mff.xrg.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUContext;
 
 import java.io.IOException;
 import java.net.URL;
@@ -29,7 +29,7 @@ import org.jsoup.nodes.Document;
  */
 public abstract class ScrapingTemplate {
     
-    public DPUContext ctx;
+    public DPUContext context;
 	
 	/** 
      * This method looks for links in actual document and create entries with URL and document type.
@@ -60,7 +60,7 @@ public abstract class ScrapingTemplate {
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type));
         
-        while (!toParse.isEmpty() && !ctx.canceled()) {
+        while (!toParse.isEmpty() && !context.canceled()) {
             try {
                 ParseEntry p = toParse.pop();
                 // skip if parsed
