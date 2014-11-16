@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -72,9 +70,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private static final String CSS_SELECTOR
             = "div#medicine-box>table.zebra.vertical tbody tr";
 
-    private static final String NAME_REGEXP_STR = 
-            "(?<csen>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\((?<la>[^\\(\\)]*(\\([^\\(\\)]*\\))*[^\\(\\)]*)\\)$";
-    
+
     @DataUnit.AsInput(name = "SkosNotation")
     public RDFDataUnit rdfInSkosNotation;
 
@@ -102,11 +98,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      */
     private final Set<String> downloadedFiles = new HashSet<>();
 
-    private final Pattern nameRegExp = Pattern.compile(NAME_REGEXP_STR);
-
     public Sukl() {
-        super(SuklConfig_V1.class,
-                AddonInitializer.create(new CachedFileDownloader()));
+        super(SuklConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
 
         downloaderService = getAddon(CachedFileDownloader.class);
     }
@@ -128,8 +121,9 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 = valueFactory.createURI(SuklOntology.O_INGREDIEND_CLASS);
         SuklOntology.P_HAS_INGREDIEND_URI
                 = valueFactory.createURI(SuklOntology.P_HAS_INGREDIEND);
-        SuklOntology.P_INGREDIEND_NAME_DCTERMS_URI
-                = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_DCTERMS);
+        SuklOntology.P_INGREDIEND_NAME_DCTERMS_URI 
+                = valueFactory.createURI(
+                SuklOntology.P_INGREDIEND_NAME_DCTERMS);
         SuklOntology.P_INGREDIEND_NAME_SKOS_URI
                 = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_SKOS);
         SuklOntology.P_PIL_URI
@@ -156,15 +150,10 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             SelectQuery.iterate(inSkosNotation, IN_QUERY, this, context);
             // flush buffer
             outInfo.flushBuffer();
-
-            Manipulator.dump(filesOutTexts);
-
         } catch (OperationFailedException ex) {
             SendMessage.sendMessage(context, ex);
         } catch (QueryEvaluationException ex) {
             throw new DPUException("Query execution failed.", ex);
-        } catch (DataUnitException ex) {
-            SendMessage.sendMessage(context, ex);
         }
         // log number of files
         context.sendMessage(DPUContext.MessageType.INFO, filesOnOutput.toString() + " files downloaded.");
@@ -183,8 +172,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         try {
             downloadInfo(subject, notation);
         } catch (AddonException | IOException e) {
-            context.sendMessage(DPUContext.MessageType.WARNING,
-                    "Failed to get info about notation.",
+            context.sendMessage(DPUContext.MessageType.WARNING, "Failed to get info about notation.",
                     "Notation: " + notation, e);
 
             // TODO terminate or continue?
@@ -209,23 +197,27 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
         // parse info cz
         //
         final File fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
-        final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
-        parseNameCz(subject, docInfoCz);
-
+        if (fileInfoCz != null) {
+            final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
+            parseNameCz(subject, docInfoCz);
+        }
         //
         // parse 'en' only if we get the czech one
         // as if we not nor english is probably provided
         //
         final File fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
-        final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
-        parseNameEn(subject, docInfoEn);
-
+        if (fileInfoEn != null) {
+            final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
+            parseNameEn(subject, docInfoEn);
+        }
         //
         // donwload texts
         //
         final File fileText = downloaderService.get(URI_BASE_TEXTS + notation);
-        final Document docText = Jsoup.parse(fileText, null);
-        parseTexts(subject, notation, docText);
+        if (fileText != null) {
+            final Document docText = Jsoup.parse(fileText, null);
+            parseTexts(subject, notation, docText);
+        }
     }
 
     /**
@@ -235,8 +227,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * @param doc
      * @throws OperationFailedException
      */
-    private void parseNameCz(URI subject, Document doc)
-            throws OperationFailedException {
+    private void parseNameCz(URI subject, Document doc) throws OperationFailedException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo("Účinná látka") == 0) {
@@ -251,13 +242,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 final String[] substances = val.split("<br />");
                 for (String substance : substances) {
                     substance = substance.trim();
-                    // get names
-                    LOG.info("regexp:'{}'", substance);
-                    final Matcher match = nameRegExp.matcher(substance);
-                    LOG.info("match:{}", match.matches());
-                    final String nameCs = match.group("csen").trim();
-                    final String nameLa = match.group("la").trim();
-                    // add
+                    // Get separation index and names.
+                    int index = Utils.getLastOpeningBraceIndex(substance);
+                    final String nameCs = substance.substring(0, index).trim();
+                    final String nameLa = substance.substring(index + 1, substance.length() - 1).trim();
+                    // Add substance names.
                     addIngredient(subject, nameLa, nameCs, "cs");
                 }
             }
@@ -287,12 +276,11 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 final String[] substances = val.split("<br />");
                 for (String substance : substances) {
                     substance = substance.trim();
-                    // get names
-                    LOG.info("regexp:'{}'", substance);
-                    final Matcher match = nameRegExp.matcher(substance);
-                    LOG.info("match:{}", match.matches());
-                    final String nameEn = match.group("csen").trim();
-                    final String nameLa = match.group("la").trim();
+                    // Get separation index and names.
+                    int index = Utils.getLastOpeningBraceIndex(substance);
+                    final String nameEn = substance.substring(0, index).trim();
+                    final String nameLa = substance.substring(index + 1, substance.length() - 1).trim();
+                    // Add substance names.
                     addIngredient(subject, nameLa, nameEn, "en");
                 }
             }
@@ -340,8 +328,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             final Elements withHref = element.select("td a");
             // get name and value
             final String name = element.getElementsByTag("th").first().text();
-            final String value = !withHref.isEmpty()
-                    ? withHref.first().attr("abs:href") : null;
+            final String value = !withHref.isEmpty() ? withHref.first().attr("abs:href") : null;
             // skil rows without values
             if (value == null) {
                 // TODO we may add info if null value is one of our selected
@@ -369,15 +356,18 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 continue;
             }
             // add info
-            outInfo.add(subject, predicate,
-                    valueFactory.createURI(value));
+            outInfo.add(subject, predicate, valueFactory.createURI(value));
             final String fileName = Utils.convertStringToURIPart(value);
-            outInfo.add(subject, predicateFile,
-                    valueFactory.createLiteral(fileName));
+            outInfo.add(subject, predicateFile, valueFactory.createLiteral(fileName));
 
             // download
             final File file = downloaderService.get(value);
-
+            if (file == null) {
+                // file is missing
+                LOG.warn("Missing file: {} with name: {}", value, fileName);
+                return;
+            }
+            
             if (downloadedFiles.contains(fileName)) {
                 // already downloaded
                 return;
@@ -386,8 +376,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
             // add metadata for path
             while (!context.canceled()) {
                 try {
-                    filesOutTexts.addExistingFile(fileName,
-                            file.toURI().toString());
+                    filesOutTexts.addExistingFile(fileName, file.toURI().toString());
                     // files has been added
                     ++filesOnOutput;
                     break;
@@ -401,8 +390,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 }
             }
             LOG.debug("new file {} -> {}", file.toURI().toString(), fileName);
-            Manipulator.add(filesOutTexts, fileName,
-                    VirtualPathHelper.PREDICATE_VIRTUAL_PATH, fileName);
+            Manipulator.add(filesOutTexts, fileName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, fileName);
             // add
             downloadedFiles.add(fileName);
         }

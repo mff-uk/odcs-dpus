@@ -11,18 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Provides easy way how to set/get metadata (predicate/object) for given
- * symbolic name.
+ * Provides easy way how to set/get metadata (predicate/object) for given symbolic name.
  *
  * This class can be used for a simple one shot actions with metadata, or
- * {@link ManipulatorInstance}/{@link WritableManipulatorInstance} can be
- * created and used repeatedly.
+ * {@link ManipulatorInstance}/{@link WritableManipulatorInstance} can be created and reused to prevent object
+ * creation and deletion.
  *
  * <pre>
  * {@code
  * // set path to given file with respective symbolicName
- * Manipulator.add(WritableFilesDataUnit, symbolicName,
- *      VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
+ * Manipulator.add(WritableFilesDataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
  * }
  * </pre>
  *
@@ -36,10 +34,18 @@ public class Manipulator {
 
     }
 
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, 
-            String symbolicName) throws DataUnitException {
-        return new ManipulatorInstance(dataUnit.getConnection(), 
-                dataUnit.getMetadataGraphnames(), symbolicName, true);
+    /**
+     * Close must be called on returned class after usage.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @return
+     * @throws DataUnitException
+     */
+    public static ManipulatorInstance create(MetadataDataUnit dataUnit, String symbolicName)
+            throws DataUnitException {
+        return new ManipulatorInstance(dataUnit.getConnection(), dataUnit.getMetadataGraphnames(),
+                symbolicName, true);
     }
 
     /**
@@ -51,10 +57,9 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit,
-            String symbolicName, RepositoryConnection connection) throws DataUnitException {
-        return new ManipulatorInstance(connection,
-                dataUnit.getMetadataGraphnames(), symbolicName, false);
+    public static ManipulatorInstance create(MetadataDataUnit dataUnit, String symbolicName,
+            RepositoryConnection connection) throws DataUnitException {
+        return new ManipulatorInstance(connection, dataUnit.getMetadataGraphnames(), symbolicName, false);
     }
 
     /**
@@ -65,8 +70,8 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, 
-            MetadataDataUnit.Entry entry) throws DataUnitException {
+    public static ManipulatorInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry)
+            throws DataUnitException {
         return create(dataUnit, entry.getSymbolicName());
     }
 
@@ -80,22 +85,21 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, 
-            MetadataDataUnit.Entry entry, RepositoryConnection connection) 
-            throws DataUnitException {
+    public static ManipulatorInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry,
+            RepositoryConnection connection) throws DataUnitException {
         return create(dataUnit, entry.getSymbolicName(), connection);
     }
 
     /**
      * Close must be called on returned class after usage.
-     * 
+     *
      * @param dataUnit
      * @param symbolicName
      * @return
      * @throws DataUnitException
      */
-    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit,
-            String symbolicName) throws DataUnitException {
+    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit, String symbolicName)
+            throws DataUnitException {
         return new WritableManipulatorInstance(dataUnit.getConnection(),
                 dataUnit.getMetadataGraphnames(),
                 dataUnit.getMetadataWriteGraphname(), symbolicName, true);
@@ -111,18 +115,17 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit,
-            String symbolicName, RepositoryConnection connection) throws DataUnitException {
+    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit, String symbolicName,
+            RepositoryConnection connection) throws DataUnitException {
         return new WritableManipulatorInstance(connection,
-                 dataUnit.getMetadataGraphnames(),
+                dataUnit.getMetadataGraphnames(),
                 dataUnit.getMetadataWriteGraphname(), symbolicName, false);
     }
 
     /**
      * Get a strings stored under given predicate and symbolicName.
      *
-     * If more strings are stored under given predicate then one of them
-     * is returned.
+     * If more strings are stored under given predicate then one of them is returned.
      *
      * @param dataUnit
      * @param symbolicName
@@ -130,8 +133,8 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static String getFirst(MetadataDataUnit dataUnit, String symbolicName,
-            String predicate) throws DataUnitException {
+    public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate)
+            throws DataUnitException {
         try (ManipulatorInstance instance = create(dataUnit, symbolicName)) {
             return instance.getFirst(predicate);
         }
@@ -139,25 +142,23 @@ public class Manipulator {
 
     /**
      * Get a strings stored under given predicate and symbolicName.
-     * 
-     * If more strings are stored under given predicate then one of them
-     * is returned.
-     * 
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
      * @param dataUnit
      * @param entry
      * @param predicate
      * @return
-     * @throws DataUnitException 
+     * @throws DataUnitException
      */
-    public static String getFirst(MetadataDataUnit dataUnit, 
-            MetadataDataUnit.Entry entry,
-            String predicate) throws DataUnitException {
+    public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate)
+            throws DataUnitException {
         return getFirst(dataUnit, entry.getSymbolicName(), predicate);
     }
 
     /**
-     * Set metadata under given predicate If the predicate is already set then
-     * is replaced. To add multiple metadata under same predicate use
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
      * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
      *
      * @param dataUnit
@@ -166,18 +167,16 @@ public class Manipulator {
      * @param value
      * @throws DataUnitException
      */
-    public static void set(WritableMetadataDataUnit dataUnit,
-            String symbolicName,
-            String predicate, String value) throws DataUnitException {
-        try (WritableManipulatorInstance instance = 
-                create(dataUnit, symbolicName)) {
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value) throws DataUnitException {
+        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName)) {
             instance.set(predicate, value);
         }
     }
 
     /**
-     * Add metadata for given symbolic name. The old data under same predicate
-     * are not deleted. Use to add multiple metadata of same meaning.
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
      *
      * @param dataUnit
      * @param symbolicName
@@ -185,17 +184,15 @@ public class Manipulator {
      * @param value
      * @throws DataUnitException
      */
-    public static void add(WritableMetadataDataUnit dataUnit,
-            String symbolicName,
-            String predicate, String value) throws DataUnitException {
-         try (WritableManipulatorInstance instance =
-                create(dataUnit, symbolicName)) {
+    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value) throws DataUnitException {
+        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName)) {
             instance.add(predicate, value);
         }
     }
-    
+
     /**
-     * Dump content of metadata graphs into logs.
+     * Dump content of metadata graphs into logs. Use for debug purpose.
      *
      * @param dataUnit
      * @throws DataUnitException
@@ -204,12 +201,11 @@ public class Manipulator {
         RepositoryConnection connection = null;
         try {
             connection = dataUnit.getConnection();
-            dump(connection, 
-                    dataUnit.getMetadataGraphnames().toArray(new URI[0]));
+            dump(connection, dataUnit.getMetadataGraphnames().toArray(new URI[0]));
         } finally {
             if (connection != null) {
                 try {
-                    connection.close();;
+                    connection.close();
                 } catch (RepositoryException ex) {
                     LOG.warn("Error in close.", ex);
                 }
@@ -218,7 +214,7 @@ public class Manipulator {
     }
 
     /**
-     * Dump content of metadata graphs into logs.
+     * Dump content of metadata graphs into logs. Use for debug purpose.
      *
      * @param dataUnit
      * @throws DataUnitException
@@ -227,12 +223,11 @@ public class Manipulator {
         RepositoryConnection connection = null;
         try {
             connection = dataUnit.getConnection();
-            dump(connection,
-                    new URI[]{ dataUnit.getMetadataWriteGraphname()} );
+            dump(connection, new URI[]{dataUnit.getMetadataWriteGraphname()});
         } finally {
             if (connection != null) {
                 try {
-                    connection.close();;
+                    connection.close();
                 } catch (RepositoryException ex) {
                     LOG.warn("Error in close.", ex);
                 }
@@ -247,8 +242,7 @@ public class Manipulator {
      * @param uris
      * @throws DataUnitException
      */
-    static void dump(RepositoryConnection connection, URI[] uris)
-            throws DataUnitException {
+    static void dump(RepositoryConnection connection, URI[] uris) throws DataUnitException {
         final StringBuilder message = new StringBuilder();
         message.append("\n\tGraphs: ");
         for (URI uri : uris) {

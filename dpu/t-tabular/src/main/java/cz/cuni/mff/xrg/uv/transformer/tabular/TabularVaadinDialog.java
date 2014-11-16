@@ -57,6 +57,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
 
     private CheckBox checkAutoAsString;
 
+    private CheckBox checkGenerateTableClass;
+
     private TextField txtCsvQuoteChar;
 
     private TextField txtCsvDelimeterChar;
@@ -143,10 +145,11 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtKeyColumnName.setNullRepresentation("");
         this.txtKeyColumnName.setNullSettingAllowed(true);
         this.txtKeyColumnName.setWidth("100%");
+        this.txtKeyColumnName.setDescription("Name of column that will be appended to 'Resource URI base' and"
+                + " used as subject for rows. This can be changed by checking 'Advanced key column'");
         generalLayout.addComponent(this.txtKeyColumnName);
 
         this.txtEncoding = new TextField("Encoding");
-//        this.txtEncoding.setInputPrompt("UTF-8, Cp1250, ...");
         this.txtEncoding.setRequired(true);
         generalLayout.addComponent(this.txtEncoding);
 
@@ -156,7 +159,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.txtRowsLimit.setNullSettingAllowed(true);
         generalLayout.addComponent(this.txtRowsLimit);
 
-        this.txtRowsClass = new TextField("Class for a row object");
+        this.txtRowsClass = new TextField("Class for a row entity");
+        this.txtRowsClass.setDescription("If set then this value is used as a class for each row entity.");
         this.txtRowsClass.setWidth("100%");
         this.txtRowsClass.setNullRepresentation("");
         this.txtRowsClass.setNullSettingAllowed(true);
@@ -184,7 +188,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkLayout.addComponent(checkStaticRowCounter);
 
         this.checkAdvancedKeyColumn = new CheckBox("Advanced key column");
-        this.checkAdvancedKeyColumn.setDescription("If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used a subject without any additional changes.");
+        this.checkAdvancedKeyColumn.setDescription("If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used as subject without any additional changes.");
         checkLayout.addComponent(this.checkAdvancedKeyColumn);
 
         this.checkGenerateLabels = new CheckBox("Generate labels");
@@ -195,7 +199,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.checkGenerateRowTriple.setDescription("If checked then column with row number is generated for each row.");
         checkLayout.addComponent(this.checkGenerateRowTriple);
 
-        this.checkTableSubject = new CheckBox("Generate subject for table.");
+        this.checkTableSubject = new CheckBox("Generate subject for table");
         this.checkTableSubject.setDescription("If checked then a subject for each table that point to all rows in given table is created. "
                 + "Used predicate is '" + TabularOntology.TABLE_HAS_ROW + "'. By predicate '" + TabularOntology.TABLE_SYMBOLIC_NAME + "'."
                 + "Symbolic name of source file is also attached.");
@@ -204,6 +208,10 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         this.checkAutoAsString = new CheckBox("Auto type as string");
         this.checkAutoAsString.setDescription("If set then all auto types are considered to be strings. This can be usefull with full column mapping to enforce same type over all the columns and get rid of warning messages.");
         checkLayout.addComponent(this.checkAutoAsString);
+
+        this.checkGenerateTableClass = new CheckBox("Generate table/row class");
+        this.checkGenerateRowTriple.setDescription("If checked then for table entities statement with type class is generated.");
+        checkLayout.addComponent(this.checkGenerateTableClass);
 
         // -------------------------- CSV ----------------------------
 
@@ -625,6 +633,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         checkGenerateRowTriple.setValue(c.isGenerateRowTriple());
         checkTableSubject.setValue(c.isUseTableSubject());
         checkAutoAsString.setValue(c.isAutoAsStrings());
+        checkGenerateTableClass.setValue(c.isGenerateTableClass());
         //
         // enable/disable controlls
         //
@@ -721,6 +730,7 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         cnf.setGenerateRowTriple(checkGenerateRowTriple.getValue());
         cnf.setUseTableSubject(checkTableSubject.getValue());
         cnf.setAutoAsStrings(checkAutoAsString.getValue());
+        cnf.setGenerateTableClass(checkGenerateTableClass.getValue());
 
         final String rowsClass = txtRowsClass.getValue();
         if (rowsClass == null || rowsClass.isEmpty()) {

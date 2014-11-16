@@ -14,13 +14,15 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ConfigManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigManager.class);
 
     private MasterConfigObject masterConfig = null;
 
     private final SerializationXmlGeneral serializer;
 
+    /**
+     * Add-ons that are used to transform configuration before it's loaded.
+     */
     private final List<ConfigTransformerAddon> configTransformers;
 
     /**
@@ -28,13 +30,13 @@ public class ConfigManager {
      * @param serializer
      * @param configTransformers
      */
-    public ConfigManager(SerializationXmlGeneral serializer,
-            List<ConfigTransformerAddon> configTransformers) {
+    public ConfigManager(SerializationXmlGeneral serializer, List<ConfigTransformerAddon> configTransformers) {
         this.serializer = serializer;
         this.configTransformers = configTransformers;
     }
 
     /**
+     * Get configuration of given class.
      *
      * @param <TYPE>
      * @param name
@@ -62,8 +64,17 @@ public class ConfigManager {
         }
     }
 
-    public <TYPE> TYPE get(String name, ConfigHistory<TYPE> configHistory)
-            throws ConfigException {
+    /**
+     * Get configuration for given configuration history, ie. auto convert older configuration
+     * into the newer version.
+     *
+     * @param <TYPE>
+     * @param name
+     * @param configHistory
+     * @return
+     * @throws ConfigException
+     */
+    public <TYPE> TYPE get(String name, ConfigHistory<TYPE> configHistory) throws ConfigException {
         if (masterConfig == null) {
             LOG.trace("get({}, ...) -> null as masterConfig is null", name);
             return null;
@@ -83,6 +94,13 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Store configuration string under given name to master configuration.
+     *
+     * @param <TYPE>
+     * @param object
+     * @param name
+     */
     public <TYPE> void set(TYPE object, String name) {
         if (masterConfig == null) {
             return;
@@ -97,6 +115,14 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Create new instance of configuration of given type.
+     *
+     * @param <TYPE>
+     * @param clazz
+     * @return
+     * @throws ConfigException
+     */
     public <TYPE> TYPE createNew(Class<TYPE> clazz) throws ConfigException {
         try {
             return serializer.createInstance(clazz);
@@ -105,13 +131,19 @@ public class ConfigManager {
         }
     }
 
+    /**
+     *
+     * @param masterConfig New master configuration, ie. dictionary of other configurations.
+     * @throws ConfigException
+     */
     public void setMasterConfig(MasterConfigObject masterConfig) throws ConfigException {
         this.masterConfig = masterConfig;
         configureAddons();
     }
 
     /**
-     * Try to set {@link MasterConfigObject} from string.
+     * Try to set {@link MasterConfigObject} from string. Apply {@link #configTransformers} on a string form
+     * of a given {@link MasterConfigObject}.
      *
      * @param masterConfigStr
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
@@ -119,14 +151,14 @@ public class ConfigManager {
     public void setMasterConfig(String masterConfigStr) throws ConfigException {
         masterConfigStr = transformString(MasterConfigObject.CONFIG_NAME, masterConfigStr);
         try {
-            masterConfig = serializer.convert(MasterConfigObject.class,
-                    masterConfigStr);
+            masterConfig = serializer.convert(MasterConfigObject.class, masterConfigStr);
         } catch (SerializationXmlFailure | RuntimeException ex) {
             throw new ConfigException("Conversion of master config failed.", ex);
         }
+        // We got new configuration, configure add-ons.
         configureAddons();
         
-        // TODO update : move into addon
+        // TODO update : move into addon ~ can be used to load DPU configuration as a root
 //        try {
 //            // parseconfiguration
 //            final MasterConfigObject masterConfig
@@ -156,10 +188,22 @@ public class ConfigManager {
 
     }
 
+    /**
+     *
+     * @return Master configuration object.
+     */
     public MasterConfigObject getMasterConfig() {
         return masterConfig;
     }
 
+    /**
+     * Transform given configuration by {@link #configTransformers}.
+     *
+     * @param name Configuration name.
+     * @param value Configuration as string.
+     * @return
+     * @throws ConfigException
+     */
     private String transformString(String name, String value) throws ConfigException{
         for (ConfigTransformerAddon addon : configTransformers) {
             value = addon.transformString(name, value);
@@ -167,6 +211,14 @@ public class ConfigManager {
         return value;
     }
 
+    /**
+     * Transform given configuration by {@link #configTransformers}.
+     *
+     * @param <TYPE>
+     * @param name Configuration name.
+     * @param value Configuration as object.
+     * @throws ConfigException
+     */
     private <TYPE> void transformObject(String name, TYPE value) throws ConfigException{
         for (ConfigTransformerAddon addon : configTransformers) {
             addon.transformObject(name, value);

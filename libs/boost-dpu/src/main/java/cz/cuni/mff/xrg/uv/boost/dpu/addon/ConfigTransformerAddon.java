@@ -4,7 +4,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 
 /**
- * Can be used to transform configuration before it's loaded.
+ * Special type of add-on. Can be used to transform configuration before it's loaded by DPU/add-on.
  *
  * @author Škoda Petr
  */

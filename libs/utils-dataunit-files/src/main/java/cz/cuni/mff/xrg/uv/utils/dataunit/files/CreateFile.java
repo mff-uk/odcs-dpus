@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Helper for file creation.
  *
  * @author Škoda Petr
  */
@@ -22,24 +23,18 @@ public class CreateFile {
 
     /**
      * Create file of under given path and return {@link File} to it. Also add
-     * {@link VirtualPathHelper#PREDICATE_VIRTUAL_PATH} metadata to the new
-     * file.
+     * {@link VirtualPathHelper#PREDICATE_VIRTUAL_PATH} metadata to the new file.
      *
-     * As this function create new connection is should not be used for 
-     * greater number of files.
+     * As this function create new connection is should not be used for greater number of files.
      *
      * @param dataUnit
      * @param virtualPath
      * @return
      * @throws DataUnitException
      */
-    public static File createFile(WritableFilesDataUnit dataUnit,
-            String virtualPath) throws DataUnitException {
-        final File file = new File(
-                java.net.URI.create(dataUnit.addNewFile(virtualPath)));
-        Manipulator.add(dataUnit, virtualPath,
-                VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
-                virtualPath);
+    public static File createFile(WritableFilesDataUnit dataUnit, String virtualPath) throws DataUnitException {
+        final File file = new File(java.net.URI.create(dataUnit.addNewFile(virtualPath)));
+        Manipulator.add(dataUnit, virtualPath, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
         LOG.trace("createFile(,{}) -> {}", virtualPath, file.toString());
         return file;
     }

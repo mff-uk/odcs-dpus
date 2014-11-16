@@ -15,9 +15,9 @@
     <description>Commons base project for DPU's.</description>
     
     <properties>
-        <!-- libs -->
+        <!-- Libs version. -->
         <vaadin.version>7.1.8</vaadin.version>
-        <!-- must end with comma if not empty -->
+        <!-- Must end with comma if not empty. Can be used to influence the OSGI import package list. -->
         <osgi.packages></osgi.packages>
     </properties>
     
@@ -34,7 +34,7 @@
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
-        <!-- unifiedviews -->
+        <!-- Unifiedviews. -->
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-api-helpers</artifactId>
@@ -63,7 +63,7 @@
             <type>jar</type>
             <scope>provided</scope>
         </dependency>        
-        <dependency> <!-- logback as implementation org.slf4j -->
+        <dependency> <!-- Logback as implementation org.slf4j, for testing. -->
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.0.13</version>
@@ -75,7 +75,7 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
-        <dependency> <!-- utilis for testing -->
+        <dependency> <!-- Utilis for testing. -->
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-test</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
@@ -85,7 +85,7 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin> <!-- main build plugin for modules -->
+            <plugin> <!-- Main build plugin. -->
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>${bundle.plugin.version}</version>
@@ -102,11 +102,11 @@
                             ${osgi.packages},
                             *
                         </Import-Package>
-                        <!-- dependencies embedding -->
+                        <!-- Dependencies embedding. -->
                         <Embed-Dependency>*;scope=compile|system</Embed-Dependency>
                         <Embed-Directory>dependency</Embed-Directory>
                         <Embed-StripGroup>false</Embed-StripGroup>
-                        <!-- unifiedviews properties -->
+                        <!-- Unifiedviews properties. -->
                         <DPU-Package>${dpu.package}</DPU-Package>
                         <DPU-MainClass>${dpu.mainClass}</DPU-MainClass>
                         <Build-Time>${maven.build.timestamp}</Build-Time>

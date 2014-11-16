@@ -9,22 +9,18 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
-import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
-import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
 
 @DPU.AsExtractor
 public class Extractor 
@@ -34,33 +30,24 @@ extends DpuAdvancedBase<ExtractorConfig>
     private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
     @DataUnit.AsOutput(name = "XMLSmlouvy")
-    public FileDataUnit outSmlouvy;    
+    public WritableFilesDataUnit outSmlouvy;    
     
     @DataUnit.AsOutput(name = "XMLObjednavky")
-    public FileDataUnit outObjednavky;    
+    public WritableFilesDataUnit outObjednavky;    
 
     @DataUnit.AsOutput(name = "XMLPlneni")
-    public FileDataUnit outPlneni;    
+    public WritableFilesDataUnit outPlneni;    
 
     @DataUnit.AsOutput(name = "XMLSmlouvy-RocniSeznam")
-    public FileDataUnit outSmlouvyRoky;    
+    public WritableFilesDataUnit outSmlouvyRoky;    
     
     @DataUnit.AsOutput(name = "XMLObjednavky-RocniSeznam")
-    public FileDataUnit outObjednavkyRoky;    
+    public WritableFilesDataUnit outObjednavkyRoky;    
 
     @DataUnit.AsOutput(name = "XMLPlneni-RocniSeznam")
-    public FileDataUnit outPlneniRoky;    
+    public WritableFilesDataUnit outPlneniRoky;    
 
-    @DataUnit.AsOutput(name = "Smlouvy-Metadata")
-    public WritableRDFDataUnit outSmlouvyMeta;    
-    
-    @DataUnit.AsOutput(name = "Objednavky-Metadata")
-    public WritableRDFDataUnit outObjednavkyMeta;    
-
-    @DataUnit.AsOutput(name = "Plneni-Metadata")
-    public WritableRDFDataUnit outPlneniMeta;    
-
-    public Extractor(){
+        public Extractor(){
         super(ExtractorConfig.class,AddonInitializer.noAddons());
     }
 
@@ -72,15 +59,6 @@ extends DpuAdvancedBase<ExtractorConfig>
     @Override
     protected void innerExecute() throws DPUException, DataUnitException
     {
-        final SimpleRdfWrite outSmlouvyMetaWrap = SimpleRdfFactory.create(outSmlouvyMeta, context);
-        outSmlouvyMetaWrap.setPolicy(AddPolicy.BUFFERED);
-        
-        final SimpleRdfWrite outObjednavkyMetaWrap = SimpleRdfFactory.create(outObjednavkyMeta, context);
-        outObjednavkyMetaWrap.setPolicy(AddPolicy.BUFFERED);
-        
-        final SimpleRdfWrite outPlneniMetaWrap = SimpleRdfFactory.create(outPlneniMeta, context);
-        outPlneniMetaWrap.setPolicy(AddPolicy.BUFFERED);
-        
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");
@@ -95,13 +73,6 @@ extends DpuAdvancedBase<ExtractorConfig>
         s.smlouvy_roky = outSmlouvyRoky;
         s.objednavky_roky = outObjednavkyRoky;
         s.plneni_roky = outPlneniRoky;
-        s.smlouvy_meta = outSmlouvyMetaWrap;
-        s.objednavky_meta = outObjednavkyMetaWrap;
-        s.plneni_meta = outPlneniMetaWrap;
-
-        outSmlouvyMetaWrap.flushBuffer();
-        outObjednavkyMetaWrap.flushBuffer();
-        outPlneniMetaWrap.flushBuffer();
         
         java.util.Date date = new java.util.Date();
         long start = date.getTime();

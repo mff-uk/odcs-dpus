@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.addressmapper.knowledge;
 
+import java.util.Arrays;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
 import java.util.HashMap;
@@ -17,17 +18,16 @@ import org.slf4j.LoggerFactory;
  */
 public class KnowledgeBase {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            KnowledgeBase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBase.class);
 
     private final Map<String, List<String>> streets = new HashMap<>();
 
     private final Map<String, List<String>> towns = new HashMap<>();
 
     private final Map<String, List<String>> townParts = new HashMap<>();
-    
+
     private final List<String> regions = new LinkedList<>();
-    
+
     public KnowledgeBase() {
 
     }
@@ -39,13 +39,14 @@ public class KnowledgeBase {
     public boolean isTownNameEmpty() {
         return towns.isEmpty();
     }
-   
+
     /**
-     * Check is given streetName represents street name. Check is case
-     * insensitive.
+     * Check is given streetName represents street name. Check is case insensitive.
      *
-     * If the streetName match existing street name then the street name is
-     * returned, as extracted from knowledge base.
+     * If the streetName match existing street name then the street name is returned, as extracted from
+     * knowledge base.
+     *
+     * If knowledge base does not contains any knowledge, then return given value.
      *
      * @param streetName
      * @return KnowledgeValue.value = null if no street of given name exists.
@@ -54,12 +55,14 @@ public class KnowledgeBase {
         if (streetName == null) {
             return null;
         }
+        if (streets.isEmpty()) {
+            return Arrays.asList(streetName);
+        }
         return streets.get(streetName.toLowerCase());
     }
 
     /**
-     * Works same as {@link #checkStreetName(java.lang.String)} but only for
-     * town names.
+     * Works same as {@link #checkStreetName(java.lang.String)} but only for town names.
      *
      * @param townName
      * @return
@@ -68,6 +71,9 @@ public class KnowledgeBase {
         if (townName == null) {
             return null;
         }
+        if (streets.isEmpty()) {
+            return Arrays.asList(townName);
+        }
         return towns.get(townName.toLowerCase());
     }
 
@@ -75,15 +81,17 @@ public class KnowledgeBase {
         if (townParts == null) {
             return null;
         }
+        if (streets.isEmpty()) {
+            return Arrays.asList(townPartName);
+        }
         return townParts.get(townPartName.toLowerCase());
     }
-    
+
     /**
      *
      * @param rdf
-     * @param genAlternatives If true then alternatives are generated to stored
-     *                        name, should be true only for lass call of this
-     *                        function.
+     * @param genAlternatives If true then alternatives are generated to stored name, should be true only for
+     *                        lass call of this function.
      * @throws Exception
      */
     public void loadStreetNames(SimpleRdfRead rdf, boolean genAlternatives)
@@ -103,41 +111,38 @@ public class KnowledgeBase {
     public void loadRegionNames(SimpleRdfRead rdf) throws Exception {
         final String query = "SELECT DISTINCT ?s WHERE {[] <http://schema.org/name> ?s}";
 
-        try (ConnectionPair<TupleQueryResult> conn = rdf.executeSelectQuery(
-                query)) {
+        try (ConnectionPair<TupleQueryResult> conn = rdf.executeSelectQuery(query)) {
             TupleQueryResult iter = conn.getObject();
             while (iter.hasNext()) {
                 final Value value = iter.next().getBinding("s").getValue();
                 regions.add(value.stringValue());
             }
         }
-        
+
         LOG.info("Region name cache size: {}", regions.size());
     }
 
     public void loadTownPartNames(SimpleRdfRead rdf) throws Exception {
         loadCache(rdf, townParts);
         LOG.info("Town-parts name cache size: {}", townParts.size());
-    }    
-    
+    }
+
     public List<String> getRegions() {
         return regions;
     }
-    
+
     private void loadCache(SimpleRdfRead rdf, Map<String, List<String>> cache)
             throws Exception {
         final String query = "SELECT DISTINCT ?s WHERE {[] <http://schema.org/name> ?s}";
 
-        try (ConnectionPair<TupleQueryResult> conn = rdf.executeSelectQuery(
-                query)) {
+        try (ConnectionPair<TupleQueryResult> conn = rdf.executeSelectQuery(query)) {
             TupleQueryResult iter = conn.getObject();
             while (iter.hasNext()) {
                 final Value value = iter.next().getBinding("s").getValue();
                 final String valueStr = value.stringValue().trim();
                 final String valueStrLower = valueStr.toLowerCase();
-
                 if (!cache.containsKey(valueStrLower)) {
-                    // new key, add and create
+                    // New key, add and create.
                     cache.put(valueStrLower, new LinkedList<String>());
                 }
                 cache.get(valueStr.toLowerCase()).add(valueStr);
@@ -146,20 +151,18 @@ public class KnowledgeBase {
     }
 
     /**
-     * Generates additional keys in {@link #streets} to solve problems with
-     * shortcuts etc. Should be called only once.
+     * Generates additional keys in {@link #streets} to solve problems with shortcuts etc. Should be called
+     * only once.
      */
     private void generateStreetNameAlternatives() {
-        Map<String, List<String>> toAdd = new HashMap<>();
-
+        final Map<String, List<String>> toAdd = new HashMap<>();
         for (String key : streets.keySet()) {
-            // add alternatives
+            // Add alternatives.
             if (key.contains("náměstí")) {
                 String newKey = key.replace("náměstí", "nám.");
                 toAdd.put(newKey, streets.get(key));
             }
         }
-
         // add
         for (String key : toAdd.keySet()) {
             if (streets.containsKey(key)) {

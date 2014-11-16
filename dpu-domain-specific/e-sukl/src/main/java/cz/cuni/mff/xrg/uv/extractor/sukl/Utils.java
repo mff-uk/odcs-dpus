@@ -29,4 +29,26 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param text
+     * @return Index of opening brace to the last brace in given text.
+     */
+    public static int getLastOpeningBraceIndex(String text) {
+        int braceIndex = 1;
+        for (int index = text.lastIndexOf(')') - 1; index >= 0; index--) {
+
+            if (text.charAt(index) == '(') {
+                braceIndex--;
+            } else if (text.charAt(index) == ')') {
+                braceIndex++;
+            }
+
+            if (braceIndex == 0) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
 }

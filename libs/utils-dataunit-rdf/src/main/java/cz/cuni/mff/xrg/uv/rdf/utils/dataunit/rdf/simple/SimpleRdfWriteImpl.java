@@ -13,39 +13,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Add write functionality to {@link SimpleRdfRead} by wrapping
- * {@link WritableRDFDataUnit}.
+ * Add write functionality to {@link SimpleRdfRead} by wrapping {@link WritableRDFDataUnit}.
  *
  * @author Škoda Petr
  */
 class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
 
-	private static final Logger LOG = LoggerFactory.getLogger(
-			SimpleRdfWrite.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleRdfWrite.class);
 
     private static final String DEFAULT_GRAPH_NAME = "default-output";
 
-	/**
-	 * Add policy.
-	 */
-	protected AddPolicy addPolicy = AddPolicy.IMMEDIATE;
+    /**
+     * Add policy.
+     */
+    protected AddPolicy addPolicy = AddPolicy.IMMEDIATE;
 
-	/**
-	 * Max size of {@link #toAddBuffer}. If the buffer is larger and
-	 * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)}
-	 * is called then the buffer is flushed by {@link #flushBuffer()}.
-	 */
-	protected int toAddBufferFlushSize = 100000;
+    /**
+     * Max size of {@link #toAddBuffer}. If the buffer is larger and
+     * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)} is called then
+     * the buffer is flushed by {@link #flushBuffer()}.
+     */
+    protected int toAddBufferFlushSize = 100000;
 
-	/**
-	 * Buffer for triples that should be added into wrapped {@link #dataUnit}.
-	 */
-	protected final ArrayList<Statement> toAddBuffer = new ArrayList<>();
+    /**
+     * Buffer for triples that should be added into wrapped {@link #dataUnit}.
+     */
+    protected final ArrayList<Statement> toAddBuffer = new ArrayList<>();
 
-	/**
-	 * Wrapped {@link WritableRDFDataUnit}.
-	 */
-	protected final WritableRDFDataUnit writableDataUnit;
+    /**
+     * Wrapped {@link WritableRDFDataUnit}.
+     */
+    protected final WritableRDFDataUnit writableDataUnit;
 
     /**
      * Holds info about all added graphs.
@@ -57,62 +55,51 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
      */
     protected Map<String, URI> writeSetCurrent;
 
-	/**
-	 *
-	 * @param dataUnit
-	 * @param context
+    /**
+     *
+     * @param dataUnit
+     * @param context
      * @throws cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException
-	 */
-	SimpleRdfWriteImpl(WritableRDFDataUnit dataUnit, DPUContext context)
-            throws OperationFailedException {
-		super(dataUnit, context);
-		this.writableDataUnit = dataUnit;
+     */
+    SimpleRdfWriteImpl(WritableRDFDataUnit dataUnit, DPUContext context) throws OperationFailedException {
+        super(dataUnit, context);
+        this.writableDataUnit = dataUnit;
         this.writeSetAll = new HashMap<>();
         this.writeSetCurrent = writeSetAll;
-	}
+    }
 
-	/**
-	 * Add triple into repository. Based on current {@link AddPolicy} can add
-	 * triple in immediate or lazy way.
-	 *
-	 * In the second case the {@link #flushBuffer()} method must be called in
-	 * order to add triples into used repository, until that the triples are
-	 * stored in inner buffer - the triples are not visible in any read function.
-	 *
-	 * @param s
-	 * @param p
-	 * @param o
-	 * @throws OperationFailedException
-	 */
+    /**
+     * {@inheritDoc}
+     */
     @Override
-	public void add(Resource s, URI p, Value o) throws OperationFailedException {
-		final Statement statement = getValueFactory().createStatement(s, p, o);
-		// add to bufer
-		toAddBuffer.add(statement);
-		// based on policy
-		switch (addPolicy) {
-			case BUFFERED:
-				// flush only if we have enough data
-				if (toAddBuffer.size() > toAddBufferFlushSize) {
-					LOG.trace("Flush on full buffer, size {}.",
-							toAddBuffer.size());
-					flushBuffer();
-				}
-				break;
-			case IMMEDIATE:
-				// flush in evry case
-				flushBuffer();
-				break;
-		}
-	}
+    public void add(Resource s, URI p, Value o) throws OperationFailedException {
+        final Statement statement = getValueFactory().createStatement(s, p, o);
+        // Add to bufer.
+        toAddBuffer.add(statement);
+        // Based on policy.
+        switch (addPolicy) {
+            case BUFFERED:
+                // Flush only if we have enough data.
+                if (toAddBuffer.size() > toAddBufferFlushSize) {
+                    LOG.trace("Flush on full buffer, size {}.",
+                            toAddBuffer.size());
+                    flushBuffer();
+                }
+                break;
+            case IMMEDIATE:
+                // Flush in every case.
+                flushBuffer();
+                break;
+        }
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
+    /**
+     * {@inheritDoc}
+     */
     @Override
-	public void setPolicy(AddPolicy policy) {
-		this.addPolicy = policy;
-	}
+    public void setPolicy(AddPolicy policy) {
+        this.addPolicy = policy;
+    }
 
     /**
      * {@inheritDoc}
@@ -122,27 +109,26 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
         this.toAddBufferFlushSize = size;
     }
 
-	/**
-	 * {@inheritDoc}
-	 */
+    /**
+     * {@inheritDoc}
+     */
     @Override
-	public void flushBuffer() throws OperationFailedException {
-		if (toAddBuffer.isEmpty()) {
-			// nothing to add
-			return;
+    public void flushBuffer() throws OperationFailedException {
+        if (toAddBuffer.isEmpty()) {
+            // Nothing to add.
+            return;
         }
-		try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
-			conn.c().begin();
-			// add to repository
-			conn.c().add(toAddBuffer, getCurrentWriteContexts());
-			conn.c().commit();
-			// clear buffer
-			toAddBuffer.clear();
-		} catch (RepositoryException ex) {
-			throw new OperationFailedException(
-					"Failed to add triples into repository.", ex);
-		}
-	}
+        try (ClosableConnection conn = new ClosableConnection(dataUnit)) {
+            conn.c().begin();
+            // Add to repository.
+            conn.c().add(toAddBuffer, getCurrentWriteContexts());
+            conn.c().commit();
+            // Clear buffer.
+            toAddBuffer.clear();
+        } catch (RepositoryException ex) {
+            throw new OperationFailedException("Failed to add triples into repository.", ex);
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -156,38 +142,26 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
     /**
      * If no graph is in {@link #writeSetCurrent} then new one is added.
      *
-     * @return array of current write {@likn URI}s
+     * @return array of current write {
+     * @likn URI}s
      */
     private URI[] getCurrentWriteContexts() throws OperationFailedException {
-        // test for graph
         if (writeSetCurrent.isEmpty()) {
-            // no write set .. add new graph, we use
-            // current time to prevent colisions
-            writeSetCurrent.put(DEFAULT_GRAPH_NAME,
-                    createNewGraph(DEFAULT_GRAPH_NAME));
+            // No write set .. add new graph, we use current time to prevent name colisions.
+            writeSetCurrent.put(DEFAULT_GRAPH_NAME, createNewGraph(DEFAULT_GRAPH_NAME));
             LOG.warn("Default graph used: " + DEFAULT_GRAPH_NAME);
         }
-
         return writeSetCurrent.values().toArray(new URI[0]);
     }
 
     /**
-     * Set {@link #writeSetCurrent} to all graphs in {@link #writableDataUnit}.
-     */
-    private void setCurrentWriteSetToAll() {
-        writeSetCurrent = writeSetAll;
-    }
-
-
-    /**
-     * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name
-     * to generate new graph {@link URI} and create a graph with it.
+     * Use {@link WritableRDFDataUnit#getBaseDataGraphURI()} and given name to generate new graph {@link URI}
+     * and create a graph with it.
      *
      * @param symbolicName
      * @return
      */
-    private URI createNewGraph(String symbolicName)
-            throws OperationFailedException {
+    private URI createNewGraph(String symbolicName) throws OperationFailedException {
 
         if (writeSetAll.containsKey(symbolicName)) {
             LOG.warn("DPU ask me to create graph that already exists: {}", symbolicName);
@@ -201,9 +175,8 @@ class SimpleRdfWriteImpl extends SimpleRdfReadImpl implements SimpleRdfWrite {
             throw new OperationFailedException("Failed to add new graph.", ex);
         }
 
-        // add to all Uri repository
+        // Add to URI storage repository.
         writeSetAll.put(symbolicName, newUri);
-
         return newUri;
     }
 

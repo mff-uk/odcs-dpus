@@ -7,22 +7,21 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
 
 /**
- * Base dialog for {@link AddonWithDialog}s.
+ * Base dialog for {@link ConfigurableAddon}.
  * 
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AddonVaadinDialogBase<CONFIG>
-    extends CustomComponent {
+public abstract class AddonVaadinDialogBase<CONFIG> extends CustomComponent {
 
     /**
      * Dialog context.
+     * TODO: Use some richer version like in AdvancedDPu.
      */
     protected ConfigDialogContext context;
     
     /**
-     * History of configuration class, if set used instead of
-     * {@link #configClass}.
+     * History of configuration class, if set used instead of {@link #configClass}.
      */
     private final ConfigHistory<CONFIG> configHistory;
 
@@ -50,16 +49,16 @@ public abstract class AddonVaadinDialogBase<CONFIG>
      */
     public void loadConfig(ConfigManager configManager) throws DPUConfigException {
         CONFIG dpuConfig = configManager.get(getConfigClassName(), configHistory);
-        // config can be null, so we then use the default
+        // Config can be null, so we then use the default.
         if (dpuConfig == null) {
-            // create new class
+            // Create new class.
             dpuConfig = configManager.createNew(configHistory.getFinalClass());
         }
         setConfiguration(dpuConfig);
     }
 
     /**
-     * Store configuration from dialog into manager.
+     * Store configuration from dialog into given {@link ConfigManager}.
      *
      * @param configManager
      * @throws eu.unifiedviews.dpu.config.DPUConfigException

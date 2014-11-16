@@ -9,7 +9,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

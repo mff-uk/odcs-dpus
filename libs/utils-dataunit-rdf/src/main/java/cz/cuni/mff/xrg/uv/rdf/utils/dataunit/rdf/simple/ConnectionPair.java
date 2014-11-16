@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * } catch (QueryEvaluationException ex) {
  *	LOG.error("Problem evaluating the query: {}", query, ex);
  * }
- * // in every case the associated connection is automatically close
+ * // In every case the associated connection is automatically close.
  * </pre>
  *
  * @author Škoda Petr
@@ -35,8 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectionPair<T> implements AutoCloseable {
 
-	private static final Logger LOG = LoggerFactory.getLogger(
-			ConnectionPair.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ConnectionPair.class);
 
 	/**
 	 * Query associated with object.
@@ -66,6 +65,10 @@ public class ConnectionPair<T> implements AutoCloseable {
 		}
 	}
 
+    /**
+     *
+     * @return Wrapped object, connected to given connection.
+     */
 	public T getObject() {
 		return object;
 	}

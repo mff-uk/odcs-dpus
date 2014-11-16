@@ -119,7 +119,7 @@ public class TabularConfig_V2 {
     /**
      * If null no class is set.
      */
-    private String rowsClass;
+    private String rowsClass = TabularOntology.ROW_CLASS;
 
     /**
      * Sheet name.
@@ -147,6 +147,11 @@ public class TabularConfig_V2 {
      * If checked then type auto is always set to string.
      */
     private boolean autoAsStrings = false;
+
+    /**
+     * If true then 'a' predicate with class is generated for table and row entity.
+     */
+    private boolean generateTableClass = false;
 
     public TabularConfig_V2() {
     }
@@ -327,10 +332,18 @@ public class TabularConfig_V2 {
         this.autoAsStrings = autoAsStrings;
     }
 
+    public boolean isGenerateTableClass() {
+        return generateTableClass;
+    }
+
+    public void setGenerateTableClass(boolean tableRowClass) {
+        this.generateTableClass = tableRowClass;
+    }
+
     public TableToRdfConfig getTableToRdfConfig() {
         return new TableToRdfConfig(keyColumn, baseURI, columnsInfo,
                 generateNew, rowsClass, ignoreBlankCells, columnsInfoAdv,
-                advancedKeyColumn, generateLabels, generateRowTriple, autoAsStrings);
+                advancedKeyColumn, generateLabels, generateRowTriple, autoAsStrings, generateTableClass);
     }
 
     public ParserCsvConfig getParserCsvConfig() {

@@ -9,6 +9,9 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
+/**
+ * DPU's configuration dialog.
+ */
 public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name}Config_V1> {
 
     public ${dpu_name}VaadinDialog() {

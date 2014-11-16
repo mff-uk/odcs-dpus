@@ -7,7 +7,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.openrdf.model.*;
@@ -16,82 +15,68 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.service.serialization.rdf.utils.FieldTypeGetter;
+
 /**
  * Very simple rdf serialisation class for string and integers.
  *
- * The null values are not serialised.
- *
+ * Known limitations:
+ * <ul>
+ * <li>The null values are not serialised.</li>
+ * <li>Can't serialise cycles, will cause program to endless loop.</li>
+ * <li>Does not support serialisation for now!</li>
+ * </ul>
  * @author Škoda Petr
  * @param <T>
  */
 class SerializationRdfSimple<T> implements SerializationRdf<T> {
 
-    private class Context {
+    /**
+     * Context used to group information for deserialise from rdf.
+     */
+    private class FromRdfContext {
+        
+        RepositoryConnection conn;
+        
+        URI[] graphs;
 
-        public final ValueFactory valueFactory;
-
-        public Integer subObjectCounter = 0;
-
-        private final List<Statement> result;
-
-        public Context(ValueFactory valueFactory, List<Statement> result) {
-            this.valueFactory = valueFactory;
-            this.result = result;
+        public FromRdfContext(RepositoryConnection conn, URI[] graphs) {
+            this.conn = conn;
+            this.graphs = graphs;
         }
-
-        public void add(Resource rsrc, URI uri, Value value) {
-            result.add(valueFactory.createStatement(rsrc, uri, value));
-        }
-
+                
     }
 
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(
-            SerializationRdfSimple.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SerializationRdfSimple.class);
 
     SerializationRdfSimple() {
 
     }
 
     @Override
-    public List<Statement> objectToRdf(T object, URI rootUri,
-            ValueFactory valueFactory) throws SerializationRdfFailure {
-        return objectToRdf(object, rootUri, valueFactory, new Configuration());
+    public List<Statement> objectToRdf(T object, Resource rootResource, ValueFactory valueFactory, Configuration config)
+            throws SerializationRdfFailure {
+        throw new UnsupportedOperationException();
     }
 
-    @Override
-    public List<Statement> objectToRdf(T object, URI rootUri,
-            ValueFactory valueFactory, Configuration config) throws SerializationRdfFailure {
-        final Context ctx = new Context(valueFactory,
-                new LinkedList<Statement>());
-        convertToRdf(object, rootUri, ctx, null, true, config);
-        return ctx.result;
-    }
 
     @Override
-    public void rdfToObject(RDFDataUnit rdf, URI rootUri, T object) throws SerializationRdfFailure {
-        rdfToObject(rdf, rootUri, object, new Configuration());
-    }
-
-    @Override
-    public void rdfToObject(RDFDataUnit rdf, URI rootUri, T object,
-            Configuration config) throws SerializationRdfFailure {
+    public void rdfToObject(RDFDataUnit rdf, Resource rootResource, T object, Configuration config)
+            throws SerializationRdfFailure {
         RepositoryConnection conn = null;
         try {
             conn = rdf.getConnection();
-
-            // get read graphs
+            // Get read graphs.
             List<URI> sourceGraphs = new LinkedList<>();
-            RDFDataUnit.Iteration iter = rdf.getIteration();
-            while (iter.hasNext()) {
-                sourceGraphs.add(iter.next().getDataGraphURI());
+            try (RDFDataUnit.Iteration iter = rdf.getIteration()) {
+                while (iter.hasNext()) {
+                    sourceGraphs.add(iter.next().getDataGraphURI());
+                }
             }
-            URI[] graphs = sourceGraphs.toArray(new URI[0]);
-            iter.close();
-
-            convertFromRdf(conn, graphs, rootUri, object, config);
+            final FromRdfContext context = new FromRdfContext(conn, sourceGraphs.toArray(new URI[0]));
+            convertFromRdf(context, rootResource, object, config);
         } catch (DataUnitException | RepositoryException ex) {
-            throw new SerializationRdfFailure("Can't get satements about: "
-                    + rootUri.stringValue(), ex);
+            throw new SerializationRdfFailure("Can't get satements about: " + rootResource.stringValue(), ex);
         } finally {
             if (conn != null) {
                 try {
@@ -103,170 +88,91 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
         }
     }
 
-    private void convertToRdf(Object toConvert, URI rootUri, Context ctx,
-            URI preferedPredicate, boolean firstLevel, Configuration config) {
-        if (preferedPredicate == null) {
-            preferedPredicate = ctx.valueFactory.createURI(
-                    config.getBasePredicateUri() + SerializationRdfOntology.P_HAS_VALUE);
-        }
-        // check for type
-        if (toConvert instanceof String || toConvert instanceof Number
-                || toConvert instanceof Boolean || toConvert.getClass()
-                .isPrimitive()) {
-            final String valueStr = toConvert.toString();
-            ctx.add(rootUri, preferedPredicate,
-                    ctx.valueFactory.createLiteral(valueStr));
-        } else if (toConvert instanceof Iterable) {
-            final Iterator iterator = ((Iterable) toConvert).iterator();
-            while (iterator.hasNext()) {
-                final Object obj = iterator.next();
-                // if it's simple object then it will use given
-                // predicate and just add values, if it's complex then
-                // it will create a new root
-                convertToRdf(obj, rootUri, ctx, preferedPredicate, false, config);
-            }
-        } else {
-            // complex object, we need to decide if we create new root
-            // object or not
-            // we create if we are in list, we do not create if
-            // this is firt level
-            if (!firstLevel) {
-                final URI subURI = ctx.valueFactory.createURI(
-                        config.getBaseResourceUri()
-                        + SerializationRdfOntology.PREFIX_OBJECT
-                        + (++ctx.subObjectCounter).toString());
-                // connect with predicate
-                ctx.add(rootUri, preferedPredicate, subURI);
-                // and substitute as rootUri
-                rootUri = subURI;
-            }
-            // parse object
-            final Class<?> clazz = toConvert.getClass();
-            final Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
-                final String fieldName = field.getName();
-                try {
-                    final PropertyDescriptor desc = new PropertyDescriptor(
-                            fieldName,
-                            clazz);
-                    final Method readMethod = desc.getReadMethod();
-                    if (readMethod == null) {
-                        LOG.warn("Missing getter for {}.{}",
-                                clazz.getSimpleName(),
-                                fieldName);
-                        continue;
-                    }
-                    final Object value = readMethod.invoke(toConvert);
-                    if (value == null) {
-                        // skip
-                        continue;
-                    }
-                    // prepare predicate and use translation if it exists
-                    String fieldPredicateName = fieldName;
-                    if (config.getPropertyMap().containsKey(fieldName)) {
-                        fieldPredicateName = config.getPropertyMap().get(fieldName);
-                    }
-                    final URI propertyURI = ctx.valueFactory.createURI(
-                            config.getBasePredicateUri()
-                            + SerializationRdfOntology.PREFIX_PROPERTY
-                            + fieldPredicateName);
-                    // parse
-                    convertToRdf(value, rootUri, ctx, propertyURI, false, config);
-                } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    LOG.warn("Failed to serialize {}.{}", clazz.getSimpleName(),
-                            fieldName); // ex
-                }
-            }
-        }
-    }
-
-    private void convertFromRdf(RepositoryConnection conn, URI[] graphs,
-            URI rootUri, Object object, Configuration config)
+    private void convertFromRdf(FromRdfContext context, Resource rootResource, Object object, Configuration config)
             throws SerializationRdfFailure, RepositoryException {
-        // get rdf data about given URI
+        // Get rdf data about given URI.
         final List<Statement> statements = new ArrayList<>(20);
-        RepositoryResult<Statement> repoResult
-                = conn.getStatements(rootUri, null, null, true, graphs);
+        RepositoryResult<Statement> repoResult = 
+                context.conn.getStatements(rootResource, null, null, true, context.graphs);
         while (repoResult.hasNext()) {
             statements.add(repoResult.next());
         }
 
-        LOG.debug("Statements about subject({}): {}", rootUri.stringValue(), statements.size());
-
+        LOG.debug("Statements about subject({}): {}", rootResource.stringValue(), statements.size());
+        
         final Class<?> clazz = object.getClass();
         for (Statement statement : statements) {
-            if (statement.getSubject().stringValue().compareTo(
-                    rootUri.stringValue()) != 0) {
-                // skip as it does not corespond to us - our object
+            if (statement.getSubject().stringValue().compareTo(rootResource.stringValue()) != 0) {
+                // Skip as it does not corespond to us - our object, subject.
                 continue;
             }
             final String predicateStr = statement.getPredicate().stringValue();
-            String fieldName = predicateStr.substring(
-                    predicateStr.lastIndexOf('/') + 1);
-            // if translation exists then apply it
-            if (config.getPropertyMap().containsKey(fieldName)) {
-                fieldName = config.getPropertyMap().get(fieldName);
-            }
-
-            // get field type
+            // Get property name.
+            String fieldName = config.getPropertyMap().get(predicateStr);
+            if (fieldName == null) {
+                // No mapping for this, so we parse the uri by hand.
+                if (predicateStr.length() > config.getOntologyPrefix().length()) {
+                    fieldName = predicateStr.substring(config.getOntologyPrefix().length());
+                } else {
+                    // Too short, skip the value.
+                    LOG.debug("{} --> too short", predicateStr);
+                    continue;
+                }
+            }            
+            // Get string value of current statement.
+            final String objectStr = statement.getObject().stringValue();
+            LOG.debug("{} --> {} with value {}", predicateStr, fieldName, objectStr);
+            // Get field type.
             try {
-                final PropertyDescriptor propDesc
-                        = new PropertyDescriptor(fieldName, clazz);
+                final PropertyDescriptor propDesc = new PropertyDescriptor(fieldName, clazz);
                 final Class<?> propClass = propDesc.getPropertyType();
                 final Method writeMethod = propDesc.getWriteMethod();
-
-                // get string value
-                final String objectStr = statement.getObject().stringValue();
-
-                Object value = convertPrimitiveFromRdf(propClass, objectStr);
+                // Try to convert as a primitive type.
+                final Object value = convertPrimitiveFromRdf(propClass, objectStr);
                 if (value != null) {
-                    // it's a primitive type
+                    // It's a primitive type.
                     writeMethod.invoke(object, value);
                 } else if (Collection.class.isAssignableFrom(propClass)) {
-                    // it's a collections
+                    // It's a collections.
                     final Field field = clazz.getDeclaredField(fieldName);
-                    final Class<?> innerClass = getCollectionGenericType(
-                            field.getGenericType());
+                    final Class<?> innerClass = FieldTypeGetter.getCollectionGenericType(field.getGenericType());
                     if (innerClass == null) {
-                        throw new SerializationRdfFailure(
-                                "Can't get type of Collection for: " + fieldName);
+                        throw new SerializationRdfFailure("Can't get type of Collection for: " + fieldName);
                     }
 
                     // TODO Cache type here!
-                    // get read method as we need to call add method on
-                    // given collection
+
+                    // Get read method as we need to call add method on given collection.
                     final Method readMethod = propDesc.getReadMethod();
-                    final Collection collection = (Collection) readMethod
-                            .invoke(object);
-                    // try conversion
-                    value = convertPrimitiveFromRdf(innerClass, objectStr);
+                    final Collection collection = (Collection) readMethod.invoke(object);
+                    // try conversion again
+                    final Object valueInCollection = convertPrimitiveFromRdf(innerClass, objectStr);
                     if (value != null) {
-                        // it's primitive
-                        collection.add(value);
+                        // It's primitive in collection, so just add the value.
+                        collection.add(valueInCollection);
                     } else {
-                        // complex type
-                        value = convertObjectFromRdf(conn, graphs, innerClass,
-                                statement.getObject(), config);
-                        collection.add(value);
+                        // Complex type.
+                        final Object objectValue = convertObjectFromRdf(context, innerClass,
+                                statement.getObject(), fieldName, config);
+                        collection.add(objectValue);
                     }
                 } else {
-                    // it's object = complex type
-                    value = convertObjectFromRdf(conn, graphs, propClass,
-                            statement.getObject(), config);
-                    writeMethod.invoke(object, value);
+                    // It's object = complex type.
+                    final Object objectValue = convertObjectFromRdf(context, propClass,
+                            statement.getObject(), fieldName, config);
+                    writeMethod.invoke(object, objectValue);
                 }
 
-            } catch (IntrospectionException | IllegalAccessException |
-                    IllegalArgumentException | InvocationTargetException |
-                    NoSuchFieldException | SecurityException ex) {
-                LOG.warn("Failed to set {}.{}", clazz.getSimpleName(),
-                        fieldName, ex);
+            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException |
+                    InvocationTargetException | NoSuchFieldException | SecurityException ex) {
+                LOG.warn("Failed to set {}.{}", clazz.getSimpleName(), fieldName, ex);
             }
 
         }
     }
 
     /**
+     * Convert string into object.
      *
      * @param clazz
      * @param objectStr
@@ -294,70 +200,48 @@ class SerializationRdfSimple<T> implements SerializationRdf<T> {
         }
     }
 
-    /**
-     *
-     * @param genType
-     * @return Null if type can not be obtained.
-     */
-    private Class<?> getCollectionGenericType(Type genType) {
-        if (!(genType instanceof ParameterizedType)) {
-            LOG.warn(
-                    "Superclass it not ParameterizedType");
-            return null;
-        }
-        final Type[] params
-                = ((ParameterizedType) genType)
-                .getActualTypeArguments();
-        // we know there should be just one for Collection
-        if (params.length != 1) {
-            LOG.warn(
-                    "Unexpected number of generic types: {} (1 expected)",
-                    params.length);
-            return null;
-        }
-        if (!(params[0] instanceof Class)) {
-            LOG.warn("Unexpected type '{}'",
-                    params[0]
-                    .toString());
-            return null;
-        }
-        return (Class<?>) params[0];
-    }
+
 
     /**
+     * Try to deserialise an object. If only literal is given then tries to construct the object directly,
+     * otherwise it create new object and call
+     * {@link #convertFromRdf(cz.cuni.mff.xrg.uv.service.serialization.rdf.SerializationRdfSimple.FromRdfContext, org.openrdf.model.URI, java.lang.Object, cz.cuni.mff.xrg.uv.service.serialization.rdf.SerializationRdf.Configuration)}
+     * to deserialise newly created object.
      *
-     * @param rdf
+     * @param context
      * @param clazz
      * @param value
+     * @param propertyName
+     * @param config
      * @return
+     * @throws SerializationRdfFailure
+     * @throws RepositoryException
      */
-    private Object convertObjectFromRdf(RepositoryConnection conn, URI[] graphs,
-            Class<?> clazz, Value value, Configuration config)
-            throws SerializationRdfFailure, RepositoryException {
+    private Object convertObjectFromRdf(FromRdfContext context, Class<?> clazz, Value value,
+            String propertyName, Configuration config) throws SerializationRdfFailure, RepositoryException {
         if (value instanceof URI) {
-            // complex object
+            // Complex object -> create a new instance.
             final Object result;
             try {
                 result = clazz.newInstance();
             } catch (IllegalAccessException | InstantiationException ex) {
-                throw new SerializationRdfFailure(
-                        "Can't create instance of object.", ex);
+                throw new SerializationRdfFailure("Can't create instance of object.", ex);
             }
             final URI baseUri = (URI) value;
-            convertFromRdf(conn, graphs, baseUri, result, config);
+            // Use new configuration.
+            final Configuration newConfiguration = new Configuration(config, propertyName);
+            convertFromRdf(context, baseUri, result, newConfiguration);
             return result;
         } else {
-            // ctor from string - literal, etc ..
+            // Ctor from string - literal, etc ..
             try {
                 Constructor<?> ctr = clazz.getConstructor(String.class);
-                // just create and return
+                // Just create and return.
                 return ctr.newInstance(value.stringValue());
             } catch (NoSuchMethodException | SecurityException |
                     IllegalAccessException | IllegalArgumentException |
                     InstantiationException | InvocationTargetException ex) {
-                throw new SerializationRdfFailure(
-                        "Can't create instance of object, from ctor(String).",
-                        ex);
+                throw new SerializationRdfFailure("Can't create instance of object, from ctor(String).", ex);
             }
         }
     }

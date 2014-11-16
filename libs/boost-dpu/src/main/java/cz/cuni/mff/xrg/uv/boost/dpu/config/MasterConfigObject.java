@@ -4,12 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Used to store multiple string values and string keys.
+ * Used to store multiple string values (configurations) under string keys.
  *
  * @author Škoda Petr
  */
 public class MasterConfigObject {
 
+    /**
+     * Name of master configuration. Used as a master configuration name for
+     * {@link cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon}.
+     */
     public static final String CONFIG_NAME = "master_config_object";
 
     private Map<String, String> configurations = new HashMap<>();

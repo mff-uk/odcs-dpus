@@ -7,7 +7,14 @@ package cz.cuni.mff.xrg.uv.service.serialization.xml;
 public class SerializationXmlFactory {
     
     private SerializationXmlFactory() { }
-    
+
+    /**
+     *
+     * @param <T>
+     * @param clazz
+     * @return
+     * @deprecated
+     */
     public static <T> SerializationXml<T> serializationXml(Class<T> clazz) {
         return new SerializationXmlImpl(clazz);
     }
@@ -17,7 +24,8 @@ public class SerializationXmlFactory {
      * @param <T>
      * @param clazz
      * @param rootName Root name to use instead of class name.
-     * @return 
+     * @return
+     * @deprecated
      */
     public static <T> SerializationXml<T> serializationXml(
             Class<T> clazz, String rootName) {

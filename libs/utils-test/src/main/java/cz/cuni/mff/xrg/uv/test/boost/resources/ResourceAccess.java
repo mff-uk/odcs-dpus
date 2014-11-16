@@ -24,11 +24,9 @@ public class ResourceAccess {
      * @return File representation.
      */
     public static File getFile(String name) {
-        final URL url = Thread.currentThread().getContextClassLoader()
-				.getResource(name);
+        final URL url = Thread.currentThread().getContextClassLoader().getResource(name);
         if (url == null) {
-            throw new RuntimeException(
-                    "Required resourcce '" + name + "' is missing.");
+            throw new RuntimeException("Required resourcce '" + name + "' is missing.");
         }
         return new File(url.getPath());
     }

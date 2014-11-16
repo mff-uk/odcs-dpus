@@ -15,33 +15,33 @@ import org.slf4j.LoggerFactory;
  */
 class ClosableConnection implements AutoCloseable {
 
-	private static final Logger LOG = LoggerFactory.getLogger(
-			ClosableConnection.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ClosableConnection.class);
 
-	private RepositoryConnection connection = null;
+    /**
+     * Wrapped connection, it is never null if construction does not throw.
+     */
+	private RepositoryConnection connection;
 
 	ClosableConnection(RDFDataUnit rdf) throws OperationFailedException {
 		try {
 			connection = rdf.getConnection();
 		} catch (DataUnitException e) {
-			throw new OperationFailedException("Failed to get exception.", e);
+			throw new OperationFailedException("Failed to get connection.", e);
 		} 
 	}
 
 	@Override
 	public void close() {
-		if (connection != null) {
-			try {
-				connection.close();
-			} catch (RepositoryException ex) {
-				LOG.warn("Failed to close repository connection.", ex);
-			}
+        try {
+            connection.close();
+        } catch (RepositoryException ex) {
+            LOG.warn("Failed to close repository connection.", ex);
 		}
 	}
 
 	/**
 	 * 
-	 * @return Wrapped connection, not null.
+	 * @return Wrapped connection, never null.
 	 */
 	public RepositoryConnection c() {
 		return connection;

@@ -4,15 +4,18 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provide serialisation of simple POJO classes into rdf statements and back.
  *
- * Does not support generic classes, objects. The only supported generic are
- * those with whose super type is {@link java.util.Collection}.
+ * Does not support generic classes, objects. The only supported generic are those with whose super type is
+ * {@link java.util.Collection}.
  *
  * Collection must be initialised in given object.
  *
@@ -21,103 +24,101 @@ import org.openrdf.model.ValueFactory;
  */
 public interface SerializationRdf<T> {
 
-    class Configuration {
+    /**
+     * Configuration for {@link SerializationRdf}.
+     */
+    public class Configuration {
+
+        private static final Logger LOG = LoggerFactory.getLogger(SerializationRdf.class);
 
         /**
-         * Must end with "/";
+         * Must end with "/".
          */
-        private String basePredicateUri =
-                SerializationRdfOntology.BASE_URI_ONTOLOGY;
+        private String ontologyPrefix = SerializationRdfOntology.BASE_URI_ONTOLOGY;
 
         /**
-         * Must end with "/";
+         * Must end with "/". Used only for conversion to rdf.
          */
-        private String baseResourceUri =
-                SerializationRdfOntology.BASE_URI_RESOURCE;
+        private String resourcesPrefix = SerializationRdfOntology.BASE_URI_RESOURCE;
 
         /**
-         * Enables translation-mapping of properties to different names.
-         * Map store pair fieldName,newName.
-         *
-         * Given mapping is used for all serialized and deserialised objects.
+         * Property map (uri, property). To denote property under some other property use '.'.
+         * Must not have null values as "property".
          */
         private final Map<String, String> propertyMap = new HashMap<>();
 
-        /**
-         * Default configuration.
-         */
         public Configuration() {
         }
 
         /**
+         * Create a new configuration for given property.
          *
-         * @param basePredicateUri Based uri for predicates, must end with '/'.
-         * @param baseResourceUri  Base uri for resources, must end with '/'.
+         * @param config
+         * @param property
          */
-        public Configuration(String basePredicateUri, String baseResourceUri) {
-            this.basePredicateUri = basePredicateUri;
-            this.baseResourceUri = baseResourceUri;
+        Configuration(Configuration config, String property) {
+            this.ontologyPrefix = config.ontologyPrefix + property + "/";
+            this.resourcesPrefix = config.resourcesPrefix + property + "/";
+            // Copy properties.
+            LOG.trace("Sub-config for: {}", property);
+            for (String propertyUri : config.propertyMap.keySet()) {
+                final String propertyName = config.propertyMap.get(propertyUri);
+                // Check if it's under given property and check that we do not insert out selfs.
+                if (propertyName.startsWith(property) && propertyName.length() > property.length()) {
+                    final String newPropertyName = propertyName.substring(property.length() + 1);
+                    LOG.trace("{} -> {} (old: '{}')", propertyUri, newPropertyName, propertyName);
+                    propertyMap.put(propertyUri, newPropertyName);
+                }
+            }
         }
 
-        public String getBasePredicateUri() {
-            return basePredicateUri;
+        public String getOntologyPrefix() {
+            return ontologyPrefix;
         }
 
-        public String getBaseResourceUri() {
-            return baseResourceUri;
+        public void setOntologyPrefix(String ontologyPrefix) {
+            this.ontologyPrefix = ontologyPrefix;
         }
 
+        public String getResourcesPrefix() {
+            return resourcesPrefix;
+        }
+
+        public void setResourcesPrefix(String resourcesPrefix) {
+            this.resourcesPrefix = resourcesPrefix;
+        }
+
+        /**
+         *
+         * @return Property map (uri; property).
+         */
         public Map<String, String> getPropertyMap() {
             return propertyMap;
         }
-
+        
     }
 
     /**
      *
      * @param rdf
-     * @param rootUri Root subject for object representation.
-     * @param object
-     * @throws SerializationRdfFailure
-     */
-    void rdfToObject(RDFDataUnit rdf, URI rootUri, T object)
-            throws SerializationRdfFailure;
-
-    /**
-     *
-     * @param rdf
-     * @param rootUri Root subject for object representation.
+     * @param rootResource Root subject for object representation.
      * @param object
      * @param config
      * @throws SerializationRdfFailure
      */
-    void rdfToObject(RDFDataUnit rdf, URI rootUri, T object,
-            Configuration config)
+    void rdfToObject(RDFDataUnit rdf, Resource rootResource, T object, Configuration config)
             throws SerializationRdfFailure;
 
     /**
      *
      * @param object Instance of object for conversion.
-     * @param rootUri
-     * @param valueFactory
-     * @return
-     * @throws SerializationRdfFailure
-     */
-    List<Statement> objectToRdf(T object, URI rootUri,
-            ValueFactory valueFactory)
-            throws SerializationRdfFailure;
-    
-    /**
-     *
-     * @param object Instance of object for conversion.
-     * @param rootUri
+     * @param rootRersource
      * @param valueFactory
      * @param config
      * @return
      * @throws SerializationRdfFailure
      */
-    List<Statement> objectToRdf(T object, URI rootUri,
-            ValueFactory valueFactory, Configuration config)
+    List<Statement> objectToRdf(T object, Resource rootRersource, ValueFactory valueFactory, Configuration config)
             throws SerializationRdfFailure;
 
 }

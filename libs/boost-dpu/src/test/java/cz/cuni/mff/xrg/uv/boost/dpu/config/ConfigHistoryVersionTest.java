@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- *
+ * 
  * @author Škoda Petr
  */
 public class ConfigHistoryVersionTest {
