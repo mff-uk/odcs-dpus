@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.transformer.sparq.construct;
+package cz.cuni.mff.xrg.uv.transformer.sparql.construct;
 
 import java.util.Date;
 import org.openrdf.query.MalformedQueryException;
@@ -27,9 +27,9 @@ import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class SparqConstruct extends DpuAdvancedBase<SparqConstructConfig_V1> {
+public class SparqlConstruct extends DpuAdvancedBase<SparqlConstructConfig_V1> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SparqConstruct.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SparqlConstruct.class);
 
     @DataUnit.AsInput(name = "input")
     public RDFDataUnit rdfInput;
@@ -37,8 +37,8 @@ public class SparqConstruct extends DpuAdvancedBase<SparqConstructConfig_V1> {
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit rdfOutput;
 
-    public SparqConstruct() {
-        super(SparqConstructConfig_V1.class, AddonInitializer.noAddons());
+    public SparqlConstruct() {
+        super(SparqlConstructConfig_V1.class, AddonInitializer.noAddons());
     }
 
     @Override
@@ -77,7 +77,7 @@ public class SparqConstruct extends DpuAdvancedBase<SparqConstructConfig_V1> {
 
     @Override
     public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new SparqConstructVaadinDialog();
+        return new SparqlConstructVaadinDialog();
     }
 
     /**

@@ -1,16 +1,16 @@
-package cz.cuni.mff.xrg.uv.transformer.sparq.construct;
+package cz.cuni.mff.xrg.uv.transformer.sparql.construct;
 
 /**
  * DPU's configuration class.
  */
-public class SparqConstructConfig_V1 {
+public class SparqlConstructConfig_V1 {
 
     /**
      * SPARQL construct query.
      */
     private String query = "CONSTRUCT {?s ?p ?o} WHERE {?s ?p ?o}";
 
-    public SparqConstructConfig_V1() {
+    public SparqlConstructConfig_V1() {
 
     }
 
