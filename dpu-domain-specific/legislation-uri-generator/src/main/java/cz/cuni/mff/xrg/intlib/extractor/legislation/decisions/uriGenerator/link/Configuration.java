@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
+import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.IntLibLink;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -7,6 +8,8 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -18,6 +21,8 @@ import org.xml.sax.SAXException;
  * @author Jakub Starka
  */
 public class Configuration {
+    
+     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
     
     // -------------------------------------------------------------------------
     // Fields
@@ -75,7 +80,7 @@ public class Configuration {
 
             processTree(doc);
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
         }
     }
     

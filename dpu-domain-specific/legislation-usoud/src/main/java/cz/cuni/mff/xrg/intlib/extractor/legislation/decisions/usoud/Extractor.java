@@ -2,21 +2,17 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.USoudHTTPRequests;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.FileRecord;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.DataUnitException;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
+import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 
-import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
-import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
-import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
-import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
-import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
-import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
-import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
-import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
-import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +39,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author tomasknap
  */
-@AsExtractor
-public class Extractor extends ConfigurableBase<ExtractorConfig> implements ConfigDialogProvider<ExtractorConfig> {
+@DPU.AsExtractor
+public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
             Extractor.class);
@@ -53,23 +49,25 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
 	
     private String dateTo;
 
-    public Extractor() {
-        super(ExtractorConfig.class);
-    }
+   public Extractor(){
+		super(ExtractorConfig.class, AddonInitializer.noAddons());
+	}
 	
-    @OutputDataUnit(name = "output")
-    public WritableRDFDataUnit rdfOutput;
+    @DataUnit.AsOutput(name = "output")
+	public WritableFilesDataUnit outputFiles;
+    
+          @Override
+        public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
+            return new ExtractorDialog();
+        }
 
-    @Override
-    public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {
-        return new ExtractorDialog();
-    }
+     @Override
+        protected void innerExecute() throws DPUException, DataUnitException {
+             
+        log.info("DPU is running ...");
 
-    @Override
-    public void execute(DPUContext context) throws DPUException, DataUnitException {
-
-		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
-		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+//        final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
+//        final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 
@@ -152,36 +150,49 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
 
             String filePath = fileRecord.getFilePath();
             String expressionURI = fileRecord.getExpression();
+            File newFile = new File(filePath);
 
             //process each extracted file
-            log.info("Processing file {}", filePath);
+            log.info("Processing file {}", newFile.toURI().toASCIIString());
             
             //Create output
-            String output =  DataUnitUtils.readFile(filePath); //, Charset.forName("Cp1250"));
-            if (output == null) {
-                log.warn("File {} cannot be read", filePath);
-                log.warn("File skipped");
-            }
+//            String output =  DataUnitUtils.readFile(filePath); //, Charset.forName("Cp1250"));
+//            if (output == null) {
+//                log.warn("File {} cannot be read", filePath);
+//                log.warn("File skipped");
+//            }
 
-            //use the expression
-            Resource subj = valueFactory.createURI(expressionURI);
-            URI pred = valueFactory.createURI(config.getOutputPredicate());
-            Value obj = valueFactory.createLiteral(output);
+//            //use the expression
+//            Resource subj = valueFactory.createURI(expressionURI);
+//            URI pred = valueFactory.createURI(config.getOutputPredicate());
+//            Value obj = valueFactory.createLiteral(output);
 
-            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-            log.debug("Prepared triple {}", preparedTriple);
-
-            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
-            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
+//            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+//            log.debug("Prepared triple {}", preparedTriple);
+//
+//            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+//            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
+//            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
             
-            try {
-				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-            } catch(OperationFailedException e) {
-                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
-                log.info("Continues with the next file");
-            }
+//            try {
+//				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+//                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+//            } catch(OperationFailedException e) {
+//                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
+//                log.info("Continues with the next file");
+//            }
+            
+            
+               //add file to the output (symbolic name is newSubject
+            outputFiles.addExistingFile(expressionURI, newFile.toURI().toASCIIString());
+            
+            //set up virtual path of the output, so that the loader to file at the end knows under which name the output should be stored. 
+            String outputVirtualPath = newFile.getName();
+            VirtualPathHelpers.setVirtualPath(outputFiles, expressionURI, outputVirtualPath);
+                     
+            log.debug("Adding new file with sn {} and path{}", expressionURI, newFile.toURI().toASCIIString());
+            
+            
 
             if (context.canceled()) {
                 log.info("DPU cancelled");
@@ -196,10 +207,6 @@ public class Extractor extends ConfigurableBase<ExtractorConfig> implements Conf
 
 
         log.info("Processed {} files", i);
-
-
-
-
 
 
     }

@@ -3,37 +3,38 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
-import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import eu.unifiedviews.dpu.config.DPUConfigException;
 
 
 /**
  * DPU's configuration dialog. NO Dialog needed for this DPU
  *
  */
-public class JTaggerAnnotatorDialog extends BaseConfigDialog<JTaggerAnnotatorConfig> {
+public class JTaggerAnnotatorDialog extends AdvancedVaadinDialogBase<JTaggerAnnotatorConfig> {
 
 	private VerticalLayout mainLayout;
 
 	private TextField mode; //Path
 
 	public JTaggerAnnotatorDialog() {
-		super(JTaggerAnnotatorConfig.class);
+		super(JTaggerAnnotatorConfig.class,  AddonInitializer.noAddons());
 		buildMainLayout();
 		setCompositionRoot(mainLayout);
 	}
 
 	@Override
-	public void setConfiguration(JTaggerAnnotatorConfig conf) throws ConfigException {
+	protected void setConfiguration(JTaggerAnnotatorConfig conf) throws DPUConfigException {
 		mode.setValue(conf.getMode());
 	}
 
 	@Override
-	public JTaggerAnnotatorConfig getConfiguration() throws ConfigException {
+	public JTaggerAnnotatorConfig getConfiguration() throws DPUConfigException {
 
 		//get the conf from the dialog
 		if (!(mode.getValue().equals("nscr") || mode.getValue().equals("uscr"))) {
-			throw new ConfigException("Mode is not correctly specified.");
+			throw new DPUConfigException("Mode is not correctly specified.");
 		}
 
 		JTaggerAnnotatorConfig conf = new JTaggerAnnotatorConfig(mode.getValue()
