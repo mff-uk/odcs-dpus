@@ -39,6 +39,14 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
      */
     public class Context {
 
+        /**
+         * Owner dialog.
+         */
+        private final AdvancedVaadinDialogBase dialog;
+
+        /**
+         * Core context.
+         */
         private ConfigDialogContext originalDialogContext;
 
         /**
@@ -56,11 +64,17 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
          */
         private final List<AddonVaadinDialogBase> addonDialogs = new LinkedList<>();
 
-        public Context(ConfigHistory<CONFIG> configHistory, List<AddonInitializer.AddonInfo> addonsInfo) {
+        public Context(AdvancedVaadinDialogBase dialog, ConfigHistory<CONFIG> configHistory,
+                List<AddonInitializer.AddonInfo> addonsInfo) {
+            this.dialog = dialog;
             this.configHistory = configHistory;
             for (AddonInitializer.AddonInfo addonInfo : addonsInfo) {
                 addons.add(addonInfo.getAddon());
             }
+        }
+
+        public AdvancedVaadinDialogBase getDialog() {
+            return dialog;
         }
 
         public ConfigDialogContext getOriginalDialogContext() {
@@ -115,7 +129,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
         this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
         // This alias is also set in DpuAdvancedBase, they muset be tha same!
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
-        this.context = new Context(ConfigHistory.createNoHistory(configClass), addons);
+        this.context = new Context(this, ConfigHistory.createNoHistory(configClass), addons);
         // Create config manager and initialize addons.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
         for (Addon addon : this.context.addons) {
@@ -136,7 +150,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
         this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
         // This alias is also set in DpuAdvancedBase, they muset be tha same!
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
-        this.context = new Context(configHistory, addons);
+        this.context = new Context(this, configHistory, addons);
         // Create config manager and initialize addons.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
         for (Addon addon : this.context.addons) {
