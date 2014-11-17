@@ -35,6 +35,7 @@ import org.openrdf.repository.RepositoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
@@ -166,7 +167,9 @@ public class ConfigurationFromRdf implements
             mainLayout.setMargin(true);
 
             final Label description = new Label("'uri' in table must be full and valid URI."
-                    + "Leave the text field blank to use auto value = property name, where '.' are replaced with '/', prefixed by 'base ontology prefix'");
+                    + "Leave the text field blank to use auto value = property name, where '.' are replaced with '/', prefixed by 'base ontology prefix'.</br>"
+                    + "'Binding configuraion.uri' must be unique, ie. is not possible to set two properties from a single statement.",
+                    ContentMode.HTML);
 
             mainLayout.addComponent(description);
 
@@ -232,7 +235,11 @@ public class ConfigurationFromRdf implements
                         .getItemProperty("uri").getValue();
                 final String uri = txtURI.getValue();
                 if (uri != null && !uri.isEmpty()) {
-                    dpuConfig.getBinding().put(uri, fieldName);
+                    if (dpuConfig.getBinding().containsKey(uri)) {
+                        throw new DPUConfigException("Duplicit uri detected in " + getCaption() + ".");
+                    } else {
+                        dpuConfig.getBinding().put(uri, fieldName);
+                    }
                 }
             }
             // Store dpuConfig to configuration and return.
