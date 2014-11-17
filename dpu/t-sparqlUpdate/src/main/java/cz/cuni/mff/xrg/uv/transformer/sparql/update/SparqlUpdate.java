@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryLanguage;
@@ -45,7 +46,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     @Override
     protected void innerExecute() throws DPUException {
         // Get update query.
-        final String query = config.getQuery();
+        String query = config.getQuery();
         if (query == null || query.isEmpty()) {
             throw new DPUException("Query string is null or empty");
         }
@@ -55,13 +56,14 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
                 prepareUsingClause());
         LOG.debug("used copy query: {}", copyQuery);
         executeQuery(copyQuery);
-        // Prepare anbd execute user update query.
-        final StringBuilder updateQuery = new StringBuilder();
-        updateQuery.append(prepareWithClause(outputgraphUri) );
-        updateQuery.append(" ");
-        updateQuery.append(query);
-        LOG.debug("used update query: {}", updateQuery.toString());
-        executeQuery(updateQuery.toString());
+        // If contains DELETE, then DELETE is before INSERT. Add WITH clause before first of them.
+        if (Pattern.compile(Pattern.quote("DELETE"), Pattern.CASE_INSENSITIVE).matcher(query).find()) {
+            query = query.replaceFirst("(?i)DELETE", prepareWithClause(outputgraphUri) + " DELETE");
+        } else {
+            query = query.replaceFirst("(?i)INSERT", prepareWithClause(outputgraphUri) + " INSERT");
+        }
+        LOG.debug("used update query: {}", query);
+        executeQuery(query);
     }
 
     @Override
