@@ -66,7 +66,8 @@ public class Scraper_parser extends ScrapingTemplate{
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
             if (outputFiles) {
                 try {
-					obce.addExistingFile(doc, new File(doc).toURI().toString());
+					File file = new File(doc);
+                	obce.addExistingFile(file.getName(), file.toURI().toString());
 				} catch (DataUnitException e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
@@ -77,7 +78,8 @@ public class Scraper_parser extends ScrapingTemplate{
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
             if (outputFiles)
                 try {
-					zsj.addExistingFile(doc, new File(doc).toURI().toString());
+					File file = new File(doc);
+					zsj.addExistingFile(file.getName(), file.toURI().toString());
 				} catch (DataUnitException e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
