@@ -42,8 +42,10 @@ public class ExecutionTest {
     //@Test
     public void test() throws OperationFailedException, QueryEvaluationException, ExternalFailure, 
             ConfigException, RepositoryException {
-        configLogger();
-        parse("d:/Temp/01/input-test.ttl");
+        //configLogger();
+        //parse("d:/Temp/01/input-test.ttl");
+
+        parse("d:/Temp/03/adresy-data-input - small.ttl");
     }
 
     private void configLogger() {
@@ -92,14 +94,14 @@ public class ExecutionTest {
         // load data
         try {
             // aditional data
-            InputOutput.extractFromFile(new File("d:/Temp/02/ulice.ttl"),
-                    RDFFormat.TURTLE, inUlice);
-            InputOutput.extractFromFile(new File("d:/Temp/02/obce.ttl"),
-                    RDFFormat.TURTLE, inObce);
-            InputOutput.extractFromFile(new File("d:/Temp/02/castiObci.ttl"),
-                    RDFFormat.TURTLE, inCastiObci);
-            InputOutput.extractFromFile(new File("d:/Temp/02/vusc.ttl"),
-                    RDFFormat.TURTLE, inKraj);
+//            InputOutput.extractFromFile(new File("d:/Temp/02/ulice.ttl"),
+//                    RDFFormat.TURTLE, inUlice);
+//            InputOutput.extractFromFile(new File("d:/Temp/02/obce.ttl"),
+//                    RDFFormat.TURTLE, inObce);
+//            InputOutput.extractFromFile(new File("d:/Temp/02/castiObci.ttl"),
+//                    RDFFormat.TURTLE, inCastiObci);
+//            InputOutput.extractFromFile(new File("d:/Temp/02/vusc.ttl"),
+//                    RDFFormat.TURTLE, inKraj);
             // test based data
             InputOutput.extractFromFile(new File(fileName),
                     RDFFormat.TURTLE, address);
@@ -109,7 +111,7 @@ public class ExecutionTest {
         }
         // execute
         
-        AddressMapperConfig_V1 config = new AddressMapperConfig_V1();
+        final AddressMapperConfig_V1 configuration = new AddressMapperConfig_V1();
 
         HashMap<String, List<String>> mapperConfig = new HashMap<>();
         mapperConfig.put(AddressRegionMapper.NAME,
@@ -120,14 +122,14 @@ public class ExecutionTest {
                 Arrays.asList("http://schema.org/streetAddress"));
         mapperConfig.put(AddressLocalityMapper.NAME,
                 Arrays.asList("http://schema.org/addressLocality"));
-        config.setMapperConfig(mapperConfig);
+        configuration.setMapperConfig(mapperConfig);
 
         AddressMapper main = new AddressMapper() {
 
             @Override
             protected void innerExecute() throws DPUException, DataUnitException {
                 // set configuration
-                this.config = config;
+                this.config = configuration;
                 // execute
                 super.innerExecute();
             }
@@ -138,11 +140,12 @@ public class ExecutionTest {
         main.setTestMode();
         
         // bind data units
-        main.inRdfUlice = inUlice;
-        main.inRdfCastiObci = inCastiObci;
-        main.inRdfKraje = inKraj;
-        main.inRdfObce = inObce;
-        main.inRdfUlice = inUlice;
+//        main.inRdfUlice = inUlice;
+//        main.inRdfCastiObci = inCastiObci;
+//        main.inRdfKraje = inKraj;
+//        main.inRdfObce = inObce;
+
+        main.inRdfPostalAddress = address;
         main.outRdfLog = log;
         main.outRdfMapping = output;
 

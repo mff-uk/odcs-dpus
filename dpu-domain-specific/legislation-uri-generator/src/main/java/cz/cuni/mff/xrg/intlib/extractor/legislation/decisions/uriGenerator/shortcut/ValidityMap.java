@@ -2,7 +2,7 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shor
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.*;
 
-import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUContext;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,8 +23,9 @@ public class ValidityMap {
 
 
 	// public static final String EXPRESSION_LIST = "expressionList.csv";
-	private static final org.slf4j.Logger logger = LoggerFactory
-			.getLogger(ValidityMap.class);
+	 private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ValidityMap.class);
+        
+        
 
 	private static TreeMap<Work, Validity> validityMap = new TreeMap<>();
 
@@ -66,8 +67,7 @@ public class ValidityMap {
 				try {
 					validityMap.get(w).add(parts[11]);
 				} catch (ParseException ex) {
-					Logger.getLogger(ValidityMap.class.getName()).log(
-							Level.SEVERE, "Invalid date: " + s, ex);
+					logger.error("Invalid date: {}, {}" + s, ex.getLocalizedMessage());
 				}
 			} else {
 				try {
@@ -75,8 +75,7 @@ public class ValidityMap {
 					v.add(parts[11]);
 					validityMap.put(w, v);
 				} catch (ParseException ex) {
-					Logger.getLogger(ValidityMap.class.getName()).log(
-							Level.SEVERE, "Invalid date: " + s);
+					logger.error("Invalid date: {}, {}" + s, ex.getLocalizedMessage());
 				}
 			}
 

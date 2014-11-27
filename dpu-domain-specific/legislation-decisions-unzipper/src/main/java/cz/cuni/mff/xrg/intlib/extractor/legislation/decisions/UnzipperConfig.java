@@ -1,14 +1,12 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
-import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
-import cz.cuni.mff.xrg.odcs.commons.ontology.OdcsTerms;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class UnzipperConfig extends DPUConfigObjectBase {
+public class UnzipperConfig {
 
 	private String dateFrom = "18/09/2013";
 
@@ -48,7 +46,7 @@ public class UnzipperConfig extends DPUConfigObjectBase {
 	public UnzipperConfig(String dateFrom, String dateTo,
 			int maxNumberOfDecisions, boolean currentDay,
 			boolean fromLastSuccessful) {
-		this.outputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
+//		this.outputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
 		this.dateTo = dateTo;
 		this.dateFrom = dateFrom;
 		this.maxExtractedDecisions = maxNumberOfDecisions;
@@ -62,7 +60,7 @@ public class UnzipperConfig extends DPUConfigObjectBase {
 	 * @param dateFrom
 	 */
 	public UnzipperConfig(String dateFrom, String dateTo) {
-		this.outputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
+//		this.outputPredicate = OdcsTerms.DATA_UNIT_TEXT_VALUE_PREDICATE;
 		this.dateTo = dateTo;
 		this.dateFrom = dateFrom;
 	}

@@ -8,7 +8,6 @@ import java.util.Set;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.*;
-import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -29,10 +28,13 @@ public class ManipulatorInstance implements AutoCloseable {
 
     protected static final String OBJECT_BINDING = "object";
 
+    /**
+     * First %s must be replaced with FROM clause.
+     */
     private static final String SELECT_QUERY
-            = "SELECT ?" + OBJECT_BINDING + " WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
-            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
+            = "SELECT %s ?" + OBJECT_BINDING + " WHERE { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
+            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
             + "}";
 
     /**
@@ -51,28 +53,31 @@ public class ManipulatorInstance implements AutoCloseable {
     protected final boolean closeConnectionOnClose;
 
     /**
-     * Dataset used for queries.
+     * Select query with FROM clause.
      */
-    protected final DatasetImpl dataset;
+    protected final String selectWithGraph;
 
     /**
      *
      * @param connection
-     * @param readGraph
+     * @param readGraphs
      * @param symbolicName           Symbolic name to which this instance is bound. Can be changed later.
      * @param closeConnectionOnClose If true then given connection is close one this instance is closed.
      * @throws DataUnitException
      */
-    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraph, String symbolicName,
+    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, String symbolicName,
             boolean closeConnectionOnClose) throws DataUnitException {
         this.connection = connection;
         this.symbolicName = symbolicName;
         this.closeConnectionOnClose = closeConnectionOnClose;
-        this.dataset = new DatasetImpl();
-        // Add read graphs.
-        for (URI uri : readGraph) {
-            this.dataset.addDefaultGraph(uri);
+        // Prepare selectWithGraph
+        final StringBuilder fromClause = new StringBuilder();
+        for (URI graph : readGraphs) {
+            fromClause.append("FROM <");
+            fromClause.append(graph.stringValue());
+            fromClause.append("> ");
         }
+        this.selectWithGraph = String.format(SELECT_QUERY, fromClause.toString());
     }
 
     /**
@@ -87,10 +92,9 @@ public class ManipulatorInstance implements AutoCloseable {
     public String getFirst(String predicate) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
+            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, selectWithGraph);
             tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            tupleQuery.setDataset(dataset);
             // Return first result.
             final TupleQueryResult result = tupleQuery.evaluate();
             if (result.hasNext()) {
@@ -112,10 +116,9 @@ public class ManipulatorInstance implements AutoCloseable {
     public List<String> getAll(String predicate) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
+            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, selectWithGraph);
             tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            tupleQuery.setDataset(dataset);
             // Store all the results into list.
             final TupleQueryResult result = tupleQuery.evaluate();
             final List<String> resultList = new LinkedList<>();

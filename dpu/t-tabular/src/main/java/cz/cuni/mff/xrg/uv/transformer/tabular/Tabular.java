@@ -121,8 +121,7 @@ public class Tabular extends DpuAdvancedBase<TabularConfig_V2> {
             // output data
             try {
                 if (config.isUseTableSubject()) {
-                    URI tableURI = rdfTableWrap.getValueFactory().createURI(
-                            entry.getFileURIString());
+                    URI tableURI = rdfTableWrap.getValueFactory().createURI(entry.getFileURIString());
                     tableToRdf.setTableSubject(tableURI);
                     // add info about symbolic name
                     rdfTableWrap.add(tableURI,

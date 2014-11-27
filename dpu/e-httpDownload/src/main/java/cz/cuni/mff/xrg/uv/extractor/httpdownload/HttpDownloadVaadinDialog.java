@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.extractor.httpdownload;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.ConfigurationFromRdf;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.HelpHolder;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
@@ -18,7 +19,8 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
                 "eu.unifiedviews.plugins.extractor.httpdownload.HttpDownloadConfig_V1")
                 .addCurrent(HttpDownloadConfig_V2.class),
                 AddonInitializer.create(new CachedFileDownloader(),
-                        new ConfigurationFromRdf("inRdfToDownload")));
+                        new ConfigurationFromRdf("inRdfToDownload"),
+                        new HelpHolder(HttpDownloadHelp.HELP)));
 
         buildLayout();
     }
@@ -39,8 +41,8 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
         setSizeFull();
 
         table = new ComponentTable<>(DownloadInfo_V1.class,
-                new ComponentTable.ColumnInfo("uri", "Uri", new UrlValidator(), 0.5f),
-                new ComponentTable.ColumnInfo("virtualPath", "Download as (optional)", null, 0.5f)
+                new ComponentTable.ColumnInfo("uri", "Uri", new UrlValidator(), 0.7f),
+                new ComponentTable.ColumnInfo("virtualPath", "Download as (optional)", null, 0.3f)
         );
 
         table.setPolicy(new ComponentTable.Policy<DownloadInfo_V1>() {
@@ -52,7 +54,6 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
 
         });
 
-        setCompositionRoot(table
-        );
+        setCompositionRoot(table);
     }
 }

@@ -157,6 +157,7 @@ public class LawDocument extends Work {
                         refersTo = Integer.parseInt(refersToAttribute);
                     }
                 } catch (NumberFormatException ex) {
+                    logger.error(ex.getLocalizedMessage());
                     
                 }
                 
