@@ -1,6 +1,7 @@
 package cz.opendata.linked.cz.cenia.irz;
 
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.DCTERMS;
+import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.SKOS;
 import org.slf4j.Logger;
@@ -196,6 +198,7 @@ public class Parser extends ScrapingTemplate {
 
                     URI currentChemicalCheckURI = valueFactory.createURI(currentCheck.toString() + "/" + uriSlug(currentChemical));
                     URI currentChemicalURI = valueFactory.createURI(irzonto + "chemicals/" + uriSlug(currentChemical));
+                    URI currentChemicalURI2 = valueFactory.createURI("http://linked.opendata.cz/resource/domain/irz/latka/" + uriSlug(currentChemical));
                     
                     URI currentVoda = valueFactory.createURI(currentChemicalCheckURI.toString() + "/voda");
                     URI currentOvzdusi = valueFactory.createURI(currentChemicalCheckURI.toString() + "/ovzdusi");
@@ -204,6 +207,7 @@ public class Parser extends ScrapingTemplate {
                     URI currentPrenosOdpad = valueFactory.createURI(currentChemicalCheckURI.toString() + "/prenos-odpad");
 
                     outputDataUnit.add(currentChemicalURI, RDF.TYPE, SKOS.CONCEPT);
+                    outputDataUnit.add(currentChemicalURI, OWL.SAMEAS, currentChemicalURI2);
                     outputDataUnit.add(currentChemicalURI, SKOS.PREF_LABEL, valueFactory.createLiteral(currentChemical, "cs"));
                     outputDataUnit.add(currentChemicalURI, SKOS.IN_SCHEME, chemScheme);
                     
