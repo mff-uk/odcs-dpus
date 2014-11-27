@@ -4,12 +4,9 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provide serialisation of simple POJO classes into rdf statements and back.
@@ -29,8 +26,6 @@ public interface SerializationRdf<T> {
      */
     public class Configuration {
 
-        private static final Logger LOG = LoggerFactory.getLogger(SerializationRdf.class);
-
         /**
          * Must end with "/".
          */
@@ -42,8 +37,7 @@ public interface SerializationRdf<T> {
         private String resourcesPrefix = SerializationRdfOntology.BASE_URI_RESOURCE;
 
         /**
-         * Property map (uri, property). To denote property under some other property use '.'.
-         * Must not have null values as "property".
+         * Property map (uri; property). To denote property under some other property use '.'.
          */
         private final Map<String, String> propertyMap = new HashMap<>();
 
@@ -60,13 +54,11 @@ public interface SerializationRdf<T> {
             this.ontologyPrefix = config.ontologyPrefix + property + "/";
             this.resourcesPrefix = config.resourcesPrefix + property + "/";
             // Copy properties.
-            LOG.trace("Sub-config for: {}", property);
             for (String propertyUri : config.propertyMap.keySet()) {
                 final String propertyName = config.propertyMap.get(propertyUri);
-                // Check if it's under given property and check that we do not insert out selfs.
-                if (propertyName.startsWith(property) && propertyName.length() > property.length()) {
+                // Check if it's under given property.
+                if (propertyName.startsWith(property)) {
                     final String newPropertyName = propertyName.substring(property.length() + 1);
-                    LOG.trace("{} -> {} (old: '{}')", propertyUri, newPropertyName, propertyName);
                     propertyMap.put(propertyUri, newPropertyName);
                 }
             }
@@ -101,24 +93,24 @@ public interface SerializationRdf<T> {
     /**
      *
      * @param rdf
-     * @param rootResource Root subject for object representation.
+     * @param rootUri Root subject for object representation.
      * @param object
      * @param config
      * @throws SerializationRdfFailure
      */
-    void rdfToObject(RDFDataUnit rdf, Resource rootResource, T object, Configuration config)
+    void rdfToObject(RDFDataUnit rdf, URI rootUri, T object, Configuration config)
             throws SerializationRdfFailure;
 
     /**
      *
      * @param object Instance of object for conversion.
-     * @param rootRersource
+     * @param rootUri
      * @param valueFactory
      * @param config
      * @return
      * @throws SerializationRdfFailure
      */
-    List<Statement> objectToRdf(T object, Resource rootRersource, ValueFactory valueFactory, Configuration config)
+    List<Statement> objectToRdf(T object, URI rootUri, ValueFactory valueFactory, Configuration config)
             throws SerializationRdfFailure;
 
 }

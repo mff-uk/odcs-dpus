@@ -5,7 +5,6 @@ package cz.cuni.mff.xrg.uv.service.serialization.xml;
  * 
  * @author Škoda Petr
  * @param <T>
- * @deprecated Use {@link SerializationXmlGeneral} instead.
  */
 public interface SerializationXml<T> {
 

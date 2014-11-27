@@ -1,6 +1,5 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut;
 
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Work;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -17,8 +16,7 @@ public class SparqlLoader {
     
      public static File tempDir; 
 
-         
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(SparqlLoader.class);
+     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SparqlLoader.class);
     
     
     public static File getCacheDir() {
@@ -120,7 +118,7 @@ public class SparqlLoader {
 
         } catch (Exception e) {
 
-        log.error(e.getLocalizedMessage());
+        e.printStackTrace();
 
         } finally {
 

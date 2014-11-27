@@ -40,7 +40,6 @@ public class StreetAddressMapper extends StatementMapper {
         
         // do we have knowledge base?
         if (knowledgeBase == null) {
-            // Newer null here!
             mapWithoutKnowledge(address.getTownName(), address.getStreetName(),
                     results);
         } else {

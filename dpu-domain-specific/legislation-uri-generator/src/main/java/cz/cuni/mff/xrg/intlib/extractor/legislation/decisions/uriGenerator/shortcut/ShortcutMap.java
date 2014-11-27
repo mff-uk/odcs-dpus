@@ -2,7 +2,7 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shor
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.WorkType;
-import eu.unifiedviews.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 import java.io.BufferedReader;
 import java.io.File;

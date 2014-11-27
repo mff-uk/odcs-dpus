@@ -5,7 +5,7 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor;
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Utils;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -132,7 +132,7 @@ public class USoudHTTPRequests1 {
             String response = httpConnection(call, parameters, cookie, "GET");
             //log.info("RESULT: {}", response);
             try {
-                Utils.storeStringToTempFile(response, cacheRoot.getCanonicalPath().toString()+ File.separator + "testResp");
+                DataUnitUtils.storeStringToTempFile(response, cacheRoot.getCanonicalPath().toString()+ File.separator + "testResp");
             } catch (IOException ex) {
                 Logger.getLogger(USoudHTTPRequests1.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -189,7 +189,7 @@ public class USoudHTTPRequests1 {
                
                     
                     //merge and store
-                    Utils.storeStringToTempFile(fileContent, cacheRecordPath);
+                    DataUnitUtils.storeStringToTempFile(fileContent, cacheRecordPath);
                     
                 }
                 

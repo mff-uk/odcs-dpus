@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressMapperConfig_V1> {
+public class AddressMapperVaadinDialog
+        extends AdvancedVaadinDialogBase<AddressMapperConfig_V1> {
 
     private static final String COLUMN_NAME_MAPPER = "Mapper";
 
@@ -32,6 +33,7 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
 
     public AddressMapperVaadinDialog() {
         super(AddressMapperConfig_V1.class, AddonInitializer.noAddons());
+
         buildLayout();
     }
 
@@ -39,7 +41,7 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         setWidth("100%");
         setHeight("100%");
 
-        final VerticalLayout mainLayout = new VerticalLayout();
+        VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
@@ -48,9 +50,8 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         txtQuery = new TextArea();
         txtQuery.setWidth("100%");
         txtQuery.setHeight("100%");
-        txtQuery.setCaption("Query for PostalAddress (must select ?s):");
+        txtQuery.setCaption("Query for PostalAddress:");
         txtQuery.setRequired(true);
-        txtQuery.setDescription("Query for subjects \"?s\" of type http://schema.org/PostalAddress.");
         mainLayout.addComponent(txtQuery);
         mainLayout.setExpandRatio(txtQuery, 0.2f);
 
@@ -67,6 +68,9 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         txtRuianFailRetry.setHeight("-1px");
         txtRuianFailRetry.setCaption("Ruian fail retry (-1 for infinity):");
         txtRuianFailRetry.setRequired(true);
+//        txtRuianFailRetry.addValidator(
+//                new IntegerRangeValidator("Must be in range -1, 10000", 
+//                        -1, 1000));
         mainLayout.addComponent(txtRuianFailRetry);
         mainLayout.setExpandRatio(txtRuianFailRetry, 0);
 
@@ -75,6 +79,9 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         txtRuianFailDelay.setHeight("-1px");
         txtRuianFailDelay.setCaption("Ruian fail delay:");
         txtRuianFailDelay.setRequired(true);
+//        txtRuianFailDelay.addValidator(
+//                new IntegerRangeValidator("Must be positive range integer", 
+//                        0, Integer.MAX_VALUE));
         mainLayout.addComponent(txtRuianFailDelay);
         mainLayout.setExpandRatio(txtRuianFailDelay, 0);
 
@@ -86,7 +93,9 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         mainLayout.addComponent(txtBaseUri);
         mainLayout.setExpandRatio(txtBaseUri, 0);
 
-        Label lblTable = new Label("Column 'Uri' can contains multiple URIs separated by white space.");
+        // description for table
+        Label lblTable = new Label(
+                "Column 'Uri' can contains multiple URIs separated by white space.");
         mainLayout.addComponent(lblTable);
         mainLayout.setExpandRatio(lblTable, 0);
 
@@ -95,21 +104,23 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         tableMappers.setWidth("100%");
         tableMappers.setHeight("150px");
         tableMappers.setCaption("Mappers configuration:");
-        // Add columns.
+        // add columns
         tableMappers.addGeneratedColumn(COLUMN_NAME_MAPPER,
                 new Table.ColumnGenerator() {
                     @Override
-                    public Object generateCell(Table source, Object itemId, Object columnId) {
+                    public Object generateCell(Table source, Object itemId,
+                            Object columnId) {
                         return itemId;
                     }
                 });
         tableMappers.addContainerProperty(COLUMN_NAME_URI, String.class, null);
+        // format
         tableMappers.setTableFieldFactory(new TableFieldFactory() {
             @Override
-            public Field createField(Container container, Object itemId, Object propertyId,
-                    Component uiContext) {
+            public Field createField(Container container, Object itemId,
+                    Object propertyId, Component uiContext) {
                 if (propertyId == COLUMN_NAME_URI) {
-                    // We use full comuln space.
+                    // we use full column space
                     final TextField txtEdit = new TextField();
                     txtEdit.setWidth("100%");
                     return txtEdit;
@@ -144,18 +155,22 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
         txtRuianFailRetry.setValue(c.getRuianFailRetry().toString());
         txtRuianFailDelay.setValue(c.getRuianFailDelay().toString());
         txtBaseUri.setValue(c.getBaseUri());
-        // Configure table.
+        // configure table
         tableMappers.setEditable(false);
         tableMappers.removeAllItems();
 
         Map<String, List<String>> mapper = c.getMapperConfig();
         if (mapper == null) {
-            // Use default.
+            // use default
             mapper = new HashMap<>();
-            mapper.put(AddressRegionMapper.NAME, Arrays.asList("http://schema.org/addressRegion"));
-            mapper.put(PostalCodeMapper.NAME, Arrays.asList("http://schema.org/postalCode"));
-            mapper.put(StreetAddressMapper.NAME, Arrays.asList("http://schema.org/streetAddress"));
-            mapper.put(AddressLocalityMapper.NAME, Arrays.asList("http://schema.org/addressLocality"));
+            mapper.put(AddressRegionMapper.NAME,
+                    Arrays.asList("http://schema.org/addressRegion"));
+            mapper.put(PostalCodeMapper.NAME,
+                    Arrays.asList("http://schema.org/postalCode"));
+            mapper.put(StreetAddressMapper.NAME,
+                    Arrays.asList("http://schema.org/streetAddress"));
+            mapper.put(AddressLocalityMapper.NAME,
+                    Arrays.asList("http://schema.org/addressLocality"));
         }
 
         for (String name : MapperFactory.getNames()) {
@@ -169,33 +184,44 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
             }
             tableMappers.addItem(new Object[]{str.toString()}, name);
         }
+        // .. set editable here
         tableMappers.setEditable(true);
     }
 
     @Override
     protected AddressMapperConfig_V1 getConfiguration() throws DPUConfigException {
+//        if (!txtRuianFailRetry.isValid() || !txtRuianFailDelay.isValid()) {
+//            throw new ConfigException("Invalid configuration");
+//        }
+
         final AddressMapperConfig_V1 cnf = new AddressMapperConfig_V1();
         cnf.setAddressQuery(txtQuery.getValue());
         cnf.setRuainEndpoint(txtRuianUri.getValue());
 
         try {
-            cnf.setRuianFailRetry(Integer.parseInt(txtRuianFailRetry.getValue()));
-            cnf.setRuianFailDelay(Integer.parseInt(txtRuianFailDelay.getValue()));
+            cnf.setRuianFailRetry(
+                    Integer.parseInt(txtRuianFailRetry.getValue()));
+            cnf.setRuianFailDelay(
+                    Integer.parseInt(txtRuianFailDelay.getValue()));
         } catch (NumberFormatException e) {
-            throw new DPUConfigException("Ruian fail retry/delay msut be numbers.", e);
+            throw new DPUConfigException(
+                    "Ruian fail retry/delay msut be numbers.", e);
         }
 
-        final List<String> mapperNames = MapperFactory.getNames();
-        final Map<String, List<String>> mappers = new HashMap<>();
+        // TODO gather table configuration
+        List<String> mapperNames = MapperFactory.getNames();
+        Map<String, List<String>> mappers = new HashMap<>();
         cnf.setMapperConfig(mappers);
+
         for (Object id : tableMappers.getItemIds()) {
             final String name = (String) id;
             if (mapperNames.contains(name)) {
-                // Get column
+                // get column
                 final Item item = tableMappers.getItem(id);
-                String value = item.getItemProperty(COLUMN_NAME_URI).getValue().toString();
+                String value = item.getItemProperty(COLUMN_NAME_URI)
+                        .getValue().toString();
                 if (value.isEmpty()) {
-                    // No value here, so skip.
+                    // no value here
                 } else {
                     value = value.replaceAll("\\s+", " ");
                     mappers.put(name, Arrays.asList(value.split(" ")));
@@ -215,8 +241,6 @@ public class AddressMapperVaadinDialog extends AdvancedVaadinDialogBase<AddressM
     @Override
     public String getDescription() {
         StringBuilder desc = new StringBuilder();
-        desc.append("RUIAN endpoint: ");
-        desc.append(txtRuianUri.getValue());
         return desc.toString();
     }
 

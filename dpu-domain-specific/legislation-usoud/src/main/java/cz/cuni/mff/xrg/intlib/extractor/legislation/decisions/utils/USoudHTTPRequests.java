@@ -8,8 +8,9 @@ import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor;
 import static cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor.fromStream;
 import static cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor.printProcessErrorOutput;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.ExtractorConfig;
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Utils;
-import eu.unifiedviews.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -230,7 +231,7 @@ public class USoudHTTPRequests {
                     finalMetaContent = "<metadata>" + finalMetaContent + "</metadata>";
 
                     //for debugging purpose
-                    Utils.storeStringToTempFile(finalMetaContent, context.getWorkingDir() + File.separator + id + "-metadata", Charset.forName("UTF-8"));
+                    DataUnitUtils.storeStringToTempFile(finalMetaContent, context.getWorkingDir() + File.separator + id + "-metadata", Charset.forName("UTF-8"));
 
                     //STEP 2A: invoke another http request to get the file content (WORD)
                     log.debug("Not found in cache. Call to get the data");
@@ -273,9 +274,9 @@ public class USoudHTTPRequests {
 
 
                     // STEP3a: store also expression uri created 
-                    Utils.storeStringToTempFile(expressionURI, cacheRecordPath  + "-uri" , Charset.forName("UTF-8"));
+                    DataUnitUtils.storeStringToTempFile(expressionURI, cacheRecordPath  + "-uri" , Charset.forName("UTF-8"));
                     //STEP 3b: merge and store the main file (added encoding at the end)
-                    Utils.storeStringToTempFile(finalMetaContent + System.lineSeparator() + finalTxtFileContent, cacheRecordPath, Charset.forName("UTF-8"));
+                    DataUnitUtils.storeStringToTempFile(finalMetaContent + System.lineSeparator() + finalTxtFileContent, cacheRecordPath, Charset.forName("UTF-8"));
                     
 
                 
@@ -284,7 +285,7 @@ public class USoudHTTPRequests {
                 numberFilesMatched++;
                 
                 //get expression uri (stored as a separated file)
-                String resultingExpressionURI = Utils.readFile(cacheRecordPath +  "-uri");
+                String resultingExpressionURI = DataUnitUtils.readFile(cacheRecordPath +  "-uri");
                 log.debug("URI obtained from {} is: {}", cacheRecordPath +  "-uri", resultingExpressionURI);
                 
                 if (resultingExpressionURI != null && resultingExpressionURI.length() > 0) {

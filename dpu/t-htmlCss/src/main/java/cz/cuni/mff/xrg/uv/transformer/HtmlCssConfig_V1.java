@@ -5,163 +5,110 @@ import java.util.List;
 
 /**
  * DPU's configuration class.
- *
- * @author Škoda Petr
  */
 public class HtmlCssConfig_V1 {
 
-    public enum ActionType {
+    public enum ElementType {
         /**
-         * Execute JSOUP query.
-         *
-         * Action data: JSOUP query
-         */
-        QUERY,
-        /**
-         * Extract content as string.
-         *
-         * Action data: none
+         * Extract content as text.
          */
         TEXT,
         /**
-         * Extract content as html string.
-         *
-         * Action data: none
+         * Extract content as html.
          */
         HTML,
         /**
-         * Select attribute of given name.
-         *
-         * Action data: Name of the attribute.
+         * Extract table as text.
          */
-        ATTRIBUTE,
+        TABLE_TEXT,
         /**
-         * Create statement with input value as an object, as a subject use given predicate
-         * and as a subject used last defined subject.
-         *
-         * Action data: Used predicate.
+         * Extract table as text, if there is direct link in cell, then its href attribute is extracted.
          */
-        OUTPUT, // LITERAL
+        TABLE_LINKS,
         /**
-         * Create new subject used by {@link #OUTPUT}. If has predicate is given, then create a new level.
-         * Ie. create new subject, create statement: current subject, has predicate, new subject.
-         * And set new subject as a current subject. If no predicate is given then just create a new subject
-         * and preserve the parent. Subject class is not changed by this option.
-         *
-         * Action data: Has predicate.
+         * Extract table as html.
          */
-        SUBJECT,
-        /**
-         * Given list of elements put each element into separated group.
-         *
-         * Action data: none
-         */
-        UNLIST,
-        /**
-         * Set given URI as a subject class.
-         *
-         * Action data: subject class
-         */
-        SUBJECT_CLASS
+        TABLE_HTML
     }
 
-    public static class Action {
+    public static class Query {
 
         /**
-         * Name of action. This value is used to match named output on which this query is executed.
+         * Query in jsoup.
          */
-        private String name = HtmlCss.SUBJECT_URI_TEMPLATE;
+        private String query = "";
 
         /**
-         * Determine type of an action.
+         * Predicate used for data.
          */
-        private ActionType type = ActionType.TEXT;
+        private String predicate = "";
 
         /**
-         * Data for action, based on {@link #type}.
+         * Name of attribute to select, if set then value of given attribute is used for further processing.
          */
-        private String actionData = "";
+        private String attrName = null;
 
         /**
-         * Name out output, if any.
+         * Type of extraction.
          */
-        private String outputName = "";
+        private ElementType type = ElementType.TEXT;
 
-        public Action() {
+        public Query() {
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public ActionType getType() {
-            return type;
-        }
-
-        public void setType(ActionType type) {
+        public Query(String query, String predicate, String attrName, ElementType type) {
+            this.query = query;
+            this.predicate = predicate;
+            this.attrName = attrName;
             this.type = type;
         }
 
-        public String getActionData() {
-            return actionData;
+        public String getQuery() {
+            return query;
         }
 
-        public void setActionData(String actionData) {
-            this.actionData = actionData;
+        public void setQuery(String query) {
+            this.query = query;
         }
 
-        public String getOutputName() {
-            return outputName;
+        public String getPredicate() {
+            return predicate;
         }
 
-        public void setOutputName(String outputName) {
-            this.outputName = outputName;
+        public void setPredicate(String predicate) {
+            this.predicate = predicate;
         }
-        
+
+        public String getAttrName() {
+            return attrName;
+        }
+
+        public void setAttrName(String attrName) {
+            this.attrName = attrName;
+        }
+
+        public ElementType getType() {
+            return type;
+        }
+
+        public void setType(ElementType type) {
+            this.type = type;
+        }
+
     }
 
-    private List<Action> actions = new LinkedList<>();
-
-    /**
-     * Can be null, in such case no value should be generated.
-     */
-    private String classAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/Page";
-
-    /**
-     * Can be null, in such case no value is generated.
-     */
-    private String hasPredicateAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/hasObject";
+    private List<Query> queries = new LinkedList<>();
 
     public HtmlCssConfig_V1() {
 
     }
 
-    public List<Action> getActions() {
-        return actions;
+    public List<Query> getQueries() {
+        return queries;
     }
 
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
-
-    public String getClassAsStr() {
-        return classAsStr;
-    }
-
-    public void setClassAsStr(String classAsStr) {
-        this.classAsStr = classAsStr;
-    }
-    
-    public String getHasPredicateAsStr() {
-        return hasPredicateAsStr;
-    }
-
-    public void setHasPredicateAsStr(String hasPredicateAsStr) {
-        this.hasPredicateAsStr = hasPredicateAsStr;
+    public void setQueries(List<Query> queries) {
+        this.queries = queries;
     }
 
 }

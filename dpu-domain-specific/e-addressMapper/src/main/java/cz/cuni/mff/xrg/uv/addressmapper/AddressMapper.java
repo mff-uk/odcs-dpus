@@ -28,6 +28,7 @@ import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
@@ -38,8 +39,6 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 
 /**
  *
@@ -53,19 +52,19 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
     @DataUnit.AsInput(name = "ulice", optional = true, description = "Trojice s s:name názvy ulic.")
     public RDFDataUnit inRdfUlice;
 
-    @DataUnit.AsInput(name = "obece", optional = true, description = "Trojice s s:name názvy obcí.")
+    @DataUnit.AsInput(name = "obec", optional = true, description = "Trojice s s:name názvy obcí.")
     public RDFDataUnit inRdfObce;
 
-    @DataUnit.AsInput(name = "casti-obci", optional = true, description = "Trojice s s:name názvy částí obcí.")
+    @DataUnit.AsInput(name = "cast-obce", optional = true, description = "Trojice s s:name názvy částí obcí.")
     public RDFDataUnit inRdfCastiObci;   
     
     @DataUnit.AsInput(name = "vusc", optional = true, description = "Trojice s s:name názvy krajů.")
     public RDFDataUnit inRdfKraje;
 
-    @DataUnit.AsInput(name = "vstup", description = "Trojice s s:PostalAddress a související jenž se mají namapovat na ruian.")
+    @DataUnit.AsInput(name = "toMap", description = "Trojice s s:PostalAddress a související jenž se mají namapovat na ruian.")
     public RDFDataUnit inRdfPostalAddress;
 
-    @DataUnit.AsOutput(name = "mapovani", description = "Mapovani z postalAddress na ruain pomoci http://ruian.linked.opendata.cz/ontology/links/.")
+    @DataUnit.AsOutput(name = "mapping", description = "Mapovani z postalAddress na ruain pomoci http://ruian.linked.opendata.cz/ontology/links/.")
     public WritableRDFDataUnit outRdfMapping;
 
     @DataUnit.AsOutput(name = "log", description = "Popisuje chyby při mapování.")
@@ -81,6 +80,7 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
 
     private SimpleRdfWrite rdfLog;
 
+
     public AddressMapper() {
         super(AddressMapperConfig_V1.class, AddonInitializer.noAddons());
     }
@@ -93,14 +93,14 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
     @Override
     protected void innerInit() throws DataUnitException {
         super.innerInit();
-        // Inputs.
+        // inputs
         rdfPostalAddress = SimpleRdfFactory.create(inRdfPostalAddress, context);
-        // Outputs.
+        // outputs
         rdfMapping = SimpleRdfFactory.create(outRdfMapping, context);
         rdfMappingFactory = rdfMapping.getValueFactory();
         rdfLog = SimpleRdfFactory.create(outRdfLog, context);
         rdfLogFactory = rdfLog.getValueFactory();
-        // Init UriTranslator.
+        // init UriTranslator
         UriTranslator.add(rdfMappingFactory, Output.O_ALTERNATIVE);
         UriTranslator.add(rdfMappingFactory, Output.O_CLASS);
         UriTranslator.add(rdfMappingFactory, Output.O_REDUCTION);
@@ -109,6 +109,7 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
         UriTranslator.add(rdfMappingFactory, Output.P_TARGET);
         UriTranslator.add(rdfMappingFactory, Output.P_TYPE);
         UriTranslator.add(rdfMappingFactory, Output.P_MAPPING_TYPE);
+        // ruian
         UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_ADRESNI_MISTO);
         UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_ULICE);
         UriTranslator.add(rdfMappingFactory, Ruian.P_LINK_OBEC);
@@ -120,41 +121,58 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
     @Override
     protected void innerExecute() throws DPUException, DataUnitException {
         final ErrorLogger errorLogger = new ErrorLogger(rdfLogFactory);
+
         final KnowledgeBase knowledgeBase = new KnowledgeBase();
-        // Load cache if provided.
+        // load cache if given
         if (inRdfUlice != null) {
-            final SimpleRdfRead rdfUlice = SimpleRdfFactory.create(inRdfUlice, context);
+            final SimpleRdfRead rdfUlice = SimpleRdfFactory.create(inRdfUlice,
+                    context);
             try {
                 knowledgeBase.loadStreetNames(rdfUlice, true);
             } catch (Exception ex) {
-                throw new DPUException("Can't load 'jména ulice' into knowledge base.", ex);
+                context.sendMessage(DPUContext.MessageType.ERROR,
+                        "Knowledge base problem.",
+                        "Failed to 'jména ulice' into knowledge base.", ex);
+                return;
             }
         }
         if (inRdfObce != null) {
-            final SimpleRdfRead rdfObce = SimpleRdfFactory.create(inRdfObce, context);
+            final SimpleRdfRead rdfObce = SimpleRdfFactory.create(inRdfObce,
+                    context);
             try {
                 knowledgeBase.loadTownNames(rdfObce);
             } catch (Exception ex) {
-                throw new DPUException("Can't load 'jména obcí' into knowledge base.", ex);
+                context.sendMessage(DPUContext.MessageType.ERROR,
+                        "Knowledge base problem.",
+                        "Failed to 'jména obcí' into knowledge base.", ex);
+                return;
             }
         }
         if (inRdfCastiObci != null) {
-            final SimpleRdfRead rdfCastiObci = SimpleRdfFactory.create(inRdfCastiObci, context);
+            final SimpleRdfRead rdfCastiObci = SimpleRdfFactory.create(
+                    inRdfCastiObci, context);
             try {
                 knowledgeBase.loadTownPartNames(rdfCastiObci);
             } catch (Exception ex) {
-                throw new DPUException("Can't load 'jména částí obcí' into knowledge base.", ex);
+                context.sendMessage(DPUContext.MessageType.ERROR,
+                        "Knowledge base problem.",
+                        "Failed to 'jména částí obcí' into knowledge base.", ex);
+                return;
             }
         }        
         if (inRdfKraje != null) {
-            final SimpleRdfRead rdfKraje = SimpleRdfFactory.create(inRdfKraje, context);
+            final SimpleRdfRead rdfKraje = SimpleRdfFactory.create(inRdfKraje,
+                    context);
             try {
                 knowledgeBase.loadRegionNames(rdfKraje);
             } catch (Exception ex) {
-                throw new DPUException("Can't load 'jména krajů' into knowledge base.", ex);
+                context.sendMessage(DPUContext.MessageType.ERROR,
+                        "Knowledge base problem.",
+                        "Failed to 'jména krajů' into knowledge base.", ex);
+                return;
             }
         }
-        // Prepare class that will extract informations from given address object.
+        // prepare needed classes
         final RequirementsCreator creator;
         try {
             creator = new RequirementsCreator(rdfPostalAddress,
@@ -162,42 +180,54 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
                     knowledgeBase,
                     config.getMapperConfig());
         } catch (DPUConfigException ex) {
-            throw new DPUException("Faield to init RequirementsCreator.", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR, "Wrong configuration",
+                    "Faield to init RequirementsCreator.", ex);
+            return;
         }
-        // Prepare remote repository with RUIAN.
         final RequirementsToQuery reqToQuery = new RequirementsToQuery();
+
         final RemoteRepository ruain;
         try {
             ruain = ExternalServicesFactory.remoteRepository(
                     config.getRuainEndpoint(), context, 
                     config.getRuianFailDelay(), config.getRuianFailRetry());
         } catch (ExternalFailure ex) {
-            throw new DPUException("Creation of remove ruain repository failed.", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "External service failed",
+                    "Creation of remove ruain repository failed.", ex);
+            return;
         }
-        // Go throuh the data and translate.
+
         int failCounter = 0;        
         int okCounter = 0;
-        try (ConnectionPair<TupleQueryResult> addresses =
-                rdfPostalAddress.executeSelectQuery(config.getAddressQuery())) {
-            while (addresses.getObject().hasNext() && !context.canceled()) {
-                LOG.debug("Processing entity number: {}", failCounter + okCounter);
+        // and do the real stuff here
+        try (ConnectionPair<TupleQueryResult> addresses = rdfPostalAddress.
+                executeSelectQuery(config.getAddressQuery())) {
+            while (addresses.getObject().hasNext()) {
                 final BindingSet binding = addresses.getObject().next();
-                // Map single address.
-                if (processPostalAddress(ruain, reqToQuery, creator, binding.getValue("s"))) {
+                // map single address
+                if (processPostalAddress(ruain, reqToQuery, creator,
+                        binding.getValue("s"))) {
+                    // ok continue
                     ++okCounter;
                 } else {
-                    // Failure.
+                    // mapping failed
                     ++failCounter;
                     logFailure(errorLogger); 
                 }
             }
         } catch (QueryException | OperationFailedException | QueryEvaluationException ex) {
-            throw new DPUException("DPU failed for repository related exception.", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "Repository failure",
+                    "DPU failed for repository related exception.", ex);
         } catch (ExternalFailure ex) {
-            throw new DPUException(ex);
+            context.sendMessage(DPUContext.MessageType.ERROR,
+                    "External failure",
+                    "", ex);
         }
-        SendMessage.sendInfo(context,
-                String.format("Ok/Failed to parse %d/%d streetAddresses", okCounter, failCounter), "");
+        context.sendMessage(DPUContext.MessageType.INFO,
+                String.format("Ok/Failed to parse %d/%d streetAddresses", 
+                        okCounter, failCounter));        
     }
 
     @Override
@@ -224,69 +254,80 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
      * @param addr
      * @return False if the processing fail as a results of exception.
      */
-    private boolean processPostalAddress(RemoteRepository ruain, RequirementsToQuery reqToQuery,
-            RequirementsCreator creator, Value addr) throws ExternalFailure, QueryEvaluationException,
+    private boolean processPostalAddress(RemoteRepository ruain,
+            RequirementsToQuery reqToQuery,
+            RequirementsCreator creator,
+            Value addr) throws ExternalFailure, QueryEvaluationException,
             QueryException, OperationFailedException {
-        // Prepare requirements.
+        // prepare requirements
         final List<Requirement> reqList = creator.createRequirements(addr);
         if (reqList.isEmpty()) {
-            // No requirements.
+            // no requirements
             return false;
         }        
-        // Convert requirementes to queries.
+        // convert them to queries
         final List<Query> variants = reqToQuery.convert(reqList);
-        // Ask ruian.
+        // ask ruian
         for (Query query : variants) {            
             final String queryStr = QueryToString.convert(query, 3);
+            
+            LOG.debug(queryStr);
+            
             if (queryStr == null) {
                 continue;
             }
-            if (context.canceled()) {
-                return false;
-            }
-            // Get result.
+            // ask ruian for mapping
             final List<BindingSet> ruainData = ruain.select(queryStr);
-            // Check number of results.
+            // check number of results
             if (ruainData.size() == 1) {
-                // We got it !!!
+                // we got it !!!
                 final Subject mainSubject = query.getMainSubject();
                 final String bindingName = mainSubject.getValueName().substring(1);
-                final Value ruainValue = ruainData.get(0).getBinding(bindingName).getValue();
+                final Value ruainValue = ruainData.get(0).
+                        getBinding(bindingName).getValue();
+                // add mapping
                 addMapping(addr, ruainValue, query);
+
                 return true;
             }
         }
-        // No variants return one option -> fail.
         return false;
     }
 
     /**
-     * Add triple that represent the mapping between given postalAddess and RUIAN triple.
+     * Add triple that represent the mapping between given postalAddess and 
+     * ruian triple.
      * 
      * @param postalAddress
      * @param ruianType
      * @param ruianValue
      * @throws OperationFailedException 
      */
-    private void addMapping(Value postalAddress, Value ruianValue, Query usedQuery)
-            throws OperationFailedException {
-        final String relUriString = usedQuery.getMainSubject().getRelation();        
+    private void addMapping(Value postalAddress, Value ruianValue, 
+            Query usedQuery) throws OperationFailedException {
+        final String relUriString = usedQuery.getMainSubject().getRelation();
+        
         final BNode node = rdfMappingFactory.createBNode();        
-        final Resource address = rdfMappingFactory.createURI(postalAddress.stringValue());
-        // Add mapping.
-        rdfMapping.add(node, UriTranslator.toUri(Output.P_TYPE), UriTranslator.toUri(Output.O_CLASS));
-        rdfMapping.add(node, UriTranslator.toUri(Output.P_SOURCE), address);
-        rdfMapping.add(node, UriTranslator.toUri(Output.P_TARGET), ruianValue);        
-        rdfMapping.add(node, UriTranslator.toUri(Output.P_MAPPING_TYPE), UriTranslator.toUri(relUriString));        
-        // Add basic metadata.
+        final Resource address = rdfMappingFactory.createURI(
+               postalAddress.stringValue());
+        
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_TYPE),
+                UriTranslator.toUri(Output.O_CLASS));
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_SOURCE),
+                address);
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_TARGET), 
+                ruianValue);
+        
+        rdfMapping.add(node, UriTranslator.toUri(Output.P_MAPPING_TYPE), 
+                UriTranslator.toUri(relUriString));
+        
+        // add basic metadata
         if (usedQuery.isAlternative()) {
-            rdfMapping.add(node, 
-                    UriTranslator.toUri(Output.P_PROPERTY),
+            rdfMapping.add(node, UriTranslator.toUri(Output.P_PROPERTY),
                     UriTranslator.toUri(Output.O_ALTERNATIVE));
         }
         if (usedQuery.isReduction()) {
-            rdfMapping.add(node,
-                    UriTranslator.toUri(Output.P_PROPERTY),
+            rdfMapping.add(node, UriTranslator.toUri(Output.P_PROPERTY),
                     UriTranslator.toUri(Output.O_REDUCTION));
         }
     }

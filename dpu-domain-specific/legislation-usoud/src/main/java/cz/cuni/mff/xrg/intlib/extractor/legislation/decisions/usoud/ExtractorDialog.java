@@ -16,9 +16,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import org.slf4j.Logger;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * configuration.
  *
  */
-public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
+public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
    private static final Logger log = LoggerFactory.getLogger(ExtractorDialog.class);
        
@@ -48,7 +47,7 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     
     
       public ExtractorDialog() {
-		super(ExtractorConfig.class,  AddonInitializer.noAddons());
+        super(ExtractorConfig.class);
         buildMainLayout();
         setCompositionRoot(mainLayout);
     }
@@ -155,7 +154,7 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     }
 
     @Override
-    public void setConfiguration(ExtractorConfig conf) throws DPUConfigException {
+    public void setConfiguration(ExtractorConfig conf) throws ConfigException {
         
            
 //       if(!conf.getDateTO().isEmpty()) { 
@@ -177,7 +176,7 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     }
 
     @Override
-    public ExtractorConfig getConfiguration() throws DPUConfigException {
+    public ExtractorConfig getConfiguration() throws ConfigException {
 //        //get the conf from the dialog
 //        if (!dateFrom.isValid()) {
 //            throw new ConfigException("Date from is not present");

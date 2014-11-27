@@ -10,7 +10,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 public interface Addon {
 
     /**
-     * Initialise add-on with execution context.
+     * Initialise add-on with context.
      * 
      * @param context
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException

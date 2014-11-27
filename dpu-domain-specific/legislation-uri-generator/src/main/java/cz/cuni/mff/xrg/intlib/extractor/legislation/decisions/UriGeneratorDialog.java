@@ -1,13 +1,13 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
 import com.vaadin.ui.*;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
@@ -17,7 +17,7 @@ import java.util.logging.Level;
  * DPU's configuration dialog. NO Dialog needed for this DPU
  *
  */
-public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorConfig> {
+public class UriGeneratorDialog extends BaseConfigDialog<UriGeneratorConfig> {
 
 	private static final Logger log = LoggerFactory.getLogger(
 			UriGeneratorDialog.class);
@@ -34,7 +34,7 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 	static int fl = 0;
 
 	public UriGeneratorDialog() {
-		super(UriGeneratorConfig.class, AddonInitializer.noAddons());
+		super(UriGeneratorConfig.class);
 		buildMainLayout();
 		Panel panel = new Panel();
 		panel.setSizeFull();
@@ -43,10 +43,11 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 	}
 
 	@Override
-	public void setConfiguration(UriGeneratorConfig conf) throws DPUConfigException {
+	public void setConfiguration(UriGeneratorConfig conf) throws ConfigException {
 
 		if (!conf.getStoredXsltFilePath().isEmpty()) {
-			String fileContent = Utils.readFile(conf.getStoredXsltFilePath());
+			String fileContent = DataUnitUtils.readFile(conf
+					.getStoredXsltFilePath());
 			taFileConf.setValue(fileContent);
 			lFileName.setValue(conf.getfileNameShownInDialog());
 			log.debug("Conf file loaded from {}", conf.getStoredXsltFilePath());
@@ -55,12 +56,12 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 	}
 
 	@Override
-	public UriGeneratorConfig getConfiguration() throws DPUConfigException {
+	public UriGeneratorConfig getConfiguration() throws ConfigException {
 
 		//check that certain xslt was uploaded
 		if (taFileConf.getValue().trim().isEmpty()) {
 			//no config!
-			throw new DPUConfigException("No configuration file uploaded");
+			throw new ConfigException("No configuration file uploaded");
 
 		}
 
@@ -69,7 +70,7 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 		String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID
 				.randomUUID().toString();
 		//save the config from textarea to the file 
-		Utils.storeStringToTempFile(taFileConf.getValue(), fileWithXSLT);
+		DataUnitUtils.storeStringToTempFile(taFileConf.getValue(), fileWithXSLT);
 		log.debug("XSLT stored to {}", fileWithXSLT);
 
 		return new UriGeneratorConfig(lFileName.getValue().trim(), fileWithXSLT);

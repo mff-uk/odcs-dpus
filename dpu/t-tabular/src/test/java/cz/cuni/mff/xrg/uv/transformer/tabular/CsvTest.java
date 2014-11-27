@@ -39,7 +39,7 @@ public class CsvTest {
         Mockito.when(context.canceled()).thenReturn(false);
     }
 
-//    @Test
+    //@Test
     public void csvw_csv2rdf_example_1() throws OperationFailedException, ParseFailed {
         
         final File csvFile = ResourceAccess.getFile("csvw_csv2rdf_example_1.csv");
@@ -49,12 +49,13 @@ public class CsvTest {
         HashMap<String, ColumnInfo_V1> columnInfo = new HashMap<>();
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                Collections.EMPTY_LIST, false, true, true, false, false);
+                Collections.EMPTY_LIST, false, true, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
         // prepare tabular parser
-        TableToRdf tabular = new TableToRdf(tabularConfig, outRdf, new ValueFactoryImpl());
+        TableToRdf tabular = new TableToRdf(tabularConfig, outRdf,
+                new ValueFactoryImpl());
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, null, null,
@@ -77,13 +78,13 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, false, null, false,
-                Collections.EMPTY_LIST, false, false, true, false, true);
+                Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
         // prepare tabular parser
-        TableToRdf tabular = new TableToRdf(tabularConfig, outRdf, new ValueFactoryImpl());
-        tabular.setTableSubject((new ValueFactoryImpl()).createURI("http://opendata-cssz.csv"));
+        TableToRdf tabular = new TableToRdf(tabularConfig, outRdf,
+                new ValueFactoryImpl());
 
         // prepare csv configuration
         ParserCsvConfig csvConfig = new ParserCsvConfig(null, null, null,
@@ -105,7 +106,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig(null, 
                 "http://localhost/", columnInfo, true, null, false,
-                Collections.EMPTY_LIST, false, false, true, false, false);
+                Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -133,7 +134,7 @@ public class CsvTest {
 
         TableToRdfConfig tabularConfig = new TableToRdfConfig("col1",
                 "http://localhost/", columnInfo, true, "http://localhost/Row",
-                false, Collections.EMPTY_LIST, false, false, true, false, false);
+                false, Collections.EMPTY_LIST, false, false, true, false);
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;
 
@@ -163,7 +164,7 @@ public class CsvTest {
         columnInfo.put("KODCIS", new ColumnInfo_V1("http://localhost/KODCIS") );
         TableToRdfConfig tabularConfig = new TableToRdfConfig("KODCIS",
                 "http://localhost/", columnInfo, false, "http://localhost/Row",
-                false, Collections.EMPTY_LIST, false, false, false, false, false);
+                false, Collections.EMPTY_LIST, false, false, false, false);
 
         // prepare rdf data unit
         SimpleRdfWrite outRdf = new WriteOutSimpleRdf() ;

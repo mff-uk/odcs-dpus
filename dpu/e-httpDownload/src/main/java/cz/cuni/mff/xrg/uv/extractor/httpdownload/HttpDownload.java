@@ -54,17 +54,16 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
     @Override
     protected void innerExecute() throws DPUException {
         context.sendMessage(DPUContext.MessageType.INFO,
-                String.format("%d file(s) to download", config.getToDownload().size()));
+                String.format("%d file to download", config.getToDownload().size()));
 
         int index = 0;
-        int downloaded = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {
             LOG.info("Downloading file number: {} from: {}", index, info.getUri());
             URL url;
             try {
                 url = new URL(info.getUri());
             } catch (MalformedURLException ex) {
-                SendMessage.sendError(context, "Download failed", ex, "Wrong URI format: %s", info.getUri());
+                LOG.error("Wrong URI format: {}", info.getUri(), ex);
                 continue;
             }
             // Prepare virtual path.
@@ -82,7 +81,6 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
             // Download file.
             try {
                 downloadFile(url, virtualPath, virtualPath);
-                ++downloaded;
             } catch (DataUnitException ex) {
                 SendMessage.sendMessage(context, ex);
                 return;
@@ -91,7 +89,7 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
                 return;
             }
         }
-        SendMessage.sendInfo(context, String.format("%d file(s) have been downloaded", downloaded), "");
+
     }
 
     @Override

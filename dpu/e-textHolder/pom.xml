@@ -19,7 +19,7 @@
     </properties>
 
     <dependencies>
-        <!-- Compile library, use compile if libs are not as OSGI bundles on target instance. -->
+        <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
@@ -33,7 +33,7 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <!-- Dependecy for boost-dpu. -->
+        <!-- dependecy for boost-dpu -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit</artifactId>
@@ -67,7 +67,7 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-        <!-- Dependencies from UV. -->
+        <!-- from UV -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

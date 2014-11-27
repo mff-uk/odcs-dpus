@@ -16,42 +16,25 @@ import org.openrdf.repository.RepositoryException;
  */
 public class WritableManipulatorInstance extends ManipulatorInstance {
 
-    /**
-     * %s stand for write graph name.
-     */
-    private static final String UPDATE_QUERY = "WITH <%s> \n"
-            + "DELETE { ?entry ?" + PREDICATE_BINDING + " ?value }\n"
-            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
+    private static final String UPDATE_QUERY
+            = "DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
+            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
             + "WHERE { "
-            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
-            + "?" + PREDICATE_BINDING + " ?value . "
-            + "}";
-
-
-    /**
-     * %s stand for write graph name.
-     */
-    private static final String INSERT_QUERY = "WITH <%s>\n"
-            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
-            + "WHERE { "
-            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
+            + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o} "
             + " } ";
 
-    /**
-     * Update query with proper graph.
-     */
-    private final String updateWithGraph;
-    
-    /**
-     * Insert query with proper graph.
-     */
-    private final String insertWithGraph;
+    private static final String INSERT_QUERY
+            = "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            + "WHERE { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
+            + " } ";
 
     WritableManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, URI writeGraph,
             String symbolicName, boolean closeConnectionOnClose) throws DataUnitException {
         super(connection, readGraphs, symbolicName, closeConnectionOnClose);
-        this.updateWithGraph = String.format(UPDATE_QUERY, writeGraph.stringValue());
-        this.insertWithGraph = String.format(INSERT_QUERY, writeGraph.stringValue());
+        this.dataset.setDefaultInsertGraph(writeGraph);
+        this.dataset.addDefaultRemoveGraph(writeGraph);
     }
 
     /**
@@ -70,10 +53,11 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
     public WritableManipulatorInstance add(String predicate, String value) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, insertWithGraph);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, INSERT_QUERY);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
+            update.setDataset(dataset);
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);
@@ -97,10 +81,11 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
     public WritableManipulatorInstance set(String predicate, String value) throws DataUnitException {
         try {
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, updateWithGraph);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, UPDATE_QUERY);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
+            update.setDataset(dataset);
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);

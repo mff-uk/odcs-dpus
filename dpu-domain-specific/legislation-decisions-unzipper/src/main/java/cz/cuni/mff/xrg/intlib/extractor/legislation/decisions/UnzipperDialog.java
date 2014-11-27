@@ -4,9 +4,8 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * configuration.
  *
  */
-public class UnzipperDialog extends AdvancedVaadinDialogBase<UnzipperConfig> {
+public class UnzipperDialog extends BaseConfigDialog<UnzipperConfig> {
 
 	private static final Logger log = LoggerFactory.getLogger(
 			UnzipperDialog.class);
@@ -33,7 +32,7 @@ public class UnzipperDialog extends AdvancedVaadinDialogBase<UnzipperConfig> {
 	private CheckBox cbSinceLastSuccess;
 
 	public UnzipperDialog() {
-		super(UnzipperConfig.class,  AddonInitializer.noAddons());
+		super(UnzipperConfig.class);
 		buildMainLayout();
 		Panel panel = new Panel();
 		panel.setSizeFull();
@@ -142,10 +141,10 @@ public class UnzipperDialog extends AdvancedVaadinDialogBase<UnzipperConfig> {
 		return mainLayout;
 	}
 
-        @Override
-        protected void setConfiguration(UnzipperConfig conf) throws DPUConfigException {
-            
-            if (!conf.getDateTO().isEmpty()) {
+	@Override
+	public void setConfiguration(UnzipperConfig conf) throws ConfigException {
+
+		if (!conf.getDateTO().isEmpty()) {
 			dateTo.setValue(conf.getDateTO());
 		}
 		if (!conf.getDateFrom().isEmpty()) {
@@ -156,14 +155,14 @@ public class UnzipperDialog extends AdvancedVaadinDialogBase<UnzipperConfig> {
 
 		cbCurrentDay.setValue(conf.isCurrentDay());
 		cbSinceLastSuccess.setValue(conf.isFromLastSuccess());
-        }
-        
-	
+
+	}
+
 	@Override
-	public UnzipperConfig getConfiguration() throws DPUConfigException {
+	public UnzipperConfig getConfiguration() throws ConfigException {
 		//get the conf from the dialog
 		if (!dateFrom.isValid()) {
-			throw new DPUConfigException("Date from is not present");
+			throw new ConfigException("Date from is not present");
 		}
 
         //TODO validate from/to dates better
@@ -186,5 +185,4 @@ public class UnzipperDialog extends AdvancedVaadinDialogBase<UnzipperConfig> {
 		return conf;
 
 	}
-
-    }
+}

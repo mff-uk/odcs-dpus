@@ -14,58 +14,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
-import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-//import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
-//import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
-//import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
-import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext.MessageType;
-import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPU;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.RDFDataUnit;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfRead;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
+import org.openrdf.rio.RDFFormat;
 
-@DPU.AsExtractor
+@AsExtractor
 public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> {
+extends ConfigurableBase<ExtractorConfig> 
+implements DPU, ConfigDialogProvider<ExtractorConfig> {
 
-	@DataUnit.AsOutput(name = "output")
-	public WritableFilesDataUnit outputFiles;
+	@OutputDataUnit(name = "output")
+	public WritableRDFDataUnit outputDataUnit;
 
 	private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
 	public Extractor(){
-		super(ExtractorConfig.class, AddonInitializer.noAddons());
+		super(ExtractorConfig.class);
 	}
 
-        @Override
-        public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-            return new ExtractorDialog();
-        }
-        
-//	@Override
-//	public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {		
-//		return new ExtractorDialog();
-//	}
+	@Override
+	public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {		
+		return new ExtractorDialog();
+	}
 
-         @Override
-        protected void innerExecute() throws DPUException, DataUnitException {
-             
-              LOG.info("DPU is running ...");
-             
-       		// vytvorime si parser
+	@Override
+	public void execute(DPUContext ctx) throws DPUException, DataUnitException
+	{
+		// vytvorime si parser
 		Cache.setInterval(config.getInterval());
 		Cache.setTimeout(config.getTimeout());
-		Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+		Cache.setBaseDir(ctx.getUserDirectory() + "/cache/");
 		Cache.rewriteCache = config.isRewriteCache();
 		Cache.logger = LOG;
-		String tempfilename = context.getWorkingDir() + "/" + config.getOutputFileName();
+		String tempfilename = ctx.getWorkingDir() + "/" + config.getOutputFileName();
 		Parser s = new Parser();
 		s.logger = LOG;
-		s.context = context;
+		s.ctx = ctx;
 		try {
 			s.ps = new PrintStream(tempfilename, "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
@@ -87,12 +84,12 @@ extends DpuAdvancedBase<ExtractorConfig> {
 
 		// a spustim na vychozi stranku
 
-		context.sendMessage(MessageType.INFO, "Starting extraction. From year: " + config.getStart_year() + " To: " + config.getEnd_year() + " Output: " + tempfilename);
+		ctx.sendMessage(MessageType.INFO, "Starting extraction. From year: " + config.getStart_year() + " To: " + config.getEnd_year() + " Output: " + tempfilename);
 		
 		try {
 			for (int i = config.getStart_year(); i <= config.getEnd_year(); i++)
 			{   
-				if (context.canceled())
+				if (ctx.canceled())
 				{
 					LOG.error("Interrupted");
 					break;
@@ -102,7 +99,7 @@ extends DpuAdvancedBase<ExtractorConfig> {
 					long start = date.getTime();
 					if (!config.isCachedLists())
 					{
-						Path path = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
+						Path path = Paths.get(ctx.getUserDirectory().getAbsolutePath() + "/cache/www.psp.cz/sqw/sbirka.sqw@r=" + i);
 						LOG.info("Deleting " + path);
 						Files.deleteIfExists(path);
 					}
@@ -110,22 +107,16 @@ extends DpuAdvancedBase<ExtractorConfig> {
 					java.util.Date date2 = new java.util.Date();
 					long end = date2.getTime();
 					
-					context.sendMessage(MessageType.INFO, "Processed " + i + " in " + (end-start) + " ms");
+					ctx.sendMessage(MessageType.INFO, "Processed " + i + " in " + (end-start) + " ms");
 				}
 				catch (IOException e) {
 					LOG.error(e.getLocalizedMessage());
 				}
 			}
-                        LOG.info("Parsing done. Putting parsed file to the output");
-                        
-                        File newFileToBeAdded = new File(tempfilename);
-                        outputFiles.addExistingFile(newFileToBeAdded.getName(), newFileToBeAdded.toURI().toASCIIString());
-                        
-                           	
-//			LOG.info("Parsing done. Passing RDF to ODCS");
-//			SimpleRdfWrite outputWrap = SimpleRdfFactory.create(outputDataUnit, context);
-//                        outputWrap.
-//			outputWrap.extract(new File(tempfilename), RDFFormat.TURTLE, null);
+        	
+			LOG.info("Parsing done. Passing RDF to ODCS");
+			SimpleRdfWrite outputWrap = SimpleRdfFactory.create(outputDataUnit, ctx);
+			outputWrap.extract(new File(tempfilename), RDFFormat.TURTLE, null);
 		} catch (InterruptedException e) {
 			LOG.error("Interrupted");
 		}
@@ -133,5 +124,4 @@ extends DpuAdvancedBase<ExtractorConfig> {
 		s.ps.close();
 	}
 
-   
 }

@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>t-htmlCss</artifactId>
-	<version>2.2.0</version>
+	<version>1.0.2</version>
 	<packaging>bundle</packaging>
 	<name>t-HtmlCss</name>
 	<description>Can be used to parse html with css selectors.</description>
@@ -25,7 +25,7 @@
             <version>1.7.3</version>
             <scope>compile</scope>
         </dependency>
-        <!-- Compile library, use compile if libs are not as OSGI bundles on target instance. -->
+        <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
@@ -38,7 +38,7 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <type>jar</type>
         </dependency>
-        <!-- Dependecies for boost-dpu. -->
+        <!-- dependecy for boost-dpu -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
