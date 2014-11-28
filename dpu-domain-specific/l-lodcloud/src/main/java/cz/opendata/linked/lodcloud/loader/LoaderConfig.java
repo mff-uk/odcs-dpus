@@ -1,11 +1,8 @@
 package cz.opendata.linked.lodcloud.loader;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  *
@@ -14,7 +11,32 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class LoaderConfig  {
     
-    public enum VocabTags {
+    public static class LinkCount {
+    	private String targetDataset;
+    	private Long linkCount;
+		public LinkCount() {
+			targetDataset = "";
+			linkCount = new Long(0);
+		}
+		public LinkCount(String s, Long count) {
+			targetDataset = s;
+			linkCount = new Long(count);
+		}
+    	public String getTargetDataset() {
+			return targetDataset;
+		}
+		public void setTargetDataset(String targetDataset) {
+			this.targetDataset = targetDataset;
+		}
+		public Long getLinkCount() {
+			return linkCount;
+		}
+		public void setLinkCount(Long linkCount) {
+			this.linkCount = linkCount;
+		}
+    }
+	
+	public enum VocabTags {
     	NoProprietaryVocab {
     		public String toString() {
     			return "no-proprietary-vocab";
@@ -88,8 +110,100 @@ public class LoaderConfig  {
     
     public enum Licenses {
     	pddl {
+    		//Open Data Commons Public Domain Dedication and License (PDDL)
+    		//http://opendefinition.org/licenses/odc-pddl
     		public String toString() {
     			return "odc-pddl" ;
+    		}
+    	},
+    	ccby {
+    		//Creative Commons Attribution
+    		//http://opendefinition.org/licenses/cc-by
+    		public String toString() {
+    			return "cc-by" ;
+    		}
+    	},
+    	ccbysa {
+    		//Creative Commons Attribution Share-Alike
+    		//http://opendefinition.org/licenses/cc-by-sa
+    		public String toString() {
+    			return "cc-by-sa" ;
+    		}
+    	},
+    	cczero {
+    		//Creative Commons CCZero
+    		//http://opendefinition.org/licenses/cc-zero
+    		public String toString() {
+    			return "cc-zero" ;
+    		}
+    	},
+    	ccnc {
+    		//Creative Commons Non-Commercial (Any)
+    		public String toString() {
+    			return "cc-nc" ;
+    		}
+    	},
+    	gfdl {
+    		//GNU Free Documentation License
+    		public String toString() {
+    			return "cc-nc" ;
+    		}
+    	},
+    	notspecified {
+    		//License Not Specified
+    		public String toString() {
+    			return "cc-nc" ;
+    		}
+    	},
+    	odcby {
+    		//Open Data Commons Attribution License
+    		//http://opendefinition.org/licenses/odc-by
+    		public String toString() {
+    			return "odc-by" ;
+    		}
+    	},
+    	odcodbl {
+    		//Open Data Commons Open Database License (ODbL)
+    		//http://www.opendefinition.org/licenses/odc-odbl
+    		public String toString() {
+    			return "odc-odbl" ;
+    		}
+    	},
+    	otherat {
+    		//Other (Attribution)
+    		public String toString() {
+    			return "other-at" ;
+    		}
+    	},
+    	othernc {
+    		//Other (Non-Commercial)
+    		public String toString() {
+    			return "other-nc" ;
+    		}
+    	},
+    	otherclosed {
+    		//Other (Not Open)
+    		public String toString() {
+    			return "other-closed" ;
+    		}
+    	},
+    	otheropen {
+    		//Other (Open)
+    		public String toString() {
+    			return "other-open" ;
+    		}
+    	},
+    	otherpd {
+    		//Other (Public Domain)
+    		public String toString() {
+    			return "other-pd" ;
+    		}
+    	},
+    	ukogl {
+    		//UK Open Government Licence (OGL)
+    		//http://reference.data.gov.uk/id/open-government-licence
+    		public String toString() {
+    			return "uk-ogl" ;
     		}
     	}
     }
@@ -105,6 +219,8 @@ public class LoaderConfig  {
     private boolean lodcloudNeedsInfo = false;
     
     private boolean lodcloudNeedsFixing = false;
+    
+    private boolean versionGenerated = true;
     
     private LicenseMetadataTags licenseMetadataTag = LicenseMetadataTags.LicenseMetadata;
     
@@ -122,7 +238,7 @@ public class LoaderConfig  {
     
     private String datasetID = "";
     
-    private boolean datasetPrivate = false;
+    //private boolean datasetPrivate = false;
     
     private String maintainerName = "Jakub Klímek";
     
@@ -142,28 +258,20 @@ public class LoaderConfig  {
     
     private String namespace = "";
     
-    private String sparql_graph_name = "";
+    //private String sparql_graph_name = "";
     
-    private String datasetDescription = "";
+    //private String datasetDescription = "";
     
     private String customLicenseLink = "";
     
-    private List<String> vocabularies = new LinkedList<String>();
+    private Collection<String> vocabularies = new LinkedList<String>();
     
-    private List<Pair<String, Long>> links = new LinkedList<Pair<String, Long>>();
+    private Collection<LinkCount> links = new LinkedList<LinkCount>();
     
     private String sparqlEndpointName = "Opendata.cz SPARQL Endpoint";
     
     private String sparqlEndpointDescription = "Running Virtuoso";
     
-	public String getApiUri() {
-		return apiUri;
-	}
-
-	public void setApiUri(String apiUri) {
-		this.apiUri = apiUri;
-	}
-
 	public String getApiKey() {
 		return apiKey;
 	}
@@ -252,21 +360,21 @@ public class LoaderConfig  {
 		this.namespace = namespace;
 	}
 
-	public String getSparql_graph_name() {
-		return sparql_graph_name;
-	}
-
-	public void setSparql_graph_name(String sparql_graph_name) {
-		this.sparql_graph_name = sparql_graph_name;
-	}
-
-	public String getDatasetDescription() {
-		return datasetDescription;
-	}
-
-	public void setDatasetDescription(String datasetDescription) {
-		this.datasetDescription = datasetDescription;
-	}
+//	public String getSparql_graph_name() {
+//		return sparql_graph_name;
+//	}
+//
+//	public void setSparql_graph_name(String sparql_graph_name) {
+//		this.sparql_graph_name = sparql_graph_name;
+//	}
+//
+//	public String getDatasetDescription() {
+//		return datasetDescription;
+//	}
+//
+//	public void setDatasetDescription(String datasetDescription) {
+//		this.datasetDescription = datasetDescription;
+//	}
 
 	public LicenseMetadataTags getLicenseMetadataTag() {
 		return licenseMetadataTag;
@@ -364,15 +472,15 @@ public class LoaderConfig  {
 		this.topic = topic;
 	}
 
-	public boolean isDatasetPrivate() {
-		return datasetPrivate;
-	}
+//	public boolean isDatasetPrivate() {
+//		return datasetPrivate;
+//	}
+//
+//	public void setDatasetPrivate(boolean datasetPrivate) {
+//		this.datasetPrivate = datasetPrivate;
+//	}
 
-	public void setDatasetPrivate(boolean datasetPrivate) {
-		this.datasetPrivate = datasetPrivate;
-	}
-
-	public List<String> getVocabularies() {
+	public Collection<String> getVocabularies() {
 		return vocabularies;
 	}
 
@@ -380,11 +488,11 @@ public class LoaderConfig  {
 		this.vocabularies = vocabularies;
 	}
 
-	public List<Pair<String, Long>> getLinks() {
+	public Collection<LinkCount> getLinks() {
 		return links;
 	}
 
-	public void setLinks(List<Pair<String, Long>> links) {
+	public void setLinks(Collection<LinkCount> links) {
 		this.links = links;
 	}
 
@@ -402,6 +510,22 @@ public class LoaderConfig  {
 
 	public void setSparqlEndpointDescription(String sparqlEndpointDescription) {
 		this.sparqlEndpointDescription = sparqlEndpointDescription;
+	}
+
+	public String getApiUri() {
+		return apiUri;
+	}
+
+	public void setApiUri(String apiUri) {
+		this.apiUri = apiUri;
+	}
+
+	public boolean isVersionGenerated() {
+		return versionGenerated;
+	}
+
+	public void setVersionGenerated(boolean versionGenerated) {
+		this.versionGenerated = versionGenerated;
 	}
 
 }

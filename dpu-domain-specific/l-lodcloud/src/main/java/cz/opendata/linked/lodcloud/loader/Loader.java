@@ -5,10 +5,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -21,43 +23,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
@@ -67,8 +37,8 @@ import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
+import cz.opendata.linked.lodcloud.loader.LoaderConfig.LinkCount;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
@@ -86,7 +56,7 @@ extends DpuAdvancedBase<LoaderConfig>
     public RDFDataUnit metadata;
 
     public Loader() {
-        super(LoaderConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Loader.class)));
+        super(LoaderConfig.class,AddonInitializer.create(new SimpleRdfConfigurator<>(Loader.class)));
     }
 
     @Override
@@ -103,14 +73,14 @@ extends DpuAdvancedBase<LoaderConfig>
         logger.debug("Querying metadata");
         
         final SimpleRdfRead addrValueFacWrap = SimpleRdfFactory.create(metadata, context);
-        final ValueFactory addrValueFac = addrValueFacWrap.getValueFactory();
         
         String datadump = "";
         String triplecount = "";
         String datasetUrl = "";
         String sparqlEndpointVoid = "";
+        String description = "";
         
-        String queryString = "PREFIX void: <http://rdfs.org/ns/void#> SELECT ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples .} ";
+        String queryString = "PREFIX dcterms: <http://purl.org/dc/terms/> void: <http://rdfs.org/ns/void#> SELECT ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; dcterms:description ?description; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples . FILTER(lang(?description) = \"en\")} ";
         try (ConnectionPair<TupleQueryResult> query = addrValueFacWrap.executeSelectQuery(queryString))        
         {
             final TupleQueryResult result = query.getObject();
@@ -119,12 +89,13 @@ extends DpuAdvancedBase<LoaderConfig>
             triplecount = first.getValue("triples").stringValue();
             datasetUrl = first.getValue("datasetURL").stringValue();
             sparqlEndpointVoid = first.getValue("sparqlEndpoint").stringValue();
+            description = first.getValue("description").stringValue();
         } catch (NumberFormatException | QueryEvaluationException e) {
             logger.error("Failed to query and parse value.", e);
         }
-        if (datadump.isEmpty() || triplecount.isEmpty() || datasetUrl.isEmpty() || sparqlEndpointVoid.isEmpty())
+        if (description.isEmpty() || datadump.isEmpty() || triplecount.isEmpty() || datasetUrl.isEmpty() || sparqlEndpointVoid.isEmpty())
         {
-        	throw new DPUException("Required metadata missing from input. Datadump: " + datadump + " Triplecount: " + triplecount + " URL: " + datasetUrl + " Endpoint: " + sparqlEndpointVoid);
+        	throw new DPUException("Required metadata missing from input. Datadump: " + datadump + " Triplecount: " + triplecount + " URL: " + datasetUrl + " Endpoint: " + sparqlEndpointVoid + " Description: " + description);
         }
         logger.debug("Querying for sample resources");
 
@@ -229,9 +200,10 @@ extends DpuAdvancedBase<LoaderConfig>
             if (!config.getShortname().isEmpty()) extras.put("shortname", config.getShortname());
             if (!config.getNamespace().isEmpty()) extras.put("namespace", config.getNamespace());
             if (!config.getCustomLicenseLink().isEmpty()) extras.put("license_link", config.getCustomLicenseLink());
-            if (!config.getSparql_graph_name().isEmpty()) extras.put("sparql_graph_name", config.getSparql_graph_name());
-            for (Pair<String, Long> link: config.getLinks()) {
-            	extras.put("links:" + link.getKey(), link.getValue());            	
+            //if (!config.getSparql_graph_name().isEmpty()) extras.put("sparql_graph_name", config.getSparql_graph_name());
+            extras.put("sparql_graph_name", datasetUrl);
+            for (LinkCount link: config.getLinks()) {
+            	extras.put("links:" + link.getTargetDataset(), link.getLinkCount());            	
             }
             
 
@@ -239,51 +211,60 @@ extends DpuAdvancedBase<LoaderConfig>
             root.put("url", datasetUrl);
 			if (!config.getMaintainerName().isEmpty()) root.put("maintainer", config.getMaintainerName());
 			if (!config.getMaintainerEmail().isEmpty()) root.put("maintainer_email", config.getMaintainerEmail());
-			root.put("private", String.valueOf(config.isDatasetPrivate()));
+			//root.put("private", String.valueOf(config.isDatasetPrivate()));
 			root.put("license_id", config.getLicense_id());
-			if (!config.getDatasetDescription().isEmpty()) root.put("notes", config.getDatasetDescription());
-			if (!config.getVersion().isEmpty()) root.put("version", config.getVersion());
+			//if (!config.getDatasetDescription().isEmpty()) root.put("notes", config.getDatasetDescription());
+			root.put("notes", description);
 			if (!config.getAuthorName().isEmpty()) root.put("author", config.getAuthorName());
 			if (!config.getAuthorEmail().isEmpty()) root.put("author_email", config.getAuthorEmail());
+			
+			if (config.isVersionGenerated()) {
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				Date versiondate = new Date();
+				String version = dateFormat.format(versiondate);
+				root.put("version", version);
+			} 
+			else if (!config.getVersion().isEmpty()) root.put("version", config.getVersion());
 			
 			root.put("tags", tags);
 			root.put("resources", resources);
 			root.put("extras", extras);
 			
-			
-			logger.debug("Posting to datahub.io");
-			CloseableHttpClient client = HttpClients.createDefault();
-            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + config.getDatasetID());
-            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
-            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
-            
-            String json = root.toString();
-            
-            httpPost.setEntity(new StringEntity(json, Charset.forName("utf-8")));
-            
-            CloseableHttpResponse response = null;
-            
-            try {
-                response = client.execute(httpPost);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                	logger.info("Response:" + EntityUtils.toString(response.getEntity()));
-                } else {
-                	logger.error("Response:" + EntityUtils.toString(response.getEntity()));
-                }
-            } catch (ClientProtocolException e) {
-            	logger.error(e.getLocalizedMessage(), e);
-			} catch (IOException e) {
-            	logger.error(e.getLocalizedMessage(), e);
-			} finally {
-                if (response != null) {
-                    try {
-						response.close();
-						client.close();
-					} catch (IOException e) {
-		            	logger.error(e.getLocalizedMessage(), e);
-					}
-                }
-            }
+			if (!context.canceled()) {
+				logger.debug("Posting to datahub.io");
+				CloseableHttpClient client = HttpClients.createDefault();
+	            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + config.getDatasetID());
+	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
+	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
+	            
+	            String json = root.toString();
+	            
+	            httpPost.setEntity(new StringEntity(json, Charset.forName("utf-8")));
+	            
+	            CloseableHttpResponse response = null;
+	            
+	            try {
+	                response = client.execute(httpPost);
+	                if (response.getStatusLine().getStatusCode() == 200) {
+	                	logger.info("Response:" + EntityUtils.toString(response.getEntity()));
+	                } else {
+	                	logger.error("Response:" + EntityUtils.toString(response.getEntity()));
+	                }
+	            } catch (ClientProtocolException e) {
+	            	logger.error(e.getLocalizedMessage(), e);
+				} catch (IOException e) {
+	            	logger.error(e.getLocalizedMessage(), e);
+				} finally {
+	                if (response != null) {
+	                    try {
+							response.close();
+							client.close();
+						} catch (IOException e) {
+			            	logger.error(e.getLocalizedMessage(), e);
+						}
+	                }
+	            }
+			}
 		} catch (JSONException e) {
 			logger.error(e.getLocalizedMessage(), e);
 		} catch (URISyntaxException e) {
@@ -292,10 +273,12 @@ extends DpuAdvancedBase<LoaderConfig>
         	logger.error(e.getLocalizedMessage(), e);
 		}
         
-        java.util.Date date2 = new java.util.Date();
-        long end = date2.getTime();
-
-        context.sendMessage(DPUContext.MessageType.INFO, "Loaded in " + (end-start) + "ms");
+        if (!context.canceled()) {
+	        java.util.Date date2 = new java.util.Date();
+	        long end = date2.getTime();
+	
+	        context.sendMessage(DPUContext.MessageType.INFO, "Loaded in " + (end-start) + "ms");
+        }
 
     }
 

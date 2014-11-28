@@ -1,7 +1,5 @@
 package cz.opendata.linked.lodcloud.loader.test;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
@@ -11,6 +9,7 @@ import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
 import cz.cuni.mff.xrg.uv.test.boost.resources.ResourceAccess;
 import cz.opendata.linked.lodcloud.loader.Loader;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig;
+import cz.opendata.linked.lodcloud.loader.LoaderConfig.LinkCount;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.VocabTags;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 
@@ -24,12 +23,12 @@ public class LoadTest {
         
         config.setDatasetID("cz-test");
         config.setApiKey("");
-        config.setDatasetDescription("Description");
+        //config.setDatasetDescription("Description");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
         config.getVocabularies().add("skos");
         config.getVocabularies().add("gr");
         config.getVocabularies().add("adms");
-        config.getLinks().add(new ImmutablePair<String, Long>("cz-ruian", new Long(20000)));
+        config.getLinks().add(new LinkCount("cz-ruian", new Long(20000)));
         config.setVocabTag(VocabTags.NoProprietaryVocab);
 
         DpuAdvancedBaseTest.setDpuConfiguration(loader, config);
