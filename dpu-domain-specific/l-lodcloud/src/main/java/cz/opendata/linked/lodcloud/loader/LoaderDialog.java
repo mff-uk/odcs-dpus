@@ -53,6 +53,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     private TextField tfAuthorEmail;
     private TextField tfVersion;
     private TextField tfSPARQLName;
+    private TextField tfSchemaUrl;
     private TextField tfSPARQLDescription;
     private TextField tfNamespace;
     private TextField tfShortName;
@@ -279,10 +280,23 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         	lsVocabTag.addItem(vTag);
         }
         lsVocabTag.setNewItemsAllowed(false);
+        lsVocabTag.setImmediate(true);
         lsVocabTag.setMultiSelect(false);
         lsVocabTag.setNullSelectionAllowed(false);
         lsVocabTag.setRows(LoaderConfig.VocabTags.values().length);
+        lsVocabTag.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				tfSchemaUrl.setEnabled(lsVocabTag.getValue() != LoaderConfig.VocabTags.NoProprietaryVocab);
+		}});
+
         mainLayout.addComponent(lsVocabTag);
+
+        tfSchemaUrl = new TextField();
+        tfSchemaUrl.setWidth("100%");
+        tfSchemaUrl.setCaption("OWL/RDF schema of the vocabulary");
+        tfSchemaUrl.setInputPrompt("http://linked.opendata.cz/vocab/vocab.ttl");
+        mainLayout.addComponent(tfSchemaUrl);
 
         lsVocabMappingsTag = new ListSelect();
         lsVocabMappingsTag.setWidth("100%");
@@ -373,7 +387,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	chkLodcloudNeedsInfo.setValue(conf.isLodcloudNeedsInfo());
     	chkLodcloudNeedsFixing.setValue(conf.isLodcloudNeedsFixing());
     	chkLimitedSparql.setValue(conf.isLimitedSparql());
-    	
+    	tfSchemaUrl.setValue(conf.getSchemaUrl());
     	for (String s: conf.getVocabularies()) lsVocabularies.addItem(s);
     	lsVocabularies.setValue(conf.getVocabularies());
     }
@@ -391,6 +405,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setSparqlEndpointName(tfSPARQLName.getValue());
         conf.setSparqlEndpointDescription(tfSPARQLDescription.getValue());
         conf.setNamespace(tfNamespace.getValue());
+        conf.setSchemaUrl(tfSchemaUrl.getValue());
         conf.setShortname(tfShortName.getValue());
         conf.setCustomLicenseLink(tfCustomLicenseLink.getValue());
         conf.setVersionGenerated(chkGenerateVersion.getValue());

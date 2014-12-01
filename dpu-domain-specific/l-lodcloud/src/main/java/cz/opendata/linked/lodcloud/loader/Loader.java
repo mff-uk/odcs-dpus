@@ -161,6 +161,20 @@ extends DpuAdvancedBase<LoaderConfig>
             resources.put(voidJson);
             // End of VoID resource
 
+            if (config.getVocabTag() != LoaderConfig.VocabTags.NoProprietaryVocab && !config.getSchemaUrl().isEmpty()) {
+	            // Start of RDFS/OWL schema resource
+	            JSONObject schemaResource = new JSONObject();
+	            
+	            schemaResource.put("format","meta/rdf-schema");
+	            schemaResource.put("resource_type","file");
+	            schemaResource.put("description","RDFS/OWL Schema with proprietary vocabulary");
+	            schemaResource.put("name","RDFS/OWL schema");
+	            schemaResource.put("url", config.getSchemaUrl() );
+	            
+	            resources.put(schemaResource);
+	            // End of RDFS/OWL schema resource
+            }
+
             // Start of Dump resource
             JSONObject dump = new JSONObject();
             
