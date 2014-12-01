@@ -7,8 +7,8 @@
 		<version>1.1.1</version>
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
-	<artifactId>e-ddressMapper</artifactId>
-	<version>1.1.0</version>
+	<artifactId>e-AddressMapper</artifactId>
+	<version>1.1.1</version>
 	<packaging>bundle</packaging>
 	<name>e-Address Mapper</name>
 	<description>Map address to ruian.</description>
@@ -25,7 +25,7 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-        <!-- compile library -->
+        <!-- Compile library. -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>
