@@ -1,28 +1,25 @@
 package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * DPU's configuration class.
+ *
+ * @author Škoda Petr
  */
-public class RdfStatementParserConfig_V1 implements VersionedConfig<RdfStatementParserConfig_V2> {
-
-    /**
-     * Action type for group.
-     */
-    public static enum ActionType {
-        CreateTriple,
-        RegExp;
-    }
+public class RdfStatementParserConfig_V2 {
 
     public static class ActionInfo {
 
         /**
+         * Group name.
+         */
+        private String name;
+        
+        /**
          * Type of action with given group;
          */
-        private ActionType actionType;
+        private ActionType_V1 actionType;
 
         /**
          * Based on {@link #actionType} contains regular expression  to use or
@@ -34,16 +31,44 @@ public class RdfStatementParserConfig_V1 implements VersionedConfig<RdfStatement
         public ActionInfo() {
         }
 
-        public ActionInfo(ActionType actionType, String actionData) {
+        /**
+         * For conversion.
+         * 
+         * @param name
+         * @param info
+         */
+        public ActionInfo(String name, RdfStatementParserConfig_V1.ActionInfo info) {
+            this.name = name;
+            switch(info.getActionType()) {
+                case CreateTriple:
+                    this.actionType = ActionType_V1.CreateTriple;
+                    break;
+                case RegExp:
+                    this.actionType = ActionType_V1.RegExp;
+                    break;
+            }
+            this.actionData = info.getActionData();            
+        }
+        
+        public ActionInfo(String name, ActionType_V1 actionType, String actionData) {
+            this.name = name;
             this.actionType = actionType;
             this.actionData = actionData;
         }
 
-        public ActionType getActionType() {
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+        
+        public ActionType_V1 getActionType() {
             return actionType;
         }
 
-        public void setActionType(ActionType actionType) {
+        public void setActionType(ActionType_V1 actionType) {
             this.actionType = actionType;
         }
 
@@ -60,23 +85,26 @@ public class RdfStatementParserConfig_V1 implements VersionedConfig<RdfStatement
     /**
      * Map of actions. Group name and respective action.
      */
-    private Map<String, ActionInfo> actions = new LinkedHashMap<>();
+    private List<ActionInfo> actions = new LinkedList<>();
 
     /**
      * Query used to get values.
      */
     private String selectQuery = "SELECT * WHERE {?subject ?p ?o}";
 
+    /**
+     * If true then also labels/tags are transfered with values.
+     */
     private boolean transferLabels = false;
 
-    public RdfStatementParserConfig_V1() {
+    public RdfStatementParserConfig_V2() {
     }
 
-    public Map<String, ActionInfo> getActions() {
+    public List<ActionInfo> getActions() {
         return actions;
     }
 
-    public void setActions(Map<String, ActionInfo> actions) {
+    public void setActions(List<ActionInfo> actions) {
         this.actions = actions;
     }
 
@@ -94,20 +122,6 @@ public class RdfStatementParserConfig_V1 implements VersionedConfig<RdfStatement
 
     public void setTransferLabels(boolean transferLabels) {
         this.transferLabels = transferLabels;
-    }
-
-    @Override
-    public RdfStatementParserConfig_V2 toNextVersion() {
-        RdfStatementParserConfig_V2 c = new RdfStatementParserConfig_V2();
-
-        c.setSelectQuery(selectQuery);
-        c.setTransferLabels(transferLabels);
-
-        for (String key : actions.keySet()) {
-            c.getActions().add(new RdfStatementParserConfig_V2.ActionInfo(key, actions.get(key)));
-        }
-
-        return c;
     }
 
 }

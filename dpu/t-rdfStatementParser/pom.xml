@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>eu.unifiedviews.plugins</groupId>
 	<artifactId>t-rdfStatementParser</artifactId>
-	<version>1.0.2</version>
+	<version>2.0.0</version>
 	<packaging>bundle</packaging>
 	<name>t-RdfStatementParser</name>
 	<description>Based on given actions create new triples. Only created triples are put to the output.</description>
@@ -22,6 +22,12 @@
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dialog</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>

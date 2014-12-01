@@ -3,6 +3,7 @@ package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.SelectQuery;
@@ -33,12 +34,12 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig_V1>
+public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig_V2>
         implements SelectQuery.BindingIterator {
 
     /**
      * Used to log existing action pair (key and value) to prevent cycles in
-     * action processing.
+     * action processing. There can be multiple actions under same name but with different value.
      */
     private class NameValuePair {
 
@@ -120,7 +121,8 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
     private final Map<String, RegExpInfo> regExpCache = new HashMap<>();
 
     public RdfStatementParser() {
-        super(RdfStatementParserConfig_V1.class, AddonInitializer.create(new SimpleRdfConfigurator(RdfStatementParser.class)));
+        super(ConfigHistory.create(RdfStatementParserConfig_V1.class).addCurrent(RdfStatementParserConfig_V2.class),
+                AddonInitializer.create(new SimpleRdfConfigurator(RdfStatementParser.class)));
     }
 
     @Override
@@ -213,30 +215,29 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
         while (!stack.isEmpty()) {
             final NameValuePair toProcess = stack.pop();
             LOG.debug("toProcess = name:'{}', value: '{}'", toProcess.name, toProcess.value);
-            for (String key : config.getActions().keySet()) {
-                if (key.compareTo(toProcess.name) != 0) {
+            for (RdfStatementParserConfig_V2.ActionInfo actionInfo : config.getActions()) {
+                if (actionInfo.getName().compareTo(toProcess.name) != 0) {
                     // does not match, skip
                     continue;
                 }
                 //
                 // apply action under given key
                 //
-                final RdfStatementParserConfig_V1.ActionInfo info
-                        = config.getActions().get(key);
-                switch (info.getActionType()) {
+                switch (actionInfo.getActionType()) {
                     case CreateTriple:
-                        LOG.trace("\tcreateTriple('{}', '{}', '{}')", subject.stringValue(), info.getActionData(), toProcess.value);
-                        createTriple(subject, info.getActionData(),
+                        LOG.trace("\tcreateTriple('{}', '{}', '{}')", subject.stringValue(), 
+                                actionInfo.getActionData(), toProcess.value);
+                        createTriple(subject, actionInfo.getActionData(),
                                 toProcess.value, label);
                         break;
                     case RegExp:
                         // get object with prepared regular expresion
-                        if (!regExpCache.containsKey(info.getActionData())) {
-                            regExpCache.put(info.getActionData(),
-                                    new RegExpInfo(info.getActionData()));
+                        if (!regExpCache.containsKey(actionInfo.getActionData())) {
+                            regExpCache.put(actionInfo.getActionData(),
+                                    new RegExpInfo(actionInfo.getActionData()));
                         }
-                        LOG.trace("\tRegExp : '{}'", info.getActionData());
-                        final RegExpInfo regExp = regExpCache.get(info.getActionData());
+                        LOG.trace("\tRegExp : '{}'", actionInfo.getActionData());
+                        final RegExpInfo regExp = regExpCache.get(actionInfo.getActionData());
                         // apply
                         final Matcher matcher = regExp.pattern.matcher(toProcess.value);
                         while (matcher.find()) {
@@ -258,8 +259,7 @@ public class RdfStatementParser extends DpuAdvancedBase<RdfStatementParserConfig
                         }
                         break;
                     default:
-                        LOG.warn("Unknown action type: {}", info
-                                .getActionType());
+                        LOG.warn("Unknown action type: {}", actionInfo.getActionType());
                         break;
                 }
             }
