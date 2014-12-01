@@ -19,7 +19,7 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@DPU.AsTransformer
+@DPU.AsQuality
 public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RdfNotEmpty.class);
