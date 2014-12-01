@@ -56,6 +56,7 @@ public class ComponentTable<T> extends CustomComponent {
 
         private Class<?> type;
 
+        private ValueConvertor valueConvertor = new ValueConvertor();
 
         public ColumnInfo(String propertyName, String headerText, Validator validator, float expansionRatio) {
             this.propertyName = propertyName;
@@ -65,6 +66,56 @@ public class ComponentTable<T> extends CustomComponent {
         }
 
     }
+
+    /**
+     * Identity conversion on values.
+     */
+    private static class ValueConvertor {
+    
+        public Object beforeSet(Object object) {
+            return object;
+        }
+
+        /**
+         * Called before object is set from Field to user class.
+         *
+         * @param object
+         * @return
+         */
+        public Object beforeGet(Object object) throws DPUConfigException {
+            return object;
+        }
+        
+    }
+
+    /**
+     * Used for conversion for Long, Integer class.
+     */
+    private static class NumberConvertor extends ValueConvertor {
+
+        @Override
+        public Object beforeSet(Object object) {
+            if (object == null) {
+                return null;
+            } else {
+                return object.toString();
+            }
+        }
+
+        @Override
+        public Object beforeGet(Object object) throws DPUConfigException  {
+            if (object == null || object.toString().isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(object.toString());
+            } catch (NumberFormatException ex) {
+                throw new DPUConfigException("'" + object.toString() + "' is not a number", ex);
+            }
+        }
+        
+    }
+
 
     /**
      * Represent a single item = row in this table.
@@ -205,6 +256,10 @@ public class ComponentTable<T> extends CustomComponent {
                 info.type = propDesc.getPropertyType();
                 info.readMethod = propDesc.getReadMethod();
                 info.writeMethod = propDesc.getWriteMethod();
+                // Check for convertors.
+                if (info.type.isAssignableFrom(Long.class)) {
+                    info.valueConvertor = new NumberConvertor();
+                }
             } catch (IntrospectionException ex) {
                 throw new RuntimeException("Can't prepare column info.", ex);
             }
@@ -250,7 +305,7 @@ public class ComponentTable<T> extends CustomComponent {
     }
 
     /**
-     *
+     * Set item (row) from given user class.
      * @param item Representation of row.
      * @param value Value that should be set to given row.
      */
@@ -258,9 +313,9 @@ public class ComponentTable<T> extends CustomComponent {
         for (ColumnInfo info : columnsInfo.values()) {
             final Object propertyValue;
             try {
-                propertyValue = info.readMethod.invoke(value);
+                propertyValue = info.valueConvertor.beforeSet(info.readMethod.invoke(value));
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException("Can't get property: " + info.propertyName);
+                throw new RuntimeException("Can't get property: " + info.propertyName, ex);
             }
             item.fields.get(info.propertyName).setValue(propertyValue);
         }
@@ -291,21 +346,20 @@ public class ComponentTable<T> extends CustomComponent {
         try {
             value = clazz.newInstance();
         } catch (IllegalAccessException | InstantiationException ex) {
-            throw new RuntimeException("Can't create new instance.");
+            throw new RuntimeException("Can't create new instance.", ex);
         }
 
         for (ColumnInfo info : columnsInfo.values()) {
             final Field field = item.fields.get(info.propertyName);
-
             if (!field.isValid()) {
                 throw new DPUConfigException("Invalid value: " + field.getValue());
             }
-
-            final Object propertyValue = field.getValue();
+            // Store value into a newly created instance.
+            Object propertyValue = info.valueConvertor.beforeGet(field.getValue());
             try {
                 info.writeMethod.invoke(value, propertyValue);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException("Can't get property: " + info.propertyName);
+                throw new RuntimeException("Can't set property: " + info.propertyName, ex);
             }
         }
 
