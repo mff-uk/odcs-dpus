@@ -12,6 +12,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -40,7 +41,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
 	private VerticalLayout mainLayout;
     private Label lblRestApiUrl;
     private TextField tfDatasetID;
-    private TextField tfApiKey;
+    private PasswordField tfApiKey;
     private TextField tfMaintainerName;
     private TextField tfMaintainerEmail;
     private TextField tfAuthorName;
@@ -85,7 +86,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         setWidth("100%");
         setHeight("100%");
         
-        tfApiKey = new TextField();
+        tfApiKey = new PasswordField();
         tfApiKey.setWidth("100%");
         tfApiKey.setCaption("Datahub.io CKAN API Key");
         tfApiKey.setDescription("Datahub.io CKAN API Key");
