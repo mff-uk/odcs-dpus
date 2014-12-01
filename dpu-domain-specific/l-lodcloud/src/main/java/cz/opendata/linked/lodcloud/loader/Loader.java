@@ -80,16 +80,19 @@ extends DpuAdvancedBase<LoaderConfig>
         String sparqlEndpointVoid = "";
         String description = "";
         
-        String queryString = "PREFIX dcterms: <http://purl.org/dc/terms/> void: <http://rdfs.org/ns/void#> SELECT ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; dcterms:description ?description; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples . FILTER(lang(?description) = \"en\")} ";
+        String queryString = "PREFIX dcterms: <http://purl.org/dc/terms/> PREFIX void: <http://rdfs.org/ns/void#> SELECT ?description ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; dcterms:description ?description; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples . FILTER(lang(?description) = \"en\")} ";
         try (ConnectionPair<TupleQueryResult> query = addrValueFacWrap.executeSelectQuery(queryString))        
         {
-            final TupleQueryResult result = query.getObject();
-            BindingSet first = result.next();
-            datadump = first.getValue("dump").stringValue();
-            triplecount = first.getValue("triples").stringValue();
-            datasetUrl = first.getValue("datasetURL").stringValue();
-            sparqlEndpointVoid = first.getValue("sparqlEndpoint").stringValue();
-            description = first.getValue("description").stringValue();
+        	final TupleQueryResult result = query.getObject();
+            if (result.hasNext()) {
+	        	BindingSet first = result.next();
+	            datadump = first.getValue("dump").stringValue();
+	            triplecount = first.getValue("triples").stringValue();
+	            datasetUrl = first.getValue("datasetURL").stringValue();
+	            sparqlEndpointVoid = first.getValue("sparqlEndpoint").stringValue();
+	            description = first.getValue("description").stringValue();
+            }
+            else { throw new DPUException("Required metadata missing from input"); }
         } catch (NumberFormatException | QueryEvaluationException e) {
             logger.error("Failed to query and parse value.", e);
         }
