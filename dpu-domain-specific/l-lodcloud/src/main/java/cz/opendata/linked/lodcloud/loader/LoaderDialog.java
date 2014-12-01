@@ -38,6 +38,11 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
 	private static final long serialVersionUID = -1989608763609859477L;
 	
 	private ComponentTable<LoaderConfig.LinkCount> genTable;
+    private CheckBox chkLodcloudNolinks;
+    private CheckBox chkLodcloudUnconnected;
+    private CheckBox chkLodcloudNeedsFixing;
+    private CheckBox chkLodcloudNeedsInfo;
+    private CheckBox chkLimitedSparql;
 	private VerticalLayout mainLayout;
     private Label lblRestApiUrl;
     private TextField tfDatasetID;
@@ -293,6 +298,26 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lsVocabMappingsTag.setRows(LoaderConfig.VocabMappingsTags.values().length);
         mainLayout.addComponent(lsVocabMappingsTag);
 
+        chkLodcloudNolinks = new CheckBox();
+        chkLodcloudNolinks.setCaption("Data set has no external RDF links to other datasets.");
+        mainLayout.addComponent(chkLodcloudNolinks);
+        
+        chkLodcloudUnconnected = new CheckBox();
+        chkLodcloudUnconnected.setCaption("Data set has no external RDF links to or from other datasets.");
+        mainLayout.addComponent(chkLodcloudUnconnected);
+
+        chkLodcloudNeedsFixing = new CheckBox();
+        chkLodcloudNeedsFixing.setCaption("The dataset is currently broken.");
+        mainLayout.addComponent(chkLodcloudNeedsFixing);
+
+        chkLodcloudNeedsInfo = new CheckBox();
+        chkLodcloudNeedsInfo.setCaption("The data provider or data set homepage do not provide mininum information (and information can't be determined from SPARQL endpoint or downloads).");
+        mainLayout.addComponent(chkLodcloudNeedsInfo);
+
+        chkLimitedSparql = new CheckBox();
+        chkLimitedSparql.setCaption("Indicates whether the SPARQL endpoint is not serving the whole data set.");
+        mainLayout.addComponent(chkLimitedSparql);
+
         lsVocabularies = new ListSelect();
         lsVocabularies.setRows(4);
         lsVocabularies.setWidth("100%");
@@ -343,6 +368,11 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	lsPublishedTag.setValue(conf.getPublishedTag());
     	lsVocabMappingsTag.setValue(conf.getVocabMappingTag());
     	lsVocabTag.setValue(conf.getVocabTag());
+    	chkLodcloudNolinks.setValue(conf.isLodcloudNolinks());
+    	chkLodcloudUnconnected.setValue(conf.isLodcloudUnconnected());
+    	chkLodcloudNeedsInfo.setValue(conf.isLodcloudNeedsInfo());
+    	chkLodcloudNeedsFixing.setValue(conf.isLodcloudNeedsFixing());
+    	chkLimitedSparql.setValue(conf.isLimitedSparql());
     	
     	for (String s: conf.getVocabularies()) lsVocabularies.addItem(s);
     	lsVocabularies.setValue(conf.getVocabularies());
@@ -372,6 +402,11 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setPublishedTag((PublishedTags) lsPublishedTag.getValue());
         conf.setVocabMappingTag((VocabMappingsTags) lsVocabMappingsTag.getValue());
         conf.setVocabTag((VocabTags) lsVocabTag.getValue());
+        conf.setLodcloudNolinks(chkLodcloudNolinks.getValue());
+        conf.setLodcloudUnconnected(chkLodcloudUnconnected.getValue());
+        conf.setLodcloudNeedsInfo(chkLodcloudNeedsInfo.getValue());
+        conf.setLodcloudNeedsFixing(chkLodcloudNeedsFixing.getValue());
+        conf.setLimitedSparql(chkLimitedSparql.getValue());
         @SuppressWarnings("unchecked")
         Collection<String> value = ((Collection<String>) lsVocabularies.getValue());
 		conf.setVocabularies(new LinkedList<String>(value));

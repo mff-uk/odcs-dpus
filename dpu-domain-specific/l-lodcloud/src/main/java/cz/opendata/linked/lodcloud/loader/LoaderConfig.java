@@ -212,7 +212,7 @@ public class LoaderConfig  {
     
     private boolean limitedSparql = false;
     
-    private boolean lodcloudNolinks = true;
+    private boolean lodcloudNolinks = false;
     
     private boolean lodcloudUnconnected = false;
     
