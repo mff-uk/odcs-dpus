@@ -52,7 +52,6 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
 
         });
 
-        setCompositionRoot(table
-        );
+        setCompositionRoot(table);
     }
 }
