@@ -342,6 +342,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	lsPublishedTag.setValue(conf.getPublishedTag());
     	lsVocabMappingsTag.setValue(conf.getVocabMappingTag());
     	lsVocabTag.setValue(conf.getVocabTag());
+    	
+    	for (String s: conf.getVocabularies()) lsVocabularies.addItem(s);
     	lsVocabularies.setValue(conf.getVocabularies());
     }
 
@@ -349,17 +351,17 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     public LoaderConfig getConfiguration() throws DPUConfigException {
     	LoaderConfig conf = new LoaderConfig();
         conf.setApiKey(tfApiKey.getValue());
-        conf.setApiKey(tfDatasetID.getValue());
-        conf.setApiKey(tfMaintainerName.getValue());
-        conf.setApiKey(tfMaintainerEmail.getValue());
-        conf.setApiKey(tfAuthorName.getValue());
-        conf.setApiKey(tfAuthorEmail.getValue());
-        conf.setApiKey(tfVersion.getValue());
-        conf.setApiKey(tfSPARQLName.getValue());
-        conf.setApiKey(tfSPARQLDescription.getValue());
-        conf.setApiKey(tfNamespace.getValue());
-        conf.setApiKey(tfShortName.getValue());
-        conf.setApiKey(tfCustomLicenseLink.getValue());
+        conf.setDatasetID(tfDatasetID.getValue());
+        conf.setMaintainerName(tfMaintainerName.getValue());
+        conf.setMaintainerEmail(tfMaintainerEmail.getValue());
+        conf.setAuthorName(tfAuthorName.getValue());
+        conf.setAuthorEmail(tfAuthorEmail.getValue());
+        conf.setVersion(tfVersion.getValue());
+        conf.setSparqlEndpointName(tfSPARQLName.getValue());
+        conf.setSparqlEndpointDescription(tfSPARQLDescription.getValue());
+        conf.setNamespace(tfNamespace.getValue());
+        conf.setShortname(tfShortName.getValue());
+        conf.setCustomLicenseLink(tfCustomLicenseLink.getValue());
         conf.setVersionGenerated(chkGenerateVersion.getValue());
         conf.setLinks(genTable.getValue());
         conf.setTopic((Topics) cbTopic.getValue());

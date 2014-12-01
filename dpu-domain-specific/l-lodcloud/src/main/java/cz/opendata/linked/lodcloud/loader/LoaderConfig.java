@@ -1,8 +1,8 @@
 package cz.opendata.linked.lodcloud.loader;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -264,7 +264,7 @@ public class LoaderConfig  {
     
     private String customLicenseLink = "";
     
-    private Collection<String> vocabularies = new LinkedList<String>();
+    private Collection<String> vocabularies = new HashSet<String>();
     
     private Collection<LinkCount> links = new LinkedList<LinkCount>();
     
@@ -484,7 +484,7 @@ public class LoaderConfig  {
 		return vocabularies;
 	}
 
-	public void setVocabularies(List<String> vocabularies) {
+	public void setVocabularies(Collection<String> vocabularies) {
 		this.vocabularies = vocabularies;
 	}
 
