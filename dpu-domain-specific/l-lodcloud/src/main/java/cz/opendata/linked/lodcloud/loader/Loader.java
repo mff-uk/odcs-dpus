@@ -79,8 +79,9 @@ extends DpuAdvancedBase<LoaderConfig>
         String datasetUrl = "";
         String sparqlEndpointVoid = "";
         String description = "";
+        String title = "";
         
-        String queryString = "PREFIX dcterms: <http://purl.org/dc/terms/> PREFIX void: <http://rdfs.org/ns/void#> SELECT ?description ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; dcterms:description ?description; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples . FILTER(lang(?description) = \"en\")} ";
+        String queryString = "PREFIX dcterms: <http://purl.org/dc/terms/> PREFIX void: <http://rdfs.org/ns/void#> SELECT ?title ?description ?triples ?dump ?datasetURL ?sparqlEndpoint WHERE {?datasetURL a void:Dataset; dcterms:description ?description; dcterms:title ?title; void:sparqlEndpoint ?sparqlEndpoint; void:dataDump ?dump ; void:triples ?triples . FILTER(lang(?description) = \"en\") FILTER(lang(?title) = \"en\")} ";
         try (ConnectionPair<TupleQueryResult> query = addrValueFacWrap.executeSelectQuery(queryString))        
         {
         	final TupleQueryResult result = query.getObject();
@@ -91,6 +92,7 @@ extends DpuAdvancedBase<LoaderConfig>
 	            datasetUrl = first.getValue("datasetURL").stringValue();
 	            sparqlEndpointVoid = first.getValue("sparqlEndpoint").stringValue();
 	            description = first.getValue("description").stringValue();
+	            title = first.getValue("title").stringValue();
             }
             else { throw new DPUException("Required metadata missing from input"); }
         } catch (NumberFormatException | QueryEvaluationException e) {
@@ -98,7 +100,7 @@ extends DpuAdvancedBase<LoaderConfig>
         }
         if (description.isEmpty() || datadump.isEmpty() || triplecount.isEmpty() || datasetUrl.isEmpty() || sparqlEndpointVoid.isEmpty())
         {
-        	throw new DPUException("Required metadata missing from input. Datadump: " + datadump + " Triplecount: " + triplecount + " URL: " + datasetUrl + " Endpoint: " + sparqlEndpointVoid + " Description: " + description);
+        	throw new DPUException("Required metadata missing from input. Datadump: " + datadump + "Title: " + title + " Triplecount: " + triplecount + " URL: " + datasetUrl + " Endpoint: " + sparqlEndpointVoid + " Description: " + description);
         }
         logger.debug("Querying for sample resources");
 
@@ -212,6 +214,7 @@ extends DpuAdvancedBase<LoaderConfig>
 
             if (!config.getDatasetID().isEmpty()) root.put("name", config.getDatasetID());
             root.put("url", datasetUrl);
+            root.put("title", title);
 			if (!config.getMaintainerName().isEmpty()) root.put("maintainer", config.getMaintainerName());
 			if (!config.getMaintainerEmail().isEmpty()) root.put("maintainer_email", config.getMaintainerEmail());
 			//root.put("private", String.valueOf(config.isDatasetPrivate()));
