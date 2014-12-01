@@ -56,7 +56,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 		final List<AbstractSource> usedSource = createSource();
         context.sendMessage(DPUContext.MessageType.INFO, "Extracting files ...");
 		// for each source
-        int index = 0;
+        int index = 1;
 		for (AbstractSource source : usedSource) {
             // we rely on fixed order of sources and different
             // base file names
