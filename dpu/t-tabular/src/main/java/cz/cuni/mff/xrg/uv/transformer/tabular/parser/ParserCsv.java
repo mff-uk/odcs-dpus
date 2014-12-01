@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
+import org.supercsv.quote.QuoteMode;
+import org.supercsv.util.CsvContext;
 
 /**
  * Parse csv file.
@@ -39,11 +41,26 @@ public class ParserCsv implements Parser {
 
     @Override
     public void parse(File inFile) throws OperationFailedException, ParseFailed {
-        final CsvPreference csvPreference = new CsvPreference.Builder(
-                config.quoteChar.charAt(0),
-                config.delimiterChar.charAt(0),
-                "\\n") // is not used during reading
-                .build();
+        final CsvPreference csvPreference;
+        // We will use quates only if they are provided
+        if (config.quoteChar == null || config.quoteChar.isEmpty()) {
+            // We do not use quates.
+            final QuoteMode customQuoteMode = new QuoteMode() {
+                @Override
+                public boolean quotesRequired(String csvColumn, CsvContext context, CsvPreference preference) {
+                    return false;
+                }
+            };
+            // Quate char is never used.
+            csvPreference = new CsvPreference.Builder(' ', config.delimiterChar.charAt(0),
+                    "\\n").useQuoteMode(customQuoteMode).build();
+
+        } else {
+            csvPreference = new CsvPreference.Builder(
+                    config.quoteChar.charAt(0),
+                    config.delimiterChar.charAt(0),
+                    "\\n").build();
+        }
 
         // set if for first time or if we use static row counter
         if (!config.checkStaticRowCounter || rowNumber == 0) {

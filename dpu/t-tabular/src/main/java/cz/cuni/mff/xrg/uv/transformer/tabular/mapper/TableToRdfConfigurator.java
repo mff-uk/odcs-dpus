@@ -307,6 +307,8 @@ public class TableToRdfConfigurator {
                 }
             case gYear:
                 return placeHolder + "^^" + XMLSchema.GYEAR;
+            case Decimal:
+                return placeHolder + "^^" + XMLSchema.DECIMAL;
             default:
                 LOG.error("No type used for: {}", columnName);
                 return placeHolder;
