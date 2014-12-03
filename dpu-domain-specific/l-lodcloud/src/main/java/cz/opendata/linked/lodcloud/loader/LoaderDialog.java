@@ -1,7 +1,6 @@
 package cz.opendata.linked.lodcloud.loader;
 
 import java.util.Collection;
-import java.util.LinkedList;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -37,7 +36,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
 
 	private static final long serialVersionUID = -1989608763609859477L;
 	
-	private ComponentTable<LoaderConfig.LinkCount> genTable;
+	private ComponentTable<LoaderConfig.LinkCount> gtLinkCounts;
+	private ComponentTable<LoaderConfig.MappingFile> gtMappingFiles;
     private CheckBox chkLodcloudNolinks;
     private CheckBox chkLodcloudUnconnected;
     private CheckBox chkLodcloudNeedsFixing;
@@ -67,6 +67,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     private ListSelect lsVocabMappingsTag;
     private ListSelect lsVocabTag;
     private ListSelect lsVocabularies;
+    private ListSelect lsAdditionalTags;
     
     public LoaderDialog() {
         super(LoaderConfig.class,AddonInitializer.create(new SimpleRdfConfigurator<>(Loader.class)));
@@ -120,7 +121,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         
         tfShortName = new TextField();
         tfShortName.setWidth("100%");
-        tfShortName.setCaption("Dataset short name");
+        tfShortName.setCaption("Dataset short name - for LOD cloud circle label");
         tfShortName.setInputPrompt("CZ IC");
         mainLayout.addComponent(tfShortName);
 
@@ -312,6 +313,16 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lsVocabMappingsTag.setRows(LoaderConfig.VocabMappingsTags.values().length);
         mainLayout.addComponent(lsVocabMappingsTag);
 
+        lsAdditionalTags = new ListSelect();
+        lsAdditionalTags.setRows(4);
+        lsAdditionalTags.setWidth("100%");
+        lsAdditionalTags.setCaption("Additional CKAN tags");
+        lsAdditionalTags.setDescription("Custom CKAN tags in addition to the ones required for the LODCloud");
+        lsAdditionalTags.setNewItemsAllowed(true);
+        lsAdditionalTags.setNullSelectionAllowed(false);
+        lsAdditionalTags.setMultiSelect(true);
+        mainLayout.addComponent(lsAdditionalTags);
+        
         chkLodcloudNolinks = new CheckBox();
         chkLodcloudNolinks.setCaption("Data set has no external RDF links to other datasets.");
         mainLayout.addComponent(chkLodcloudNolinks);
@@ -325,7 +336,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         mainLayout.addComponent(chkLodcloudNeedsFixing);
 
         chkLodcloudNeedsInfo = new CheckBox();
-        chkLodcloudNeedsInfo.setCaption("The data provider or data set homepage do not provide mininum information (and information can't be determined from SPARQL endpoint or downloads).");
+        chkLodcloudNeedsInfo.setCaption("The data provider or data set homepage do not provide mininum information.");
         mainLayout.addComponent(chkLodcloudNeedsInfo);
 
         chkLimitedSparql = new CheckBox();
@@ -342,11 +353,11 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lsVocabularies.setMultiSelect(true);
         mainLayout.addComponent(lsVocabularies);
 
-        genTable = new ComponentTable<LoaderConfig.LinkCount>(LoaderConfig.LinkCount.class,
+        gtLinkCounts = new ComponentTable<LoaderConfig.LinkCount>(LoaderConfig.LinkCount.class,
                 new ComponentTable.ColumnInfo("targetDataset", "Target CKAN dataset name", null, 0.4f),
                 new ComponentTable.ColumnInfo("linkCount", "Link count", null, 0.1f));
         
-        genTable.setPolicy(new ComponentTable.Policy<LoaderConfig.LinkCount>() {
+        gtLinkCounts.setPolicy(new ComponentTable.Policy<LoaderConfig.LinkCount>() {
 
             @Override
             public boolean isSet(LoaderConfig.LinkCount value) {
@@ -354,8 +365,22 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
             }
 
         });
-        mainLayout.addComponent(genTable);
+        mainLayout.addComponent(gtLinkCounts);
         
+        gtMappingFiles = new ComponentTable<LoaderConfig.MappingFile>(LoaderConfig.MappingFile.class,
+                new ComponentTable.ColumnInfo("mappingFormat", "Mapping format", null, 0.1f),
+                new ComponentTable.ColumnInfo("mappingFile", "Link to mapping file", null, 0.4f));
+        
+        gtMappingFiles.setPolicy(new ComponentTable.Policy<LoaderConfig.MappingFile>() {
+
+            @Override
+            public boolean isSet(LoaderConfig.MappingFile value) {
+                return !value.getMappingFile().isEmpty() ;
+            }
+
+        });
+        mainLayout.addComponent(gtMappingFiles);
+
         return mainLayout;
     }    
      
@@ -374,7 +399,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	tfShortName.setValue(conf.getShortname());
     	tfCustomLicenseLink.setValue(conf.getCustomLicenseLink());
     	chkGenerateVersion.setValue(conf.isVersionGenerated());
-    	genTable.setValue(conf.getLinks());
+    	gtLinkCounts.setValue(conf.getLinks());
+    	gtMappingFiles.setValue(conf.getMappingFiles());
     	cbTopic.setValue(conf.getTopic());
     	cbLicense.setValue(conf.getLicense_id());
     	lsLicenseMetadataTag.setValue(conf.getLicenseMetadataTag());
@@ -390,9 +416,13 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	tfSchemaUrl.setValue(conf.getSchemaUrl());
     	for (String s: conf.getVocabularies()) lsVocabularies.addItem(s);
     	lsVocabularies.setValue(conf.getVocabularies());
+    	
+    	for (String s: conf.getAdditionalTags()) lsAdditionalTags.addItem(s);
+    	lsAdditionalTags.setValue(conf.getAdditionalTags());
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public LoaderConfig getConfiguration() throws DPUConfigException {
     	LoaderConfig conf = new LoaderConfig();
         conf.setApiKey(tfApiKey.getValue());
@@ -409,7 +439,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setShortname(tfShortName.getValue());
         conf.setCustomLicenseLink(tfCustomLicenseLink.getValue());
         conf.setVersionGenerated(chkGenerateVersion.getValue());
-        conf.setLinks(genTable.getValue());
+        conf.setLinks(gtLinkCounts.getValue());
+        conf.setMappingFiles(gtMappingFiles.getValue());
         conf.setTopic((Topics) cbTopic.getValue());
         conf.setLicense_id((Licenses) cbLicense.getValue());
         conf.setLicenseMetadataTag((LicenseMetadataTags) lsLicenseMetadataTag.getValue());
@@ -422,9 +453,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setLodcloudNeedsInfo(chkLodcloudNeedsInfo.getValue());
         conf.setLodcloudNeedsFixing(chkLodcloudNeedsFixing.getValue());
         conf.setLimitedSparql(chkLimitedSparql.getValue());
-        @SuppressWarnings("unchecked")
-        Collection<String> value = ((Collection<String>) lsVocabularies.getValue());
-		conf.setVocabularies(new LinkedList<String>(value));
+        conf.setVocabularies((Collection<String>) lsVocabularies.getValue());
+        conf.setAdditionalTags((Collection<String>) lsAdditionalTags.getValue());
         return conf;
     }
 

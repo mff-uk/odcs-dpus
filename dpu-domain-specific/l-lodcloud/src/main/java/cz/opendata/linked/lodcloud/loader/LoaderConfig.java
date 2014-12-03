@@ -1,7 +1,6 @@
 package cz.opendata.linked.lodcloud.loader;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 
 /**
@@ -36,7 +35,36 @@ public class LoaderConfig  {
 		}
     }
 	
-	public enum VocabTags {
+    public static class MappingFile {
+    	private MappingFormats mappingFormat;
+    	private String mappingFile;
+		public MappingFile() {
+			setMappingFormat(MappingFormats.OWL);
+			setMappingFile("");
+		}
+		public MappingFile(MappingFormats format, String file) {
+			setMappingFormat(format);
+			setMappingFile(file);
+		}
+		public String getMappingFile() {
+			return mappingFile;
+		}
+		public void setMappingFile(String mappingFile) {
+			this.mappingFile = mappingFile;
+		}
+		public MappingFormats getMappingFormat() {
+			return mappingFormat;
+		}
+		public void setMappingFormat(MappingFormats mappingFormat) {
+			this.mappingFormat = mappingFormat;
+		}
+    }
+
+    public enum MappingFormats {
+    	RDFS, OWL, SKOS, R2R, RIF
+    }
+
+    public enum VocabTags {
     	NoProprietaryVocab {
     		public String toString() {
     			return "no-proprietary-vocab";
@@ -266,10 +294,14 @@ public class LoaderConfig  {
     
     private String customLicenseLink = "";
     
-    private Collection<String> vocabularies = new HashSet<String>();
+    private Collection<String> vocabularies = new LinkedList<String>();
     
+    private Collection<String> additionalTags = new LinkedList<String>();
+
     private Collection<LinkCount> links = new LinkedList<LinkCount>();
     
+    private Collection<MappingFile> mappingFiles = new LinkedList<MappingFile>();
+
     private String sparqlEndpointName = "Opendata.cz SPARQL Endpoint";
     
     private String sparqlEndpointDescription = "Running Virtuoso";
@@ -536,6 +568,22 @@ public class LoaderConfig  {
 
 	public void setSchemaUrl(String schemaUrl) {
 		this.schemaUrl = schemaUrl;
+	}
+
+	public Collection<String> getAdditionalTags() {
+		return additionalTags;
+	}
+
+	public void setAdditionalTags(Collection<String> additionalTags) {
+		this.additionalTags = additionalTags;
+	}
+
+	public Collection<MappingFile> getMappingFiles() {
+		return mappingFiles;
+	}
+
+	public void setMappingFiles(Collection<MappingFile> mappingFiles) {
+		this.mappingFiles = mappingFiles;
 	}
 
 }

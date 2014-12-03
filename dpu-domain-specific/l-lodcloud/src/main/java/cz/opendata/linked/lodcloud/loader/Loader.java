@@ -38,6 +38,7 @@ import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.LinkCount;
+import cz.opendata.linked.lodcloud.loader.LoaderConfig.MappingFile;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
@@ -134,6 +135,7 @@ extends DpuAdvancedBase<LoaderConfig>
             if (config.isLodcloudNeedsFixing()) tags.put("lodcloud.needsfixing");
             for (String prefix : config.getVocabularies()) { tags.put("format-" + prefix); }
             tags.put(config.getTopic());
+            for (String s : config.getAdditionalTags()) tags.put(s);
             
             JSONArray resources = new JSONArray();
             
@@ -212,6 +214,21 @@ extends DpuAdvancedBase<LoaderConfig>
 	            
 	            resources.put(exHTML);
 	            // End of html resource
+	            
+	            // Mapping file resources
+	            for (MappingFile mapping: config.getMappingFiles()) {
+		            JSONObject exMapping = new JSONObject();
+		            
+		            exMapping.put("format","mapping/" + mapping.getMappingFormat());
+		            exMapping.put("resource_type","file");
+		            exMapping.put("description","Schema mapping file in " + mapping.getMappingFormat() + " format.");
+		            exMapping.put("name","Mapping " + mapping.getMappingFormat());
+		            exMapping.put("url", mapping.getMappingFile() );
+		            
+		            resources.put(exMapping);
+	            }
+	            // End of mapping file resources
+	            
             }
 
             JSONObject extras = new JSONObject();
@@ -224,7 +241,6 @@ extends DpuAdvancedBase<LoaderConfig>
             for (LinkCount link: config.getLinks()) {
             	extras.put("links:" + link.getTargetDataset(), link.getLinkCount());            	
             }
-            
 
             if (!config.getDatasetID().isEmpty()) root.put("name", config.getDatasetID());
             root.put("url", datasetUrl);

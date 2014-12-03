@@ -10,7 +10,7 @@ import cz.cuni.mff.xrg.uv.test.boost.resources.ResourceAccess;
 import cz.opendata.linked.lodcloud.loader.Loader;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.LinkCount;
-import cz.opendata.linked.lodcloud.loader.LoaderConfig.VocabTags;
+import cz.opendata.linked.lodcloud.loader.LoaderConfig.*;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 
 public class LoadTest {
@@ -22,7 +22,8 @@ public class LoadTest {
         LoaderConfig config = new LoaderConfig();
         
         config.setDatasetID("cz-test");
-        config.setApiKey("");
+        config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
+        config.setSchemaUrl("http://ruian.linked.opendata.cz/dump/CUZK-2-RUIAN-CODELISTS.zip");
         //config.setDatasetDescription("Description");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
         config.getVocabularies().add("skos");
@@ -30,6 +31,10 @@ public class LoadTest {
         config.getVocabularies().add("adms");
         config.getLinks().add(new LinkCount("cz-ruian", new Long(20000)));
         config.setVocabTag(VocabTags.NoProprietaryVocab);
+        config.setVocabMappingTag(VocabMappingsTags.NoVocabMappings);
+        config.setPublishedTag(PublishedTags.PublishedByThirdParty);
+        config.setProvenanceMetadataTag(ProvenanceMetadataTags.NoProvenanceMetadata);
+        config.setLicenseMetadataTag(LicenseMetadataTags.LicenseMetadata);
 
         DpuAdvancedBaseTest.setDpuConfiguration(loader, config);
         
