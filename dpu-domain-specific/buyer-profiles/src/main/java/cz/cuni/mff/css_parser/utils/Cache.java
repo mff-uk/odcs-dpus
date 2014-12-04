@@ -235,12 +235,19 @@ public class Cache {
                 }
                 try {
             
-                    if (datatype.equals("xml"))
-                    {
-                        out = getURLContent(url.toString());
-                    }
-                    else out = getURLContent(url.toString());
+                    //out = getURLContent(url.toString());
+                    InputStream is = url.openStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                     
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+                    while ( (line = br.readLine()) != null) builder.append(line);
+                     
+                    br.close();
+                    is.close();
                     
+                    out = builder.toString();
+                	
                     java.util.Date date2= new java.util.Date();
                     lastDownload = date2.getTime();
                     logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.toString());
