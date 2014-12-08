@@ -5,7 +5,7 @@ package cz.cuni.mff.xrg.uv.loader.solr;
  */
 public class SolrConfig_V1 {
 
-    private String server = "http://localhost:8983/";
+    private String server = "http://localhost:8983/solr/collection1/update/csv";
 
     public SolrConfig_V1() {
 

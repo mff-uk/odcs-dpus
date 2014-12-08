@@ -8,7 +8,7 @@
 	</parent>    
 	<groupId>cz.cuni.mff.xrg.uv</groupId>
 	<artifactId>l-solr</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>bundle</packaging>
 	<name>l-Solr</name>
 	<description>Import given CSV (and CSV only!) into given Solr instance.</description>
@@ -25,7 +25,7 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
-        <!-- compile library -->
+        <!-- Compile dependencies. -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit-rdf</artifactId>

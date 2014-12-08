@@ -44,7 +44,7 @@ public class SolrVaadinDialog extends AdvancedVaadinDialogBase<SolrConfig_V1> {
 		mainLayout.setHeight("-1px");
         mainLayout.setMargin(true);
 
-        txtServer = new TextField("Solr:");
+        txtServer = new TextField("Solr csv update URL:");
         txtServer.setWidth("100%");
         txtServer.setNullSettingAllowed(false);
         mainLayout.addComponent(txtServer);
@@ -54,7 +54,7 @@ public class SolrVaadinDialog extends AdvancedVaadinDialogBase<SolrConfig_V1> {
 
     @Override
     public String getDescription() {
-        return "To Solr " + txtServer.getValue() + "";
+        return "To Solr " + txtServer.getValue();
     }
 
 
