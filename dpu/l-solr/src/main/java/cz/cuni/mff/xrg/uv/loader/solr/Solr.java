@@ -113,16 +113,30 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
      */
     private boolean checkResponse(HttpURLConnection conn) throws IOException {
         final int responseCode = conn.getResponseCode();
+        LOG.info("Response code is {}", responseCode);
+        // Print response every time for debuggin purpose.
+
+        try {
+            final StringBuilder logString = new StringBuilder();
+            final List<String> response = IOUtils.readLines(conn.getInputStream());
+            for (String line : response) {
+                logString.append(line);
+                logString.append("\n");
+            }
+            LOG.debug("Response: {}", logString);
+        } catch (IOException ex) {
+            LOG.error("Can't read response.", ex);
+        }
+
         if (responseCode >= 400) {
-            // Read complete response.
+            // Print error response.
             final StringBuilder logString = new StringBuilder();
             final List<String> response = IOUtils.readLines(conn.getErrorStream());
             for (String line : response) {
                 logString.append(line);
                 logString.append("\n");
             }
-            LOG.debug("Response code is {}", responseCode);
-            LOG.debug("Response: {}", logString);
+            LOG.error("Response (error): {}", logString);
             return false;
         }
         return true;
