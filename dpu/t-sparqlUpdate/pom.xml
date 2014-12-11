@@ -8,7 +8,7 @@
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>t-sparqlUpdate</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>bundle</packaging>
     <name>t-SparqlUpdate</name>
     <description>Execute a single SPARQL update query. Does not support quads!</description>
