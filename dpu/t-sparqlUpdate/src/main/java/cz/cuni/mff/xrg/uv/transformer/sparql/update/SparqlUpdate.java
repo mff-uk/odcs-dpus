@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
@@ -66,21 +67,49 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
                     sourceEntries.size());
             // Execute on per-graph basis.
             int counter = 1;
-            for (RDFDataUnit.Entry sourceEntry : sourceEntries) {
-                LOG.info("Executing query for graph ({}/{}): {}", counter++, sourceEntries.size(),
-                        sourceEntry);
-                // Get input symbolic name.
-                final String outputSymbolicName;
+
+            RepositoryConnection connection = null;
+            if (true) { // TODO Made optional
+                SendMessage.sendInfo(context, "Single connection mode.", "");
                 try {
-                    outputSymbolicName = sourceEntry.getSymbolicName();
+                    connection = rdfInput.getConnection();
                 } catch (DataUnitException ex) {
-                    throw new DPUException("Can't get input resource's symbolic mame.", ex);
+                    throw new DPUException("Can't get connection.", ex);
                 }
-                // prepare output graph.
-                final URI targetGraph = createOutputGraph(outputSymbolicName);
-                // Execute query - ie. open connection.
-                executeUpdateQuery(query, Arrays.asList(sourceEntry), targetGraph);
             }
+
+            try {
+                for (RDFDataUnit.Entry sourceEntry : sourceEntries) {
+                    LOG.info("Executing query for graph ({}/{}): {}", counter++, sourceEntries.size(),
+                            sourceEntry);
+                    // Get input symbolic name.
+                    final String outputSymbolicName;
+                    try {
+                        outputSymbolicName = sourceEntry.getSymbolicName();
+                    } catch (DataUnitException ex) {
+                        throw new DPUException("Can't get input resource's symbolic mame.", ex);
+                    }
+                    // prepare output graph.
+                    final URI targetGraph = createOutputGraph(outputSymbolicName);
+                    // Execute query - ie. open connection.
+                    updateEntries(query, Arrays.asList(sourceEntry), targetGraph, connection);
+
+                    if (context.canceled()) {
+                        SendMessage.sendInfo(context, "DPU cancelled ..", "");
+                        // Cancel.
+                        break;
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (RepositoryException ex) {
+                        LOG.error("Can't close connection.", ex);
+                    }
+                }
+            }
+
 
         } else {
             // All graph at once, just check size.
@@ -94,7 +123,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
             final URI targetGraph = createOutputGraph();
             // Execute over all intpu graph ie. m -> 1
             SendMessage.sendInfo(context, "Executing user query with single output.", "");
-            executeUpdateQuery(query, sourceEntries, targetGraph);
+            updateEntries(query, sourceEntries, targetGraph, null);
         }
     }
 
@@ -110,24 +139,28 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      * @param updateQuery
      * @param sourceEntries
      * @param targetgraph
+     * @param givenConnection If null custom connection is created.
      * @throws DPUException
      */
-    protected void executeUpdateQuery(String updateQuery, List<RDFDataUnit.Entry> sourceEntries,
-            URI targetgraph) throws DPUException {
+    protected void updateEntries(String updateQuery, List<RDFDataUnit.Entry> sourceEntries,
+            URI targetgraph, RepositoryConnection givenConnection) throws DPUException {
         // Get connection.
-        RepositoryConnection connection = null;
+        RepositoryConnection connectionToClose = null;
         try {
-            connection = rdfInput.getConnection();
+            if (givenConnection == null) {
+                connectionToClose = rdfInput.getConnection();
+                givenConnection = connectionToClose;
+            }
             // Copy data.
-            executeUpdateQuery(QUERY_COPY, sourceEntries, targetgraph, connection);
-            // Execute user query.
-            executeUpdateQuery(updateQuery, sourceEntries, targetgraph, connection);
+            executeUpdateQuery(QUERY_COPY, toUriList(sourceEntries), targetgraph, givenConnection);
+            // Execute user query over new graph.
+            executeUpdateQuery(updateQuery, Arrays.asList(targetgraph), targetgraph, givenConnection);
         } catch (DataUnitException ex) {
             throw new DPUException("Can't get connection.", ex);
         } finally {
             try {
-                if (connection != null) {
-                    connection.close();
+                if (connectionToClose != null) {
+                    connectionToClose.close();
                 }
             } catch (RepositoryException closeEx) {
                 LOG.error("Can't close connection.", closeEx);
@@ -139,12 +172,12 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      * Execute given query.
      *
      * @param query
-     * @param sourceEntries USING graphs.
+     * @param sourcegraphs USING graphs.
      * @param targetGraph WITH graphs.
      * @param connection
      * @throws eu.unifiedviews.dpu.DPUException
      */
-    protected void executeUpdateQuery(String query, List<RDFDataUnit.Entry> sourceEntries, URI targetGraph,
+    protected void executeUpdateQuery(String query, List<URI> sourcegraphs, URI targetGraph,
             RepositoryConnection connection) throws DPUException {
         // Prepare query.
         if (Pattern.compile(Pattern.quote("DELETE"), Pattern.CASE_INSENSITIVE).matcher(query).find()) {
@@ -152,7 +185,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
         } else {
             query = query.replaceFirst("(?i)INSERT", prepareWithClause(targetGraph) + " INSERT");
         }
-        query = query.replaceFirst("(?i)WHERE", prepareUsingClause(sourceEntries) + "WHERE");
+        query = query.replaceFirst("(?i)WHERE", prepareUsingClause(sourcegraphs) + "WHERE");
         LOG.debug("Query to execute: {}", query);
         try {
             // Execute query.
@@ -209,20 +242,35 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     }
 
     /**
+     * Get graph URIs from entry list.
      *
-     * @param entries List of entries to use.
-     * @return Using clause for SPARQL insert, based on input graphs.
+     * @param entries
+     * @return
      * @throws DPUException
      */
-    protected String prepareUsingClause(List<RDFDataUnit.Entry> entries) throws DPUException {
-        final StringBuilder usingClause = new StringBuilder();
-        for(RDFDataUnit.Entry entry : entries) {
-            usingClause.append("USING <");
+    protected List<URI> toUriList(List<RDFDataUnit.Entry> entries) throws DPUException {
+        final List<URI> result = new ArrayList(entries.size());
+        for (RDFDataUnit.Entry entry : entries) {
             try {
-                usingClause.append(entry.getDataGraphURI().stringValue());
+                result.add(entry.getDataGraphURI());
             } catch (DataUnitException ex) {
                 throw new DPUException("Problem with DataUnit.", ex);
             }
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param uris
+     * @return Using clause for SPARQL insert, based on input graphs.
+     * @throws DPUException
+     */
+    protected String prepareUsingClause(List<URI> uris) throws DPUException {
+        final StringBuilder usingClause = new StringBuilder();
+        for(URI uri : uris) {
+            usingClause.append("USING <");
+            usingClause.append(uri.stringValue());
             usingClause.append("> \n");
         }
         return usingClause.toString();
