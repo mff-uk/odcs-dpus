@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
  * Helper for file creation.
  *
  * @author Škoda Petr
+ * @deprecated  Use FilesDataUnitUtils instead
  */
+@Deprecated
 public class CreateFile {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreateFile.class);
