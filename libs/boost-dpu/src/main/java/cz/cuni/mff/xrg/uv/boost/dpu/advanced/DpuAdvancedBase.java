@@ -189,6 +189,8 @@ public abstract class DpuAdvancedBase<CONFIG>
             LOG.info("innerInit:end");
         } catch (DataUnitException ex) {
             throw new DPUException("Problem in innerInit().", ex);
+        } catch (DPUException ex) {
+            throw ex;
         } catch (Throwable ex) {
             throw new DPUException("innerInit() throws unexpected exception.", ex);
         }
@@ -317,11 +319,15 @@ public abstract class DpuAdvancedBase<CONFIG>
     }
 
     /**
-     * Is called before {@link #innerExecute()}.
+     * Is called before {@link #innerExecute()}. If this method throws DPU execution is immediately 
+     * stopped. No other function (not Add-on) is executed.
      *
+     * DPU's configuration is already accessible.
+     *
+     * @throws eu.unifiedviews.dpu.DPUException
      * @throws DataUnitException
      */
-    protected void innerInit() throws DataUnitException {
+    protected void innerInit() throws DPUException, DataUnitException {
         // Do nothing implementation.
     }
 
