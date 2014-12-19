@@ -105,7 +105,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     }
 
     @Override
-    protected void innerInit() throws DataUnitException {
+    protected void innerInit() throws DataUnitException, DPUException {
         super.innerInit();
         //
         // wraps
