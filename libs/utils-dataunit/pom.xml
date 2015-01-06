@@ -8,7 +8,7 @@
         <version>1.1.1</version>
     </parent>
     <artifactId>utils-dataunit</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
     <packaging>bundle</packaging>
     <name>utils dataunit</name>
     <description>Utils for general (Metadata)DataUnit.</description>

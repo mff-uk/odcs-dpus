@@ -29,11 +29,19 @@ public class ManipulatorInstance implements AutoCloseable {
 
     protected static final String OBJECT_BINDING = "object";
 
+    /**
+     * %s - place for using clause
+     */
     private static final String SELECT_QUERY
-            = "SELECT ?" + OBJECT_BINDING + " WHERE { "
+            = "SELECT ?" + OBJECT_BINDING + " WHERE %s { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
             + "}";
+
+    /**
+     * If env. property of this name is set, then dataset is not used.
+     */
+    private static final String ENV_PROP_VIRTUOSO = "virtuoso_used";
 
     /**
      * Used repository connection.
@@ -56,6 +64,11 @@ public class ManipulatorInstance implements AutoCloseable {
     protected final DatasetImpl dataset;
 
     /**
+     * String version of {@link #dataset}.
+     */
+    protected final String datasetUsingClause;
+
+    /**
      *
      * @param connection
      * @param readGraph
@@ -68,10 +81,23 @@ public class ManipulatorInstance implements AutoCloseable {
         this.connection = connection;
         this.symbolicName = symbolicName;
         this.closeConnectionOnClose = closeConnectionOnClose;
-        this.dataset = new DatasetImpl();
         // Add read graphs.
-        for (URI uri : readGraph) {
-            this.dataset.addDefaultGraph(uri);
+        if (useDataset()) {
+            this.dataset = new DatasetImpl();
+            for (URI uri : readGraph) {
+                this.dataset.addDefaultGraph(uri);
+            }
+            this.datasetUsingClause = null;
+        } else {
+            this.dataset = null;
+            // Build USING clause
+            final StringBuilder clauseBuilder = new StringBuilder(readGraph.size() * 15);
+            for (URI uri : readGraph) {
+                clauseBuilder.append("USING <");
+                clauseBuilder.append(uri.toString());
+                clauseBuilder.append(">\n");
+            }
+            this.datasetUsingClause = clauseBuilder.toString();
         }
     }
 
@@ -86,13 +112,8 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     public String getFirst(String predicate) throws DataUnitException {
         try {
-            final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            tupleQuery.setDataset(dataset);
+            final TupleQueryResult result = executeSelectQuery(predicate);
             // Return first result.
-            final TupleQueryResult result = tupleQuery.evaluate();
             if (result.hasNext()) {
                 return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
             }
@@ -111,13 +132,8 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     public List<String> getAll(String predicate) throws DataUnitException {
         try {
-            final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, SELECT_QUERY);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            tupleQuery.setDataset(dataset);
-            // Store all the results into list.
-            final TupleQueryResult result = tupleQuery.evaluate();
+            final TupleQueryResult result = executeSelectQuery(predicate);
+            // Dump result list.
             final List<String> resultList = new LinkedList<>();
             while (result.hasNext()) {
                 final String value = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
@@ -148,6 +164,43 @@ public class ManipulatorInstance implements AutoCloseable {
                 LOG.warn("Connection.close failed.", ex);
             }
         }
+    }
+
+    /**
+     *
+     * @return True if we should use DataSet class.
+     */
+    protected final boolean useDataset() {
+        return System.getProperty(ENV_PROP_VIRTUOSO) != null;
+    }
+
+    /**
+     * Execute {@link #SELECT_QUERY}.
+     *
+     * @param predicate
+     * @return
+     * @throws RepositoryException
+     * @throws MalformedQueryException
+     * @throws QueryEvaluationException
+     */
+    private TupleQueryResult executeSelectQuery(String predicate) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        final ValueFactory valueFactory = connection.getValueFactory();
+        // Prepare query. Add clause if dataset is not used.
+        final String query;
+        if (useDataset()) {
+            query = String.format(SELECT_QUERY, "");
+        } else {
+            query = String.format(SELECT_QUERY, datasetUsingClause);
+        }            
+        final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);            
+        tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
+        tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+        // Use dataset if set.
+        if (useDataset()) {
+            tupleQuery.setDataset(dataset);
+        }
+        // Evaluate and return tuple query result.
+        return tupleQuery.evaluate();
     }
 
 }

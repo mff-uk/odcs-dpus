@@ -16,25 +16,43 @@ import org.openrdf.repository.RepositoryException;
  */
 public class WritableManipulatorInstance extends ManipulatorInstance {
 
+    /**
+     * %s - with clause
+     * %s - using clause
+     */
     private static final String UPDATE_QUERY
-            = "DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
+            = "%s DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
             + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
-            + "WHERE { "
+            + "%s WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
             + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o} "
             + " } ";
 
+    /**
+     * %s - with clause
+     * %s - using clause
+     */
     private static final String INSERT_QUERY
-            = "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
-            + "WHERE { "
+            = "%s INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            + "%s WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
             + " } ";
+
+    /**
+     * String version of {@link #dataset}.
+     */
+    private final String datasetWithClause;
 
     WritableManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, URI writeGraph,
             String symbolicName, boolean closeConnectionOnClose) throws DataUnitException {
         super(connection, readGraphs, symbolicName, closeConnectionOnClose);
-        this.dataset.setDefaultInsertGraph(writeGraph);
-        this.dataset.addDefaultRemoveGraph(writeGraph);
+        if (useDataset()) {
+            this.dataset.setDefaultInsertGraph(writeGraph);
+            this.dataset.addDefaultRemoveGraph(writeGraph);
+            datasetWithClause = null;
+        } else {
+            datasetWithClause = "WITH <" + writeGraph.toString() + ">\n";
+        }
     }
 
     /**
@@ -52,12 +70,20 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
      */
     public WritableManipulatorInstance add(String predicate, String value) throws DataUnitException {
         try {
+            final String query;
+            if (useDataset()) {
+                query = String.format(INSERT_QUERY, "", "");
+            } else {
+                query = String.format(INSERT_QUERY, datasetWithClause, datasetUsingClause);
+            }
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, INSERT_QUERY);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
-            update.setDataset(dataset);
+            if (useDataset()) {
+                update.setDataset(dataset);
+            }
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);
@@ -80,12 +106,19 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
      */
     public WritableManipulatorInstance set(String predicate, String value) throws DataUnitException {
         try {
+            final String query;
+            if (useDataset()) {
+                query = String.format(UPDATE_QUERY, "", "");
+            } else {
+                query = String.format(UPDATE_QUERY, datasetWithClause, datasetUsingClause);
+            }
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, UPDATE_QUERY);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
-            update.setDataset(dataset);
+            if (useDataset()) {
+                update.setDataset(dataset);
+            }
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);

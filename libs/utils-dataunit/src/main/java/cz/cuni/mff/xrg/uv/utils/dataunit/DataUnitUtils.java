@@ -13,6 +13,9 @@ import eu.unifiedviews.dataunit.MetadataDataUnit;
  */
 public class DataUnitUtils {
 
+    /**
+     * Prefix for generated symbolic names.
+     */
     public static final String GENERATED_SYMBOLIC_NAME_PREFIX = "http://unifiedviews.eu/resource/generated/";
 
     private DataUnitUtils() {
@@ -26,9 +29,8 @@ public class DataUnitUtils {
      * @return
      */
     public static String generateSymbolicName(Class<?> dpuClass) {
-        return GENERATED_SYMBOLIC_NAME_PREFIX
-                + dpuClass.getSimpleName()
-                + Long.toString((new Date()).getTime());
+        return GENERATED_SYMBOLIC_NAME_PREFIX + dpuClass.getSimpleName() +
+                Long.toString((new Date()).getTime());
     }
     
     /**
@@ -40,7 +42,8 @@ public class DataUnitUtils {
      * @return List of entries. 
      * @throws eu.unifiedviews.dataunit.DataUnitException 
      */
-    public static <T extends MetadataDataUnit, E extends T.Entry> List<E> getEntries(T dataUnit) throws DataUnitException {
+    public static <T extends MetadataDataUnit, E extends T.Entry> List<E> getEntries(T dataUnit)
+            throws DataUnitException {
         final List<E> result = new LinkedList<>();
         try (MetadataDataUnit.Iteration iter = dataUnit.getIteration()) {
             while (iter.hasNext()) {
