@@ -5,8 +5,6 @@ import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import java.io.File;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Helper for file creation.
@@ -16,8 +14,6 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public class CreateFile {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CreateFile.class);
 
     private CreateFile() {
 
@@ -37,7 +33,6 @@ public class CreateFile {
     public static File createFile(WritableFilesDataUnit dataUnit, String virtualPath) throws DataUnitException {
         final File file = new File(java.net.URI.create(dataUnit.addNewFile(virtualPath)));
         Manipulator.add(dataUnit, virtualPath, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
-        LOG.trace("createFile(,{}) -> {}", virtualPath, file.toString());
         return file;
     }
 
