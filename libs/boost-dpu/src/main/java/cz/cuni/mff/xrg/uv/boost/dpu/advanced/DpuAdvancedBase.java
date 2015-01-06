@@ -216,6 +216,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         } catch (Exception ex) {
             context.sendMessage(MessageType.ERROR, "DPU Failed", "DPU throws DPUException.", ex);
         } catch (Throwable ex) {
+            LOG.error("DPU throws Throwable.", ex);
             context.sendMessage(MessageType.ERROR, "DPU Failed",
                     "DPU throws Throwable. See logs for more details.");
         }
