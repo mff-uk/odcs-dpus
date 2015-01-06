@@ -11,6 +11,7 @@ import org.openrdf.repository.RepositoryException;
  *
  * @author Škoda Petr
  */
+@Deprecated
 public class SendMessage {
 
     private SendMessage() {
