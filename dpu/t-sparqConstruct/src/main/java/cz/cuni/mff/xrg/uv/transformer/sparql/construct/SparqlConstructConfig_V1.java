@@ -12,6 +12,8 @@ public class SparqlConstructConfig_V1 {
 
     private boolean perGraph = true;
 
+    private boolean useDataset = false;
+
     public SparqlConstructConfig_V1() {
 
     }
@@ -30,6 +32,14 @@ public class SparqlConstructConfig_V1 {
 
     public void setPerGraph(boolean perGraph) {
         this.perGraph = perGraph;
+    }
+
+    public boolean isUseDataset() {
+        return useDataset;
+    }
+
+    public void setUseDataset(boolean useDataset) {
+        this.useDataset = useDataset;
     }
 
 }
