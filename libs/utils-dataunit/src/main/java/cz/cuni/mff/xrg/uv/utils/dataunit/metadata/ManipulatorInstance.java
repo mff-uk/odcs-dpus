@@ -221,7 +221,7 @@ public class ManipulatorInstance<THIS extends ManipulatorInstance> implements Au
      * @return True if we should use DataSet class.
      */
     protected final boolean useDataset() {
-        return System.getProperty(ENV_PROP_VIRTUOSO) != null;
+        return System.getProperty(ENV_PROP_VIRTUOSO) == null;
     }
 
     /**

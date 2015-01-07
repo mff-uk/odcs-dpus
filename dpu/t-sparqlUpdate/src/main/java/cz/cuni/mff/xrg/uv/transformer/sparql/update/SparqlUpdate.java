@@ -294,7 +294,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
 
     protected final boolean useDataset() {
         // Should be removed once bug in Sesame or Virtuoso is fixex.
-        return System.getProperty(ManipulatorInstance.ENV_PROP_VIRTUOSO) != null;
+        return System.getProperty(ManipulatorInstance.ENV_PROP_VIRTUOSO) == null;
     }
 
 }
