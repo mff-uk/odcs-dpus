@@ -17,9 +17,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Can read metadata.
  *
+ * Sample usage:
+ * <pre>
+ * {@code
+ * ManipulatorInstance manipulator = Manipulator.create(filesDataUnit, null);
+ * // Read virtual path for
+ * manipulator.setEntry(fileEntry).getFirst(VirtualPathHelper.PREDICATE_VIRTUAL_PATH);
+ * }
+ * </pre>
+ *
  * @author Škoda Petr
+ * @param <THIS> Type of the Manipulator, used in setEntry as a return type to enable chaining.
  */
-public class ManipulatorInstance implements AutoCloseable {
+public class ManipulatorInstance<THIS extends ManipulatorInstance> implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ManipulatorInstance.class);
 
@@ -46,7 +56,7 @@ public class ManipulatorInstance implements AutoCloseable {
     /**
      * Used repository connection.
      */
-    protected final RepositoryConnection connection;
+    protected RepositoryConnection connection;
 
     /**
      * Symbolic name of used metadata.
@@ -56,7 +66,7 @@ public class ManipulatorInstance implements AutoCloseable {
     /**
      * If true then given connection is closed when this class is closed.
      */
-    protected final boolean closeConnectionOnClose;
+    protected boolean closeConnectionOnClose;
 
     /**
      * Dataset used for queries.
@@ -99,6 +109,27 @@ public class ManipulatorInstance implements AutoCloseable {
             }
             this.datasetUsingClause = clauseBuilder.toString();
         }
+    }
+
+    /**
+     * Replace current connection with given one. Close the old connection if needed (if not given by user).
+     * Given connection is not closed by the helper.
+     *
+     * Can be used to replace corrupted connection in {@link ManipulatorInstance} without the need
+     * of new instance construction.
+     *
+     * @param newConnection New connection that should be used, will not be closed by helper.
+     */
+    public void replaceConnection(RepositoryConnection newConnection) {
+        if (closeConnectionOnClose) {
+            try {
+                this.connection.close();
+            } catch (RepositoryException ex) {
+                LOG.warn("Can't close old connection.");
+            }
+        }
+        this.connection = newConnection;
+        this.closeConnectionOnClose = false;
     }
 
     /**
@@ -146,14 +177,30 @@ public class ManipulatorInstance implements AutoCloseable {
     }
 
     /**
-     * Change used symbolic name. By this operation {@link ManipulatorInstance} can be modified to work with
-     * other metadata object.
+     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance}
+     * can be modified to work with other metadata object.
      *
      * @param symbolicName
+     * @return
      */
-    public void setSymbolicName(String symbolicName) {
+    public THIS setEntry(String symbolicName) {
         this.symbolicName = symbolicName;
+        return (THIS)this;
     }
+
+    /**
+     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance} 
+     * can be modified to work with other metadata object.
+     *
+     * @param entry
+     * @return
+     * @throws eu.unifiedviews.dataunit.DataUnitException
+     */
+    public THIS setEntry(MetadataDataUnit.Entry entry) throws DataUnitException {
+        this.symbolicName = entry.getSymbolicName();
+        return (THIS)this;
+    }
+
 
     @Override
     public void close() throws DataUnitException {
@@ -175,7 +222,7 @@ public class ManipulatorInstance implements AutoCloseable {
     }
 
     /**
-     * Execute {@link #SELECT_QUERY}.
+     * Execute {@link #SELECT_QUERY} for given predicate.
      *
      * @param predicate
      * @return

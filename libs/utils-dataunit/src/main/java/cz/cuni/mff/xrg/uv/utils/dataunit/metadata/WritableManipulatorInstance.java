@@ -12,9 +12,18 @@ import org.openrdf.repository.RepositoryException;
 /**
  * Manipulator for writing metadata.
  *
+ * Sample usage:
+ * <pre>
+ * {@code
+ * WritableManipulatorInstance manipulator = Manipulator.create(filesDataUnit, null);
+ * // Read virtual path for
+ * manipulator.setEntry(fileEntry).set(VirtualPathHelper.PREDICATE_VIRTUAL_PATH, "myDirectory/file.dat");
+ * }
+ * </pre>
+ *
  * @author Škoda Petr
  */
-public class WritableManipulatorInstance extends ManipulatorInstance {
+public class WritableManipulatorInstance extends ManipulatorInstance<WritableManipulatorInstance> {
 
     /**
      * %s - with clause
