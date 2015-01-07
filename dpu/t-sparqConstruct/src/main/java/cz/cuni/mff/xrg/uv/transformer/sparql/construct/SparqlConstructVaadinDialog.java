@@ -19,8 +19,6 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
 
     private CheckBox checkPerGraph;
 
-    private CheckBox checkUseDataset;
-
     public SparqlConstructVaadinDialog() {
         super(SparqlConstructConfig_V1.class, AddonInitializer.create(new FaultToleranceWrap()));
         buildLayout();
@@ -30,7 +28,6 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
     public void setConfiguration(SparqlConstructConfig_V1 c) throws DPUConfigException {
         txtQuery.setValue(c.getQuery());
         checkPerGraph.setValue(c.isPerGraph());
-        checkUseDataset.setValue(c.isUseDataset());
     }
 
     @Override
@@ -41,7 +38,6 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
         }
         c.setQuery(txtQuery.getValue());
         c.setPerGraph(checkPerGraph.getValue());
-        c.setUseDataset(checkUseDataset.getValue());
         return c;
     }
 
@@ -50,11 +46,6 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
         mainLayout.setMargin(true);
-
-        checkUseDataset = new CheckBox("Use dataset class (check for Sesame, uncheck for Virtuoso)");
-        checkUseDataset.setWidth("100%");
-        mainLayout.addComponent(checkUseDataset);
-        mainLayout.setExpandRatio(checkUseDataset, 0.0f);
 
         checkPerGraph = new CheckBox("Per-graph execution");
         checkPerGraph.setWidth("100%");

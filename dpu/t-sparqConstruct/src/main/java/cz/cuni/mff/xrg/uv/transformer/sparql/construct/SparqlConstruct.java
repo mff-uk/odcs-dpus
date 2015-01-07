@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.ManipulatorInstance;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
@@ -136,7 +137,7 @@ public class SparqlConstruct extends DpuAdvancedBase<SparqlConstructConfig_V1> {
     protected void executeUpdateQuery(String query, final List<RDFDataUnit.Entry> sourceEntries, URI targetGraph,
             RepositoryConnection connection) throws DPUException, DataUnitException {
         // Prepare query.
-        if (!config.isUseDataset()) {
+        if (!useDataset()) {
             if (Pattern.compile(Pattern.quote("DELETE"), Pattern.CASE_INSENSITIVE).matcher(query).find()) {
                 query = query.replaceFirst("(?i)DELETE", prepareWithClause(targetGraph) + " DELETE");
             } else {
@@ -148,7 +149,7 @@ public class SparqlConstruct extends DpuAdvancedBase<SparqlConstructConfig_V1> {
         try {
             // Execute query.
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
-            if (config.isUseDataset()) {
+            if (useDataset()) {
                 final DatasetImpl dataset = new DatasetImpl();
                 for (RDFDataUnit.Entry entry : sourceEntries) {
                     dataset.addDefaultGraph(entry.getDataGraphURI());
@@ -252,6 +253,11 @@ public class SparqlConstruct extends DpuAdvancedBase<SparqlConstructConfig_V1> {
                 return  DataUnitUtils.getEntries(dataUnit);
             }
         });
+    }
+
+    protected final boolean useDataset() {
+        // Should be removed once bug in Sesame or Virtuoso is fixex.
+        return System.getProperty(ManipulatorInstance.ENV_PROP_VIRTUOSO) != null;
     }
 
 }

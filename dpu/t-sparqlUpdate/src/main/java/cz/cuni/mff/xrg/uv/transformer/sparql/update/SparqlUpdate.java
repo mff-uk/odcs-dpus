@@ -28,6 +28,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.ManipulatorInstance;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
@@ -157,7 +158,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     protected void executeUpdateQuery(String query, List<URI> sourceGraphs, URI targetGraph,
             RepositoryConnection connection) throws DPUException {
         // Prepare query.
-        if (!config.isUseDataset()) {
+        if (!useDataset()) {
             if (Pattern.compile(Pattern.quote("DELETE"), Pattern.CASE_INSENSITIVE).matcher(query).find()) {
                 query = query.replaceFirst("(?i)DELETE", prepareWithClause(targetGraph) + " DELETE");
             } else {
@@ -169,7 +170,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
         try {
             // Execute query.
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
-            if (config.isUseDataset()) {
+            if (useDataset()) {
                 final DatasetImpl dataset = new DatasetImpl();
                 for (URI graph : sourceGraphs) {
                     dataset.addDefaultGraph(graph);
@@ -289,6 +290,11 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
             }
 
         });
+    }
+
+    protected final boolean useDataset() {
+        // Should be removed once bug in Sesame or Virtuoso is fixex.
+        return System.getProperty(ManipulatorInstance.ENV_PROP_VIRTUOSO) != null;
     }
 
 }
