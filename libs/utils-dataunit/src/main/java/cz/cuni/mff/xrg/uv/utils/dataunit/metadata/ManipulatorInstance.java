@@ -50,8 +50,11 @@ public class ManipulatorInstance<THIS extends ManipulatorInstance> implements Au
 
     /**
      * If env. property of this name is set, then dataset is not used.
+     *
+     * Will be removed as the Virtuoso or Sesame bug will be fixed.
      */
-    private static final String ENV_PROP_VIRTUOSO = "virtuoso_used";
+    @Deprecated
+    public static final String ENV_PROP_VIRTUOSO = "virtuoso_used";
 
     /**
      * Used repository connection.
