@@ -3,9 +3,19 @@ package cz.cuni.mff.xrg.uv.utils.dataunit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import org.openrdf.model.URI;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.UpdateExecutionException;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
+import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 
 /**
  *
@@ -51,6 +61,66 @@ public class DataUnitUtils {
             }
         }
         return result;
+    }
+
+    /**
+     * Copy all graphs from source to target.
+     *
+     * @param source
+     * @param target
+     * @param connection
+     * @throws DataUnitException
+     * @throws RepositoryException
+     * @throws FailedOperationException
+     */
+    public static void copyGraphs(RDFDataUnit source, WritableRDFDataUnit target, 
+            RepositoryConnection connection)
+            throws DataUnitException, RepositoryException, FailedOperationException {
+        copyEntries(source, target, connection);
+    }
+
+    /**
+     * Copy all files from source to target.
+     *
+     * @param source
+     * @param target
+     * @param connection
+     * @throws DataUnitException
+     * @throws RepositoryException
+     * @throws FailedOperationException
+     */
+    public static void copyFiles(RDFDataUnit source, WritableRDFDataUnit target, 
+            RepositoryConnection connection)
+            throws DataUnitException, RepositoryException, FailedOperationException {
+        copyEntries(source, target, connection);
+    }
+
+    /**
+     * Copy content of metadata graphs from input to output.
+     *
+     * @param sourceDataUnit
+     * @param targetDataUnit
+     * @param connection
+     * @throws DataUnitException
+     * @throws RepositoryException
+     * @throws FailedOperationException
+     */
+    protected static void copyEntries(MetadataDataUnit sourceDataUnit,
+            WritableMetadataDataUnit targetDataUnit, RepositoryConnection connection)
+            throws DataUnitException, RepositoryException, FailedOperationException {
+        final Set<URI> metadatagraphs = sourceDataUnit.getMetadataGraphnames();
+        final URI target = targetDataUnit.getMetadataWriteGraphname();
+        // Copy data from each source graph to target graph.
+        for (URI source : metadatagraphs) {
+            final String query = String.format("ADD <%s> TO <%s>", source.stringValue(), target.stringValue());
+            try {
+                connection.prepareUpdate(QueryLanguage.SPARQL, query).execute();
+            } catch (MalformedQueryException ex) {
+                throw new RuntimeException("Harcoded query is malformed!" , ex);
+            } catch (UpdateExecutionException ex) {
+                throw new FailedOperationException("Can't copy metadata.", ex);
+            }
+        }
     }
 
 }
