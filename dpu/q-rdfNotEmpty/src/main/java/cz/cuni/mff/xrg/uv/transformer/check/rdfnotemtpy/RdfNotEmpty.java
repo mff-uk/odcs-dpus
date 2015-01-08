@@ -11,7 +11,6 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.copyhelper.CopyHelpers;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -19,11 +18,13 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
+
 @DPU.AsQuality
 public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RdfNotEmpty.class);
-		
+
     @DataUnit.AsInput(name = "rdf")
     public RDFDataUnit rdfInData;
 
@@ -59,10 +60,12 @@ public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
                 if (size > 0) {
                     isEmpty = false;
                 }
-                // copy metadata -> graphs
-                CopyHelpers.copyMetadata(entry.getSymbolicName(), rdfInData, rdfOutData);
                 // log in debug mode
                 LOG.debug("size( {} ) = {}", entry.getDataGraphURI(), size);
+            }
+            if (!isEmpty) {
+                // Copy data.
+                DataUnitUtils.copyGraphs(rdfInData, rdfOutData, connection);
             }
         } catch (DataUnitException ex) {
             SendMessage.sendMessage(context, ex);
@@ -87,7 +90,6 @@ public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
            }
            context.sendMessage(config.getMessageType(),msg);
         }
-
     }
 
     @Override
