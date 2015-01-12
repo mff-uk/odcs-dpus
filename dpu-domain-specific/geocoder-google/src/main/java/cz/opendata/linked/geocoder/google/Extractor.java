@@ -302,27 +302,29 @@ extends DpuAdvancedBase<ExtractorConfig>
             String cachedFile = null;
             try {
                 cachedFile = FileUtils.readFileToString(hFile);
+
+                int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
+                String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation));
+                
+                BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
+                BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
+
+                LOG.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
+
+                String uri = currentAddressURI.stringValue();
+                URI addressURI = geoValueFac.createURI(uri);
+                URI coordURI = geoValueFac.createURI(uri+"/geocoordinates/google");
+
+                geoValueFacWrap.add(addressURI, geoURI , coordURI);
+                geoValueFacWrap.add(coordURI, RDF.TYPE, geocoordsURI);
+                geoValueFacWrap.add(coordURI, longURI, geoValueFac.createLiteral(longitude.toString()/*, xsdDecimal*/));
+                geoValueFacWrap.add(coordURI, latURI, geoValueFac.createLiteral(latitude.toString()/*, xsdDecimal*/));
+                geoValueFacWrap.add(coordURI, dcsource, googleURI);
+            
             } catch (IOException e) {
                 LOG.error(e.getLocalizedMessage());
             }
 
-            int indexOfLocation = cachedFile.indexOf("location=LatLng") + 16;
-            String location = cachedFile.substring(indexOfLocation, cachedFile.indexOf("}", indexOfLocation));
-            
-            BigDecimal latitude = new BigDecimal(location.substring(location.indexOf("lat=")+4, location.indexOf(",")));
-            BigDecimal longitude = new BigDecimal(location.substring(location.indexOf("lng=")+4));
-
-            LOG.debug("Located: " + address + " Latitude: " + latitude + " Longitude: " + longitude);
-
-            String uri = currentAddressURI.stringValue();
-            URI addressURI = geoValueFac.createURI(uri);
-            URI coordURI = geoValueFac.createURI(uri+"/geocoordinates/google");
-
-            geoValueFacWrap.add(addressURI, geoURI , coordURI);
-            geoValueFacWrap.add(coordURI, RDF.TYPE, geocoordsURI);
-            geoValueFacWrap.add(coordURI, longURI, geoValueFac.createLiteral(longitude.toString()/*, xsdDecimal*/));
-            geoValueFacWrap.add(coordURI, latURI, geoValueFac.createLiteral(latitude.toString()/*, xsdDecimal*/));
-            geoValueFacWrap.add(coordURI, dcsource, googleURI);
         }
         return count;
     }
