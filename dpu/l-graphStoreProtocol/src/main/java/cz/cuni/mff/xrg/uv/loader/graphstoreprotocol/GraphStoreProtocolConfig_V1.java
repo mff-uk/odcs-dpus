@@ -7,7 +7,11 @@ public class GraphStoreProtocolConfig_V1 {
 
     public static enum RepositoryType {
         Virtuoso,
-        Fuseki
+        Fuseki,
+        /**
+         * Experimental for Fuseki 2.+ TRIG.
+         */
+        FusekiTrig
     }
 
     private String endpointSelect = "http://localhost:8890/sparql";

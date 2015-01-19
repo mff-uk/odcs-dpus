@@ -8,7 +8,7 @@
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>l-graphStoreProtocol</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>bundle</packaging>
     <name>l-GraphStoreProtocol</name>
     <description>Load given file to RDF storage by GraphStoreProtocol.</description>
@@ -30,6 +30,12 @@
             <artifactId>sesame-repository-sparql</artifactId>
             <version>${sesame.version}</version>
             <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency> <!-- Provided by sesame-repository-sparql - transitive dependency. -->
+            <artifactId>commons-httpclient</artifactId>
+            <groupId>commons-httpclient</groupId>
+            <version>3.1</version>
             <scope>provided</scope>
         </dependency>
         <!-- Compile library, use compile if UK libs are not as OSGI bundles on target instance.

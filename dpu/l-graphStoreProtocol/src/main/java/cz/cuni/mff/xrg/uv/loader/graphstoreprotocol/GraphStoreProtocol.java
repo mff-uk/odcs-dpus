@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,8 +39,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
+import eu.unifiedviews.dpu.DPUContext;
 
 /**
  *
@@ -47,9 +51,9 @@ import eu.unifiedviews.dataunit.files.FilesDataUnit;
 @DPU.AsLoader
 public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig_V1> {
 
-    private final static String QUERY_SIZE_BINDING = "count";
+    private final static String QUERY_SIZE_BINDING = "size";
 
-    private final static String QUERY_SIZE = "SELECT (count(*) as ?" + QUERY_SIZE_BINDING + " )\nFROM <%s>\nWHERE { ?s ?p ?o }";
+    private final static String QUERY_SIZE = "SELECT (count(*) as ?" + QUERY_SIZE_BINDING + " ) \nWHERE { GRAPH <%s> { ?s ?p ?o } }";
 
     private final static String QUERY_ADD_GRAPH = "ADD <%s> TO <%s>";
     
@@ -123,6 +127,15 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
                 }
             }
         });
+        // Clear target graph.
+        LOG.info("Clearing remote target graph '{}'", config.getTargetGraphURI());
+        faultWrap.execute(new FaultToleranceWrap.Action() {
+
+            @Override
+            public void action() throws Exception {
+                executeRemoteUpdate(String.format(QUERY_CLEAR_GRAPH, config.getTargetGraphURI()));
+            }
+        });
         // Upload each file ..
         int counter = 0;
         for (FilesDataUnit.Entry entry : entries) {
@@ -160,13 +173,18 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
         final FaultToleranceWrap faultWrap = getAddon(FaultToleranceWrap.class);
         // Log size of remote graph.
         final long beforeRemoteGraphSize = getRemoteGraphSize(config.getTargetGraphURI());
-        LOG.debug("Remote graph size: {}", beforeRemoteGraphSize);
-        // Prepare name for upload graph - some random.
-        final String tempUploadGraph = UPLOAD_GRAPH_PREFIX + Long.toString((new Date()).getTime());
-        LOG.info("Used temp graph: '{}'", tempUploadGraph);
-        // Get size.
-        final long beforeRemoteTempGraphSize = getRemoteGraphSize(tempUploadGraph);
-        LOG.debug("Remote temp graph size: {}", beforeRemoteTempGraphSize);
+        LOG.debug("Remote graph size: {}", beforeRemoteGraphSize);        
+        final String uploadGraph;
+        if (useTempGraph()) {
+            // Prepare name for upload graph - some random.
+            uploadGraph = UPLOAD_GRAPH_PREFIX + Long.toString((new Date()).getTime());
+            LOG.info("Used temp graph: '{}'", uploadGraph);
+            // Get size.
+            final long beforeRemoteTempGraphSize = getRemoteGraphSize(uploadGraph);
+            LOG.debug("Remote temp graph size: {}", beforeRemoteTempGraphSize);
+        } else {
+            uploadGraph = graphUri;
+        }
         // Get file to upload.
         final File file = faultWrap.execute(new FaultToleranceWrap.ActionReturn<File>() {
 
@@ -183,33 +201,38 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
 
             @Override
             public void action() throws Exception {
-                uploadFile(targetURL, file, tempUploadGraph);
+                uploadFile(targetURL, file, uploadGraph);
             }
         });
-        // Check upload file size.
-        final long afterRemoteTempGraphSize = getRemoteGraphSize(tempUploadGraph);
-        LOG.debug("Remote temp graph size: {}", afterRemoteTempGraphSize);
-        // Copy remote files.
-        LOG.info("Copying data from temp graph to target graph ...");
-        faultWrap.execute(new FaultToleranceWrap.Action() {
+        if (useTempGraph()) {
+            // Check upload file size.
+            final long afterRemoteTempGraphSize = getRemoteGraphSize(uploadGraph);
+            LOG.debug("Remote temp graph size: {}", afterRemoteTempGraphSize);
+            // Copy remote files.
+            LOG.info("Copying data from temp graph to target graph ...");
+            faultWrap.execute(new FaultToleranceWrap.Action() {
 
-            @Override
-            public void action() throws Exception {
-                executeRemoteUpdate(String.format(QUERY_ADD_GRAPH, tempUploadGraph, graphUri));
-            }
-        });
+                @Override
+                public void action() throws Exception {
+                    executeRemoteUpdate(String.format(QUERY_ADD_GRAPH, uploadGraph, graphUri));
+                }
+            });
+            // Clear temp graph.
+            LOG.info("Clearing remote temp graph ...");
+            faultWrap.execute(new FaultToleranceWrap.Action() {
+
+                @Override
+                public void action() throws Exception {
+                    executeRemoteUpdate(String.format(QUERY_CLEAR_GRAPH, uploadGraph));
+                }
+            });
+        }
         // Get size of remote graph after add.
         final long afterRemoteGraphSize = getRemoteGraphSize(config.getTargetGraphURI());
         LOG.debug("Remote graph size: {}", afterRemoteGraphSize);
-        // Clear temp graph.
-        LOG.info("Clearing remote temo graph ...");
-        faultWrap.execute(new FaultToleranceWrap.Action() {
-
-            @Override
-            public void action() throws Exception {
-                executeRemoteUpdate(String.format(QUERY_CLEAR_GRAPH, tempUploadGraph));
-            }
-        });
+        ContextUtils.sendMessage(context, DPUContext.MessageType.INFO,
+                "File uploaded '" + file.toString() + "'",
+                "Graph size before: %d\nGraph size after: %d", beforeRemoteGraphSize, afterRemoteGraphSize);
     }
     
     /**
@@ -288,7 +311,7 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
         try {
             targetURL = new URL(targetAsString);
         } catch (MalformedURLException ex) {
-            throw new DPUException("Malformed ", ex);
+            throw new DPUException("Malformed server uri.", ex);
         }
         return targetURL;
     }
@@ -307,28 +330,51 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
                     new UsernamePasswordCredentials(config.getUserName(), config.getPassword()));
         }
 
-        LOG.info("Loading file to endpoint: {}", url.toString());
+        LOG.info("Uploading file to endpoint: {}", url.toString());
 
         PostMethod method = new PostMethod(url.toString());
-        // Virtuoso does not support chunked mode
-        method.setContentChunked(false);
         method.setParameter("Content-type", "application/xml");
 
-        if (config.getRepositoryType() == GraphStoreProtocolConfig_V1.RepositoryType.Fuseki) {
-            method.setContentChunked(true); // Not supported by Virtuoso
+        final List<Part> parts = new ArrayList<>();
+
+        String fileFormat = "text/turtle";
+        switch(config.getRepositoryType()) {
+            case Virtuoso:
+                // Virtuoso does not support chunked mode
+                method.setContentChunked(false);
+                // Target graph.
+                parts.add(new StringPart("graph", targetGraph));
+                break;
+            case Fuseki:
+                method.setContentChunked(true);
+                // Target graph.
+                parts.add(new StringPart("graph", targetGraph));
+                break;
+            case FusekiTrig: // Support for Fuseki 2.+
+                method.setContentChunked(true);
+                fileFormat = "text/trig";
+                break;
         }
+        // Add file.
+        parts.add(new FilePart("res-file", fileToUpload, fileFormat, "UTF-8"));
 
         // final Part[] parts = {new FilePart("res-file", fileToUpload, "application/rdf+xml", "UTF-8") };  // Virtuoso - require "res-file"
         // final Part[] parts = {new FilePart(fileToUpload.getName(), fileToUpload, "text/turtle", "UTF-8"), new StringPart("graph", targetGraph) }; // Fuseki
 
         // FilePath.name = "rest-file" is required by Virtuso. Fuseky ignore this, so we can use it.
-        final Part[] parts = {new FilePart("res-file", fileToUpload, "text/turtle", "UTF-8"), new StringPart("graph", targetGraph) };
+        //final Part[] parts = {new FilePart("res-file", fileToUpload, "text/turtle", "UTF-8"), new StringPart("graph", targetGraph) };
 
-        final MultipartRequestEntity entity = new MultipartRequestEntity(parts, method.getParams());
+        final MultipartRequestEntity entity = new MultipartRequestEntity(
+                parts.toArray(new Part[0]),
+                method.getParams());
         method.setRequestEntity(entity);
 
         LOG.info("Response code: {}", httpClient.executeMethod(method));        
         LOG.info("Response: {}", method.getResponseBodyAsString());
+    }
+
+    private boolean useTempGraph() {
+        return config.getRepositoryType() != GraphStoreProtocolConfig_V1.RepositoryType.FusekiTrig;
     }
 
 }
