@@ -5,6 +5,7 @@ import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -52,6 +53,7 @@ public class Cache {
     public static int validXML = 0;
     public static int invalidXML = 0;
     public static long timeValidating = 0;
+    
     
     private static boolean validate(String file, String url) throws OperationFailedException
     {
@@ -184,7 +186,7 @@ public class Cache {
 
     private static int interval;
     private static long lastDownload = 0;
-    private static int timeout;
+    private static int timeout = 30000;
     
     public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException, OperationFailedException {   
     String host = url.getHost();
@@ -236,18 +238,40 @@ public class Cache {
                 try {
             
                     //out = getURLContent(url.toString());
-                    InputStream is = url.openStream();
+                	logger.debug("Opening connection to: " + url);
+
+                	URLConnection conn = url.openConnection();
+                	conn.setConnectTimeout(timeout);
+                	conn.setReadTimeout(timeout);
+                	
+                	logger.debug("Getting stream");
+                	InputStream is = conn.getInputStream();
+                    
+                	logger.debug("Got stream");
+
                     BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                     
+                    logger.debug("Got reader");
+ 
                     StringBuilder builder = new StringBuilder();
+                    logger.debug("Got StringBuilder");
+
                     String line;
-                    while ( (line = br.readLine()) != null) builder.append(line);
+                    int linenum = 0;
+                    while ( (line = br.readLine()) != null) { 
+                        if (linenum % 10 == 0 ) logger.debug("Got line: " + ++linenum);
+                    	builder.append(line);
+                    }
                      
+                    logger.debug("Closing reader");
+
                     br.close();
+
+                    logger.debug("Closing stream");
                     is.close();
                     
                     out = builder.toString();
-                	
+                    logger.debug("String created");
+
                     java.util.Date date2= new java.util.Date();
                     lastDownload = date2.getTime();
                     logger.debug("Downloaded URL (attempt " + attempt + ") in " + (lastDownload - curTS) + " ms : " + url.toString());
