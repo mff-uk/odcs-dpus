@@ -71,8 +71,6 @@ public abstract class DpuAdvancedBase<CONFIG>
         public Context(DPU dpu, List<AddonInitializer.AddonInfo> addons, ConfigHistory<CONFIG> configHistory) {
             this.dpu = dpu;
             this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
-            // This alias is also set in AdvamcedVaadinDialogBase, they muset be tha same!
-            this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
             this.addons = addons;
             this.configHistory = configHistory;
             // Create config manager.
@@ -82,6 +80,7 @@ public abstract class DpuAdvancedBase<CONFIG>
                     configAddons.add((ConfigTransformerAddon) item.getAddon());
                 }
             }
+            // Warn: This set alias for MasterConfigObject class.
             this.configManager = new ConfigManager(this.serializationXml, configAddons);
         }
 

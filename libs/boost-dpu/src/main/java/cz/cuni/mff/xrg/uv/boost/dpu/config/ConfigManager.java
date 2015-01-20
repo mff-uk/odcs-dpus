@@ -1,11 +1,14 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
+import java.util.LinkedList;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
 
 /**
  * Provide access to multiple configurations (strings) under name (string).
@@ -16,9 +19,10 @@ public class ConfigManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfigManager.class);
 
+    /**
+     * Master configuration object.
+     */
     private MasterConfigObject masterConfig = null;
-
-    private final SerializationXmlGeneral serializer;
 
     /**
      * Add-ons that are used to transform configuration before it's loaded.
@@ -26,13 +30,23 @@ public class ConfigManager {
     private final List<ConfigTransformerAddon> configTransformers;
 
     /**
+     * Class used to serialise configurations.
+     */
+    private final List<ConfigSerializer> configSerializers;
+
+    /**
      *
      * @param serializer
      * @param configTransformers
      */
     public ConfigManager(SerializationXmlGeneral serializer, List<ConfigTransformerAddon> configTransformers) {
-        this.serializer = serializer;
+        // Configure serializer class.
+        serializer.addAlias(MasterConfigObject.class, MasterConfigObject.TYPE_NAME);
+        // Init object.
         this.configTransformers = configTransformers;
+        // Use xStream as default.
+        this.configSerializers = new LinkedList<>();
+        this.configSerializers.add(new XStreamSerializer(serializer));
     }
 
     /**
@@ -45,23 +59,7 @@ public class ConfigManager {
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
      */
     public <TYPE> TYPE get(String name, Class<TYPE> clazz) throws ConfigException {
-        if (masterConfig == null) {
-            LOG.trace("get({}, ...) -> null as masterConfig is null", name);
-            return null;
-        }
-        String strValue = masterConfig.getConfigurations().get(name);
-        if (strValue == null) {
-            LOG.trace("get({}, ...) -> null as no value found", name);
-            return null;
-        }
-        strValue = transformString(name, strValue);
-        try {
-            final TYPE configObject = serializer.convert(clazz, strValue);
-            transformObject(name, configObject);
-            return configObject;
-        } catch (SerializationXmlFailure ex) {
-            throw new ConfigException("Serialization failed", ex);
-        }
+        return get(name, ConfigHistory.createNoHistory(clazz));
     }
 
     /**
@@ -84,14 +82,11 @@ public class ConfigManager {
             LOG.trace("get({}, ...) -> null as no value found", name);
             return null;
         }
+        // Transform string before deserialization, deserialize and transform output object.
         strValue = transformString(name, strValue);
-        try {
-            final TYPE configObject = configHistory.parse(strValue, serializer);
-            transformObject(name, configObject);
-            return configObject;
-        } catch (SerializationXmlFailure ex) {
-            throw new ConfigException("Serialization failed", ex);
-        }
+        final TYPE configObject = configHistory.parse(strValue, configSerializers);
+        transformObject(name, configObject);
+        return configObject;
     }
 
     /**
@@ -103,16 +98,11 @@ public class ConfigManager {
      */
     public <TYPE> void set(TYPE object, String name) {
         if (masterConfig == null) {
-            return;
+            throw new RuntimeException("Can't set configuration to null master configuration!");
         }
-
-        try {
-            final String objectAsStr = serializer.convert(object);
-            // put into configuration
-            masterConfig.getConfigurations().put(name, objectAsStr);
-        } catch (SerializationXmlFailure ex) {
-            throw new RuntimeException("Serialization failed.", ex);
-        }
+        // Convert and put into configuration.
+        final String objectAsStr = serialize(object, name);
+        masterConfig.getConfigurations().put(name, objectAsStr);
     }
 
     /**
@@ -124,10 +114,11 @@ public class ConfigManager {
      * @throws ConfigException
      */
     public <TYPE> TYPE createNew(Class<TYPE> clazz) throws ConfigException {
+        LOG.debug("createNew({})", clazz);
         try {
-            return serializer.createInstance(clazz);
-        } catch (SerializationXmlFailure ex) {
-            throw new RuntimeException("Serialization failed.", ex);
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException("Can't create configuration object.", ex);
         }
     }
 
@@ -150,42 +141,24 @@ public class ConfigManager {
      */
     public void setMasterConfig(String masterConfigStr) throws ConfigException {
         masterConfigStr = transformString(MasterConfigObject.CONFIG_NAME, masterConfigStr);
-        try {
-            masterConfig = serializer.convert(MasterConfigObject.class, masterConfigStr);
-        } catch (SerializationXmlFailure | RuntimeException ex) {
-            throw new ConfigException("Conversion of master config failed.", ex);
+        MasterConfigObject newMasterConfig = null;
+        // Try to deserialize.
+        for (ConfigSerializer serializer : configSerializers) {
+            // We use special name for master configuration object.
+            if (serializer.canDeserialize(masterConfigStr, MasterConfigObject.TYPE_NAME)) {
+                newMasterConfig = serializer.deserialize(masterConfigStr, MasterConfigObject.class);
+                if (newMasterConfig != null) {
+                    // Success, we can stop trying.
+                    break;
+                }
+            }
         }
+        if (newMasterConfig == null) {
+            throw new ConfigException("No serializer can deserialize master configuration object.");
+        }
+        this.masterConfig = newMasterConfig;
         // We got new configuration, configure add-ons.
         configureAddons();
-        
-        // TODO update : move into addon ~ can be used to load DPU configuration as a root
-//        try {
-//            // parseconfiguration
-//            final MasterConfigObject masterConfig
-//                    = this.masterContext.serializationXml.convert(
-//                            MasterConfigObject.class, config);
-//            // wrap inside ConfigManager
-//            this.masterContext.configManager = createConfigManager(masterConfig);
-//        } catch (SerializationXmlFailure ex) {
-//            throw new DPUConfigException("Conversion failed.", ex);
-//        } catch (java.lang.ClassCastException e) {
-//            // try direct conversion
-//            try {
-//                final CONFIG dpuConfig = masterContext.serializationXml.convert(
-//                        masterContext.configHistory.getFinalClass(), config);
-//                final MasterConfigObject masterConfig = new MasterConfigObject();
-//                masterContext.configManager = createConfigManager(masterConfig);
-//
-//                if (masterContext.configHistory == null) {
-//                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
-//                } else {
-//                    masterContext.configManager.set(dpuConfig, DPU_CONFIG_NAME);
-//                }
-//            } catch (SerializationXmlFailure ex) {
-//                throw new DPUConfigException("Conversion failed for prime class", ex);
-//            }
-//        }
-
     }
 
     /**
@@ -234,6 +207,24 @@ public class ConfigManager {
         for (ConfigTransformerAddon addon : configTransformers) {
             addon.configure(this);
         }
+    }
+
+    /**
+     * Serialize given object.
+     *
+     * @param <TYPE>
+     * @param object
+     * @param name
+     * @return
+     */
+    private <TYPE> String serialize(TYPE object, String name) {
+        for (ConfigSerializer serializer : configSerializers) {
+            final String objectAsString = serializer.serialize(object);
+            if (objectAsString != null) {
+                return objectAsString;
+            }
+        }
+        return null;
     }
 
 }
