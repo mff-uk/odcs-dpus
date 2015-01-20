@@ -369,8 +369,17 @@ public class GraphStoreProtocol extends DpuAdvancedBase<GraphStoreProtocolConfig
                 method.getParams());
         method.setRequestEntity(entity);
 
-        LOG.info("Response code: {}", httpClient.executeMethod(method));        
-        LOG.info("Response: {}", method.getResponseBodyAsString());
+        int responseCode = httpClient.executeMethod(method);
+        final String response = method.getResponseBodyAsString();
+
+        LOG.info("Response code: {}", responseCode);
+        LOG.info("Response: {}", response);
+
+        // Very simple response check.
+        if (responseCode >= 500) {
+            throw new DPUException("Request failed. Response code: " + responseCode + 
+                    ". See logs for more details.");
+        }
     }
 
     private boolean useTempGraph() {
