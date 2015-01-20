@@ -127,8 +127,6 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
 
     public AdvancedVaadinDialogBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
         this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
-        // This alias is also set in DpuAdvancedBase, they muset be tha same!
-        this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
         this.context = new Context(this, ConfigHistory.createNoHistory(configClass), addons);
         // Create config manager and initialize addons.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
@@ -140,7 +138,8 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
                 ((ConfigurableAddon)addon).init(this.context);
             }
         }
-        this.configManager = new ConfigManager(serializationXml, configAddons);
+        // Warn: This set alias for MasterConfigObject class.
+        this.configManager = new ConfigManager(this.serializationXml, configAddons);
         // Build main layout.
         buildMainLayout();
     }
@@ -220,6 +219,8 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
     @Override
     public void setContext(ConfigDialogContext newContext) {
         this.context.originalDialogContext = newContext;
+        // TODO Petr: This is workaround, change once Core will provide support for call on this place.
+        buildDialogLayout();
     }
 
     /**
@@ -294,6 +295,14 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
         } else {
             return this.lastSetConfiguration.compareTo(configString) != 0;
         }
+    }
+
+    /**
+     * It's called before the dialog is shows and after the context is accessible. Should be used
+     * to initialise dialog layout.
+     */
+    protected void buildDialogLayout() {
+        // No-op here.
     }
 
     /**
