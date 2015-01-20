@@ -3,7 +3,6 @@ package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -25,8 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.ManipulatorInstance;
 import eu.unifiedviews.dataunit.DataUnit;
@@ -56,7 +55,8 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     public WritableRDFDataUnit rdfOutput;
 
 	public SparqlUpdate() {
-		super(SparqlUpdateConfig_V1.class, AddonInitializer.create(new FaultToleranceWrap()));
+        super(ConfigHistory.createNoHistory(SparqlUpdateConfig_V1.class),
+                AddonInitializer.create(new FaultToleranceWrap(), new SPARQLConfig_V1_Convertor()));
 	}
 		
     @Override
