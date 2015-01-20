@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.ManipulatorInstance;
@@ -32,7 +33,7 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext.MessageType;
 
-/**
+/*
  *
  * @author Škoda Petr
  */
@@ -50,7 +51,8 @@ public class SparqlConstruct extends DpuAdvancedBase<SparqlConstructConfig_V1> {
     public WritableRDFDataUnit rdfOutput;
 
     public SparqlConstruct() {
-        super(SparqlConstructConfig_V1.class, AddonInitializer.create(new FaultToleranceWrap()));
+        super(ConfigHistory.createNoHistory(SparqlConstructConfig_V1.class),
+                AddonInitializer.create(new FaultToleranceWrap(), new SPARQLConfig_V1_Convertor()));
     }
 
     @Override

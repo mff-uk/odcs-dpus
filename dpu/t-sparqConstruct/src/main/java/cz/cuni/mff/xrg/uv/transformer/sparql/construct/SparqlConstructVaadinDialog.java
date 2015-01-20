@@ -5,6 +5,7 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
@@ -20,8 +21,8 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
     private CheckBox checkPerGraph;
 
     public SparqlConstructVaadinDialog() {
-        super(SparqlConstructConfig_V1.class, AddonInitializer.create(new FaultToleranceWrap()));
-        buildLayout();
+        super(ConfigHistory.createNoHistory(SparqlConstructConfig_V1.class),
+                AddonInitializer.create(new FaultToleranceWrap(), new SPARQLConfig_V1_Convertor()));
     }
 
     @Override
@@ -41,7 +42,8 @@ public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<Sparql
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
         final VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
