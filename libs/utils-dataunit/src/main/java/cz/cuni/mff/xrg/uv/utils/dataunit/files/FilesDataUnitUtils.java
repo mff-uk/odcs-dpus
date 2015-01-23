@@ -49,7 +49,7 @@ public class FilesDataUnitUtils {
      * 
      * @param dataUnit
      * @param root Root.
-     * @param file File to add, should be under root.
+     * @param file File to add, must be under root.
      * @return
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
