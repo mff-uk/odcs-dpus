@@ -3,7 +3,7 @@ package cz.cuni.mff.xrg.uv.utils.dataunit;
 import eu.unifiedviews.dpu.DPUException;
 
 /**
- * Base exception used by utilities.
+ * Base exception used by helpers.
  * 
  * @author Škoda Petr
  */
