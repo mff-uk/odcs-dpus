@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  * @param <THIS> Type of the Manipulator, used in setEntry as a return type to enable chaining.
  */
-public class ManipulatorInstance<THIS extends ManipulatorInstance> implements AutoCloseable {
+public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ManipulatorInstance.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MetadataUtilsInstance.class);
 
     protected static final String SYMBOLIC_NAME_BINDING = "symbolicName";
 
@@ -89,7 +89,7 @@ public class ManipulatorInstance<THIS extends ManipulatorInstance> implements Au
      * @param closeConnectionOnClose If true then given connection is close one this instance is closed.
      * @throws DataUnitException
      */
-    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraph, String symbolicName,
+    MetadataUtilsInstance(RepositoryConnection connection, Set<URI> readGraph, String symbolicName,
             boolean closeConnectionOnClose) throws DataUnitException {
         this.connection = connection;
         this.symbolicName = symbolicName;
@@ -118,7 +118,7 @@ public class ManipulatorInstance<THIS extends ManipulatorInstance> implements Au
      * Replace current connection with given one. Close the old connection if needed (if not given by user).
      * Given connection is not closed by the helper.
      *
-     * Can be used to replace corrupted connection in {@link ManipulatorInstance} without the need
+     * Can be used to replace corrupted connection in {@link MetadataUtilsInstance} without the need
      * of new instance construction.
      *
      * @param newConnection New connection that should be used, will not be closed by helper.
@@ -180,25 +180,27 @@ public class ManipulatorInstance<THIS extends ManipulatorInstance> implements Au
     }
 
     /**
-     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance}
+     * Change used entry(symbolic name). By this operation {@link MetadataUtilsInstance}
      * can be modified to work with other metadata object.
      *
      * @param symbolicName
      * @return
      */
+    @SuppressWarnings("unchecked")
     public THIS setEntry(String symbolicName) {
         this.symbolicName = symbolicName;
         return (THIS)this;
     }
 
     /**
-     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance} 
+     * Change used entry(symbolic name). By this operation {@link MetadataUtilsInstance}
      * can be modified to work with other metadata object.
      *
      * @param entry
      * @return
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
+    @SuppressWarnings("unchecked")
     public THIS setEntry(MetadataDataUnit.Entry entry) throws DataUnitException {
         this.symbolicName = entry.getSymbolicName();
         return (THIS)this;

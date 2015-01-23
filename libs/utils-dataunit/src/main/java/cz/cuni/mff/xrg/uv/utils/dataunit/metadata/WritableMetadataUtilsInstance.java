@@ -23,7 +23,7 @@ import org.openrdf.repository.RepositoryException;
  *
  * @author Škoda Petr
  */
-public class WritableManipulatorInstance extends ManipulatorInstance<WritableManipulatorInstance> {
+public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<WritableMetadataUtilsInstance> {
 
     /**
      * %s - with clause
@@ -52,7 +52,7 @@ public class WritableManipulatorInstance extends ManipulatorInstance<WritableMan
      */
     private final String datasetWithClause;
 
-    WritableManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, URI writeGraph,
+    WritableMetadataUtilsInstance(RepositoryConnection connection, Set<URI> readGraphs, URI writeGraph,
             String symbolicName, boolean closeConnectionOnClose) throws DataUnitException {
         super(connection, readGraphs, symbolicName, closeConnectionOnClose);
         if (useDataset()) {
@@ -77,7 +77,7 @@ public class WritableManipulatorInstance extends ManipulatorInstance<WritableMan
      * @return
      * @throws DataUnitException
      */
-    public WritableManipulatorInstance add(String predicate, String value) throws DataUnitException {
+    public WritableMetadataUtilsInstance add(String predicate, String value) throws DataUnitException {
         try {
             final String query;
             if (useDataset()) {
@@ -113,7 +113,7 @@ public class WritableManipulatorInstance extends ManipulatorInstance<WritableMan
      * @return
      * @throws DataUnitException
      */
-    public WritableManipulatorInstance set(String predicate, String value) throws DataUnitException {
+    public WritableMetadataUtilsInstance set(String predicate, String value) throws DataUnitException {
         try {
             final String query;
             if (useDataset()) {

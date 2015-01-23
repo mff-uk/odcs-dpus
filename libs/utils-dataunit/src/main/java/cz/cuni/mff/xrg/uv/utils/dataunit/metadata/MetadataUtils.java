@@ -9,7 +9,7 @@ import org.openrdf.repository.RepositoryConnection;
  * Provides easy way how to set/get metadata (predicate/object) for given symbolic name.
  *
  * This class can be used for a simple one shot actions with metadata, or
- * {@link ManipulatorInstance}/{@link WritableManipulatorInstance} can be created and reused to prevent object
+ * {@link MetadataUtilsInstance}/{@link WritableMetadataUtilsInstance} can be created and reused to prevent object
  * creation and deletion.
  *
  * <pre>
@@ -21,9 +21,9 @@ import org.openrdf.repository.RepositoryConnection;
  *
  * @author Škoda Petr
  */
-public class Manipulator {
+public class MetadataUtils {
 
-    private Manipulator() {
+    private MetadataUtils() {
 
     }
 
@@ -35,9 +35,9 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, String symbolicName)
+    public static MetadataUtilsInstance create(MetadataDataUnit dataUnit, String symbolicName)
             throws DataUnitException {
-        return new ManipulatorInstance(dataUnit.getConnection(), dataUnit.getMetadataGraphnames(),
+        return new MetadataUtilsInstance<>(dataUnit.getConnection(), dataUnit.getMetadataGraphnames(),
                 symbolicName, true);
     }
 
@@ -50,9 +50,9 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, String symbolicName,
+    public static MetadataUtilsInstance create(MetadataDataUnit dataUnit, String symbolicName,
             RepositoryConnection connection) throws DataUnitException {
-        return new ManipulatorInstance(connection, dataUnit.getMetadataGraphnames(), symbolicName, false);
+        return new MetadataUtilsInstance<>(connection, dataUnit.getMetadataGraphnames(), symbolicName, false);
     }
 
     /**
@@ -63,7 +63,7 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry)
+    public static MetadataUtilsInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry)
             throws DataUnitException {
         return create(dataUnit, entry.getSymbolicName());
     }
@@ -78,7 +78,7 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static ManipulatorInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry,
+    public static MetadataUtilsInstance create(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry,
             RepositoryConnection connection) throws DataUnitException {
         return create(dataUnit, entry.getSymbolicName(), connection);
     }
@@ -91,9 +91,9 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit, String symbolicName)
+    public static WritableMetadataUtilsInstance create(WritableMetadataDataUnit dataUnit, String symbolicName)
             throws DataUnitException {
-        return new WritableManipulatorInstance(dataUnit.getConnection(),
+        return new WritableMetadataUtilsInstance(dataUnit.getConnection(),
                 dataUnit.getMetadataGraphnames(),
                 dataUnit.getMetadataWriteGraphname(), symbolicName, true);
     }
@@ -108,9 +108,9 @@ public class Manipulator {
      * @return
      * @throws DataUnitException
      */
-    public static WritableManipulatorInstance create(WritableMetadataDataUnit dataUnit, String symbolicName,
+    public static WritableMetadataUtilsInstance create(WritableMetadataDataUnit dataUnit, String symbolicName,
             RepositoryConnection connection) throws DataUnitException {
-        return new WritableManipulatorInstance(connection,
+        return new WritableMetadataUtilsInstance(connection,
                 dataUnit.getMetadataGraphnames(),
                 dataUnit.getMetadataWriteGraphname(), symbolicName, false);
     }
@@ -128,7 +128,7 @@ public class Manipulator {
      */
     public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate)
             throws DataUnitException {
-        try (ManipulatorInstance instance = create(dataUnit, symbolicName)) {
+        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
             return instance.getFirst(predicate);
         }
     }
@@ -163,7 +163,7 @@ public class Manipulator {
      */
     public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate,
             RepositoryConnection connection) throws DataUnitException {
-        try (ManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
             return instance.getFirst(predicate);
         }
     }
@@ -198,7 +198,7 @@ public class Manipulator {
      */
     public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
             String value) throws DataUnitException {
-        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName)) {
+        try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
             instance.set(predicate, value);
         }
     }
@@ -233,7 +233,7 @@ public class Manipulator {
      */
     public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
-        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+        try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
             instance.set(predicate, value);
         }
     }
@@ -267,7 +267,7 @@ public class Manipulator {
      */
     public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
             String value) throws DataUnitException {
-        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName)) {
+        try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
             instance.add(predicate, value);
         }
     }
@@ -300,7 +300,7 @@ public class Manipulator {
      */
     public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
-        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+        try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
             instance.add(predicate, value);
         }
     }
