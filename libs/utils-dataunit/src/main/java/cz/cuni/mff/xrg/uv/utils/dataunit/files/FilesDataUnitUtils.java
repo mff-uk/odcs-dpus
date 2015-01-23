@@ -2,7 +2,7 @@ package cz.cuni.mff.xrg.uv.utils.dataunit.files;
 
 import java.io.File;
 
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtils;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
@@ -58,7 +58,7 @@ public class FilesDataUnitUtils {
         // Add existing file to DataUnit.
         dataUnit.addExistingFile(symbolicName, file.toURI().toString());
         // Set available metadata.
-        Manipulator.add(dataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, symbolicName);
+        MetadataUtils.add(dataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, symbolicName);
         // Return representing instance.
         return new InMemoryEntry(file.toString(), symbolicName);
     }
