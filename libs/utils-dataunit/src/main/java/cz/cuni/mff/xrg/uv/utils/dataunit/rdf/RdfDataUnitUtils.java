@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf;
+package cz.cuni.mff.xrg.uv.utils.dataunit.rdf;
 
 import org.openrdf.model.URI;
 
