@@ -181,7 +181,7 @@ public class SparqlUtils {
      * @param sources
      * @param target
      * @return Prepared SPARQL update query.
-     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.sparql.SparqlProblemException
+     * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
     public static SparqlUpdateObject createInsert(String query, List<RDFDataUnit.Entry> sources, 
@@ -197,7 +197,7 @@ public class SparqlUtils {
      * @param query
      * @param entries
      * @return Prepared SPARQL update query.
-     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.sparql.SparqlProblemException
+     * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
     public static SparqlAskObject createAsk(String query, List<RDFDataUnit.Entry> entries)
@@ -292,7 +292,7 @@ public class SparqlUtils {
      * @param context
      * @param constructObject
      * @param callback Use null to not iterate over result.
-     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.sparql.SparqlProblemException
+     * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws MalformedQueryException
      */
      public static void execute(RepositoryConnection connection, DPUContext context,
