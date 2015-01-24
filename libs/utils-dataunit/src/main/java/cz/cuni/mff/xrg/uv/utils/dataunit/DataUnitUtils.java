@@ -64,38 +64,6 @@ public class DataUnitUtils {
     }
 
     /**
-     * Copy all graphs from source to target.
-     *
-     * @param source
-     * @param target
-     * @param connection
-     * @throws DataUnitException
-     * @throws RepositoryException
-     * @throws FailedOperationException
-     */
-    public static void copyGraphs(RDFDataUnit source, WritableRDFDataUnit target, 
-            RepositoryConnection connection)
-            throws DataUnitException, RepositoryException, FailedOperationException {
-        copyEntries(source, target, connection);
-    }
-
-    /**
-     * Copy all files from source to target.
-     *
-     * @param source
-     * @param target
-     * @param connection
-     * @throws DataUnitException
-     * @throws RepositoryException
-     * @throws FailedOperationException
-     */
-    public static void copyFiles(RDFDataUnit source, WritableRDFDataUnit target, 
-            RepositoryConnection connection)
-            throws DataUnitException, RepositoryException, FailedOperationException {
-        copyEntries(source, target, connection);
-    }
-
-    /**
      * Copy content of metadata graphs from input to output.
      *
      * @param sourceDataUnit
@@ -105,7 +73,7 @@ public class DataUnitUtils {
      * @throws RepositoryException
      * @throws FailedOperationException
      */
-    protected static void copyEntries(MetadataDataUnit sourceDataUnit,
+    public static void copyEntries(MetadataDataUnit sourceDataUnit,
             WritableMetadataDataUnit targetDataUnit, RepositoryConnection connection)
             throws DataUnitException, RepositoryException, FailedOperationException {
         final Set<URI> metadatagraphs = sourceDataUnit.getMetadataGraphnames();
