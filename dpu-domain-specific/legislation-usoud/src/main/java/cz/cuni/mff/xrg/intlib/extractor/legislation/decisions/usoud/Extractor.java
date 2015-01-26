@@ -9,6 +9,7 @@ import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
+import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
@@ -155,32 +156,6 @@ public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
             //process each extracted file
             log.info("Processing file {}", newFile.toURI().toASCIIString());
             
-            //Create output
-//            String output =  DataUnitUtils.readFile(filePath); //, Charset.forName("Cp1250"));
-//            if (output == null) {
-//                log.warn("File {} cannot be read", filePath);
-//                log.warn("File skipped");
-//            }
-
-//            //use the expression
-//            Resource subj = valueFactory.createURI(expressionURI);
-//            URI pred = valueFactory.createURI(config.getOutputPredicate());
-//            Value obj = valueFactory.createLiteral(output);
-
-//            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-//            log.debug("Prepared triple {}", preparedTriple);
-//
-//            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-//            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
-//            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-            
-//            try {
-//				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-//                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-//            } catch(OperationFailedException e) {
-//                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
-//                log.info("Continues with the next file");
-//            }
             
             
                //add file to the output (symbolic name is newSubject
@@ -206,7 +181,8 @@ public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
         }
 
 
-        log.info("Processed {} files", i);
+        //LOG.info("Processed {} files", i);
+        context.sendMessage(DPUContext.MessageType.INFO, "Processed " + i +" files");
 
 
     }

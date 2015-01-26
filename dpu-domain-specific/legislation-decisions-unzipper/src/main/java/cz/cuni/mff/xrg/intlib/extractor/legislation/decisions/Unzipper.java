@@ -81,7 +81,7 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
         String urlWithZip;
         try {
             urlWithZip = buildURL(config,context.getLastExecutionTime());
-            context.sendMessage(MessageType.INFO, "Running for dates: " + dateFrom + " - " + dateTo);
+            context.sendMessage(MessageType.INFO, "Running for dates : " + dateFrom + " - " + dateTo);
         } catch (ConfigException ex) {
             //log.error("Problem when building URL to be downloaded: " + ex.getLocalizedMessage());
             context.sendMessage(MessageType.ERROR, "Problem when building URL to be downloaded: " + ex.getLocalizedMessage());
@@ -232,7 +232,8 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
 				return;
 			}
 		}
-        LOG.info("Processed {} files", i);
+        //LOG.info("Processed {} files", i);
+        context.sendMessage(MessageType.INFO, "Processed " + i +" files");
     }
 
     private String buildURL(UnzipperConfig config, Date lastExecutionTime) throws ConfigException {

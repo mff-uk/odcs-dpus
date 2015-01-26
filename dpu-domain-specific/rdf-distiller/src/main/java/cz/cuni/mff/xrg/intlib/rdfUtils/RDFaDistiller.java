@@ -7,8 +7,6 @@ import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUContext.MessageType;
@@ -20,11 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
 import org.slf4j.LoggerFactory;
-import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 
 /**
@@ -99,7 +93,7 @@ public class RDFaDistiller extends DpuAdvancedBase<RDFaDistillerConfig> {
 				Utils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outDistiller" + File.separator);
                
                	try {
-                    Process p = Runtime.getRuntime().exec("java -jar /data/odcs/libs/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" + outputFilePath);
+                    Process p = Runtime.getRuntime().exec("java -jar /data/uv/libs/RDFaDistiller-1.0-SNAPSHOT-jar-with-dependencies.jar -inputFile=file:///" + inputFilePath + " -outputFile=" + outputFilePath);
 
                     //java -jar java-rdfa-0.4.jar http://examples.tobyinkster.co.uk/hcard
 					printProcessOutput(p);

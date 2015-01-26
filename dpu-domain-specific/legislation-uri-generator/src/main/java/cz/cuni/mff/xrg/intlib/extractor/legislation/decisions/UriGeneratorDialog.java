@@ -45,12 +45,15 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 	@Override
 	public void setConfiguration(UriGeneratorConfig conf) throws DPUConfigException {
 
-		if (!conf.getStoredXsltFilePath().isEmpty()) {
-			String fileContent = Utils.readFile(conf.getStoredXsltFilePath());
-			taFileConf.setValue(fileContent);
-			lFileName.setValue(conf.getfileNameShownInDialog());
-			log.debug("Conf file loaded from {}", conf.getStoredXsltFilePath());
-		}
+            taFileConf.setValue(conf.getConfigXML());
+            lFileName.setValue(conf.getfileNameShownInDialog());
+            
+//		if (!conf.getStoredXsltFilePath().isEmpty()) {
+////			String fileContent = Utils.readFile(conf.getStoredXsltFilePath());
+//			taFileConf.setValue(conf.getConfigXML());
+//			lFileName.setValue(conf.getfileNameShownInDialog());
+////			log.debug("Conf file loaded from {}", conf.getStoredXsltFilePath());
+//		}
 
 	}
 
@@ -65,14 +68,12 @@ public class UriGeneratorDialog extends AdvancedVaadinDialogBase<UriGeneratorCon
 		}
 
           //store the file with XSL template 
-		//TODO take the dpu's space
-		String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID
-				.randomUUID().toString();
-		//save the config from textarea to the file 
-		Utils.storeStringToTempFile(taFileConf.getValue(), fileWithXSLT);
-		log.debug("XSLT stored to {}", fileWithXSLT);
+//		String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID
+//				.randomUUID().toString();
+//		Utils.storeStringToTempFile(taFileConf.getValue().trim(), fileWithXSLT);
+//		log.debug("XSLT stored to {}", fileWithXSLT);
 
-		return new UriGeneratorConfig(lFileName.getValue().trim(), fileWithXSLT);
+		return new UriGeneratorConfig(lFileName.getValue().trim(), "", taFileConf.getValue().trim());
 
 	}
 

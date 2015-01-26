@@ -64,17 +64,18 @@ public class WordTxtConvertor {
             }
             
             try {
-               //Process p = Runtime.getRuntime().exec("java -DconfigFile=" + configFile.getCanonicalPath() + " -jar /Users/tomasknap/Documents/PROJECTS/ETL-SWProj/intlib/tmp/silk_2.5.2/silk.jar");
-
-               //Process p = Runtime.getRuntime().exec("src/main/resources/catdoc " + filePath + " > " + txtFilePath); 
                 
-                log.debug("About to execute: {}", pathToCatDoc + "catdoc -scp1250 -dcp1250 " + filePath);
-                Process p = Runtime.getRuntime().exec(pathToCatDoc + "catdoc -scp1250 -dcp1250 " + filePath); 
+                //TODO launching catdoc which must be installed on the target system! 
+                //To launch catdoc shipped with the extractor DPU, use: pathToCatDoc + "catdoc ... "
+                String catdocCommand = "catdoc -scp1250 -dcp1250 " + filePath;
+                
+                log.info("AAbout to execute: {}", catdocCommand);
+//                Process p = Runtime.getRuntime().exec(pathToCatDoc + "catdoc -sutf-8 -dcp1250 " + filePath); 
+                  Process p = Runtime.getRuntime().exec(catdocCommand); 
                
                 Extractor.printProcessErrorOutput(p);
    
                 String f = fromStream(p.getInputStream(), Charset.forName("Cp1250"));
-                //File storedTxtFile = DataUnitUtils.storeStringToTempFile(f, txtFilePath, Charset.forName("UTF-8")); //Charset.forName("Cp1250")
                 
                 log.info("Catdoc was executed successfully");
                 return f;

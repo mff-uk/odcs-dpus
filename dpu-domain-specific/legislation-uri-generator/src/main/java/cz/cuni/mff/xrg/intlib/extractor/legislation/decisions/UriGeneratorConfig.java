@@ -15,10 +15,21 @@ public class UriGeneratorConfig {
 	private String fileNameShownInDialog = "";
 
 	private String storedXsltFilePath = "";
+        
+        private String configXML = "";
 
-	public UriGeneratorConfig(String fileNameInDialog, String tempFile) {
+    public String getConfigXML() {
+        return configXML;
+    }
+
+    public void setConfigXML(String configXML) {
+        this.configXML = configXML;
+    }
+
+	public UriGeneratorConfig(String fileNameInDialog, String tempFile, String configXML) {
 		this.fileNameShownInDialog = fileNameInDialog;
 		this.storedXsltFilePath = tempFile;
+                this.configXML = configXML;
 	}
 
 	public UriGeneratorConfig() {

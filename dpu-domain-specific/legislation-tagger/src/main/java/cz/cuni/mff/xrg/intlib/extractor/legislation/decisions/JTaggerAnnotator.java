@@ -141,6 +141,7 @@ public class JTaggerAnnotator extends DpuAdvancedBase<JTaggerAnnotatorConfig> {
 
             //iterate over files 
             int i = 0;
+            int processedSuccessfully = 0;
             while (filesIteration.hasNext()) {
 
                 i++;
@@ -212,33 +213,20 @@ public class JTaggerAnnotator extends DpuAdvancedBase<JTaggerAnnotatorConfig> {
                }
                      
                         
-                
-//                String outputString = DataUnitUtils.readFile(outputURIGeneratorFilenameWithParagraphs);
-//                Resource subj = valueFactory.createURI(subject);
-//                URI pred = valueFactory.createURI(OdcsTerms.DATA_UNIT_XML_VALUE_PREDICATE);
-//                //TODO config has still textVal, why???
-//                //URI pred = rdfOutput.createURI(config.getOutputPredicate());
-//                Value obj = valueFactory.createLiteral(outputString);
-//                String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-//                DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-//                String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".ttl";
-//                //String tempFileLoc = pathToWorkingDir + File.separator + String.valueOf(i) + "out.ttl";
-//                DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-//                rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-                
 //                LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
                 LOG.info("Output created successfully, sn: {}, file: {}", entry.getSymbolicName(), newFileToBeAdded.toURI().toASCIIString());
-                
+                processedSuccessfully++;
                 
                 if (context.canceled()) {
                         LOG.info("DPU cancelled");
                         return;
                 }
-                
-                
+                                
 
                                 
             }
+            //LOG.info("Processed {} files", i);
+            context.sendMessage(DPUContext.MessageType.INFO, "Successfully processed " + processedSuccessfully +" files");
         } catch (DataUnitException ex) {
             context.sendMessage(DPUContext.MessageType.ERROR, "Error when extracting.", "", ex);
         }
@@ -576,8 +564,9 @@ public class JTaggerAnnotator extends DpuAdvancedBase<JTaggerAnnotatorConfig> {
             LOG.debug("Path to extracted jar file: {}", jarPathString);
              jtagger.setWorkingDir(pathToWorkingDir);
             LOG.debug("Path to working dir: {}", pathToWorkingDir);
+//            LOG.info("AAbout to process file: {}", input_text);
             JTaggerResult res = jtagger.processFile(input_text, config.getMode());
-          
+//            LOG.info("AAbout to write XML output of jtagger {}", res.getXml());
 
             //store result to a file
             PrintWriter out = new PrintWriter(outputJTaggerFilename, "UTF-8");

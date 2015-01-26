@@ -417,7 +417,8 @@ public class JTagger {
         while ((line = reader.readLine()) != null) {
             output_xml += line + "\n";
         }
-
+//        logger.debug("FFinal output (XML) is: {}", output_xml);
+        
         logger.debug(pathToWorkDir + "/jtagger/final.html");
         FileInputStream fis2 = new FileInputStream(""+ pathToWorkDir + "/jtagger/final.html"); 
         InputStreamReader inp2 = new InputStreamReader(fis2, "UTF-8");

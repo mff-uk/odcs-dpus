@@ -18,6 +18,7 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,7 +72,11 @@ public class ProvideActTextsAsLiterals extends DpuAdvancedBase<ProvideActTextsAs
             }
 
             //iterate over files!!
+             int i = 0;
+            int processedSuccessfully = 0;
             while (filesIteration.hasNext()) {
+                
+                i++;
                 
                FilesDataUnit.Entry entry = filesIteration.next();
                
@@ -98,7 +103,10 @@ public class ProvideActTextsAsLiterals extends DpuAdvancedBase<ProvideActTextsAs
                try {
                    Path p = Paths.get(entryFilePath);
                    LOG.debug("Path to file: {}", p.toString());
-                   object = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
+                   String decodedPathString = URLDecoder.decode(p.toString(), "UTF-8");
+                   Path decodedPath = Paths.get(decodedPathString);
+                   LOG.debug("Decoded path to file: {}", decodedPath.toString());
+                   object = new String(Files.readAllBytes(decodedPath), StandardCharsets.UTF_8);
 //                   String filename = entry.getFileURIString().substring(entry.getFileURIString().indexOf("file:/") + 6);
 //                   LOG.debug("Filename: {}", object.substring(0,500));
 //                   object = readFile("file:///" + filename);
@@ -141,7 +149,11 @@ public class ProvideActTextsAsLiterals extends DpuAdvancedBase<ProvideActTextsAs
 //                        }
 //                    }
 //                }
+                   processedSuccessfully++;
             }
+            
+            context.sendMessage(DPUContext.MessageType.INFO, "Successfully processed " + processedSuccessfully +"/" + i + " files");
+            
         } catch (DataUnitException ex) {
             context.sendMessage(DPUContext.MessageType.ERROR, "Error when extracting.", "", ex);
         } finally {

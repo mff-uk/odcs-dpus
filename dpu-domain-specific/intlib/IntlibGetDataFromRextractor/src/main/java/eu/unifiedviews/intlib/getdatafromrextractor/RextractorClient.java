@@ -49,6 +49,12 @@ public class RextractorClient {
      * Represent http error code returns when inserting data in bad format.
      */
     protected static final int HTTP_BAD_RESPONSE = 400;
+
+      private String targetRextractorServer;
+    
+    RextractorClient(String targetRextractorServer) {
+        this.targetRextractorServer = targetRextractorServer;
+    }
     
     private File storeFiles(String entry, String rootDirPath, String suffix, String queryBase) {
         
@@ -84,7 +90,9 @@ public class RextractorClient {
         List<File> resultingFiles = new ArrayList<>();
         
 //        String query = "http://odcs.xrg.cz/prod-rextractor/?command=export-document&doc_id=pr0182-1993_0404-2012";
-        String query = "http://odcs.xrg.cz/prod-rextractor/?command=list-export&fromDate=" + from + "&toDate=" + to;
+//        String query = "http://odcs.xrg.cz/prod-rextractor/?command=list-export&fromDate=" + from + "&toDate=" + to;
+        
+        String query = targetRextractorServer + "/?command=list-export&fromDate=" + from + "&toDate=" + to;
 
         String response = callService(query, null);
         //log.debug("List of documents: " + response);
@@ -97,7 +105,7 @@ public class RextractorClient {
             
             if (entry.length() == 0) continue;
             
-             File newFile = storeFiles(entry, rootDirPath, ".html", "http://odcs.xrg.cz/prod-rextractor/?command=export-document&doc_id=");
+             File newFile = storeFiles(entry, rootDirPath, ".html", targetRextractorServer + "/?command=export-document&doc_id=");
              resultingFiles.add(newFile);
         }
         
@@ -107,7 +115,7 @@ public class RextractorClient {
 
             if (entry.length() == 0) continue;
             
-            File newFile = storeFiles(entry, rootDirPath, ".xml", "http://odcs.xrg.cz/prod-rextractor/?command=export-description&doc_id=");
+            File newFile = storeFiles(entry, rootDirPath, ".xml", targetRextractorServer + "/?command=export-description&doc_id=");
             resultingFiles.add(newFile);
         }
         

@@ -8,6 +8,19 @@ public class IntlibGetDataFromRextractorConfig_V1 {
      private String dateFrom = "2014-11-13";
     private String dateTo = "2014-11-13";
     private boolean last7Days = false;
+    private String targetRextractorServer = "http://odcs.xrg.cz/prod-rextractor";
+    
+    
+
+    public String getTargetRextractorServer() {
+        return targetRextractorServer;
+    }
+    
+    
+
+    public void setTargetRextractorServer(String targetRextractorServer) {
+        this.targetRextractorServer = targetRextractorServer;
+    }
     
     public IntlibGetDataFromRextractorConfig_V1() {
 

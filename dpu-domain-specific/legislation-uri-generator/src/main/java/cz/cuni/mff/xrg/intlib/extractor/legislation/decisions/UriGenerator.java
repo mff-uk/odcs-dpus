@@ -18,6 +18,7 @@ import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.slf4j.Logger;
@@ -70,7 +71,7 @@ public class UriGenerator extends DpuAdvancedBase<UriGeneratorConfig> {
             LOG.error(ex.getLocalizedMessage());
         }
         
-        if (config.getStoredXsltFilePath().isEmpty()) {
+        if (config.getConfigXML().isEmpty()) {
                      LOG.error("Configuration file is missing, the processing will NOT continue");
                      context.sendMessage(MessageType.ERROR, "Configuration file is missing, the processing will NOT continue");
         }
@@ -85,6 +86,7 @@ public class UriGenerator extends DpuAdvancedBase<UriGeneratorConfig> {
 
             //iterate over files 
             int i = 0;
+            int processedSuccessfully = 0;
             while (filesIteration.hasNext()) {
 
                 i++;
@@ -99,7 +101,14 @@ public class UriGenerator extends DpuAdvancedBase<UriGeneratorConfig> {
                 //run URI Generator
                 String outputURIGeneratorFilename = pathToWorkingDir + File.separator + "outURIGen" + File.separator + String.valueOf(i) + ".xml";
                 Utils.checkExistanceOfDir(pathToWorkingDir + File.separator + "outURIGen" + File.separator);
-                runURIGenerator(entryFilePath, outputURIGeneratorFilename, config.getStoredXsltFilePath(), context) ;
+                
+                //getConfig, store it to temp: 
+                String fileWithXSLT = System.getProperty("java.io.tmpdir") + File.separator + "xsltDPU" + UUID.randomUUID().toString();
+		Utils.storeStringToTempFile(config.getConfigXML(), fileWithXSLT);
+		LOG.debug("XSLT config stored to temporary file {}", fileWithXSLT);
+                
+                
+                runURIGenerator(entryFilePath, outputURIGeneratorFilename, fileWithXSLT, context) ;
                 //check output
                 if (!outputGenerated(outputURIGeneratorFilename)) {
                         continue;
@@ -120,7 +129,7 @@ public class UriGenerator extends DpuAdvancedBase<UriGeneratorConfig> {
                
                 
                 LOG.info("Output created successfully, sn: {}, file: {}", entry.getSymbolicName(), newFileToBeAdded.toURI().toASCIIString());
-                
+                processedSuccessfully++;
                 
                 if (context.canceled()) {
                         LOG.info("DPU cancelled");
@@ -131,6 +140,8 @@ public class UriGenerator extends DpuAdvancedBase<UriGeneratorConfig> {
 
                                 
             }
+            context.sendMessage(DPUContext.MessageType.INFO, "Successfully processed " + processedSuccessfully +"/" + i + " files");
+
         } catch (DataUnitException ex) {
             context.sendMessage(DPUContext.MessageType.ERROR, "Error when extracting.", "", ex);
         }
