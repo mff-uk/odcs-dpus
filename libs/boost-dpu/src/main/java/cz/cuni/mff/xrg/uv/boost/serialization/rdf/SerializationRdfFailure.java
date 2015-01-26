@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.service.serialization.rdf;
+package cz.cuni.mff.xrg.uv.boost.serialization.rdf;
 
 /**
  *

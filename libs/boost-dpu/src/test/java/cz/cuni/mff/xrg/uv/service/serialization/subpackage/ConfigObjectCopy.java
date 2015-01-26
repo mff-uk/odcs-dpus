@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.service.serialization.xml.subpackage;
+package cz.cuni.mff.xrg.uv.service.serialization.subpackage;
 
 import java.io.Serializable;
 
