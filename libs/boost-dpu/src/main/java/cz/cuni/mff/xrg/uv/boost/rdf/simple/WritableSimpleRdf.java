@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.rdf.simple;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,10 +15,12 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Add write functionality to {@link SimpleRdfRead} by wrapping {@link WritableRDFDataUnit}.
@@ -80,7 +83,7 @@ public class WritableSimpleRdf extends SimpleRdf {
 
     private static final String DEFAULT_SYMBOLIC_NAME = "default-output";
 
-    private final WritableRDFDataUnit writableDataUnit;
+    private WritableRDFDataUnit writableDataUnit = null;
 
     /**
      * Buffer for triples that should be added into wrapped {@link #dataUnit}.
@@ -93,11 +96,6 @@ public class WritableSimpleRdf extends SimpleRdf {
     protected List<URI> writeContext = new ArrayList<>();
 
     protected Configuration configuration = new Configuration();
-
-    public WritableSimpleRdf(WritableRDFDataUnit dataUnit) {
-        super(dataUnit);
-        this.writableDataUnit = dataUnit;
-    }
 
     /**
      * Add triple into repository. Based on current {@link AddPolicy} can add triple in immediate or lazy way.
@@ -276,6 +274,40 @@ public class WritableSimpleRdf extends SimpleRdf {
             default:
                 throw new RuntimeException("Unknown AddPolicy type: " + configuration.addPolicy.toString());
         }
+    }
+
+    @Override
+    public void init(DpuAdvancedBase.Context context, String param) throws DPUException {
+        // Init SimpleRdf.
+        super.init(context, param);
+        //
+        final Object dpu = context.getDpu();
+        final Field field;
+        try {
+            field = dpu.getClass().getField(param);
+        } catch (NoSuchFieldException | SecurityException ex) {
+            throw new DPUException("Wrong initial parameters for SimpleRdf: " + param
+                    + ". Can't access such field.", ex);
+        }
+        try {
+            final Object value = field.get(dpu);
+            if (value == null) {
+                return;
+            }
+            if (WritableRDFDataUnit.class.isAssignableFrom(value.getClass())) {
+                writableDataUnit = (WritableRDFDataUnit)value;
+            } else {
+                throw new DPUException("Class" + value.getClass().getCanonicalName()
+                        + " can't be assigned to WritableRDFDataUnit.");
+            }
+        } catch (IllegalAccessException | IllegalArgumentException ex) {
+            throw new DPUException("Can't get value for: " + param, ex);
+        }
+    }
+
+    @Override
+    public boolean isActive() {
+        return super.isActive() && writableDataUnit != null;
     }
 
 }
