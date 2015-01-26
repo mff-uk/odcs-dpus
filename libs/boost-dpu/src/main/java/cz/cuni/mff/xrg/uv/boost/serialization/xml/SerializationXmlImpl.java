@@ -22,7 +22,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
 
-import cz.cuni.mff.xrg.uv.boost.serialization.ReflectionUtils;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 
 /**
@@ -98,7 +98,7 @@ class SerializationXmlImpl implements SerializationXml {
                     toCopy.add(field.getName());
                 }
             }
-            final T objectDefault = ReflectionUtils.createInstance(clazz);
+            final T objectDefault = SerializationUtils.createInstance(clazz);
             copyFields(clazz, objectDefault, object, toCopy);
         }
         return object;

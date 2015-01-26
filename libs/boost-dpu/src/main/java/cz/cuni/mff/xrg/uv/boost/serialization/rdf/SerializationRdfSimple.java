@@ -16,8 +16,8 @@ import org.openrdf.repository.RepositoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.serialization.ReflectionUtils;
-import cz.cuni.mff.xrg.uv.boost.serialization.ReflectionUtils;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
@@ -63,7 +63,7 @@ class SerializationRdfSimple implements SerializationRdf {
             List<RDFDataUnit.Entry> context, Object object, Configuration config)
             throws SerializationFailure, SerializationRdfFailure, DataUnitException, RepositoryException {
         if (config == null) {
-            config = ReflectionUtils.createConfiguration(object.getClass());
+            config = SerializationUtils.createConfiguration(object.getClass());
         }
         // Get read graphs.
         final URI[] graphs = RdfDataUnitUtils.asGraphs(context);
@@ -225,7 +225,7 @@ class SerializationRdfSimple implements SerializationRdf {
             throws SerializationFailure, SerializationRdfFailure, DataUnitException, RepositoryException {
         LOG.debug("loadIntoCollection(, {}, {}, ... ,{})", fieldName, ownerObject.getClass().getSimpleName(), collectionValue);
         // Get collection type.
-        final Class<?> innerClass = ReflectionUtils.getCollectionGenericType(collectionField.getGenericType());
+        final Class<?> innerClass = SerializationUtils.getCollectionGenericType(collectionField.getGenericType());
         if (innerClass == null) {
             throw new SerializationFailure("Can't get type of Collection for: " + fieldName);
         }
@@ -272,7 +272,7 @@ class SerializationRdfSimple implements SerializationRdf {
         // It's a complex object - class.
         if (objectValue instanceof URI) {
             // Another resource in rdf, create and load data into it.
-            result = ReflectionUtils.createInstance(objectType);
+            result = SerializationUtils.createInstance(objectType);
             loadIntoObject(context, (URI)objectValue, result);
         } else {
             // Ctor from string - literal, etc ..
