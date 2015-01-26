@@ -29,11 +29,12 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 
 /**
  * Main functionality:
@@ -319,10 +320,10 @@ public class CachedFileDownloader
     /**
      * Serialization service.
      */
-    private final SerializationXmlGeneral serializer;
+    private final SerializationXml serializer;
 
     public CachedFileDownloader() {
-        serializer = SerializationXmlFactory.serializationXmlGeneral();
+        serializer = SerializationXmlFactory.serializationXml();
     }
 
     @Override
@@ -360,13 +361,13 @@ public class CachedFileDownloader
             // Load configuration.
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration.class);
         } catch (ConfigException ex) {
-            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration", ex, 
+            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration", ex,
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration();
         }
 
         if (this.config == null) {
-            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration();
         }
@@ -600,10 +601,10 @@ public class CachedFileDownloader
             }
         } catch (IOException ex) {
             //throw new AddonException("Can't read cache into from file.", ex);
-            SendMessage.sendWarn(context.getDpuContext(), ADDON_NAME,
+            ContextUtils.sendWarn(context.getDpuContext(), ADDON_NAME,
                     "Can't read cache file from: '%s'. This is normal if DPU is running for the first time.",
                     cacheFile.toString());
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure  ex) {
             throw new AddonException("Can't deserialize cache from string.", ex);
         }
     }
@@ -618,7 +619,7 @@ public class CachedFileDownloader
         try {
             final String cacheAsStr = serializer.convert(cache);
             FileUtils.writeStringToFile(cacheFile, cacheAsStr, "UTF-8");
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure  ex) {
             throw new AddonException("Can't serialialize cache content into a string.", ex);
         } catch (IOException ex) {
             throw new AddonException("Can't save cache into a file.", ex);

@@ -2,12 +2,14 @@ package cz.cuni.mff.xrg.uv.boost.dpu.config.serializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
+
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 
 /**
- * Configuration deserializer based on SerializationXmlGeneral - xStream.
+ * Configuration deserializer based on SerializationXml - xStream.
  * 
  * @author Škoda Petr
  */
@@ -15,13 +17,13 @@ public class XStreamSerializer implements ConfigSerializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(XStreamSerializer.class);
 
-    private final SerializationXmlGeneral serializationXml;
+    private final SerializationXml serializationXml;
 
     public XStreamSerializer() {
-        serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        serializationXml = SerializationXmlFactory.serializationXml();
     }
 
-    public XStreamSerializer(SerializationXmlGeneral serializationXml) {
+    public XStreamSerializer(SerializationXml serializationXml) {
         this.serializationXml = serializationXml;
     }
 
@@ -40,7 +42,7 @@ public class XStreamSerializer implements ConfigSerializer {
     public <TYPE> TYPE deserialize(String configAsString, Class<TYPE> clazz) {
         try {
             return serializationXml.convert(clazz, configAsString);
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure ex) {
             LOG.info("Can't deserialized configuration.", ex);
             return null;
         }
@@ -50,7 +52,7 @@ public class XStreamSerializer implements ConfigSerializer {
     public <TYPE> String serialize(TYPE configObject) {
         try {
             return serializationXml.convert(configObject);
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure ex) {
             LOG.info("Can't deserialized configuration.", ex);
             return null;
         }

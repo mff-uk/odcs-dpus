@@ -10,9 +10,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
-import cz.cuni.mff.xrg.uv.service.serialization.rdf.SerializationRdf;
-import cz.cuni.mff.xrg.uv.service.serialization.rdf.SerializationRdfFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.rdf.SerializationRdfFailure;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.lang.reflect.Field;
@@ -39,7 +36,8 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.service.serialization.rdf.utils.FieldTypeGetter;
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdf;
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdfFactory;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.helpers.dataunit.rdfhelper.RDFHelper;
 
@@ -258,7 +256,7 @@ public class ConfigurationFromRdf implements
     /**
      * Provides conversion from RDF into limited POJO.
      */
-    private final SerializationRdf serialization = SerializationRdfFactory.rdfSimple(Object.class);
+    private final SerializationRdf serialization = SerializationRdfFactory.rdfSimple();
 
     /**
      * Source of triples with configurations.
@@ -360,8 +358,8 @@ public class ConfigurationFromRdf implements
             }
             // Prepare configuration for conversion.
             final SerializationRdf.Configuration serializerConfig = new SerializationRdf.Configuration();
-            serializerConfig.setOntologyPrefix(c.getOntologyUriPrefix());
-            serializerConfig.getPropertyMap().putAll(c.getBinding());
+//            serializerConfig.setOntologyPrefix(c.getOntologyUriPrefix());
+//            serializerConfig.getPropertyMap().putAll(c.getBinding());
             // Get subjects of required type.
             if (c.mainSubjectClass == null || c.mainSubjectClass.isEmpty()) {
                 // No configuration class is set, ignore.
@@ -375,11 +373,11 @@ public class ConfigurationFromRdf implements
                 return;
             }
             // Use the first object to configure.
-            try {
-                serialization.rdfToObject(configRdfDataUnit, resources.get(0), config, serializerConfig);
-            } catch (SerializationRdfFailure ex) {
-                throw new ConfigException("Can't deserialize configuration.", ex);
-            }
+//            try {
+//                serialization.rdfToObject(configRdfDataUnit, resources.get(0), config, serializerConfig);
+//            } catch (SerializationRdfFailure ex) {
+//                throw new ConfigException("Can't deserialize configuration.", ex);
+//            }
         }
     }
 
@@ -417,7 +415,7 @@ public class ConfigurationFromRdf implements
     private Class<?> getUsableFieldType(Field field) {
         Class<?> clazz = field.getType();
         if (Collection.class.isAssignableFrom(clazz)) {
-            clazz = FieldTypeGetter.getCollectionGenericType(field.getGenericType());
+//            clazz = FieldTypeGetter.getCollectionGenericType(field.getGenericType());
         }
         return clazz;
     }
@@ -434,9 +432,9 @@ public class ConfigurationFromRdf implements
         final List<Resource> result = new ArrayList<>(10);
         try {
             connection = configRdfDataUnit.getConnection();
-            repoResult = connection.getStatements(null,
-                    valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                    subjectClass, true, RDFHelper.getGraphsURIArray(dataUnit));
+//            repoResult = connection.getStatements(null,
+//                    valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+//                    subjectClass, true, RDFHelper.getGraphsURIArray(dataUnit));
             while (repoResult.hasNext()) {
                 result.add(repoResult.next().getSubject());
             }

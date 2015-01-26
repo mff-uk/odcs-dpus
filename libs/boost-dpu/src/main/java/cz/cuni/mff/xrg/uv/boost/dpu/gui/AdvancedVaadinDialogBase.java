@@ -9,9 +9,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
@@ -22,6 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase.DPU_CONFIG_NAME;
 
 /**
@@ -98,7 +99,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
     /**
      * Serialization service for root configuration.
      */
-    private final SerializationXmlGeneral serializationXml;
+    private final SerializationXml serializationXml;
 
     /**
      * Configuration manager.
@@ -126,7 +127,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
     private final Context context;
 
     public AdvancedVaadinDialogBase(Class<CONFIG> configClass, List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        this.serializationXml = SerializationXmlFactory.serializationXml();
         this.context = new Context(this, ConfigHistory.createNoHistory(configClass), addons);
         // Create config manager and initialize addons.
         List<ConfigTransformerAddon> configAddons = new ArrayList<>(2);
@@ -146,7 +147,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
 
     public AdvancedVaadinDialogBase(ConfigHistory<CONFIG> configHistory,
             List<AddonInitializer.AddonInfo> addons) {
-        this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+        this.serializationXml = SerializationXmlFactory.serializationXml();
         // This alias is also set in DpuAdvancedBase, they muset be tha same!
         this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
         this.context = new Context(this, configHistory, addons);
@@ -259,7 +260,7 @@ public abstract class AdvancedVaadinDialogBase<CONFIG> extends AbstractConfigDia
         // Convert all into a string.
         try {
             return serializationXml.convert(configManager.getMasterConfig());
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
         }
     }

@@ -17,10 +17,10 @@ import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
@@ -245,12 +245,12 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
         try {
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration_V1.class);
         } catch (ConfigException ex) {
-            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration", ex,
+            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration", ex,
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
         if (this.config == null) {
-            SendMessage.sendWarn(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }

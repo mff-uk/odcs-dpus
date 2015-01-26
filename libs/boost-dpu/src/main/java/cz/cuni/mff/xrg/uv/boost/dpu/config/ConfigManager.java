@@ -2,13 +2,13 @@ package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
 import java.util.LinkedList;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 
 /**
  * Provide access to multiple configurations (strings) under name (string).
@@ -39,7 +39,7 @@ public class ConfigManager {
      * @param serializer
      * @param configTransformers
      */
-    public ConfigManager(SerializationXmlGeneral serializer, List<ConfigTransformerAddon> configTransformers) {
+    public ConfigManager(SerializationXml serializer, List<ConfigTransformerAddon> configTransformers) {
         // Configure serializer class.
         serializer.addAlias(MasterConfigObject.class, MasterConfigObject.TYPE_NAME);
         // Init object.

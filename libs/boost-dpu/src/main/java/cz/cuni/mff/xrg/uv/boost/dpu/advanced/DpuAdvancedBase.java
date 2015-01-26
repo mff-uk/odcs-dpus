@@ -2,10 +2,6 @@ package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.*;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.*;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
@@ -18,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 
 /**
  * Base class for DPUs.
@@ -51,7 +53,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         /**
          * Serialisation service for root configuration.
          */
-        final SerializationXmlGeneral serializationXml;
+        final SerializationXml serializationXml;
 
         /**
          * List of used ad-dons.
@@ -70,7 +72,7 @@ public abstract class DpuAdvancedBase<CONFIG>
 
         public Context(DPU dpu, List<AddonInitializer.AddonInfo> addons, ConfigHistory<CONFIG> configHistory) {
             this.dpu = dpu;
-            this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
+            this.serializationXml = SerializationXmlFactory.serializationXml();
             this.addons = addons;
             this.configHistory = configHistory;
             // Create config manager.
@@ -96,7 +98,7 @@ public abstract class DpuAdvancedBase<CONFIG>
             return configManager;
         }
 
-        public SerializationXmlGeneral getSerializationXml() {
+        public SerializationXml getSerializationXml() {
             return serializationXml;
         }
 
@@ -247,7 +249,7 @@ public abstract class DpuAdvancedBase<CONFIG>
             final MasterConfigObject defaultConfig = createDefaultMasterConfig();
             // Serialize into string and return.
             return this.masterContext.serializationXml.convert(defaultConfig);
-        } catch (SerializationXmlFailure ex) {
+        } catch (SerializationFailure | SerializationXmlFailure ex) {
             throw new DPUConfigException("Config serialization failed.", ex);
         }
     }
@@ -258,9 +260,10 @@ public abstract class DpuAdvancedBase<CONFIG>
      * @return {@link MasterConfigObject} with default DPU configuration.
      * @throws SerializationXmlFailure
      */
-    private MasterConfigObject createDefaultMasterConfig() throws SerializationXmlFailure {
+    private MasterConfigObject createDefaultMasterConfig() 
+            throws SerializationXmlFailure, SerializationFailure {
         // Get string representation of DPU's config class.
-        final CONFIG dpuConfig = this.masterContext.serializationXml.createInstance(
+        final CONFIG dpuConfig = SerializationUtils.createInstance(
                 this.masterContext.configHistory.getFinalClass());
         final String dpuConfigStr = this.masterContext.serializationXml.convert(dpuConfig);
         // Prepare master config.
@@ -285,7 +288,8 @@ public abstract class DpuAdvancedBase<CONFIG>
                             execPoint.toString());
                     execAddon.execute(execPoint);
                 } catch (AddonException ex) {
-                    SendMessage.sendMessage(context, ex, addon.getClass().getSimpleName());
+                    context.sendMessage(MessageType.ERROR, "Addon execution failed",
+                            "Addon: " + addon.getClass().getSimpleName() , ex);
                     result = false;
                 }
             } else {
