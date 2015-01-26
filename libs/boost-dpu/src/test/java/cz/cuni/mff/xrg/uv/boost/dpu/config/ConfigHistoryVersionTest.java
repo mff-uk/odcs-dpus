@@ -2,14 +2,15 @@ package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
 import java.util.LinkedList;
 import java.util.List;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
-import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import org.junit.Assert;
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 
 /**
  * 
@@ -17,8 +18,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
  */
 public class ConfigHistoryVersionTest {
 
-    SerializationXmlGeneral serialization = SerializationXmlFactory
-            .serializationXmlGeneral();
+    SerializationXml serialization = SerializationXmlFactory.serializationXml();
 
     ConfigHistory<Config_V3> historyHolder = ConfigHistory
             .create(Config_V1.class)
@@ -26,7 +26,7 @@ public class ConfigHistoryVersionTest {
             .addCurrent(Config_V3.class);
 
     @Test
-    public void fromFirstToThird() throws SerializationXmlFailure, ConfigException {
+    public void fromFirstToThird() throws SerializationXmlFailure, ConfigException, SerializationFailure {
         Config_V1 v1 = new Config_V1();
         v1.setValue(3);
 
@@ -40,7 +40,7 @@ public class ConfigHistoryVersionTest {
     }
 
     @Test
-    public void lastToLast() throws SerializationXmlFailure, ConfigException {
+    public void lastToLast() throws SerializationXmlFailure, ConfigException, SerializationFailure {
         Config_V3 v3 = new Config_V3();
         v3.setStr1("3");
         v3.setStr2("abc");
