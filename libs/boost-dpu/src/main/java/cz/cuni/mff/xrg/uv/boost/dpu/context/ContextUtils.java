@@ -28,4 +28,43 @@ public class ContextUtils {
         context.sendMessage(type, caption, body);
     }
 
+    /**
+     * Send formated {@link DPUContext.MessageType#INFO} message.
+     *
+     * @param context
+     * @param caption    Caption ie. short message.
+     * @param bodyFormat
+     * @param params
+     */
+    public static void sendInfo(DPUContext context, String caption, String bodyFormat, Object... params) {
+        sendMessage(context, DPUContext.MessageType.INFO, caption, bodyFormat, params);
+    }
+
+    /**
+     * Send formated {@link DPUContext.MessageType#WARNING} message.
+     *
+     * @param context
+     * @param caption    Caption ie. short message.
+     * @param bodyFormat
+     * @param params
+     */
+    public static void sendWarn(DPUContext context, String caption, String bodyFormat, Object... params) {
+        sendMessage(context, DPUContext.MessageType.WARNING, caption, bodyFormat, params);
+    }
+
+    /**
+     * Send formated {@link DPUContext.MessageType#WARNING} message.
+     *
+     * @param context
+     * @param caption    Caption ie. short message.
+     * @param exception
+     * @param bodyFormat
+     * @param params
+     */
+    public static void sendWarn(DPUContext context, String caption, Exception exception,
+            String bodyFormat, Object... params) {
+        final String body = String.format(bodyFormat, params);
+        context.sendMessage(DPUContext.MessageType.WARNING, caption, body, exception);
+    }
+
 }
