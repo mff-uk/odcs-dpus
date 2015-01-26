@@ -14,7 +14,7 @@ import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import eu.unifiedviews.dpu.DPUException;
 
 /**
@@ -41,9 +41,33 @@ public class AutoInitializer {
      */
     public interface Initializable {
 
-        public void init(DpuAdvancedBase.Context context, String param) throws DPUException;
+        /**
+         * Called to set initial properties. Context is not ready to be used besides some special functions.
+         * 
+         * @param context
+         * @param param
+         * @throws DPUException
+         */
+        public void init(Context context, String param) throws DPUException;
 
     }
+
+    /**
+     * Use can register this call back to be notified whenever field is set during initialization.
+     */
+    public interface FieldSetListener {
+        
+        /**
+         * Called on every field that has been set.
+         * 
+         * @param field
+         * @param value 
+         */
+        public void onField(Field field, Object value);
+        
+    }
+
+    private final List<FieldSetListener> listeners = new LinkedList<>();
 
     /**
      * Initialize given object.
@@ -52,7 +76,7 @@ public class AutoInitializer {
      * @param context Context used during initialization.
      * @throws DPUException
      */
-    public void init(Object object, DpuAdvancedBase.Context context) throws DPUException {
+    public void init(Object object, Context context) throws DPUException {
         final List<Field> fields = scanForFields(object.getClass(), Init.class);
         for (Field field : fields) {
             initField(field, object, context);
@@ -60,7 +84,18 @@ public class AutoInitializer {
     }
 
     /**
+     * Register callback.
      *
+     * @param callback
+     */
+    public void addCallback(FieldSetListener callback) {
+        this.listeners.add(callback);
+    }
+
+    /**
+     * Return fields with given annotation.
+     *
+     * @param <T>
      * @param clazz
      * @param annotationClass
      * @return All field with given annotation.
@@ -83,7 +118,7 @@ public class AutoInitializer {
      * @param object
      * @param context
      */
-    private void initField(Field field, Object object, DpuAdvancedBase.Context context) throws DPUException {
+    private void initField(Field field, Object object, Context context) throws DPUException {
         final Init annotation = field.getAnnotation(Init.class);
         if (annotation == null) {
             throw new DPUException("Missing annotation for: " + field.getName());
@@ -125,6 +160,10 @@ public class AutoInitializer {
                 throw new DPUException("Can't set field: " + field.getName() + " with class: "
                         + fieldValue.getClass().getSimpleName(), ex);
             }
+        }
+        // Notify others.
+        for (FieldSetListener listener : listeners) {
+            listener.onField(field, fieldValue);
         }
     }
 
