@@ -73,4 +73,22 @@ public class FilesDataUnitUtils {
         return new File(java.net.URI.create(entry.getFileURIString()));
     }
 
+    /**
+     * Create file of under given path and return {@link File} to it. Also add
+     * {@link VirtualPathHelper#PREDICATE_VIRTUAL_PATH} metadata to the new file.
+     *
+     * As this function create new connection is should not be used for greater number of files.
+     *
+     * @param dataUnit
+     * @param virtualPath
+     * @return
+     * @throws DataUnitException
+     */
+    public static FilesDataUnit.Entry createFile(WritableFilesDataUnit dataUnit, String virtualPath)
+            throws DataUnitException {
+        final String fileUri = dataUnit.addNewFile(virtualPath);
+        MetadataUtils.add(dataUnit, virtualPath, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
+        return new InMemoryEntry(fileUri, virtualPath);
+    }
+
 }
