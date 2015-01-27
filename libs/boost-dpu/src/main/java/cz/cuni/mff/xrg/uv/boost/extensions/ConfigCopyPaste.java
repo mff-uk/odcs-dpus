@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
+package cz.cuni.mff.xrg.uv.boost.extensions;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -8,11 +8,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
+import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
@@ -20,7 +22,7 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  *
  * @author Škoda Petr
  */
-public class ConfigurationCopyPaste implements ConfigurableAddon<ConfigurationCopyPaste.Configuration_V1> {
+public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configuration_V1> {
 
     public static final String USED_CONFIG_NAME = "addon/configurationCopyPaste";
 
@@ -30,12 +32,12 @@ public class ConfigurationCopyPaste implements ConfigurableAddon<ConfigurationCo
         
     }
 
-    public class VaadinDialog extends AddonVaadinDialogBase<Configuration_V1> {
+    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
 
         private TextArea txtConfiguration;
 
         public VaadinDialog() {
-            super(Configuration_V1.class);
+            super(ConfigHistory.noHistory(Configuration_V1.class));
         }
 
         @Override
@@ -124,11 +126,18 @@ public class ConfigurationCopyPaste implements ConfigurableAddon<ConfigurationCo
     /**
      * Dialog context.
      */
-    private AdvancedVaadinDialogBase.Context dialogContext = null;
+    private AbstractVaadinDialog.DialogContext dialogContext = null;
 
     @Override
-    public void init(AdvancedVaadinDialogBase.Context context) {
-        this.dialogContext = context;
+    public void preInit(Context context, String param) throws DPUException {
+        if (context instanceof AbstractVaadinDialog.DialogContext) {
+            this.dialogContext = (AbstractVaadinDialog.DialogContext)context;
+        }
+    }
+
+    @Override
+    public void afterInit(Context context) {
+        // No-op.
     }
 
     @Override
@@ -142,13 +151,8 @@ public class ConfigurationCopyPaste implements ConfigurableAddon<ConfigurationCo
     }
 
     @Override
-    public AddonVaadinDialogBase<Configuration_V1> getDialog() {
+    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
-    }
-
-    @Override
-    public void init(DpuAdvancedBase.Context context) throws AddonException {
-        // No operation here.
     }
 
 }

@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
+package cz.cuni.mff.xrg.uv.boost.extensions;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -14,13 +14,15 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
@@ -33,13 +35,13 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  *
  * @author Škoda Petr
  */
-public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.Configuration_V1> {
+public class FaultTolerance implements Addon, Configurable<FaultTolerance.Configuration_V1> {
 
     public static final String USED_CONFIG_NAME = "addon/faultToleranceWrap";
 
     public static final String ADDON_NAME = "Fault tolerance";
 
-    private static final Logger LOG = LoggerFactory.getLogger(FaultToleranceWrap.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FaultTolerance.class);
 
     /**
      * Interface to wrap general user code.
@@ -130,16 +132,16 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
 
     }
 
-    public class VaadinDialog extends AddonVaadinDialogBase<Configuration_V1> {
+    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
 
         private CheckBox checkEnabled;
-        
+
         private TextField txtRetryCount;
 
         private TextArea txtExceptionNames;
 
         public VaadinDialog() {
-            super(Configuration_V1.class);
+            super(ConfigHistory.noHistory(Configuration_V1.class));
         }
 
         @Override
@@ -154,8 +156,8 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
 
                 @Override
                 public void valueChange(Property.ValueChangeEvent event) {
-                    txtRetryCount.setEnabled((Boolean)event.getProperty().getValue());
-                    txtExceptionNames.setEnabled((Boolean)event.getProperty().getValue());
+                    txtRetryCount.setEnabled((Boolean) event.getProperty().getValue());
+                    txtExceptionNames.setEnabled((Boolean) event.getProperty().getValue());
                 }
             });
 
@@ -168,7 +170,7 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
             txtExceptionNames.setSizeFull();
             layout.addComponent(txtExceptionNames);
             layout.setExpandRatio(txtExceptionNames, 1.0f);
-            
+
             final Panel panel = new Panel();
             panel.setSizeFull();
             panel.setContent(layout);
@@ -219,11 +221,6 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
     private DPUContext dpuContext;
 
     @Override
-    public void init(AdvancedVaadinDialogBase.Context context) {
-        // No work on dpu initialization.
-    }
-
-    @Override
     public Class<Configuration_V1> getConfigClass() {
         return Configuration_V1.class;
     }
@@ -234,26 +231,35 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
     }
 
     @Override
-    public AddonVaadinDialogBase<Configuration_V1> getDialog() {
+    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
     }
 
     @Override
-    public void init(DpuAdvancedBase.Context context) throws AddonException {
-        this.dpuContext = context.getDpuContext();
+    public void preInit(Context context, String param) throws DPUException {
+        if (context instanceof AbstractDpu.ExecutionContext) {
+            this.dpuContext = ((AbstractDpu.ExecutionContext) context).getDpuContext();
+        }
+    }
+
+    @Override
+    public void afterInit(Context context) {
         // Load configuration.
         try {
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration_V1.class);
         } catch (ConfigException ex) {
-            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration", ex,
+            LOG.warn("Can't load configuration.", ex);
+            ContextUtils.sendInfo(dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
         if (this.config == null) {
-            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendInfo(dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
+        // Add exception for Virtuoso
+        this.config.exceptionNames.add("java.sql.BatchUpdateException");
     }
 
     /**
@@ -266,8 +272,8 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
         if (!shouldBeCatched(ex) || failCounter > config.maxRetryCount) {
             throw new DPUException("Operation failed.", ex);
         }
-        LOG.warn("Use operation failed {}/{}.", failCounter, config.maxRetryCount, ex);
-        return failCounter + (config.maxRetryCount == -1 ? 0 : 1);        
+        LOG.warn("User operation failed {}/{}.", failCounter + 1, config.maxRetryCount, ex);
+        return failCounter + (config.maxRetryCount == -1 ? 0 : 1);
     }
 
     public void execute(Action codeToExecute) throws DPUException {
@@ -330,7 +336,7 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
                 } catch (RepositoryException ex) {
                     LOG.warn("Can't close connection.", ex);
                 }
-            }            
+            }
         }
         // If we get here we were interupter before we finished the operation.
         throw new DPUException("Interrupted before user operation could be completed.");
@@ -341,17 +347,29 @@ public class FaultToleranceWrap implements ConfigurableAddon<FaultToleranceWrap.
      * @param ex
      * @return True if this add-on is configured to catch this type of exception.
      */
-    private boolean shouldBeCatched(Exception ex) {
-        // Convert Exception class name into string.
-        final String exceptionClassName = ex.getClass().getSimpleName();
-        // Scan if we have same on the white-list.
-        for (String item : config.exceptionNames) {
-            LOG.trace("shouldBeCatched '{}' ? '{}'", exceptionClassName, item);
-            if (item.compareToIgnoreCase(exceptionClassName) == 0) {
-                return true;
+    private boolean shouldBeCatched(Throwable exception) {
+        do {
+            // Check by name.
+            final String exceptionClassName = exception.getClass().getCanonicalName();
+            for (String item : config.exceptionNames) {
+                LOG.trace("shouldBeCatched '{}' ? '{}'", exceptionClassName, item);
+                if (item.compareToIgnoreCase(exceptionClassName) == 0) {
+                    return true;
+                }
             }
-        }
+            exception = exception.getCause();
+        } while (exception != null);
         return false;
+    }
+
+    /**
+     * Set configuration for test purpose.
+     * 
+     * @param config
+     */
+    void configure(Configuration_V1 config, DPUContext ctx) {
+        this.config = config;
+        this.dpuContext = ctx;
     }
 
 }

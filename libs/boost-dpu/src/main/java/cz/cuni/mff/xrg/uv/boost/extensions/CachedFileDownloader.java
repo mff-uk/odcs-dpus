@@ -1,15 +1,14 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.addon.impl;
+package cz.cuni.mff.xrg.uv.boost.extensions;
 
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.CancelledException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.ExecutableAddon;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AddonVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.ConfigurableAddon;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
@@ -29,12 +28,15 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Main functionality:
@@ -50,7 +52,7 @@ import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
  * @author Škoda Petr
  */
 public class CachedFileDownloader
-        implements ExecutableAddon, ConfigurableAddon<CachedFileDownloader.Configuration> {
+        implements Addon, Addon.Executable, Configurable<CachedFileDownloader.Configuration> {
 
     public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
 
@@ -140,7 +142,7 @@ public class CachedFileDownloader
     /**
      * Vaadin configuration dialog.
      */
-    public class VaadinDialog extends AddonVaadinDialogBase<Configuration> {
+    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration> {
 
         private TextField txtMaxAttemps;
 
@@ -153,7 +155,7 @@ public class CachedFileDownloader
         private CheckBox checkComplexCache;
 
         public VaadinDialog() {
-            super(Configuration.class);
+            super(ConfigHistory.noHistory(Configuration.class));
         }
 
         @Override
@@ -310,7 +312,7 @@ public class CachedFileDownloader
     /**
      * DPU's master context.
      */
-    private DpuAdvancedBase.Context context;
+    private AbstractDpu.ExecutionContext context;
 
     /**
      * Store content of file cache.
@@ -327,13 +329,15 @@ public class CachedFileDownloader
     }
 
     @Override
-    public void init(DpuAdvancedBase.Context context) {
-        this.context = context;
+    public void preInit(Context context, String param) throws DPUException {
+        if (context instanceof AbstractDpu.ExecutionContext) {
+            this.context = (AbstractDpu.ExecutionContext)context;
+        }
     }
 
     @Override
-    public void init(AdvancedVaadinDialogBase.Context context) {
-        // Do nothing here.
+    public void afterInit(Context context) {
+        // No-op.
     }
 
     @Override
@@ -396,7 +400,7 @@ public class CachedFileDownloader
     }
 
     @Override
-    public AddonVaadinDialogBase<Configuration> getDialog() {
+    public AbstractAddonVaadinDialog<Configuration> getDialog() {
         return new VaadinDialog();
     }
 
@@ -513,7 +517,7 @@ public class CachedFileDownloader
     private void waitForNextDownload() {
         while ((new Date()).getTime() < nextDownload && !context.getDpuContext().canceled()) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(700);
             } catch (InterruptedException ex) {
 
             }
