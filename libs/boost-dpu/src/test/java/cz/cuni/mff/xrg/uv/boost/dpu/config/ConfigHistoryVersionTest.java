@@ -21,7 +21,7 @@ public class ConfigHistoryVersionTest {
     SerializationXml serialization = SerializationXmlFactory.serializationXml();
 
     ConfigHistory<Config_V3> historyHolder = ConfigHistory
-            .create(Config_V1.class)
+            .hitory(Config_V1.class)
             .add(Config_V2.class)
             .addCurrent(Config_V3.class);
 
