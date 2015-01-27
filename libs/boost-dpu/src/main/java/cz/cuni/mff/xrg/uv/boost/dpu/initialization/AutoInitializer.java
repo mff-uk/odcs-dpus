@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class AutoInitializer {
          *
          * @return String parameter.
          */
-        String param();
+        String param() default "";
 
     }
 
@@ -43,12 +44,22 @@ public class AutoInitializer {
 
         /**
          * Called to set initial properties. Context is not ready to be used besides some special functions.
+         * No complex code should be located in this method use {@link #afterInit()} instead.
          * 
+         * Configuration is not accessible during this call.
+         *
          * @param context
          * @param param
          * @throws DPUException
          */
-        public void init(Context context, String param) throws DPUException;
+        public void preInit(Context context, String param) throws DPUException;
+
+        /**
+         * Called after all classes have been initialized. This method can be used to search
+         * for other services.
+         * @param context Same context as in {@link #preInit(cz.cuni.mff.xrg.uv.boost.dpu.context.Context, java.lang.String)}.
+         */
+        public void afterInit(Context context);
 
     }
 
@@ -78,8 +89,13 @@ public class AutoInitializer {
      */
     public void init(Object object, Context context) throws DPUException {
         final List<Field> fields = scanForFields(object.getClass(), Init.class);
+        final List<Initializable> initializables = new ArrayList<>(fields.size());
         for (Field field : fields) {
-            initField(field, object, context);
+            initializables.add(initField(field, object, context));
+        }
+        // Call afterInit.
+        for (Initializable initializable : initializables) {
+            initializable.afterInit(context);
         }
     }
 
@@ -117,8 +133,9 @@ public class AutoInitializer {
      * @param field
      * @param object
      * @param context
+     * @return Newly created instance.
      */
-    private void initField(Field field, Object object, Context context) throws DPUException {
+    private Initializable initField(Field field, Object object, Context context) throws DPUException {
         final Init annotation = field.getAnnotation(Init.class);
         if (annotation == null) {
             throw new DPUException("Missing annotation for: " + field.getName());
@@ -135,9 +152,9 @@ public class AutoInitializer {
             throw new DPUException(e);
         }
         // Call init.
-        fieldValue.init(context, annotation.param());
+        fieldValue.preInit(context, annotation.param());
         // Set new value to given object.
-        if (field.getModifiers() == Modifier.PUBLIC) {
+        if ((field.getModifiers() & Modifier.PUBLIC) > 0) {
             // It's public we set it directly.
             try {
                 field.set(object, fieldValue);
@@ -165,6 +182,7 @@ public class AutoInitializer {
         for (FieldSetListener listener : listeners) {
             listener.onField(field, fieldValue);
         }
+        return fieldValue;
     }
 
 }
