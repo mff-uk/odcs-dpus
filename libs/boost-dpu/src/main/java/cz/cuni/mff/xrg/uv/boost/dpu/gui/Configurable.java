@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.gui;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 
 /**
  * Interface for configurable {@link Addon}.
@@ -10,14 +11,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public interface ConfigurableAddon<CONFIG> extends Addon {
-
-    /**
-     * Initialise add-on with configuration context. Used from DPU dialog. This function should not throw!
-     *
-     * @param context
-     */
-    void init(AdvancedVaadinDialogBase.Context context);
+public interface Configurable<CONFIG> extends AutoInitializer.Initializable {
 
     /**
      * 
@@ -27,7 +21,7 @@ public interface ConfigurableAddon<CONFIG> extends Addon {
 
     /**
      * 
-     * @return Caption that is used for {@link AddonVaadinDialogBase}, ie. name of respective Tab.
+     * @return Caption that is used for {@link AbstractAddonVaadinDialog}, ie. name of respective Tab.
      */
     String getDialogCaption();
 
@@ -35,6 +29,6 @@ public interface ConfigurableAddon<CONFIG> extends Addon {
      * 
      * @return Respective configuration dialog.
      */
-    AddonVaadinDialogBase<CONFIG> getDialog();
+    AbstractAddonVaadinDialog<CONFIG> getDialog();
 
 }
