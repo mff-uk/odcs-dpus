@@ -14,8 +14,6 @@ import org.openrdf.repository.RepositoryException;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
-import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 
 /**
  *
@@ -47,12 +45,13 @@ public class DataUnitUtils {
      * Load entries into memory. Should be used only with reasonable small number of entries.
      * 
      * @param <T> DataUnit type.
-     * @param <E> DataUnit.Entry type.
      * @param dataUnit
+     * @param resultClass Type of entries to retrieve.
      * @return List of entries. 
      * @throws eu.unifiedviews.dataunit.DataUnitException 
      */
-    public static <T extends MetadataDataUnit, E extends T.Entry> List<E> getEntries(T dataUnit)
+    public static <T extends MetadataDataUnit, E extends T.Entry> List<E> getEntries(T dataUnit,
+            Class<E> resultClass)
             throws DataUnitException {
         final List<E> result = new LinkedList<>();
         try (MetadataDataUnit.Iteration iter = dataUnit.getIteration()) {
