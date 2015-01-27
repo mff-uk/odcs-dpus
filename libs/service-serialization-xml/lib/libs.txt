@@ -1,1 +1,0 @@
-org.apache.servicemix.bundles.xstream-1.4.7_1.jar

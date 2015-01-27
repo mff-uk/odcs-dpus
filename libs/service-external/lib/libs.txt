@@ -1,4 +1,0 @@
-commons-io-2.4.jar
-httpclient-osgi-4.3.2.jar
-httpcore-osgi-4.3.2.jar
-org.apache.servicemix.bundles.solr-solrj-4.8.1_1
