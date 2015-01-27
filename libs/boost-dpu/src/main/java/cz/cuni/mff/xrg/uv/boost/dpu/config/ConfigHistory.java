@@ -94,7 +94,7 @@ public class ConfigHistory<CONFIG> {
      * @param clazz
      * @return
      */
-    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> hitory(Class<S> clazz) {
+    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> history(Class<S> clazz) {
         return new ConfigHistoryEntry<>(clazz, null);
     }
 
