@@ -94,7 +94,7 @@ public class ConfigHistory<CONFIG> {
      * @param clazz
      * @return
      */
-    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> create(Class<S> clazz) {
+    public static <T, S extends VersionedConfig<T>> ConfigHistoryEntry<S, T> hitory(Class<S> clazz) {
         return new ConfigHistoryEntry<>(clazz, null);
     }
 
@@ -105,7 +105,7 @@ public class ConfigHistory<CONFIG> {
      * @param clazz
      * @return
      */
-    public static <T> ConfigHistory<T> createNoHistory(Class<T> clazz) {
+    public static <T> ConfigHistory<T> noHistory(Class<T> clazz) {
         return new ConfigHistory<>(null, clazz);
     }
 
