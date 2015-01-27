@@ -28,9 +28,9 @@ public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
     @AutoInitializer.Init
     public RdfConfiguration _rdfConfiguration;
 
-	public TextHolder() {
-		super(TextHolderVaadinDialog.class, ConfigHistory.noHistory(TextHolderConfig_V1.class));
-	}
+    public TextHolder() {
+        super(TextHolderVaadinDialog.class, ConfigHistory.noHistory(TextHolderConfig_V1.class));
+    }
 		
     @Override
     protected void innerExecute() throws DPUException {
