@@ -37,7 +37,7 @@ public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
         // create new file
         final File file;
         try {
-            file = FilesDataUnitUtils.createFile(outFiles, config.getFileName());
+            file = FilesDataUnitUtils.asFile(FilesDataUnitUtils.createFile(outFiles, config.getFileName()));
         } catch (DataUnitException ex) {
             throw new DPUException("Can't create output file.", ex);
         }
