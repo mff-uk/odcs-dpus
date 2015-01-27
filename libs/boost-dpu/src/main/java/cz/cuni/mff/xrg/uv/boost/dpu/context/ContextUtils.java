@@ -67,4 +67,20 @@ public class ContextUtils {
         context.sendMessage(DPUContext.MessageType.WARNING, caption, body, exception);
     }
 
+
+    /**
+     * Send formated {@link DPUContext.MessageType#WARNING} message.
+     *
+     * @param context
+     * @param caption    Caption ie. short message.
+     * @param exception
+     * @param bodyFormat
+     * @param params
+     */
+    public static void sendError(DPUContext context, String caption, Exception exception,
+            String bodyFormat, Object... params) {
+        final String body = String.format(bodyFormat, params);
+        context.sendMessage(DPUContext.MessageType.ERROR, caption, body, exception);
+    }
+
 }
