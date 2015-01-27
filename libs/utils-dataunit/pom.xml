@@ -23,6 +23,14 @@
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-files</artifactId>
+            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Required for ontology definitions. -->
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
             <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
             <type>jar</type>
