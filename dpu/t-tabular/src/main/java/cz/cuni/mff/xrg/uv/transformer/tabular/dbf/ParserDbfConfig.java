@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
+package cz.cuni.mff.xrg.uv.transformer.tabular.dbf;
 
 /**
  *

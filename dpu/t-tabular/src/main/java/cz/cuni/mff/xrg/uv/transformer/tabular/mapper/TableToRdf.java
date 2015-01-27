@@ -1,7 +1,5 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular.mapper;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.uv.transformer.tabular.TabularOntology;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGenerator;
 import java.util.List;
@@ -11,6 +9,9 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.cuni.mff.xrg.uv.boost.rdf.simple.WritableSimpleRdf;
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
  * Parse table data into rdf. Before usage this class must be configured by
@@ -25,7 +26,7 @@ public class TableToRdf {
     /**
      * Data output.
      */
-    final SimpleRdfWrite outRdf;
+    final WritableSimpleRdf outRdf;
 
     final ValueFactory valueFactory;
 
@@ -47,39 +48,33 @@ public class TableToRdf {
 
     boolean tableInfoGenerated = false;
 
-    public TableToRdf(TableToRdfConfig config, SimpleRdfWrite outRdf,
-            ValueFactory valueFactory) {
+    public TableToRdf(TableToRdfConfig config, WritableSimpleRdf outRdf, ValueFactory valueFactory) {
         this.config = config;
         this.outRdf = outRdf;
         this.valueFactory = valueFactory;
         this.typeUri = valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
     }
 
-    public void paserRow(List<Object> row, int rowNumber) throws OperationFailedException {
+    public void paserRow(List<Object> row, int rowNumber) throws SimpleRdfException {
         if (row.size() < nameToIndex.size()) {
             LOG.warn("Row is smaller ({} instead of {}) - ignore.",
                     row.size(), nameToIndex.size());
             return;
         }
-
-        //
-        // get subject - key
-        //
+        // Get subject - key.
         final URI subj = prepareUri(row, rowNumber);
         if (subj == null) {
             LOG.error("Row ({}) has null key, row skipped.", rowNumber);
         }
-        //
-        // parse the line, based on configuration
-        //
+        // Parse the line, based on configuration.
         for (ValueGenerator item : infoMap) {
             final URI predicate = item.getUri();
             final Value value = item.generateValue(row, valueFactory);
             if (value == null) {
                 if (config.ignoreBlankCells) {
-                    // ignore
+                    // Ignore blacnk cell.
                 } else {
-                    // insert blank cell URI
+                    // Insert blank cell URI.
                     outRdf.add(subj, predicate, TabularOntology.URI_BLANK_CELL);
                 }
             } else {
@@ -87,7 +82,7 @@ public class TableToRdf {
                 outRdf.add(subj, predicate, value);
             }
         }
-        // add row data - number, class, connection to table
+        // Add row data - number, class, connection to table.
         if (config.generateRowTriple) {
             outRdf.add(subj, TabularOntology.URI_ROW_NUMBER, valueFactory.createLiteral(rowNumber));
         }

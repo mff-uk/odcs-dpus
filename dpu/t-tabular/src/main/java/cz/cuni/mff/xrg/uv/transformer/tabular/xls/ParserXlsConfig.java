@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
+package cz.cuni.mff.xrg.uv.transformer.tabular.xls;
 
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.NamedCell_V1;
 import java.util.Collections;

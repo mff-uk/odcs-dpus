@@ -1,7 +1,8 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import java.io.File;
+
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
  *
@@ -14,8 +15,8 @@ public interface Parser {
      * 
      * @param inFile
      * @throws OperationFailedException
-     * @throws ParseFailed
+     * @throws SimpleRdfException
      */
-    void parse(File inFile) throws OperationFailedException, ParseFailed;
+    void parse(File inFile) throws ParseFailed, SimpleRdfException;
 
 }

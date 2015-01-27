@@ -4,17 +4,13 @@ import com.vaadin.data.Property;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.NamedCell_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyGroup;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyGroupAdv;
 import cz.cuni.mff.xrg.uv.transformer.tabular.gui.PropertyNamedCell;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
-import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserXls;
+import cz.cuni.mff.xrg.uv.transformer.tabular.xls.ParserXls;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -24,10 +20,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_V2> {
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            TabularVaadinDialog.class);
+public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(            TabularVaadinDialog.class);
 
     private OptionGroup optionTableType;
 
@@ -104,18 +101,13 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
     private boolean layoutSet = false;
 
 	public TabularVaadinDialog() {
-		super(ConfigHistory.create(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class)
-                , AddonInitializer.create(new SimpleRdfConfigurator(Tabular.class)));
-        try {
-            buildMappingImportExportTab();
-            buildMainLayout();
-        } catch (Exception ex) {
-            LOG.error("TabularVaadinDialog", ex);
-            throw ex;
-        }
+		super(Tabular.class);
 	}
-	
-	private void buildMainLayout() {
+
+    @Override
+    protected void buildDialogLayout() {
+
+        buildMappingImportExportTab();
 
         // ------------------------ General ------------------------
 

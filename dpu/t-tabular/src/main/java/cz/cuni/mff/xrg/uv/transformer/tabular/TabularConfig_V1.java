@@ -3,7 +3,7 @@ package cz.cuni.mff.xrg.uv.transformer.tabular;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnInfo_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ValueGeneratorReplace;
-import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserDbfConfig;
+import cz.cuni.mff.xrg.uv.transformer.tabular.dbf.ParserDbfConfig;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParserType;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;

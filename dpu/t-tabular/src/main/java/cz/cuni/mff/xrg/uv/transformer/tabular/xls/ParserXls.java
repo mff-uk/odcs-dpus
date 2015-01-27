@@ -1,10 +1,11 @@
-package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
+package cz.cuni.mff.xrg.uv.transformer.tabular.xls;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.ColumnType;
 import cz.cuni.mff.xrg.uv.transformer.tabular.column.NamedCell_V1;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.IOException;
@@ -16,14 +17,15 @@ import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+
 /**
  *
  * @author Škoda Petr
  */
 public class ParserXls implements Parser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ParserXlsConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ParserXlsConfig.class);
 
     /**
      * Name of column where sheet name is stored.
@@ -46,27 +48,24 @@ public class ParserXls implements Parser {
     }
 
     @Override
-    public void parse(File inFile) throws OperationFailedException, ParseFailed {
+    public void parse(File inFile) throws ParseFailed, SimpleRdfException {
         final Workbook wb;
         try {
             wb = WorkbookFactory.create(inFile);
         } catch (IOException | InvalidFormatException ex) {
             throw new ParseFailed("WorkbookFactory creation failed.", ex);
         }
-        // get sheet to process
+        // Get sheets to process.
         final List<Integer> toProcess = new LinkedList<>();
         for (Integer index = 0; index < wb.getNumberOfSheets(); ++index) {
             if (config.sheetName == null || config.sheetName.compareTo(wb.getSheetName(index)) == 0) {
-                // add
                 toProcess.add(index);
             }
         }
-        //
-        // process selected sheets
-        //
+        // Process selected sheets.
         for (Integer sheetIndex : toProcess) {
             if (context.canceled()) {
-                 break;
+                break;
             }
             parseSheet(wb, sheetIndex);
         }
@@ -74,28 +73,26 @@ public class ParserXls implements Parser {
 
     /**
      * Parse given sheet.
-     * 
+     *
      * @param wb
      * @param sheetIndex
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
-    public void parseSheet(Workbook wb, Integer sheetIndex) throws ParseFailed, OperationFailedException {
-
+    public void parseSheet(Workbook wb, Integer sheetIndex) throws ParseFailed, SimpleRdfException {
         LOG.debug("parseSheet({}, {})", wb.getSheetName(sheetIndex), sheetIndex);
-
-        // for every row
+        // For every row.
         final Sheet sheet = wb.getSheetAt(sheetIndex);
         int dataEndAtRow = sheet.getLastRowNum();
         if (config.numberOfStartLinesToIgnore > dataEndAtRow) {
-            // no data to parse
+            // No data to parse, terminate.
             return;
         }
-        // generate column names
+        // Generate column names.
         int startRow = config.numberOfStartLinesToIgnore;
         List<String> columnNames;
         if (config.hasHeader) {
-            // parse line for header
+            // Parse line for header.
             final Row row = sheet.getRow(startRow++);
             if (row == null) {
                 throw new ParseFailed("Header row is null!");
@@ -111,72 +108,60 @@ public class ParserXls implements Parser {
                     columnNames.add(name);
                 }
             }
-            // global names will be added later
+            // Global names will be added later.
         } else {
             columnNames = null;
         }
-
-
-        //
-        // prepare static cells
-        //
+        // Prepare static cells -> xls enable reference for static cells.
         final List<String> namedCells = new LinkedList<>();
         for (NamedCell_V1 namedCell : config.namedCells) {
             final Row row = sheet.getRow(namedCell.getRowNumber() - 1);
             if (row == null) {
-                throw new ParseFailed("Row for named cell is null! (" +
-                        namedCell.getName() + ")");
+                throw new ParseFailed("Row for named cell is null! (" + namedCell.getName() + ")");
             }
             final Cell cell = row.getCell(namedCell.getColumnNumber() - 1);
             if (cell == null) {
-                throw new ParseFailed("Cell for named cell is null! (" +
-                        namedCell.getName() + ")");
+                throw new ParseFailed("Cell for named cell is null! (" + namedCell.getName() + ")");
             }
-            // get value and add to namedCells
+            // Get value and add to namedCells.
             final String value = getCellValue(cell);
             LOG.debug("static cell {} = {}", namedCell.getName(), value);
-            namedCells.add(value);            
+            namedCells.add(value);
         }
-        //
-        // parse data row by row
-        //
+        // Parse data file row by row.
         if (config.rowLimit == null) {
             LOG.debug("Row limit: not used");
         } else {
             LOG.debug("Row limit: {}", config.rowLimit);
         }
-        // set if for first time or if we use static row counter
+        // Set if for first time or if we use static row counter.
         if (!config.checkStaticRowCounter || rowNumber == 0) {
             rowNumber = config.hasHeader ? 2 : 1;
         }
-        // go
         boolean headerGenerated = false;
-
         if (config.rowLimit != null) {
-            // limit number of lines
+            // Limit number of lines.
             dataEndAtRow = startRow + config.rowLimit;
         }
-
         for (Integer rowNumPerFile = startRow; rowNumPerFile < dataEndAtRow; ++rowNumber, ++rowNumPerFile) {
             if (context.canceled()) {
                 break;
             }
-            // skip till data
+            // Skip given number of lines data.
             if (rowNumPerFile < config.numberOfStartLinesToIgnore) {
                 continue;
             }
-            // get row
+            // Get row.
             final Row row = sheet.getRow(rowNumPerFile);
             if (row == null) {
                 continue;
             }
             int columnEnd = row.getLastCellNum();
-            // generate header
+            // Generate header if needed.
             if (!headerGenerated) {
                 headerGenerated = true;
-                // use row data to generate types
-                final List<ColumnType> types = new ArrayList<>(
-                        columnEnd + namedCells.size() + 1);
+                // Use row data to generate types.
+                final List<ColumnType> types = new ArrayList<>(columnEnd + namedCells.size() + 1);
                 for (int columnIndex = 0; columnIndex <= columnEnd; columnIndex++) {
                     final Cell cell = row.getCell(columnIndex);
                     if (cell == null) {
@@ -187,27 +172,25 @@ public class ParserXls implements Parser {
                 }
                 if (columnNames == null) {
                     columnNames = new ArrayList<>(columnEnd);
-                    // generate column names
+                    // Generate column names.
                     for (int columnIndex = 0; columnIndex <= columnEnd; columnIndex++) {
                         columnNames.add("col" + Integer.toString(columnIndex + 1));
                     }
                 }
-                // add user defined names
+                // Add user defined names - extend row for static cell.
                 for (NamedCell_V1 item : config.namedCells) {
                     columnNames.add(item.getName());
                     types.add(ColumnType.String);
                 }
-                // add global types and names
+                // Add global types and names.
                 columnNames.add(SHEET_COLUMN_NAME);
                 types.add(ColumnType.String);
-                // configure
-                TableToRdfConfigurator.configure(tableToRdf, columnNames,
-                        (List) types);
+                // Configure.
+                TableToRdfConfigurator.configure(tableToRdf, columnNames, (List) types);
             }
-            // prepare row
-            final List<String> parsedRow = new ArrayList<>(
-                    columnEnd + namedCells.size() + 1);
-            // parse columns
+            // Prepare row.
+            final List<String> parsedRow = new ArrayList<>(columnEnd + namedCells.size() + 1);
+            // Parse columns in row.
             for (int columnIndex = 0; columnIndex <= columnEnd; columnIndex++) {
                 final Cell cell = row.getCell(columnIndex);
                 if (cell == null) {
@@ -216,13 +199,12 @@ public class ParserXls implements Parser {
                     parsedRow.add(getCellValue(cell));
                 }
             }
-            // add named columns first !!
+            // Add named columns first !!
             parsedRow.addAll(namedCells);
-            // add global data
+            // Add global data.
             parsedRow.add(wb.getSheetName(sheetIndex));
-            // convert into table
+            // Convert row into RDF.
             tableToRdf.paserRow((List) parsedRow, rowNumber);
-
             if ((rowNumPerFile % 1000) == 0) {
                 LOG.debug("Row number {} processed.", rowNumPerFile);
             }
@@ -231,7 +213,7 @@ public class ParserXls implements Parser {
 
     /**
      * Get value of given cell.
-     * 
+     *
      * @param cell
      * @return
      * @throws IllegalArgumentException
@@ -241,28 +223,26 @@ public class ParserXls implements Parser {
             case Cell.CELL_TYPE_BLANK:
                 return null;
             case Cell.CELL_TYPE_BOOLEAN:
-                if (cell.getBooleanCellValue())	{
+                if (cell.getBooleanCellValue()) {
                     return "true";
                 } else {
                     return "false";
                 }
             case Cell.CELL_TYPE_ERROR:
             case Cell.CELL_TYPE_FORMULA:
-                throw new IllegalArgumentException(
-                        "Wrong cell type: " + cell.getCellType());
+                throw new IllegalArgumentException("Wrong cell type: " + cell.getCellType());
             case Cell.CELL_TYPE_NUMERIC:
                 return Double.toString(cell.getNumericCellValue());
             case Cell.CELL_TYPE_STRING:
                 return cell.getStringCellValue();
             default:
-                throw new IllegalArgumentException(""
-                        + "Unknown cell type: "  + cell.getCellType());
+                throw new IllegalArgumentException("Unknown cell type: " + cell.getCellType());
         }
     }
 
     /**
      * Return type for based on given cell.
-     * 
+     *
      * @param cell
      * @return
      * @throws IllegalArgumentException
@@ -282,9 +262,9 @@ public class ParserXls implements Parser {
                     return ColumnType.Date;
                 } else {
                     String value = (new Double(cell.getNumericCellValue())).toString();
-                    try	{
+                    try {
                         Integer.parseInt(value);
-                    } catch (NumberFormatException e)	{
+                    } catch (NumberFormatException e) {
                         return ColumnType.Double;
                     }
                     return ColumnType.Integer;

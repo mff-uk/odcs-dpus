@@ -1,6 +1,5 @@
-package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
+package cz.cuni.mff.xrg.uv.transformer.tabular.csv;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
 import eu.unifiedviews.dpu.DPUContext;
@@ -14,6 +13,10 @@ import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.quote.QuoteMode;
 import org.supercsv.util.CsvContext;
+
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
 
 /**
  * Parse csv file.
@@ -32,15 +35,14 @@ public class ParserCsv implements Parser {
 
     private int rowNumber = 0;
 
-    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf,
-            DPUContext context) {
+    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf, DPUContext context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
     }
 
     @Override
-    public void parse(File inFile) throws OperationFailedException, ParseFailed {
+    public void parse(File inFile) throws ParseFailed, SimpleRdfException {
         final CsvPreference csvPreference;
         // We will use quates only if they are provided
         if (config.quoteChar == null || config.quoteChar.isEmpty()) {
@@ -56,39 +58,29 @@ public class ParserCsv implements Parser {
                     "\\n").useQuoteMode(customQuoteMode).build();
 
         } else {
-            csvPreference = new CsvPreference.Builder(
-                    config.quoteChar.charAt(0),
-                    config.delimiterChar.charAt(0),
-                    "\\n").build();
+            csvPreference = new CsvPreference.Builder(config.quoteChar.charAt(0),
+                    config.delimiterChar.charAt(0), "\\n").build();
         }
-
-        // set if for first time or if we use static row counter
+        // Set if for first time or if we use static row counter.
         if (!config.checkStaticRowCounter || rowNumber == 0) {
             rowNumber = config.hasHeader ? 2 : 1;
         }
-
         try (FileInputStream fileInputStream = new FileInputStream(inFile);
                 InputStreamReader inputStreamReader = getInputStream(fileInputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 CsvListReader csvListReader = new CsvListReader(bufferedReader, csvPreference)) {
-            //
-            // ignore initial ? lines
-            //
+            // Ignore initial ? lines.
             for (int i = 0; i < config.numberOfStartLinesToIgnore; ++i) {
                 bufferedReader.readLine();
             }
-            //
-            // get header
-            //
+            // Get and parse header.
             final List<String> header;
             if (config.hasHeader) {
                 header = Arrays.asList(csvListReader.getHeader(true));
             } else {
                 header = null;
             }
-            //
-            // read rows and parse
-            //
+            // Read rows and parse.
             int rowNumPerFile = 0;
             List<String> row = csvListReader.read();
             if (row == null) {
@@ -97,9 +89,9 @@ public class ParserCsv implements Parser {
                 return;
             }
 
-            // configure parser
+            // Configure parser.
             TableToRdfConfigurator.configure(tableToRdf, header, (List) row);
-            // go ...
+            // Go ...
             if (config.rowLimit == null) {
                 LOG.debug("Row limit: not used");
             } else {
@@ -107,13 +99,13 @@ public class ParserCsv implements Parser {
             }
             while (row != null && (config.rowLimit == null || rowNumPerFile < config.rowLimit)
                     && !context.canceled()) {
-                // cast string to objects
+                // Cast string to objects.
                 tableToRdf.paserRow((List) row, rowNumber);
-                // read next row
+                // Read next row.
                 rowNumber++;
                 rowNumPerFile++;
                 row = csvListReader.read();
-                // log
+                // Log process.
                 if ((rowNumPerFile % 1000) == 0) {
                     LOG.debug("Row number {} processed.", rowNumPerFile);
                 }
@@ -132,7 +124,8 @@ public class ParserCsv implements Parser {
      * @return
      * @throws UnsupportedEncodingException
      */
-    private InputStreamReader getInputStream(FileInputStream fileInputStream) throws UnsupportedEncodingException {
+    private InputStreamReader getInputStream(FileInputStream fileInputStream)
+            throws UnsupportedEncodingException {
         if (config.encoding.compareToIgnoreCase("UTF-8") == 0) {
             return new InputStreamReader(new BOMInputStream(fileInputStream, false), config.encoding);
         } else {

@@ -1,8 +1,9 @@
-package cz.cuni.mff.xrg.uv.transformer.tabular.parser;
+package cz.cuni.mff.xrg.uv.transformer.tabular.dbf;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
+import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
 import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -15,6 +16,8 @@ import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
  *
@@ -32,15 +35,14 @@ public class ParserDbf implements Parser {
 
     private int rowNumber = 0;
 
-    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf,
-            DPUContext context) {
+    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf, DPUContext context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
     }
 
     @Override
-    public void parse(File inFile) throws OperationFailedException, ParseFailed {
+    public void parse(File inFile) throws  ParseFailed, SimpleRdfException {
         final String encoding;
         if (config.encoding == null || config.encoding.isEmpty()) {
             // parse from DBF file
@@ -52,9 +54,7 @@ public class ParserDbf implements Parser {
             throw new ParseFailed("Charset '" + encoding + "' is not supported.");
         }
         final DbfReader reader = new DbfReader(inFile);
-        //
-        // get header
-        //        
+        // Get header.
         final List<String> header;
         final DbfHeader dbfHeader = reader.getHeader();
         header = new ArrayList<>(dbfHeader.getFieldsCount());
@@ -62,49 +62,44 @@ public class ParserDbf implements Parser {
             final DbfField field = dbfHeader.getField(i);
             header.add(field.getName());
         }
-        //
-        // prase other rows
-        //
+        // Parase other rows.
 
-        // set if for first time or if we use static row counter
+        // Set rowNumber base on static counter.
         if (!config.checkStaticRowCounter || rowNumber == 0) {
-           rowNumber = 1;
+            rowNumber = 1;
         }
         int rowNumPerFile = 0;
         Object[] row = reader.nextRecord();
         List<Object> stringRow = new ArrayList(row.length);
-        // configure parser
+        // Configure parser.
         TableToRdfConfigurator.configure(tableToRdf, header, Arrays.asList(row));
-        // go ...
+        // Go ...
         if (config.rowLimit == null) {
             LOG.debug("Row limit: not used");
         } else {
             LOG.debug("Row limit: {}", config.rowLimit);
         }
-        while (row != null &&
-                (config.rowLimit == null || rowNumPerFile < config.rowLimit) &&
-                !context.canceled()) {            
-            // convert
+        while (row != null && (config.rowLimit == null || rowNumPerFile < config.rowLimit)
+                && !context.canceled()) {
+            // Convert row into items, so we can pass them to mapper.
             for (Object item : row) {
                 if (item instanceof byte[]) {
                     try {
-                        stringRow.add(new String((byte [])item, config.encoding));
+                        stringRow.add(new String((byte[]) item, config.encoding));
                     } catch (UnsupportedEncodingException ex) {
-                        // terminate DPU as this can not be handled
+                        // Terminate DPU as this can not be handled.
                         throw new RuntimeException(ex);
                     }
                 } else {
                     stringRow.add(item);
                 }
             }
-            // process
             tableToRdf.paserRow(stringRow, rowNumber);
-            // read next row
+            // Read next row.
             rowNumber++;
             rowNumPerFile++;
             row = reader.nextRecord();
             stringRow.clear();
-            // log
             if ((rowNumPerFile % 1000) == 0) {
                 LOG.debug("Row number {} processed.", rowNumPerFile);
             }
