@@ -15,7 +15,11 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
+import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -35,37 +39,43 @@ import eu.unifiedviews.dpu.DPUException;
  * }
  * </pre>
  *
+ * Features:
+ * <ul>
+ * <li>This class is fault tolerant if {@link FaultTolerance} is presented.</li>
+ * <li>Buffer is automatically flushed at the end of the execution.</li>s
+ * </ul>
+ *
+ *
  * @author Škoda Petr
  */
-public class WritableSimpleRdf extends SimpleRdf {
+public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
 
-    public static final String CONFIGURATION_CLASS_URI = 
-            "http://uv.xrg.mff.cuni.cz/ontology/dpu/boost/rdf/simple/Configuration";
+    public static final String CONFIGURATION_CLASS_URI
+            = "http://uv.xrg.mff.cuni.cz/ontology/dpu/boost/rdf/simple/Configuration";
 
     @Ontology.Entity(type = CONFIGURATION_CLASS_URI)
     public static class Configuration {
 
         public enum AddPolicy {
+
             /**
-             * Triples are added into repository immediately. For each addition new
-             * connection is created. This approach provide immediate reaction on
-             * possible problem (repository is offline) but in case of saving greater
-             * number of triples can be computationally demanding.
+             * Triples are added into repository immediately. For each addition new connection is created.
+             * This approach provide immediate reaction on possible problem (repository is offline) but in
+             * case of saving greater number of triples can be computationally demanding.
              */
             IMMEDIATE,
             /**
-             * Triples are stored in in memory buffer and added into repository once
-             * upon a time. This option should be used if larger number of statements
-             * should be added into repository. There is a disadvantage in current
-             * implementation where a single failure will cause failure there is no
-             * guaranteed state of used repository. The buffer is cleared only if all
-             * the triples are successfully added into repository.
+             * Triples are stored in in memory buffer and added into repository once upon a time. This option
+             * should be used if larger number of statements should be added into repository. There is a
+             * disadvantage in current implementation where a single failure will cause failure there is no
+             * guaranteed state of used repository. The buffer is cleared only if all the triples are
+             * successfully added into repository.
              */
             BUFFERED,
             /**
-             * Data are stored only on user request (call of {@link #flushBuffer()}. In this
-             * case {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)}
-             * does not throw.
+             * Data are stored only on user request (call of {@link #flushBuffer()}. In this case
+             * {@link #add(org.openrdf.model.Resource, org.openrdf.model.URI, org.openrdf.model.Value)} does
+             * not throw.
              */
             ON_DEMAND
         }
@@ -96,6 +106,8 @@ public class WritableSimpleRdf extends SimpleRdf {
     protected List<URI> writeContext = new ArrayList<>();
 
     protected Configuration configuration = new Configuration();
+
+    private FaultTolerance faultTolerance = null;
 
     /**
      * Add triple into repository. Based on current {@link AddPolicy} can add triple in immediate or lazy way.
@@ -137,6 +149,29 @@ public class WritableSimpleRdf extends SimpleRdf {
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
     public void flushBuffer() throws SimpleRdfException {
+        if (faultTolerance == null) {
+            flushBufferInner();
+        } else {
+            try {
+                faultTolerance.execute(new FaultTolerance.Action() {
+
+                    @Override
+                    public void action() throws Exception {
+                        flushBuffer();
+                    }
+                });
+            } catch (DPUException ex) {
+                throw new SimpleRdfException("Can't flush rdf data.", ex);
+            }
+        }
+    }
+
+    /**
+     * Same as {@link #flushBuffer()}. Reason for this class is easier usage with fault tolerant wrap.
+     *
+     * @throws SimpleRdfException
+     */
+    private void flushBufferInner() throws SimpleRdfException {
         if (writeBuffer.isEmpty()) {
             // Nothing to save into repository.
             return;
@@ -225,7 +260,7 @@ public class WritableSimpleRdf extends SimpleRdf {
     /**
      * If {@link AddPolicy} change from {@link AddPolicy#BUFFERED} to {@link AddPolicy#IMMEDIATE} then
      * {@link #flushBuffer()} is called.
-     * 
+     *
      * @param configuration
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
@@ -255,11 +290,11 @@ public class WritableSimpleRdf extends SimpleRdf {
 
     /**
      * Based on policy call {@link #flushBuffer()} if needed.
-     * 
+     *
      * @throws SimpleRdfException
      */
     private void applyFlushBufferPolicy() throws SimpleRdfException {
-        switch(configuration.addPolicy) {
+        switch (configuration.addPolicy) {
             case BUFFERED:
                 if (writeBuffer.size() > configuration.commitSize) {
                     flushBuffer();
@@ -277,11 +312,19 @@ public class WritableSimpleRdf extends SimpleRdf {
     }
 
     @Override
-    public void init(DpuAdvancedBase.Context context, String param) throws DPUException {
-        // Init SimpleRdf.
-        super.init(context, param);
+    public void preInit(Context context, String param) throws DPUException {
+        super.preInit(context, param);
         //
-        final Object dpu = context.getDpu();
+        if (context instanceof AbstractDpu.ExecutionContext) {
+            // Ok we can process.
+        } else {
+            // Nothin for the dialog.
+            return;
+        }
+        // Get underliyng RDFDataUnit and other objects.
+        final AbstractDpu.ExecutionContext execContext = (AbstractDpu.ExecutionContext) context;
+        //
+        final Object dpu = execContext.getDpu();
         final Field field;
         try {
             field = dpu.getClass().getField(param);
@@ -295,13 +338,31 @@ public class WritableSimpleRdf extends SimpleRdf {
                 return;
             }
             if (WritableRDFDataUnit.class.isAssignableFrom(value.getClass())) {
-                writableDataUnit = (WritableRDFDataUnit)value;
+                writableDataUnit = (WritableRDFDataUnit) value;
             } else {
                 throw new DPUException("Class" + value.getClass().getCanonicalName()
                         + " can't be assigned to WritableRDFDataUnit.");
             }
         } catch (IllegalAccessException | IllegalArgumentException ex) {
             throw new DPUException("Can't get value for: " + param, ex);
+        }
+    }
+
+    @Override
+    public void afterInit(Context context) {
+        // Check for fault tolerance addon.
+        faultTolerance = (FaultTolerance) context.getInstance(FaultTolerance.class);
+    }
+
+    @Override
+    public void execute(Addon.ExecutionPoint execPoint) throws AddonException {
+        if (execPoint == Addon.ExecutionPoint.POST_EXECUTE) {
+            // Made sure that all data are saved.
+            try {
+                flushBuffer();
+            } catch (SimpleRdfException ex) {
+                throw new AddonException("Can't flush data at the end of execution.", ex);
+            }
         }
     }
 
