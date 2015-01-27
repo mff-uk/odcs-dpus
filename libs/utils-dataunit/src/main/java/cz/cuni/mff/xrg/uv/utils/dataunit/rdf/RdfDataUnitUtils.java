@@ -1,5 +1,7 @@
 package cz.cuni.mff.xrg.uv.utils.dataunit.rdf;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.openrdf.model.URI;
 
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -70,6 +72,31 @@ public class RdfDataUnitUtils {
             throws DataUnitException {
         dataUnit.addExistingDataGraph(symbolicName, uri);
         return new InMemoryEntry(uri, symbolicName);
+    }
+
+    /**
+     *
+     * @param entry
+     * @return URI of graph represented by this entry.
+     * @throws DataUnitException
+     */
+    public static URI asGraph(RDFDataUnit.Entry entry) throws DataUnitException {
+        return entry.getDataGraphURI();
+    }
+
+    /**
+     * Convert RDF graph entries into their respective URIs.
+     *
+     * @param entries
+     * @return
+     * @throws DataUnitException
+     */
+    public static URI[] asGraphs(List<RDFDataUnit.Entry> entries) throws DataUnitException {
+        final List<URI> result = new ArrayList<>(entries.size());        
+        for (RDFDataUnit.Entry entry : entries) {
+            result.add(asGraph(entry));
+        }   
+        return result.toArray(new URI[0]);
     }
 
 }
