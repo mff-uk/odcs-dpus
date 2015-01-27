@@ -1,7 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
 import java.util.LinkedList;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class ConfigManager {
     /**
      * Add-ons that are used to transform configuration before it's loaded.
      */
-    private final List<ConfigTransformerAddon> configTransformers;
+    private final List<ConfigTransformer> configTransformers;
 
     /**
      * Class used to serialise configurations.
@@ -39,7 +38,7 @@ public class ConfigManager {
      * @param serializer
      * @param configTransformers
      */
-    public ConfigManager(SerializationXml serializer, List<ConfigTransformerAddon> configTransformers) {
+    public ConfigManager(SerializationXml serializer, List<ConfigTransformer> configTransformers) {
         // Configure serializer class.
         serializer.addAlias(MasterConfigObject.class, MasterConfigObject.TYPE_NAME);
         // Init object.
@@ -59,7 +58,7 @@ public class ConfigManager {
      * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
      */
     public <TYPE> TYPE get(String name, Class<TYPE> clazz) throws ConfigException {
-        return get(name, ConfigHistory.createNoHistory(clazz));
+        return get(name, ConfigHistory.noHistory(clazz));
     }
 
     /**
@@ -178,7 +177,7 @@ public class ConfigManager {
      * @throws ConfigException
      */
     private String transformString(String name, String value) throws ConfigException{
-        for (ConfigTransformerAddon addon : configTransformers) {
+        for (ConfigTransformer addon : configTransformers) {
             value = addon.transformString(name, value);
         }
         return value;
@@ -193,7 +192,7 @@ public class ConfigManager {
      * @throws ConfigException
      */
     private <TYPE> void transformObject(String name, TYPE value) throws ConfigException{
-        for (ConfigTransformerAddon addon : configTransformers) {
+        for (ConfigTransformer addon : configTransformers) {
             addon.transformObject(name, value);
         }
     }
@@ -204,7 +203,7 @@ public class ConfigManager {
      * @throws ConfigException
      */
     private void configureAddons() throws ConfigException {
-        for (ConfigTransformerAddon addon : configTransformers) {
+        for (ConfigTransformer addon : configTransformers) {
             addon.configure(this);
         }
     }
