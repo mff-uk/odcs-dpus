@@ -4,11 +4,11 @@
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
         <artifactId>unifiedviews-dpu-base</artifactId>
-        <version>1.1.1</version>
+        <version>2.0.0</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>e-TextHolder</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>bundle</packaging>
     <name>e-TextHolder</name>
     <description>Takes text and put it into output as a single file.</description>
@@ -33,38 +33,11 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <!-- Dependecy for boost-dpu. -->
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-files</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
         <!-- Dependencies from UV. -->

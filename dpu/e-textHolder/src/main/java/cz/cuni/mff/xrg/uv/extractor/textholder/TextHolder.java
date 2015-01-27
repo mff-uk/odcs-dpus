@@ -1,33 +1,35 @@
 package cz.cuni.mff.xrg.uv.extractor.textholder;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.utils.dataunit.files.CreateFile;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
+import cz.cuni.mff.xrg.uv.boost.extensions.RdfConfiguration;
+import cz.cuni.mff.xrg.uv.utils.dataunit.files.FilesDataUnitUtils;
 
 /**
  *
  * @author Škoda Petr
  */
 @DPU.AsExtractor
-public class TextHolder extends DpuAdvancedBase<TextHolderConfig_V1> {
+public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
 
     @DataUnit.AsOutput(name = "file")
     public WritableFilesDataUnit outFiles;
 
+    @AutoInitializer.Init
+    public RdfConfiguration _rdfConfiguration;
+
 	public TextHolder() {
-		super(TextHolderConfig_V1.class, AddonInitializer.noAddons());
+		super(TextHolderVaadinDialog.class, ConfigHistory.noHistory(TextHolderConfig_V1.class));
 	}
 		
     @Override
@@ -35,22 +37,17 @@ public class TextHolder extends DpuAdvancedBase<TextHolderConfig_V1> {
         // create new file
         final File file;
         try {
-            file = CreateFile.createFile(outFiles, config.getFileName());
+            file = FilesDataUnitUtils.createFile(outFiles, config.getFileName());
         } catch (DataUnitException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
+            throw new DPUException("Can't create output file.", ex);
         }
         // write string
         try {
             FileUtils.writeStringToFile(file, config.getText(), "UTF-8");
         } catch (IOException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR, "Can't write data into file.", "", ex);
+            throw new DPUException("Can't write data file.", ex);
         }
     }
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new TextHolderVaadinDialog();
-    }
 	
 }

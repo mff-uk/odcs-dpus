@@ -3,20 +3,22 @@ package cz.cuni.mff.xrg.uv.extractor.textholder;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
-public class TextHolderVaadinDialog extends AdvancedVaadinDialogBase<TextHolderConfig_V1> {
+/**
+ * 
+ * @author Škoda Petr
+ */
+public class TextHolderVaadinDialog extends AbstractVaadinDialog<TextHolderConfig_V1> {
 
     private TextField txtName;
     
     private TextArea txtValue;
 
     public TextHolderVaadinDialog() {
-        super(TextHolderConfig_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(TextHolder.class);
     }
 
     @Override
@@ -28,15 +30,14 @@ public class TextHolderVaadinDialog extends AdvancedVaadinDialogBase<TextHolderC
     @Override
     public TextHolderConfig_V1 getConfiguration() throws DPUConfigException {
         final TextHolderConfig_V1 c = new TextHolderConfig_V1();
-
         c.setFileName(txtName.getValue());
         c.setText(txtValue.getValue());
-
         return c;
     }
 
-    private void buildLayout() {
-		final VerticalLayout mainLayout = new VerticalLayout();
+    @Override
+    protected void buildDialogLayout() {
+    	final VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("100%");
         mainLayout.setMargin(true);

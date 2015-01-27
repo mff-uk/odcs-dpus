@@ -1,8 +1,12 @@
 package cz.cuni.mff.xrg.uv.extractor.textholder;
 
+import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+
 /**
- * DPU's configuration class.
+ *
+ * @author Škoda Petr
  */
+@Ontology.Entity(type = "http://xrg.ksi.ms.mff.cuni.cz/unifiedviews/ontology/textHolder/Config")
 public class TextHolderConfig_V1 {
 
     private String fileName = "triples.ttl";
