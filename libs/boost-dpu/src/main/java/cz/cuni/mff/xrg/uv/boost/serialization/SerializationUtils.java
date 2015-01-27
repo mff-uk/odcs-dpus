@@ -1,15 +1,21 @@
 package cz.cuni.mff.xrg.uv.boost.serialization;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdf;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Common utility class for serialization.
@@ -63,13 +69,89 @@ public class SerializationUtils {
     }
 
     /**
+     * Merge (add) data from source to target. If value in target is not set then original value in source is
+     * used.
+     *
+     * In case of collection the elements from target are added to source.
+     *
+     * @param <T>
+     * @param source
+     * @param target
+     */
+    public static <T> void merge(T source, T target) throws RuntimeException {
+        // Iterate over fields.
+        for (Field field : source.getClass().getDeclaredFields()) {
+            try {
+                mergeField(field, source, target);
+            } catch (IllegalAccessException | IllegalArgumentException |InvocationTargetException ex) {
+                throw new RuntimeException("Problem with reflection during class merge.", ex);
+            }
+        }
+    }
+
+    private static <T> void mergeField(Field field, T source, T target) throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException {
+        Object sourceValue;
+        final PropertyDescriptor fieldDesc;
+        // Read source value.
+        if ((field.getModifiers() & Modifier.PUBLIC) > 0) {
+            fieldDesc = null; // We do not use this here.
+            sourceValue = field.get(source);
+        } else {
+            try {
+                fieldDesc = new PropertyDescriptor(field.getName(), source.getClass());
+            } catch (IntrospectionException ex) {
+                throw new RuntimeException("Can't get property descriptor for: "
+                        + field.getName(), ex);
+            }
+            sourceValue = fieldDesc.getReadMethod().invoke(source);
+        }
+        if (sourceValue == null) {
+            // Do not copy!
+            return;
+        }
+        if (Collection.class.isAssignableFrom(field.getType())) {
+            // Get representation (as collection) of source and target. The merge here is to add
+            // data from source colleciton to target one.
+            final Collection sourceCollection = (Collection) sourceValue;
+            final Collection targetCollection;
+            if (fieldDesc == null) {
+                targetCollection = (Collection)field.get(target);
+            } else {
+                targetCollection = (Collection) fieldDesc.getReadMethod().invoke(target);
+            }
+            // Add items.
+            targetCollection.addAll(sourceCollection);
+        } else if (Map.class.isAssignableFrom(field.getType())) {
+            // Same as for collections abovbe.
+            final Map sourceMap = (Map) sourceValue;
+            final Map targetMap;
+            if (fieldDesc == null) {
+                targetMap = (Map)field.get(target);
+            } else {
+                targetMap = (Map) fieldDesc.getReadMethod().invoke(target);
+            }            
+            // Add items.
+            targetMap.putAll(sourceMap);
+        } else {
+            // Primitive type -> just write.
+            if (fieldDesc == null) {
+                field.set(target, sourceValue);
+            } else {
+                fieldDesc.getWriteMethod().invoke(target, sourceValue);
+            }
+        }
+    }
+
+    /**
      * Generate RDF serialization configuration (description) for given class.
      *
      * @param clazz
      * @return
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure
      */
-    public static SerializationRdf.Configuration createConfiguration(Class<?> clazz) throws SerializationFailure {
+    public static SerializationRdf.Configuration createConfiguration(Class<?> clazz)
+            throws SerializationFailure {
         return createConfiguration(clazz, null);
     }
 
@@ -110,8 +192,8 @@ public class SerializationUtils {
             } else {
                 // We need to generate uri -> we need base URI.
                 if (baseOntologyURI == null) {
-                    throw new SerializationFailure("Missing uri for: " + field.getName() +
-                            " and no general base URI is provided.");
+                    throw new SerializationFailure("Missing uri for: " + field.getName()
+                            + " and no general base URI is provided.");
                 }
                 propertyConfig = new SerializationRdf.Configuration.Property(
                         baseOntologyURI + "/" + field.getName(), "");
