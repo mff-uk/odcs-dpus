@@ -1,7 +1,8 @@
 package cz.cuni.mff.xrg.uv.transformer.graphmerge;
 
 /**
- * DPU's configuration class.
+ * 
+ * @author Škoda Petr
  */
 public class GraphMergeConfig_V1 {
 

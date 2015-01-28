@@ -25,6 +25,10 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
 
+/**
+ * 
+ * @author Škoda Petr
+ */
 @DPU.AsTransformer
 public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
 
