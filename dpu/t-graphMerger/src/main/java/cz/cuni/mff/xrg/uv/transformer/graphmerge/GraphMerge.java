@@ -1,106 +1,94 @@
 package cz.cuni.mff.xrg.uv.transformer.graphmerge;
 
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.openrdf.model.URI;
-import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.UpdateExecutionException;
+import org.openrdf.query.Update;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
+import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
+import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtilsInstance;
+import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 
 @DPU.AsTransformer
-public class GraphMerge extends DpuAdvancedBase<GraphMergeConfig_V1> {
+public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(GraphMerge.class);
-
-    /**
-     * %s - from
-     * %s - to
-     */
-    private static final String COPY_QUERY = "ADD <%s> TO <%s>";
+    private static final Logger LOG = LoggerFactory.getLogger(GraphMerge.class);
 
     @DataUnit.AsInput(name = "input")
     public RDFDataUnit rdfInput;
-    
+
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit rdfOutput;
 
-	public GraphMerge() {
-		super(GraphMergeConfig_V1.class, AddonInitializer.noAddons());
-	}
-		
-    @Override
-    protected void innerExecute() throws DPUException {
-        // Get list of input graphs.
-        final List<URI> inputGraphs = new LinkedList<>();
-        try {
-            final RDFDataUnit.Iteration iter = rdfInput.getIteration();
-            while (iter.hasNext()) {
-                inputGraphs.add(iter.next().getDataGraphURI());
-            }
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't gent input graphs.", ex);
-        }
-        // Prepare output graph.
-        final URI targetGraph;
-        try {
-            targetGraph = rdfOutput.addNewDataGraph(generateOutputSymbolicName());
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't add output graph.", ex);
-        }
-        // Copy data from input graphs to output.
-        RepositoryConnection connection;
-        try {
-            connection = rdfOutput.getConnection();
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't get output connection.", ex);
-        }
-        try {
-            int counter = 1;
-            for (URI sourceGraph : inputGraphs) {
-                final String query = String.format(COPY_QUERY,
-                        sourceGraph.stringValue(), targetGraph.stringValue());
-                // In case of failure quit. No failure tolerance here.
-                LOG.info("Merging {}/{}", counter++, inputGraphs.size());
-                LOG.debug("Merging {} into {}", sourceGraph.stringValue(), targetGraph.stringValue());
-                LOG.debug("Query {}", query);
-                try {
-                    connection.prepareUpdate(QueryLanguage.SPARQL, query).execute();
-                } catch (MalformedQueryException | UpdateExecutionException ex) {
-                    throw new DPUException("Problem with query.", ex);
-                } catch (RepositoryException ex) {
-                    throw new DPUException("Can't execute query due to a problem with repository.", ex);
-                }
-            }
-        } finally {
-            try {
-                connection.close();
-            } catch (RepositoryException ex) {
-                LOG.error("Can't close connection.");
-            }
-        }
-        // TODO Add metadata here!
+    @AutoInitializer.Init
+    public FaultTolerance faultTolerance;
+
+    public GraphMerge() {
+        super(GraphMergeVaadinDialog.class, ConfigHistory.noHistory(GraphMergeConfig_V1.class));
     }
 
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new GraphMergeVaadinDialog();
+    protected void innerExecute() throws DPUException {
+        // Get list of input graphs.
+        final URI[] inputGraphs = faultTolerance.execute(new FaultTolerance.ActionReturn<URI[]>() {
+
+            @Override
+            public URI[] action() throws Exception {
+                return RdfDataUnitUtils.asGraphs(DataUnitUtils.getEntries(rdfInput, RDFDataUnit.Entry.class));
+            }
+
+        });
+        // Prepare output graph.
+        final URI targetGraph = faultTolerance.execute(new FaultTolerance.ActionReturn<URI>() {
+
+            @Override
+            public URI action() throws Exception {
+                return rdfOutput.addNewDataGraph(generateOutputSymbolicName());
+            }
+
+        });
+        // Copy data from input graphs to output.
+        int counter = 1;
+        for (final URI sourceGraph : inputGraphs) {
+            LOG.info("Merging {}/{}", counter++, inputGraphs.length);
+            LOG.debug("{} -> {}", sourceGraph.stringValue(), targetGraph.stringValue());
+            faultTolerance.execute(rdfOutput, new FaultTolerance.ConnectionAction() {
+
+                @Override
+                public void action(RepositoryConnection connection) throws Exception {
+                    final Update updateQuery;
+                    if (useDataset()) {
+                        final String query = String.format("ADD <%s> TO <%s>", sourceGraph.stringValue(),
+                                targetGraph.stringValue());
+                        updateQuery = connection.prepareUpdate(QueryLanguage.SPARQL, query);
+                    } else {
+                        updateQuery = connection.prepareUpdate(QueryLanguage.SPARQL,
+                                "INSERT {?s ?p ?o} WHERE {?s ?p ?o}");
+                        final DatasetImpl dataset = new DatasetImpl();
+                        dataset.addDefaultGraph(sourceGraph);
+                        dataset.setDefaultInsertGraph(targetGraph);
+                        updateQuery.setDataset(dataset);
+                    }
+                    updateQuery.execute();
+                }
+            });
+        }
+
+        // TODO Petr Add metadata here?
     }
 
     /**
@@ -110,5 +98,10 @@ public class GraphMerge extends DpuAdvancedBase<GraphMergeConfig_V1> {
     private String generateOutputSymbolicName() {
         return "GraphMerge/output/generated-" + Long.toString((new Date()).getTime());
     }
-	
+
+    protected final boolean useDataset() {
+        // Should be removed once bug in Sesame or Virtuoso is fixex.
+        return System.getProperty(MetadataUtilsInstance.ENV_PROP_VIRTUOSO) == null;
+    }
+
 }
