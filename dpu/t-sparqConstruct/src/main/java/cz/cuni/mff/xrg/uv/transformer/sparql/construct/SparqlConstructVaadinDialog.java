@@ -3,10 +3,7 @@ package cz.cuni.mff.xrg.uv.transformer.sparql.construct;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
@@ -14,15 +11,14 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  *
  * @author Škoda Petr
  */
-public class SparqlConstructVaadinDialog extends AdvancedVaadinDialogBase<SparqlConstructConfig_V1> {
+public class SparqlConstructVaadinDialog extends AbstractVaadinDialog<SparqlConstructConfig_V1> {
 
     private TextArea txtQuery;
 
     private CheckBox checkPerGraph;
 
     public SparqlConstructVaadinDialog() {
-        super(ConfigHistory.createNoHistory(SparqlConstructConfig_V1.class),
-                AddonInitializer.create(new FaultToleranceWrap(), new SPARQLConfig_V1_Convertor()));
+        super(SparqlConstruct.class);
     }
 
     @Override
