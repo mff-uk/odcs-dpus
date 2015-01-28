@@ -11,7 +11,7 @@
     <version>1.0.1</version>
     <packaging>bundle</packaging>
     <name>t-GraphMerger</name>
-    <description>Merge multiple nput graph into one new graph. Designed for Virtuoso.</description>
+    <description>Merge multiple input graph into one new graph.</description>
 	
     <properties>
         <dpu.package>cz.cuni.mff.xrg.uv.transformer.graphmerge</dpu.package>
