@@ -8,7 +8,7 @@
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>t-graphMerger</artifactId>
-    <version>1.0.+</version>
+    <version>1.0.1</version>
     <packaging>bundle</packaging>
     <name>t-GraphMerger</name>
     <description>Merge multiple nput graph into one new graph. Designed for Virtuoso.</description>
