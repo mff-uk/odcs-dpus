@@ -142,6 +142,13 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
                 this.ctx.addonDialogs.add(dialog);
             }
         }
+        // Add AboutTab.
+        final AboutTab aboutTab = new AboutTab();
+        aboutTab.buildLayout(ctx);
+        addTab(aboutTab, aboutTab.getCaption());
+        // We do not register for this.ctx.addonDialogs.add(dialog); as this is static element.
+
+        // Set composition root.
         super.setCompositionRoot(tabSheet);
     }
 
