@@ -7,7 +7,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
- * DPU's configuration dialog.
  *
  * @author Škoda Petr
  */
