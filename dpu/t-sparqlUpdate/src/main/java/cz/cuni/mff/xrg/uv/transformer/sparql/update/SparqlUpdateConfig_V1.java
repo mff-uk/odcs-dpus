@@ -1,7 +1,8 @@
 package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 
 /**
- * DPU's configuration class.
+ * 
+ * @author Škoda Petr
  */
 public class SparqlUpdateConfig_V1 {
 

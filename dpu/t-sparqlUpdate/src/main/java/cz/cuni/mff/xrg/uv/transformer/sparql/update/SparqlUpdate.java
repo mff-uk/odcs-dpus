@@ -34,6 +34,10 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
 
+/**
+ * 
+ * @author Škoda Petr
+ */
 @DPU.AsTransformer
 public class SparqlUpdate extends AbstractDpu<SparqlUpdateConfig_V1> {
 

@@ -8,7 +8,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
-import eu.unifiedviews.dpu.DPUException;
 
 /**
  *
