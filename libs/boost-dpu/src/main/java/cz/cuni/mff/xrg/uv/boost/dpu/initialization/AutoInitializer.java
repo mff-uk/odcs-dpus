@@ -48,18 +48,17 @@ public class AutoInitializer {
          * 
          * Configuration is not accessible during this call.
          *
-         * @param context
          * @param param
          * @throws DPUException
          */
-        public void preInit(Context context, String param) throws DPUException;
+        public void preInit(String param) throws DPUException;
 
         /**
          * Called after all classes have been initialized. This method can be used to search
          * for other services.
          * @param context Same context as in {@link #preInit(cz.cuni.mff.xrg.uv.boost.dpu.context.Context, java.lang.String)}.
          */
-        public void afterInit(Context context);
+        public void afterInit(Context context) throws DPUException;
 
     }
 
@@ -81,18 +80,48 @@ public class AutoInitializer {
     private final List<FieldSetListener> listeners = new LinkedList<>();
 
     /**
-     * Initialize given object.
+     * Store initialized objects.
+     */
+    private final List<Initializable> initializables = new ArrayList<>();
+
+    /**
+     * Object to initialize.
+     */
+    private final Object object;
+
+    public AutoInitializer(Object object) {
+        this.object = object;
+    }
+
+
+    /**
+     * Initialize given object and call preInit.
      *
      * @param object
      * @param context Context used during initialization.
      * @throws DPUException
      */
-    public void init(Object object, Context context) throws DPUException {
-        final List<Field> fields = scanForFields(object.getClass(), Init.class);
-        final List<Initializable> initializables = new ArrayList<>(fields.size());
+    public void preInit() throws DPUException {
+        final List<Field> fields = scanForFields(object.getClass(), Init.class);        
         for (Field field : fields) {
-            initializables.add(initField(field, object, context));
+            initializables.add(initField(field));
         }
+    }
+
+    /**
+     * Call afterInit on initialized objects, configuration should be available in context for DPU's
+     * execution.
+     *
+     * In case of dialog:
+     * - Configuration is not accessible and it will be set through out proper interface.
+     * - Layout will be called by proper interface.
+     * - Use only to store copy of context or to search for other add-ons.
+     *
+     * @param object
+     * @param context Context used during initialization.
+     * @throws DPUException
+     */
+    public void afterInit(Context context) throws DPUException {
         // Call afterInit.
         for (Initializable initializable : initializables) {
             initializable.afterInit(context);
@@ -131,11 +160,9 @@ public class AutoInitializer {
      * Initialize a single field on given object.
      *
      * @param field
-     * @param object
-     * @param context
      * @return Newly created instance.
      */
-    private Initializable initField(Field field, Object object, Context context) throws DPUException {
+    private Initializable initField(Field field) throws DPUException {
         final Init annotation = field.getAnnotation(Init.class);
         if (annotation == null) {
             throw new DPUException("Missing annotation for: " + field.getName());
@@ -152,7 +179,7 @@ public class AutoInitializer {
             throw new DPUException(e);
         }
         // Call init.
-        fieldValue.preInit(context, annotation.param());
+        fieldValue.preInit(annotation.param());
         // Set new value to given object.
         if ((field.getModifiers() & Modifier.PUBLIC) > 0) {
             // It's public we set it directly.

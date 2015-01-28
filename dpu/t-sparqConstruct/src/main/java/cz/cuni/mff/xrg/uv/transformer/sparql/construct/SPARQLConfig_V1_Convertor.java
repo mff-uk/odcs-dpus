@@ -69,7 +69,7 @@ public class SPARQLConfig_V1_Convertor implements ConfigTransformer, AutoInitial
     }
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
+    public void preInit(String param) {
         // No-op here.
     }
 

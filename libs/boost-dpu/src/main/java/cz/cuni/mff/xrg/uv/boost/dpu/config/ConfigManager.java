@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.transformer.AddonMigration;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 
 /**
@@ -43,22 +44,10 @@ public class ConfigManager {
         serializer.addAlias(MasterConfigObject.class, MasterConfigObject.TYPE_NAME);
         // Init object.
         this.configTransformers = configTransformers;
+        this.configTransformers.add(new AddonMigration());
         // Use xStream as default.
         this.configSerializers = new LinkedList<>();
         this.configSerializers.add(new XStreamSerializer(serializer));
-    }
-
-    /**
-     * Get configuration of given class.
-     *
-     * @param <TYPE>
-     * @param name
-     * @param clazz
-     * @return Null if configuration is not presented.
-     * @throws cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException
-     */
-    public <TYPE> TYPE get(String name, Class<TYPE> clazz) throws ConfigException {
-        return get(name, ConfigHistory.noHistory(clazz));
     }
 
     /**

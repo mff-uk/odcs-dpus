@@ -141,7 +141,7 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
         private TextArea txtExceptionNames;
 
         public VaadinDialog() {
-            super(ConfigHistory.noHistory(Configuration_V1.class));
+            super(configHistory);
         }
 
         @Override
@@ -218,6 +218,9 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
 
     private Configuration_V1 config;
 
+    private final ConfigHistory<Configuration_V1> configHistory =
+            ConfigHistory.noHistory(Configuration_V1.class);
+
     private DPUContext dpuContext;
 
     @Override
@@ -236,25 +239,26 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
     }
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
-        if (context instanceof AbstractDpu.ExecutionContext) {
-            this.dpuContext = ((AbstractDpu.ExecutionContext) context).getDpuContext();
-        }
+    public void preInit(String param) throws DPUException {
+        // No-op/
     }
 
     @Override
     public void afterInit(Context context) {
+        if (context instanceof AbstractDpu.ExecutionContext) {
+            this.dpuContext = ((AbstractDpu.ExecutionContext) context).getDpuContext();
+        }
         // Load configuration.
         try {
-            this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration_V1.class);
+            this.config = context.getConfigManager().get(USED_CONFIG_NAME, configHistory);
         } catch (ConfigException ex) {
             LOG.warn("Can't load configuration.", ex);
-            ContextUtils.sendInfo(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendInfo(this.dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
         if (this.config == null) {
-            ContextUtils.sendInfo(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendInfo(this.dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }

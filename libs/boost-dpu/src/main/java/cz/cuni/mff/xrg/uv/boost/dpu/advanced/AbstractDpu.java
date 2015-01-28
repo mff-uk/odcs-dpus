@@ -102,6 +102,12 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
 
     protected CONFIG config;
 
+    /**
+     * Used to hold configuration between {@link #configure(java.lang.String)} and
+     * {@link #execute(eu.unifiedviews.dpu.DPUContext)} where context is created.
+     */
+    private String configAsString;
+
     protected DPUContext context;
 
     /**
@@ -115,7 +121,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
      */
     public <DIALOG extends AbstractVaadinDialog<CONFIG>> AbstractDpu(Class<DIALOG> dialogClass,
             ConfigHistory<CONFIG> configHistory) {
-        this.dialogClass = (Class<AbstractVaadinDialog<CONFIG>>)dialogClass;
+        this.dialogClass = (Class<AbstractVaadinDialog<CONFIG>>) dialogClass;
         this.configHistory = configHistory;
     }
 
@@ -123,6 +129,8 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
     public void execute(DPUContext context) throws DPUException {
         // Initialize master context -> create add-ons.
         this.ctx = new ExecutionContext(this, context);
+        // Set master configuration and initialize ConfigTransformer.
+        this.ctx.init(configAsString);
         // ConfigTransformer are ready from setConfiguration method -> get DPU configuration.
         try {
             this.ctx.config = (CONFIG) this.ctx.getConfigManager().get(
@@ -184,8 +192,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
 
     @Override
     public void configure(String config) throws DPUConfigException {
-        // Set master configuration and initialize ConfigTransformer.
-        this.ctx.getConfigManager().setMasterConfig(config);
+        this.configAsString = config;
     }
 
     @Override
@@ -239,15 +246,17 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
     private boolean executeAddons(Addon.ExecutionPoint execPoint) {
         boolean result = true;
         for (Addon addon : this.ctx.getAddons()) {
-            final Addon.Executable execAddon = (Addon.Executable) addon;
-            try {
-                LOG.debug("Executing '{}' with on '{}' point", execAddon.getClass().getSimpleName(),
-                        execPoint.toString());
-                execAddon.execute(execPoint);
-            } catch (AddonException ex) {
-                ContextUtils.sendError(this.ctx.dpuContext, "Addon execution failed",
-                        ex, "Addon: s", addon.getClass().getSimpleName());
-                result = false;
+            if (addon instanceof Addon.Executable) {
+                final Addon.Executable execAddon = (Addon.Executable) addon;
+                try {
+                    LOG.debug("Executing '{}' with on '{}' point", execAddon.getClass().getSimpleName(),
+                            execPoint.toString());
+                    execAddon.execute(execPoint);
+                } catch (AddonException ex) {
+                    ContextUtils.sendError(this.ctx.dpuContext, "Addon execution failed",
+                            ex, "Addon: s", addon.getClass().getSimpleName());
+                    result = false;
+                }
             }
         }
         return result;

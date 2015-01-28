@@ -59,7 +59,7 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
     private final SerializationRdf serialization = SerializationRdfFactory.rdfSimple();
 
     private RDFDataUnit sourceDataUnit;
-
+    
     private Context context;
 
     @Override
@@ -192,7 +192,12 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
     };
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
+    public void preInit(String param) throws DPUException {
+        // No-op.
+    }
+
+    @Override
+    public void afterInit(Context context) throws DPUException {
         this.context = context;
         if (context instanceof AbstractDpu.ExecutionContext) {
 
@@ -225,11 +230,6 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
         }
         throw new DPUException("Missing configuration RDFDataUnit! "
                 + "Use RdfConfiguration.ContainsConfiguration annotation to mark it.");
-    }
-
-    @Override
-    public void afterInit(Context context) {
-        // No-op.
     }
 
 }

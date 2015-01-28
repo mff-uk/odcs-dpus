@@ -112,6 +112,7 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
     public void initialize() {
         try {
             ctx = new DialogContext(this, dialogContext, dpuClass, null);
+            ctx.init(null);
         } catch (DPUException ex) {
             LOG.error("Can't create dialog context!", ex);
             throw new RuntimeException("Dialog initialization failed!", ex);

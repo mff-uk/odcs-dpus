@@ -129,15 +129,15 @@ public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configurati
     private AbstractVaadinDialog.DialogContext dialogContext = null;
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
-        if (context instanceof AbstractVaadinDialog.DialogContext) {
-            this.dialogContext = (AbstractVaadinDialog.DialogContext)context;
-        }
+    public void preInit(String param) throws DPUException {
+        // No-op.
     }
 
     @Override
     public void afterInit(Context context) {
-        // No-op.
+        if (context instanceof AbstractVaadinDialog.DialogContext) {
+            this.dialogContext = (AbstractVaadinDialog.DialogContext)context;
+        }
     }
 
     @Override

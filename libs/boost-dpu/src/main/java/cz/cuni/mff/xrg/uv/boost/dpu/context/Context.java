@@ -6,6 +6,7 @@ import java.util.List;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
@@ -44,39 +45,37 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
     private final List<ConfigTransformer> configTransformers = new LinkedList<>();
 
     /**
-     * List of configurable ad-dons. May contains same classes as
-     * {@link #addons} and {@link #configTransformers}.
+     * List of configurable ad-dons. May contains same classes as {@link #addons} and
+     * {@link #configTransformers}.
      */
     private final List<Configurable> configurable = new LinkedList<>();
 
     /**
      * History of configuration class, if set used instead of {@link #configClass}.
      */
-    private final ConfigHistory<CONFIG> configHistory;
+    private ConfigHistory<CONFIG> configHistory = null;
 
     /**
      * Configuration manager.
      */
-    private final ConfigManager configManager;
+    private ConfigManager configManager = null;
 
     /**
      * Serialisation service for root configuration.
      */
     private final SerializationXml serializationXml;
 
+    private final AbstractDpu<CONFIG> dpuInstance;
+
     /**
-     * Also initialize given DPU instance.
+     * Set base fields and create
      *
      * @param <T>
      * @param dpuClass
      * @param dpuInstance Can be null, in such case temporary instance is created.
      * @throws eu.unifiedviews.dpu.DPUException
      */
-    public Context(Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance)
-            throws DPUException {
-        this.dpuClass = dpuClass;
-        this.dialog = true;
-        this.serializationXml = SerializationXmlFactory.serializationXml();
+    public Context(Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance) {
         // Prepare DPU instance.
         try {
             if (dpuInstance == null) {
@@ -85,13 +84,37 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
         } catch (IllegalAccessException | InstantiationException ex) {
             throw new RuntimeException("Can't create DPU instance for purpose of scanning.");
         }
-        // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
-        final AutoInitializer initializer = new AutoInitializer();
-        initializer.addCallback(this);
-        initializer.init(dpuInstance, null);
-        // Init other class.
+        // Set properties.
+        this.dpuClass = dpuClass;
+        this.dialog = true;
         this.configHistory = dpuInstance.getConfigHistory();
+        this.serializationXml = SerializationXmlFactory.serializationXml();
+        this.dpuInstance = dpuInstance;
+    }
+
+    /**
+     * Initialize fields and set given configuration.
+     *
+     * @param configAsString If null no configuration is set. Used by dialog as there the configuration is set
+     *                       later.
+     * @throws DPUException
+     */
+    public void init(String configAsString) throws DPUException {
+        // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
+        final AutoInitializer initializer = new AutoInitializer(dpuInstance);
+        initializer.addCallback(this);
+        initializer.preInit();
+        // Prepare configuration - it may need to load some classes initilized by AutoInitializer
         this.configManager = new ConfigManager(this.serializationXml, configTransformers);
+        try {
+            if (configAsString != null) {
+                this.configManager.setMasterConfig(configAsString);
+            }
+        } catch (ConfigException ex) {
+            throw new DPUException("Can't configure DPU.", ex);
+        }
+        // Finish addon initialization.
+        initializer.afterInit(this);
     }
 
     /**

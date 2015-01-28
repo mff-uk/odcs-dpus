@@ -9,7 +9,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +35,7 @@ import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 
 /**
@@ -52,7 +52,7 @@ import eu.unifiedviews.dpu.DPUException;
  * @author Škoda Petr
  */
 public class CachedFileDownloader
-        implements Addon, Addon.Executable, Configurable<CachedFileDownloader.Configuration> {
+        implements Addon, Addon.Executable, Configurable<CachedFileDownloader.Configuration_V1> {
 
     public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
 
@@ -67,7 +67,7 @@ public class CachedFileDownloader
     /**
      * Configuration class.
      */
-    public static class Configuration {
+    public static class Configuration_V1 {
 
         /**
          * Max number of attempts to download single file.
@@ -94,7 +94,7 @@ public class CachedFileDownloader
          */
         private boolean simpleCache = false;
 
-        public Configuration() {
+        public Configuration_V1() {
         }
 
         public Integer getMaxAttemps() {
@@ -142,7 +142,7 @@ public class CachedFileDownloader
     /**
      * Vaadin configuration dialog.
      */
-    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration> {
+    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
 
         private TextField txtMaxAttemps;
 
@@ -155,7 +155,7 @@ public class CachedFileDownloader
         private CheckBox checkComplexCache;
 
         public VaadinDialog() {
-            super(ConfigHistory.noHistory(Configuration.class));
+            super(configHistory);
         }
 
         @Override
@@ -201,7 +201,7 @@ public class CachedFileDownloader
         }
 
         @Override
-        protected void setConfiguration(Configuration c) throws DPUConfigException {
+        protected void setConfiguration(Configuration_V1 c) throws DPUConfigException {
             txtMaxAttemps.setValue(c.getMaxAttemps().toString());
             txtMaxPause.setValue(c.getMaxPause().toString());
             txtMinPause.setValue(c.getMinPause().toString());
@@ -210,12 +210,12 @@ public class CachedFileDownloader
         }
 
         @Override
-        protected Configuration getConfiguration() throws DPUConfigException {
+        protected Configuration_V1 getConfiguration() throws DPUConfigException {
             if (!txtMaxAttemps.isValid() || !txtMaxPause.isValid() || !txtMinPause.isValid()) {
                 throw new DPUConfigException("All values for " + ADDON_NAME + " must be provided.");
             }
 
-            final Configuration c = new Configuration();
+            final Configuration_V1 c = new Configuration_V1();
 
             try {
                 c.setMaxAttemps(Integer.parseInt(txtMaxAttemps.getValue()));
@@ -296,7 +296,10 @@ public class CachedFileDownloader
     /**
      * Used configuration.
      */
-    private Configuration config = new Configuration();
+    private Configuration_V1 config = new Configuration_V1();
+
+    private final ConfigHistory<Configuration_V1> configHistory = 
+            ConfigHistory.noHistory(Configuration_V1.class);
 
     /**
      * Time of next download. Used to create randomly distributes pauses between downloads. Should be ignored
@@ -312,7 +315,9 @@ public class CachedFileDownloader
     /**
      * DPU's master context.
      */
-    private AbstractDpu.ExecutionContext context;
+    private DPUContext dpuContext;
+
+    private Context context;
 
     /**
      * Store content of file cache.
@@ -329,23 +334,23 @@ public class CachedFileDownloader
     }
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
-        if (context instanceof AbstractDpu.ExecutionContext) {
-            this.context = (AbstractDpu.ExecutionContext)context;
-        }
-    }
-
-    @Override
-    public void afterInit(Context context) {
+    public void preInit(String param) throws DPUException {
         // No-op.
     }
 
     @Override
+    public void afterInit(Context context) {
+        this.context = context;
+        if (context instanceof AbstractDpu.ExecutionContext) {
+            this.dpuContext = ((AbstractDpu.ExecutionContext)context).getDpuContext();
+        }
+    }
+
+    @Override
     public void execute(ExecutionPoint execPoint) throws AddonException {
-        final DPUContext dpuContext = context.getDpuContext();
         // File with store cache content.
-        this.baseDirectory = new File(new File(java.net.URI.create(dpuContext.getDpuInstanceDirectory())),
-                USED_USER_DIRECTORY);
+        this.baseDirectory = new File(new File(java.net.URI.create(
+                dpuContext.getDpuInstanceDirectory())),USED_USER_DIRECTORY);
         this.baseDirectory.mkdirs();
 
         final File cacheFile = new File(this.baseDirectory, CACHE_FILE);
@@ -363,17 +368,17 @@ public class CachedFileDownloader
         // Prepare cache directory.        
         try {
             // Load configuration.
-            this.config = context.getConfigManager().get(USED_CONFIG_NAME, Configuration.class);
+            this.config = context.getConfigManager().get(USED_CONFIG_NAME, configHistory);
         } catch (ConfigException ex) {
             ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration", ex,
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
-            this.config = new Configuration();
+            this.config = new Configuration_V1();
         }
 
         if (this.config == null) {
             ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
-            this.config = new Configuration();
+            this.config = new Configuration_V1();
         }
         LOG.info("BaseDirectory: {}", baseDirectory);
         // Load file with cache content.
@@ -390,8 +395,8 @@ public class CachedFileDownloader
     }
 
     @Override
-    public Class<CachedFileDownloader.Configuration> getConfigClass() {
-        return CachedFileDownloader.Configuration.class;
+    public Class<CachedFileDownloader.Configuration_V1> getConfigClass() {
+        return CachedFileDownloader.Configuration_V1.class;
     }
 
     @Override
@@ -400,7 +405,7 @@ public class CachedFileDownloader
     }
 
     @Override
-    public AbstractAddonVaadinDialog<Configuration> getDialog() {
+    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
     }
 
@@ -471,7 +476,7 @@ public class CachedFileDownloader
         }
         // Download file with some level of fault tolerance.
         int attempCounter = config.maxAttemps;
-        while (attempCounter != 0 && !context.getDpuContext().canceled()) {
+        while (attempCounter != 0 && !dpuContext.canceled()) {
             // Wait before download.
             waitForNextDownload();
             // Try to download file.
@@ -491,7 +496,7 @@ public class CachedFileDownloader
             }
         }
         // If we are here we does not manage to download file. So check for the reason.
-        if (context.getDpuContext().canceled()) {
+        if (dpuContext.canceled()) {
             // Execution has been canceled.
             throw new CancelledException();
         } else {
@@ -515,7 +520,7 @@ public class CachedFileDownloader
      * Wait before next download. Before leaving set time for next download.
      */
     private void waitForNextDownload() {
-        while ((new Date()).getTime() < nextDownload && !context.getDpuContext().canceled()) {
+        while ((new Date()).getTime() < nextDownload && !dpuContext.canceled()) {
             try {
                 Thread.sleep(700);
             } catch (InterruptedException ex) {
@@ -605,7 +610,7 @@ public class CachedFileDownloader
             }
         } catch (IOException ex) {
             //throw new AddonException("Can't read cache into from file.", ex);
-            ContextUtils.sendWarn(context.getDpuContext(), ADDON_NAME,
+            ContextUtils.sendWarn(dpuContext, ADDON_NAME,
                     "Can't read cache file from: '%s'. This is normal if DPU is running for the first time.",
                     cacheFile.toString());
         } catch (SerializationFailure | SerializationXmlFailure  ex) {

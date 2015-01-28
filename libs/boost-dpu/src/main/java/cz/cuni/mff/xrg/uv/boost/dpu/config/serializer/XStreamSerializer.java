@@ -29,7 +29,6 @@ public class XStreamSerializer implements ConfigSerializer {
 
     @Override
     public <TYPE> boolean canDeserialize(String configAsString, Class<TYPE> clazz) {
-        // Test if string contains configuration class name.
         return canDeserialize(configAsString, getClassName(clazz));
     }
 
@@ -41,6 +40,7 @@ public class XStreamSerializer implements ConfigSerializer {
     @Override
     public <TYPE> TYPE deserialize(String configAsString, Class<TYPE> clazz) {
         try {
+            // Add alias.
             return serializationXml.convert(clazz, configAsString);
         } catch (SerializationFailure | SerializationXmlFailure ex) {
             LOG.info("Can't deserialized configuration.", ex);

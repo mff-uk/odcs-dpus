@@ -27,6 +27,11 @@ public class SimpleRdf implements AutoInitializer.Initializable {
 
     private RDFDataUnit readDataUnit = null;
 
+    /**
+     * Name of filed that should be bound as a data unit.
+     */
+    protected String dataUnitName;
+
     private ValueFactory valueFactory = null;
 
     public RDFDataUnit getReadDataUnit() {
@@ -42,7 +47,12 @@ public class SimpleRdf implements AutoInitializer.Initializable {
     }
 
     @Override
-    public void preInit(Context context, String param) throws DPUException {
+    public void preInit(String param) throws DPUException {
+        dataUnitName = param;
+    }
+
+    @Override
+    public void afterInit(Context context) throws DPUException {
         if (context instanceof AbstractDpu.ExecutionContext) {
             // Ok we can process.
         } else {
@@ -54,9 +64,9 @@ public class SimpleRdf implements AutoInitializer.Initializable {
         final Object dpu = execContext.getDpu();
         final Field field;
         try {
-            field = dpu.getClass().getField(param);
+            field = dpu.getClass().getField(dataUnitName);
         } catch (NoSuchFieldException | SecurityException ex) {
-            throw new DPUException("Wrong initial parameters for SimpleRdf: " + param
+            throw new DPUException("Wrong initial parameters for SimpleRdf: " + dataUnitName
                     + ". Can't access such field.", ex);
         }
         try {
@@ -71,13 +81,8 @@ public class SimpleRdf implements AutoInitializer.Initializable {
                         + " can't be assigned to RDFDataUnit.");
             }
         } catch (IllegalAccessException | IllegalArgumentException ex) {
-            throw new DPUException("Can't get value for: " + param, ex);
+            throw new DPUException("Can't get value for: " + dataUnitName, ex);
         }
-    }
-
-    @Override
-    public void afterInit(Context context) {
-        // No-op.
     }
 
     /**

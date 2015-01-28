@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
@@ -22,6 +23,7 @@ import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.dpu.DPUContext;
 
 @DPU.AsTransformer
 public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
@@ -43,6 +45,11 @@ public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
 
     @Override
     protected void innerExecute() throws DPUException {
+        if (useDataset()) {
+            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "OpenRdf mode.", "");
+        } else {
+            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Virtuoso mode.", "");
+        }
         // Get list of input graphs.
         final URI[] inputGraphs = faultTolerance.execute(new FaultTolerance.ActionReturn<URI[]>() {
 
@@ -71,7 +78,7 @@ public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
                 @Override
                 public void action(RepositoryConnection connection) throws Exception {
                     final Update updateQuery;
-                    if (useDataset()) {
+                    if (!useDataset()) {
                         final String query = String.format("ADD <%s> TO <%s>", sourceGraph.stringValue(),
                                 targetGraph.stringValue());
                         updateQuery = connection.prepareUpdate(QueryLanguage.SPARQL, query);
