@@ -13,10 +13,8 @@ import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +24,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtilsInstance;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -113,7 +110,7 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1> {
                     }
 
                 });
-                // Exeucte query 1 -> 1                
+                // Execute query 1 -> 1.
                 faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
 
                     @Override
@@ -140,7 +137,7 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1> {
                 }
 
             });
-            // Execute query m -> 1
+            // Execute query m -> 1.
             faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
 
                 @Override
