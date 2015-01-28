@@ -2,18 +2,19 @@ package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.ConfigTransformerAddon;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
+import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
+import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  *
  * @author Škoda Petr
  */
-public class SPARQLConfig_V1_Convertor implements ConfigTransformerAddon {
+public class SPARQLConfig_V1_Convertor implements ConfigTransformer, AutoInitializer.Initializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(SPARQLConfig_V1_Convertor.class);
 
@@ -47,8 +48,9 @@ public class SPARQLConfig_V1_Convertor implements ConfigTransformerAddon {
                 + "        <string>&lt;object-stream&gt;\n"
                 + "  &lt;cz.cuni.mff.xrg.uv.transformer.sparql.update.SparqlUpdateConfig__V1&gt;\n"
                 + "    &lt;query&gt;");
-        // Isert query, just escape any < >.
-        newConfiguration.append(query.replaceAll("<", "&amp;lt;").replaceAll(">", "&amp;gt;"));
+        // Insert query, just escape any &
+        final String newQuery = query.replaceAll("&", "&amp;");
+        newConfiguration.append(newQuery);
         
         newConfiguration.append("&lt;/query&gt;\n"
                 + "    &lt;perGraph&gt;false&lt;/perGraph&gt;\n"
@@ -67,7 +69,12 @@ public class SPARQLConfig_V1_Convertor implements ConfigTransformerAddon {
     }
 
     @Override
-    public void init(DpuAdvancedBase.Context context) throws AddonException {
+    public void preInit(Context context, String param) throws DPUException {
+        // No-op here.
+    }
+
+    @Override
+    public void afterInit(Context context) {
         // No-op here.
     }
 

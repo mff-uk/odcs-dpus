@@ -14,8 +14,6 @@ import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
@@ -23,11 +21,13 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.FaultToleranceWrap;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
+import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
+import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.ManipulatorInstance;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtilsInstance;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
@@ -35,9 +35,9 @@ import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
 
 @DPU.AsTransformer
-public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
+public class SparqlUpdate extends AbstractDpu<SparqlUpdateConfig_V1> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SparqlUpdate.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SparqlUpdate.class);
 
     private static final int MAX_GRAPH_COUNT = 1000;
 
@@ -54,13 +54,23 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit rdfOutput;
 
-	public SparqlUpdate() {
-        super(ConfigHistory.createNoHistory(SparqlUpdateConfig_V1.class),
-                AddonInitializer.create(new FaultToleranceWrap(), new SPARQLConfig_V1_Convertor()));
-	}
-		
+    @AutoInitializer.Init
+    public SPARQLConfig_V1_Convertor _sparqlConfigConvertor;
+
+    @AutoInitializer.Init
+    public FaultTolerance faultTolerance;
+
+    public SparqlUpdate() {
+        super(SparqlUpdateVaadinDialog.class, ConfigHistory.noHistory(SparqlUpdateConfig_V1.class));
+    }
+
     @Override
     protected void innerExecute() throws DPUException {
+        if (useDataset()) {
+            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "OpenRdf mode.", "");
+        } else {
+            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Virtuoso mode.", "");
+        }
         // Get update query.
         final String query = config.getQuery();
         if (query == null || query.isEmpty()) {
@@ -71,22 +81,23 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
         // Copy data into a new graph.
         if (config.isPerGraph()) {
             ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Per-graph query execution",
-                    "Number of graphs: %d",sourceEntries.size());
+                    "Number of graphs: %d", sourceEntries.size());
             // Execute on per-graph basis.
             int counter = 1;
-            for (RDFDataUnit.Entry sourceEntry : sourceEntries) {
-                LOG.info("Executing query for graph ({}/{}): {}", counter++, sourceEntries.size(),
-                        sourceEntry);
-                // Get input symbolic name.
-                final String outputSymbolicName;
-                try {
-                    outputSymbolicName = sourceEntry.getSymbolicName();
-                } catch (DataUnitException ex) {
-                    throw new DPUException("Can't get input resource's symbolic mame.", ex);
-                }
-                // prepare output graph.
-                final URI targetGraph = createOutputGraph(outputSymbolicName);
-                // Execute query - ie. open connection.
+            for (final RDFDataUnit.Entry sourceEntry : sourceEntries) {
+                LOG.info("Executing {}/{}", counter++, sourceEntries.size());
+                // For each input graph prepare output graph.
+                final URI targetGraph = faultTolerance.execute(new FaultTolerance.ActionReturn<URI>() {
+
+                    @Override
+                    public URI action() throws Exception {
+                        final URI outputUri = createOutputGraph(sourceEntry);
+                        LOG.info("   {} -> {}", sourceEntry.getDataGraphURI(), outputUri);
+                        return outputUri;
+                    }
+
+                });
+                // Execute query 1 -> 1.
                 updateEntries(query, Arrays.asList(sourceEntry), targetGraph);
                 if (context.canceled()) {
                     ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "DPU cancelled ..", "");
@@ -97,11 +108,17 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
         } else {
             // All graph at once, just check size.
             if (sourceEntries.size() > MAX_GRAPH_COUNT) {
-                throw new DPUException("Too many graphs .. (limit: " + MAX_GRAPH_COUNT + ", given: " +
-                        sourceEntries.size() + ")");
+                throw new DPUException("Too many graphs .. (limit: " + MAX_GRAPH_COUNT + ", given: "
+                        + sourceEntries.size() + ")");
             }
-            // Get single output.
-            final URI targetGraph = createOutputGraph();
+            // Prepare single output graph.
+            final URI targetGraph = faultTolerance.execute(new FaultTolerance.ActionReturn<URI>() {
+
+                @Override
+                public URI action() throws Exception {
+                    return createOutputGraph();
+                }
+            });
             // Execute over all intpu graph ie. m -> 1
             ContextUtils.sendMessage(context, DPUContext.MessageType.INFO,
                     "Executing user query with single output.", "");
@@ -115,8 +132,8 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     }
 
     /**
-     * Get connection and use it to execute given query. Based on user option the query is executed
-     * over one or over updateQuery graphs.
+     * Get connection and use it to execute given query. Based on user option the query is executed over one
+     * or over updateQuery graphs.
      *
      * @param updateQuery
      * @param sourceEntries
@@ -125,8 +142,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      */
     protected void updateEntries(final String updateQuery, final List<RDFDataUnit.Entry> sourceEntries,
             final URI targetgraph) throws DPUException {
-        final FaultToleranceWrap wrap = getAddon(FaultToleranceWrap.class);
-        wrap.execute(rdfInput, new FaultToleranceWrap.ConnectionAction() {
+        faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
 
             @Override
             public void action(RepositoryConnection connection) throws Exception {
@@ -135,7 +151,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
             }
 
         });
-        wrap.execute(rdfInput, new FaultToleranceWrap.ConnectionAction() {
+        faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
 
             @Override
             public void action(RepositoryConnection connection) throws Exception {
@@ -151,7 +167,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      *
      * @param query
      * @param sourceGraphs USING graphs.
-     * @param targetGraph WITH graphs.
+     * @param targetGraph  WITH graphs.
      * @param connection
      * @throws eu.unifiedviews.dpu.DPUException
      */
@@ -204,14 +220,14 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
     }
 
     /**
-     * 
+     *
      * @param symbolicName
      * @return New output graph.
      * @throws DPUException
      */
-    protected URI createOutputGraph(String symbolicName) throws DPUException {
+    protected URI createOutputGraph(RDFDataUnit.Entry entry) throws DPUException {
         try {
-            return rdfOutput.addNewDataGraph(symbolicName);
+            return rdfOutput.addNewDataGraph(entry.getSymbolicName());
         } catch (DataUnitException ex) {
             throw new DPUException("DPU failed to add a new graph.", ex);
         }
@@ -240,8 +256,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      */
     protected List<URI> toUriList(final List<RDFDataUnit.Entry> entries) throws DPUException {
         final List<URI> result = new ArrayList(entries.size());
-        final FaultToleranceWrap wrap = getAddon(FaultToleranceWrap.class);
-        wrap.execute(new FaultToleranceWrap.Action() {
+        faultTolerance.execute(new FaultTolerance.Action() {
 
             @Override
             public void action() throws Exception {
@@ -266,7 +281,7 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      */
     protected String prepareUsingClause(List<URI> uris) throws DPUException {
         final StringBuilder usingClause = new StringBuilder();
-        for(URI uri : uris) {
+        for (URI uri : uris) {
             usingClause.append("USING <");
             usingClause.append(uri.stringValue());
             usingClause.append("> \n");
@@ -281,20 +296,18 @@ public class SparqlUpdate extends DpuAdvancedBase<SparqlUpdateConfig_V1> {
      * @throws DPUException
      */
     protected List<RDFDataUnit.Entry> getInputEntries(final RDFDataUnit dataUnit) throws DPUException {
-        final FaultToleranceWrap wrap = getAddon(FaultToleranceWrap.class);
-        return wrap.execute(new FaultToleranceWrap.ActionReturn<List<RDFDataUnit.Entry>>() {
+        return faultTolerance.execute(new FaultTolerance.ActionReturn<List<RDFDataUnit.Entry>>() {
 
             @Override
             public List<RDFDataUnit.Entry> action() throws Exception {
-                return  DataUnitUtils.getEntries(dataUnit);        
+                return DataUnitUtils.getEntries(dataUnit, RDFDataUnit.Entry.class);
             }
-
         });
     }
 
     protected final boolean useDataset() {
         // Should be removed once bug in Sesame or Virtuoso is fixex.
-        return System.getProperty(ManipulatorInstance.ENV_PROP_VIRTUOSO) == null;
+        return System.getProperty(MetadataUtilsInstance.ENV_PROP_VIRTUOSO) == null;
     }
 
 }
