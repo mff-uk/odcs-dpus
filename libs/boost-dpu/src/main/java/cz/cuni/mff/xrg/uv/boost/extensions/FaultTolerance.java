@@ -150,7 +150,7 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
             layout.setSpacing(true);
             layout.setMargin(true);
 
-            checkEnabled = new CheckBox("Enable fault tolerace wrap");
+            checkEnabled = new CheckBox("Enable");
             layout.addComponent(checkEnabled);
             checkEnabled.addValueChangeListener(new Property.ValueChangeListener() {
 
@@ -164,12 +164,12 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
             txtRetryCount = new TextField("Number of retry attemps");
             txtRetryCount.setDescription("Use -1 for infinite amount of attemps.");
             txtRetryCount.setWidth("100%");
-            layout.addComponent(txtRetryCount);
+//            layout.addComponent(txtRetryCount);
 
-            txtExceptionNames = new TextArea("Names of eceptions to catch (separated by ; )");
+            txtExceptionNames = new TextArea("Names of exceptions to catch (separated by ; )");
             txtExceptionNames.setSizeFull();
-            layout.addComponent(txtExceptionNames);
-            layout.setExpandRatio(txtExceptionNames, 1.0f);
+//            layout.addComponent(txtExceptionNames);
+//            layout.setExpandRatio(txtExceptionNames, 1.0f);
 
             final Panel panel = new Panel();
             panel.setSizeFull();
