@@ -37,7 +37,7 @@ import eu.unifiedviews.dpu.DPUContext.MessageType;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1> {
+public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1, SparqlConstructOntology> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SparqlConstruct.class);
 
@@ -56,7 +56,8 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1> {
     public FaultTolerance faultTolerance;
 
     public SparqlConstruct() {
-        super(SparqlConstructVaadinDialog.class, ConfigHistory.noHistory(SparqlConstructConfig_V1.class));
+        super(SparqlConstructVaadinDialog.class, ConfigHistory.noHistory(SparqlConstructConfig_V1.class),
+            new SparqlConstructOntology());
     }
 
     @Override

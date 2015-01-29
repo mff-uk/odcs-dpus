@@ -10,7 +10,8 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  *
  * @author Škoda Petr
  */
-public class SparqlConstructVaadinDialog extends AbstractVaadinDialog<SparqlConstructConfig_V1> {
+public class SparqlConstructVaadinDialog
+        extends AbstractVaadinDialog<SparqlConstructConfig_V1, SparqlConstructOntology> {
 
     private TextArea txtQuery;
 
@@ -49,7 +50,7 @@ public class SparqlConstructVaadinDialog extends AbstractVaadinDialog<SparqlCons
         mainLayout.addComponent(checkPerGraph);
         mainLayout.setExpandRatio(checkPerGraph, 0.0f);
 
-		txtQuery = new TextArea("SPARQL construct query");
+        txtQuery = new TextArea("SPARQL construct query");
         txtQuery.setSizeFull();
         txtQuery.setRequired(true);
         mainLayout.addComponent(txtQuery);
@@ -57,5 +58,5 @@ public class SparqlConstructVaadinDialog extends AbstractVaadinDialog<SparqlCons
 
         setCompositionRoot(mainLayout);
     }
-    
+
 }
