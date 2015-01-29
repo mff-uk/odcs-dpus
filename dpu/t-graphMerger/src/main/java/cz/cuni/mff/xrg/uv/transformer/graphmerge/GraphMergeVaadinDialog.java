@@ -7,7 +7,7 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  * 
  * @author Škoda Petr
  */
-public class GraphMergeVaadinDialog extends AbstractVaadinDialog<GraphMergeConfig_V1> {
+public class GraphMergeVaadinDialog extends AbstractVaadinDialog<GraphMergeConfig_V1, GraphMergeOntology> {
 
     public GraphMergeVaadinDialog() {
         super(GraphMerge.class);

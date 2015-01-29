@@ -30,7 +30,7 @@ import eu.unifiedviews.dpu.DPUContext;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
+public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1, GraphMergeOntology> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GraphMerge.class);
 
@@ -44,7 +44,8 @@ public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
     public FaultTolerance faultTolerance;
 
     public GraphMerge() {
-        super(GraphMergeVaadinDialog.class, ConfigHistory.noHistory(GraphMergeConfig_V1.class));
+        super(GraphMergeVaadinDialog.class, ConfigHistory.noHistory(GraphMergeConfig_V1.class),
+                new GraphMergeOntology());
     }
 
     @Override
