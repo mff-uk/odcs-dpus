@@ -10,7 +10,8 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  *
  * @author Škoda Petr
  */
-public class SparqlUpdateVaadinDialog extends AbstractVaadinDialog<SparqlUpdateConfig_V1> {
+public class SparqlUpdateVaadinDialog 
+        extends AbstractVaadinDialog<SparqlUpdateConfig_V1, SparqlUpdateOntology> {
 
     private TextArea txtQuery;
 

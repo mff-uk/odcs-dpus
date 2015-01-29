@@ -14,10 +14,8 @@ import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +37,8 @@ import eu.unifiedviews.dpu.DPUContext;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class SparqlUpdate extends AbstractDpu<SparqlUpdateConfig_V1> {
+public class SparqlUpdate 
+        extends AbstractDpu<SparqlUpdateConfig_V1, SparqlUpdateOntology> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SparqlUpdate.class);
 
@@ -65,7 +64,8 @@ public class SparqlUpdate extends AbstractDpu<SparqlUpdateConfig_V1> {
     public FaultTolerance faultTolerance;
 
     public SparqlUpdate() {
-        super(SparqlUpdateVaadinDialog.class, ConfigHistory.noHistory(SparqlUpdateConfig_V1.class));
+        super(SparqlUpdateVaadinDialog.class, ConfigHistory.noHistory(SparqlUpdateConfig_V1.class),
+                new SparqlUpdateOntology());
     }
 
     @Override
@@ -128,11 +128,6 @@ public class SparqlUpdate extends AbstractDpu<SparqlUpdateConfig_V1> {
                     "Executing user query with single output.", "");
             updateEntries(query, sourceEntries, targetGraph);
         }
-    }
-
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new SparqlUpdateVaadinDialog();
     }
 
     /**
