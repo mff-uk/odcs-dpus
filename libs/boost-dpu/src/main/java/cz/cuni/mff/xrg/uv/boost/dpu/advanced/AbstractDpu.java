@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
@@ -27,18 +28,18 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
  * @author Škoda Petr
  * @param <CONFIG> Type of DPU's configuration object.
  */
-public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
+public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> implements DPU, DPUConfigurable,
         ConfigDialogProvider<MasterConfigObject> {
 
     /**
      * Holds all information from {@link AbstractDpu} to make manipulation with them easier.
      */
-    public class ExecutionContext extends Context<CONFIG> {
+    public class ExecutionContext extends Context<CONFIG, ONTOLOGY> {
 
         /**
          * Owner DPU instance.
          */
-        private final AbstractDpu<CONFIG> dpu;
+        private final AbstractDpu<CONFIG, ONTOLOGY> dpu;
 
         /**
          * Execution context.
@@ -55,11 +56,11 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
          *
          * @param dpuClass
          * @param dpuInstance
-         * @param dpuContext
+         * @param ontology
          * @throws DPUException
          */
-        public ExecutionContext(AbstractDpu<CONFIG> dpuInstance) {
-            super((Class<AbstractDpu<CONFIG>>) dpuInstance.getClass(), dpuInstance);
+        public ExecutionContext(AbstractDpu<CONFIG, ONTOLOGY> dpuInstance) {
+            super((Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuInstance.getClass(), dpuInstance);
             this.dpu = dpuInstance;
         }
 
@@ -75,7 +76,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
             return dpuContext;
         }
 
-        public AbstractDpu<CONFIG> getDpu() {
+        public AbstractDpu<CONFIG, ONTOLOGY> getDpu() {
             return dpu;
         }
 
@@ -95,14 +96,27 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
     /**
      * Holds all variables of this class.
      */
-    private ExecutionContext ctx = null;
+    private ExecutionContext masterContext = null;
 
     /**
      * History of configuration.
      */
     private ConfigHistory<CONFIG> configHistory = null;
 
+    /**
+     * Configuration class visible for the DPU.
+     */
     protected CONFIG config;
+
+    /**
+     * {@link DPUContext} visible to the DPU.
+     */
+    protected DPUContext context;
+
+    /**
+     * Class of user dialog.
+     */
+    private Class<AbstractVaadinDialog<CONFIG, ONTOLOGY>> dialogClass;
 
     /**
      * Used to hold configuration between {@link #configure(java.lang.String)} and
@@ -110,41 +124,40 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
      */
     private String configAsString;
 
-    protected DPUContext context;
-
     /**
-     * Class of user dialog.
+     * Hold ontology so it may be accessible by contexts.
      */
-    protected Class<AbstractVaadinDialog<CONFIG>> dialogClass;
+    protected ONTOLOGY ontology;
 
     /**
      *
      * @param configHistory
      */
-    public <DIALOG extends AbstractVaadinDialog<CONFIG>> AbstractDpu(Class<DIALOG> dialogClass,
-            ConfigHistory<CONFIG> configHistory) {
-        this.dialogClass = (Class<AbstractVaadinDialog<CONFIG>>) dialogClass;
+    public <DIALOG extends AbstractVaadinDialog<CONFIG, ONTOLOGY>> AbstractDpu(Class<DIALOG> dialogClass,
+            ConfigHistory<CONFIG> configHistory, ONTOLOGY ontology) {
+        this.dialogClass = (Class<AbstractVaadinDialog<CONFIG, ONTOLOGY>>) dialogClass;
         this.configHistory = configHistory;
         // Initialize master context.
-        this.ctx = new ExecutionContext(this);
+        this.masterContext = new ExecutionContext(this);
+        this.ontology = ontology;
     }
 
     @Override
     public void execute(DPUContext context) throws DPUException {
         // Set context.
-        this.ctx.setDpuContext(context);
+        this.masterContext.setDpuContext(context);
         // Set master configuration and initialize ConfigTransformer -> initialize addons.
-        this.ctx.init(configAsString);
+        this.masterContext.init(configAsString);
         // ConfigTransformer are ready from setConfiguration method -> get DPU configuration.
         try {
-            this.ctx.config = (CONFIG) this.ctx.getConfigManager().get(
-                    DPU_CONFIG_NAME, this.ctx.getConfigHistory());
+            this.masterContext.config = (CONFIG) this.masterContext.getConfigManager().get(
+                    DPU_CONFIG_NAME, this.masterContext.getConfigHistory());
         } catch (ConfigException ex) {
             throw new DPUException("Configuration preparation failed.", ex);
         }
         // Set variables for DPU.
-        this.config = this.ctx.config;
-        this.context = this.ctx.dpuContext;
+        this.config = this.masterContext.config;
+        this.context = this.masterContext.dpuContext;
         // Execute DPU's code - innerInit.
         try {
             LOG.info("innerInit:start");
@@ -205,7 +218,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
             // Get default configuraiton.
             final MasterConfigObject defaultConfig = createDefaultMasterConfig();
             // Serialize into string and return.
-            return this.ctx.getSerializationXml().convert(defaultConfig);
+            return this.masterContext.getSerializationXml().convert(defaultConfig);
         } catch (SerializationFailure | SerializationXmlFailure ex) {
             throw new DPUConfigException("Config serialization failed.", ex);
         }
@@ -233,8 +246,8 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
             throws SerializationXmlFailure, SerializationFailure {
         // Get string representation of DPU's config class.
         final CONFIG dpuConfig = (CONFIG) SerializationUtils.createInstance(
-                this.ctx.getConfigHistory().getFinalClass());
-        final String dpuConfigStr = this.ctx.getSerializationXml().convert(dpuConfig);
+                this.masterContext.getConfigHistory().getFinalClass());
+        final String dpuConfigStr = this.masterContext.getSerializationXml().convert(dpuConfig);
         // Prepare master config.
         final MasterConfigObject newConfigObject = new MasterConfigObject();
         newConfigObject.getConfigurations().put(DPU_CONFIG_NAME, dpuConfigStr);
@@ -249,7 +262,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
      */
     private boolean executeAddons(Addon.ExecutionPoint execPoint) {
         boolean result = true;
-        for (Addon addon : this.ctx.getAddons()) {
+        for (Addon addon : this.masterContext.getAddons()) {
             if (addon instanceof Addon.Executable) {
                 final Addon.Executable execAddon = (Addon.Executable) addon;
                 try {
@@ -257,7 +270,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
                             execPoint.toString());
                     execAddon.execute(execPoint);
                 } catch (AddonException ex) {
-                    ContextUtils.sendError(this.ctx.dpuContext, "Addon execution failed",
+                    ContextUtils.sendError(this.masterContext.dpuContext, "Addon execution failed",
                             ex, "Addon: s", addon.getClass().getSimpleName());
                     result = false;
                 }
@@ -268,6 +281,14 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
 
     public ConfigHistory<CONFIG> getConfigHistory() {
         return this.configHistory;
+    }
+
+    /**
+     *
+     * @return Ontology definition.
+     */
+    public ONTOLOGY getOntology() {
+        return ontology;
     }
 
     /**

@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.openrdf.model.impl.ValueFactoryImpl;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
@@ -12,6 +13,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
 import eu.unifiedviews.dpu.DPUException;
@@ -21,13 +23,14 @@ import eu.unifiedviews.dpu.DPUException;
  *
  * @author Škoda Petr
  * @param <CONFIG> Last configuration class.
+ * @param <ONTOLOGY> Ontology class.
  */
-public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
+public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements AutoInitializer.FieldSetListener {
 
     /**
      * Respective DPU class.
      */
-    private final Class<AbstractDpu<CONFIG>> dpuClass;
+    private final Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass;
 
     /**
      * True if context is used for dialog.
@@ -65,12 +68,15 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
      */
     private final SerializationXml serializationXml;
 
-    private final AbstractDpu<CONFIG> dpuInstance;
-
     /**
      * Class used to initialize given DPU.
      */
     private final AutoInitializer initializer;
+
+    /**
+     * Ontology definition for current DPU.
+     */
+    private final ONTOLOGY ontology;
 
     /**
      * Set base fields and create
@@ -78,26 +84,26 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
      * @param <T>
      * @param dpuClass
      * @param dpuInstance Can be null, in such case temporary instance is created.
+     * @param ontology
      * @throws eu.unifiedviews.dpu.DPUException
      */
-    public Context(Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance) {
-        // Prepare DPU instance.
+    public Context(Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass, AbstractDpu<CONFIG, ONTOLOGY> dpuInstance) {
+        // Prepare DPU instance, just to get some classes.
         try {
             if (dpuInstance == null) {
                 dpuInstance = dpuClass.newInstance();
             }
         } catch (IllegalAccessException | InstantiationException ex) {
-            throw new RuntimeException("Can't create DPU instance for purpose of scanning.");
+            throw new RuntimeException("Can't create DPU instance for purpose of scanning.", ex);
         }
         // Set properties.
         this.dpuClass = dpuClass;
         this.dialog = true;
         this.configHistory = dpuInstance.getConfigHistory();
         this.serializationXml = SerializationXmlFactory.serializationXml();
-        this.dpuInstance = dpuInstance;
+        this.ontology = dpuInstance.getOntology();
         // Prepare initializer.
-        this.initializer = new AutoInitializer(dpuInstance);
-        initializer.addCallback(this);
+        this.initializer = new AutoInitializer(dpuInstance);        
         // Prepare configuration manager - without addons, configuration transformers etc ..
         this.configManager = new ConfigManager(this.serializationXml);
     }
@@ -110,7 +116,10 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
      * @throws DPUException
      */
     public void init(String configAsString) throws DPUException {
+        // Start with ontology initialization.
+        this.ontology.init(ValueFactoryImpl.getInstance());
         // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
+        initializer.addCallback(this);
         initializer.preInit();
         // Add initialized config transformers.
         this.configManager.addTransformers(configTransformers);
@@ -149,7 +158,7 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
      *
      * @return
      */
-    public Class<AbstractDpu<CONFIG>> getDpuClass() {
+    public Class<AbstractDpu<CONFIG, ONTOLOGY>> getDpuClass() {
         return dpuClass;
     }
 
@@ -189,6 +198,10 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public ONTOLOGY getOntology() {
+        return ontology;
     }
 
     /**

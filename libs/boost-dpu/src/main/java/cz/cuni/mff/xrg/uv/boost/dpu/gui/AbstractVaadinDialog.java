@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 import eu.unifiedviews.dpu.DPUException;
@@ -28,15 +29,15 @@ import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu.DPU_CONFIG_NAME;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<MasterConfigObject>
-    implements InitializableConfigDialog {
+public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefinition>
+        extends AbstractConfigDialog<MasterConfigObject> implements InitializableConfigDialog {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractVaadinDialog.class);
 
     /**
      * Holds information stored in dialog.
      */
-    public class DialogContext extends Context<CONFIG> {
+    public class DialogContext extends Context<CONFIG, ONTOLOGY> {
 
         /**
          * Owner dialog.
@@ -54,7 +55,7 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
         private final List<AbstractAddonVaadinDialog> addonDialogs = new LinkedList<>();
 
         public DialogContext(AbstractVaadinDialog dialog, ConfigDialogContext dialogContext,
-                Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance)
+                Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass, AbstractDpu<CONFIG, ONTOLOGY> dpuInstance)
                 throws DPUException {
             super(dpuClass, dpuInstance);
             this.dialog = dialog;
@@ -68,6 +69,7 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
         public ConfigDialogContext getDialogContext() {
             return dialogContext;
         }
+
         public List<AbstractAddonVaadinDialog> getAddonDialogs() {
             return addonDialogs;
         }
@@ -102,10 +104,15 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
     /**
      * Class of associated DPU.
      */
-    private final Class<AbstractDpu<CONFIG>> dpuClass;
+    private final Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass;
 
-    public <DPU extends AbstractDpu<CONFIG>> AbstractVaadinDialog(Class<DPU> dpuClass) {
-        this.dpuClass = (Class<AbstractDpu<CONFIG>>)dpuClass;
+    /**
+     * Ontology class visible to the DPU.
+     */
+    protected ONTOLOGY ontology;
+
+    public <DPU extends AbstractDpu<CONFIG, ONTOLOGY>> AbstractVaadinDialog(Class<DPU> dpuClass) {
+        this.dpuClass = (Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuClass;
     }
 
     @Override
@@ -117,6 +124,7 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
             LOG.error("Can't create dialog context!", ex);
             throw new RuntimeException("Dialog initialization failed!", ex);
         }
+        this.ontology = this.ctx.getOntology();
         // Build main layout.
         buildMainLayout();
         //  Build user layout.
@@ -259,8 +267,8 @@ public abstract class AbstractVaadinDialog<CONFIG> extends AbstractConfigDialog<
     }
 
     /**
-     * It's called before the dialog is shows and after the context is accessible. Should be used
-     * to initialise dialog layout.
+     * It's called before the dialog is shows and after the context is accessible. Should be used to
+     * initialise dialog layout.
      */
     protected abstract void buildDialogLayout();
 
