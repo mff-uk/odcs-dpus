@@ -43,7 +43,7 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
         /**
          * Execution context.
          */
-        private final DPUContext dpuContext;
+        private DPUContext dpuContext = null;
 
         /**
          * DPU's configuration.
@@ -58,10 +58,8 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
          * @param dpuContext
          * @throws DPUException
          */
-        public ExecutionContext(AbstractDpu<CONFIG> dpuInstance, DPUContext dpuContext)
-                throws DPUException {
+        public ExecutionContext(AbstractDpu<CONFIG> dpuInstance) {
             super((Class<AbstractDpu<CONFIG>>) dpuInstance.getClass(), dpuInstance);
-            this.dpuContext = dpuContext;
             this.dpu = dpuInstance;
         }
 
@@ -79,6 +77,10 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
 
         public AbstractDpu<CONFIG> getDpu() {
             return dpu;
+        }
+
+        private void setDpuContext(DPUContext dpuContext) {
+            this.dpuContext = dpuContext;
         }
 
     }
@@ -123,13 +125,15 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
             ConfigHistory<CONFIG> configHistory) {
         this.dialogClass = (Class<AbstractVaadinDialog<CONFIG>>) dialogClass;
         this.configHistory = configHistory;
+        // Initialize master context.
+        this.ctx = new ExecutionContext(this);
     }
 
     @Override
     public void execute(DPUContext context) throws DPUException {
-        // Initialize master context -> create add-ons.
-        this.ctx = new ExecutionContext(this, context);
-        // Set master configuration and initialize ConfigTransformer.
+        // Set context.
+        this.ctx.setDpuContext(context);
+        // Set master configuration and initialize ConfigTransformer -> initialize addons.
         this.ctx.init(configAsString);
         // ConfigTransformer are ready from setConfiguration method -> get DPU configuration.
         try {

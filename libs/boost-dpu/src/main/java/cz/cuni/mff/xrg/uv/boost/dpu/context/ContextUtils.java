@@ -91,4 +91,15 @@ public class ContextUtils {
         sendMessage(context, DPUContext.MessageType.ERROR, caption, exception, bodyFormat, params);
     }
 
+    public static void sendShortInfo(DPUContext context, String captionFormat, Object... params) {
+        final String caption = String.format(captionFormat, params);
+        sendMessage(context, DPUContext.MessageType.INFO, caption, "");
+    }
+
+    public static void sendShortWarn(DPUContext context, String captionFormat, Object... params) {
+        final String caption = String.format(captionFormat, params);
+        sendMessage(context, DPUContext.MessageType.WARNING, caption, "");
+    }
+
+
 }

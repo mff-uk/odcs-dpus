@@ -68,6 +68,11 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
     private final AbstractDpu<CONFIG> dpuInstance;
 
     /**
+     * Class used to initialize given DPU.
+     */
+    private final AutoInitializer initializer;
+
+    /**
      * Set base fields and create
      *
      * @param <T>
@@ -90,6 +95,11 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
         this.configHistory = dpuInstance.getConfigHistory();
         this.serializationXml = SerializationXmlFactory.serializationXml();
         this.dpuInstance = dpuInstance;
+        // Prepare initializer.
+        this.initializer = new AutoInitializer(dpuInstance);
+        initializer.addCallback(this);
+        // Prepare configuration manager - without addons, configuration transformers etc ..
+        this.configManager = new ConfigManager(this.serializationXml);
     }
 
     /**
@@ -101,11 +111,9 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
      */
     public void init(String configAsString) throws DPUException {
         // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
-        final AutoInitializer initializer = new AutoInitializer(dpuInstance);
-        initializer.addCallback(this);
         initializer.preInit();
-        // Prepare configuration - it may need to load some classes initilized by AutoInitializer
-        this.configManager = new ConfigManager(this.serializationXml, configTransformers);
+        // Add initialized config transformers.
+        this.configManager.addTransformers(configTransformers);
         try {
             if (configAsString != null) {
                 this.configManager.setMasterConfig(configAsString);

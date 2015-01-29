@@ -121,7 +121,7 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
                         loadRdfIntoObject(connection, resourceClass, newInstance);
                         // Merge into given isntance.
                         try {
-                            SerializationUtils.merge(config, newInstance);
+                            SerializationUtils.merge(newInstance, config);
                         } catch (RuntimeException ex) {
                             throw new Exception("Can't metge data.", ex);
                         }
@@ -144,6 +144,7 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
         final List<Resource> resources = getConfigurationSubject(resourceClass, graphs);
         if (resources.isEmpty()) {
             // No configuration resource.
+            LOG.debug("No configuration object found.");
             return;
         }
         if (resources.size() > 1) {

@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -39,15 +40,24 @@ public class ConfigManager {
      * @param serializer
      * @param configTransformers
      */
-    public ConfigManager(SerializationXml serializer, List<ConfigTransformer> configTransformers) {
+    public ConfigManager(SerializationXml serializer) {
         // Configure serializer class.
         serializer.addAlias(MasterConfigObject.class, MasterConfigObject.TYPE_NAME);
         // Init object.
-        this.configTransformers = configTransformers;
+        this.configTransformers = new LinkedList<>();
         this.configTransformers.add(new AddonMigration());
         // Use xStream as default.
         this.configSerializers = new LinkedList<>();
         this.configSerializers.add(new XStreamSerializer(serializer));
+    }
+
+    /**
+     * Add configuration transformers. Must be called before any configuration is set.
+     *
+     * @param transformers
+     */
+    public void addTransformers(Collection<ConfigTransformer> transformers) {
+         configTransformers.addAll(transformers);
     }
 
     /**

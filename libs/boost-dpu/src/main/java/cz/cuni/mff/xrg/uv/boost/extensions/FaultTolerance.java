@@ -241,12 +241,15 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
     @Override
     public void preInit(String param) throws DPUException {
         // No-op/
+        LOG.info("preInit called!");
     }
 
     @Override
     public void afterInit(Context context) {
+        LOG.info("afterInit called!");
         if (context instanceof AbstractDpu.ExecutionContext) {
             this.dpuContext = ((AbstractDpu.ExecutionContext) context).getDpuContext();
+            LOG.info("\tcontext set to: {}", this.dpuContext);
         }
         // Load configuration.
         try {
