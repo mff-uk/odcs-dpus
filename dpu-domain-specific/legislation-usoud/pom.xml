@@ -5,14 +5,13 @@
 	<parent>
 		<groupId>cz.cuni.mff.xrg.uv</groupId>
 		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.1.1</version>
+		<version>1.0.0</version>
 	</parent>
-         <groupId>eu.unifiedviews</groupId>
 	<artifactId>extractor_legislation_uSoud</artifactId>
 	<name>ext. legislation uSoud</name>
 	<packaging>bundle</packaging>
 	<description>Module which is able to extract decisions from nsoud. Requires catdoc utility being available on the target system. </description>
-	 <version>1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
     
     <properties>    
 		<dpu.package>cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud</dpu.package>
@@ -20,55 +19,6 @@
 	</properties>
     
 	<dependencies>
-            
-             <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>boost-dpu</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dialog</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <!-- dependecy for boost-dpu -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-files</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-            
 		<dependency>
 			<groupId>net.lingala.zip4j</groupId>
 			<artifactId>zip4j</artifactId>

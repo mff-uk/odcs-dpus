@@ -23,7 +23,7 @@
         <unifiedviews.version.max>2.0.0</unifiedviews.version.max>
         <!-- Version of UK libraries. -->
         <uk.version.min>1.1.1</uk.version.min>
-        <uk.version.max>1.2.0</uk.version.max>
+        <uk.version.max>2.0.0</uk.version.max>
         <!-- Used bundle plugin version. -->
         <bundle.plugin.version>2.3.7</bundle.plugin.version>
         <!-- Used version of slf4j. -->

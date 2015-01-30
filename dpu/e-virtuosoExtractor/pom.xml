@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>unifiedviews-dpu-base</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <artifactId>e-virtuosoExtractor</artifactId>
+    <version>1.0.0</version>
+    <packaging>bundle</packaging>
+    <name>e-VirtuosoExtractor</name>
+    <description>Description of VirtuosoExtractor.</description>
+	
+    <properties>
+        <dpu.package>cz.cuni.mff.xrg.uv.extractor.virtuosoextractor</dpu.package>
+        <dpu.mainClass>VirtuosoExtractor</dpu.mainClass>
+    </properties>
+
+    <dependencies>
+        <!-- Compile library, use compile if UK libs are not as OSGI bundles on target instance.
+            If they are presented then scope can be changed to 'provided'. -->
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>boost-dpu</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dialog</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>utils-dataunit-files</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-xml</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cz.cuni.mff.xrg.uv</groupId>
+            <artifactId>service-serialization-rdf</artifactId>
+            <version>[${uk.version.min},${uk.version.max})</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Virtuoso dependencies. -->
+        <dependency>
+            <groupId>eu.comsode</groupId>
+            <artifactId>com.openlinksw.virtuoso.virt_sesame2</artifactId>
+            <version>1.18-7-develop-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.comsode</groupId>
+            <artifactId>com.openlinksw.virtuoso.virtjdbc4_1</artifactId>
+            <version>3.74-7-develop-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+	
+</project>

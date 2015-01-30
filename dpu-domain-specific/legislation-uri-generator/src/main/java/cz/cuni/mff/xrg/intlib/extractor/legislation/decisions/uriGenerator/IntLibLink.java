@@ -6,14 +6,12 @@ import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link.Work;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.SparqlLoader;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.shortcut.ValidityMap;
-//import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
-import eu.unifiedviews.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
 
 import java.io.*;
 //import java.util.logging.Handler;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -23,8 +21,9 @@ import org.slf4j.LoggerFactory;
  */
 public class IntLibLink {
 
-        private static final Logger logger = LoggerFactory.getLogger(IntLibLink.class);
-//	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(IntLibLink.class);
+
+	private static final org.slf4j.Logger logger = LoggerFactory
+			.getLogger(IntLibLink.class);
 
 	private static DPUContext context = null;
 

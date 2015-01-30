@@ -6,12 +6,13 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor;
 import static cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Extractor.fromStream;
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud.Utils;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import org.slf4j.LoggerFactory;
-import eu.unifiedviews.dpu.DPUContext;
 
 /**
  *
@@ -51,7 +52,7 @@ public class WordTxtConvertor {
            //STEP 1: Convert WORD to TXT
            String pathToCatDoc =  jarContentPath + File.separator + "src/main/resources/";
            String filePath = context.getWorkingDir() + File.separator + processedFileId;
-           Utils.storeStringToTempFile(wordFile, filePath, Charset.forName("Cp1250"));
+           DataUnitUtils.storeStringToTempFile(wordFile, filePath, Charset.forName("Cp1250"));
             log.info("Catdoc is about to be executed");
             
             //String txtFilePath = context.getWorkingDir() + File.separator + processedFileName + ;

@@ -3,15 +3,14 @@ package cz.opendata.linked.psp_cz.metadata;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.*;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import eu.unifiedviews.dpu.config.DPUConfigException;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.module.dialog.BaseConfigDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
+public class ExtractorDialog extends BaseConfigDialog<ExtractorConfig> {
 
     private GridLayout mainLayout;
     private TextField minYear;
@@ -22,7 +21,7 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     private TextField timeout;
     
 	public ExtractorDialog() {
-		super(ExtractorConfig.class,  AddonInitializer.noAddons());
+		super(ExtractorConfig.class);
         buildMainLayout();
 		Panel panel = new Panel();
 		panel.setSizeFull();
@@ -116,22 +115,18 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
 	 */
 	private static final long serialVersionUID = -8158163219102623590L;
 	
-           
-        @Override
-        protected void setConfiguration(ExtractorConfig conf) throws DPUConfigException {
-             minYear.setValue(Integer.toString(conf.getStart_year()));
+	@Override
+	public void setConfiguration(ExtractorConfig conf) throws ConfigException {
+		minYear.setValue(Integer.toString(conf.getStart_year()));
 		maxYear.setValue(Integer.toString(conf.getEnd_year()));
 		chkRewriteCache.setValue(conf.isRewriteCache());
 		chkCachedLists.setValue(conf.isCachedLists());
 		interval.setValue(Integer.toString(conf.getInterval()));
 		timeout.setValue(Integer.toString(conf.getTimeout()));
-             
-        }
-	
-        
+	}
 
 	@Override
-	public ExtractorConfig getConfiguration() throws DPUConfigException {
+	public ExtractorConfig getConfiguration() throws ConfigException {
 		ExtractorConfig conf = new ExtractorConfig();
 		conf.setStart_year(Integer.parseInt(minYear.getValue()));
 		conf.setEnd_year(Integer.parseInt(maxYear.getValue()));
@@ -148,6 +143,5 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
 		}		
 		return conf;
 	}
-
-   
-   }
+	
+}

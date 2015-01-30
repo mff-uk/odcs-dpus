@@ -204,10 +204,10 @@ public class SerializationXmlGeneralImpl implements SerializationXmlGeneral {
                     } else {
                         LOG.trace("{}: Both values are null.", fieldName);
                     }
-                } else if (valueCheck == value) {
+                } else if (valueCheck.equals(value)) {
                     LOG.trace("{} : both values are equal.", fieldName);
                 } else {
-                    LOG.error("{} : Not equals!", fieldName);
+                    LOG.error("{} : Not equals! source: {} target: {}", fieldName, value, valueCheck);
 
                 }
 

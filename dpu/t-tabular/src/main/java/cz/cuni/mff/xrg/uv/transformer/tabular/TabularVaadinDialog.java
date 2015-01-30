@@ -223,8 +223,8 @@ public class TabularVaadinDialog extends AdvancedVaadinDialogBase<TabularConfig_
         csvLayout.addComponent(new Label("CSV specific settings"));
 
         this.txtCsvQuoteChar = new TextField("Quote char");
+        this.txtCsvQuoteChar.setDescription("If empty then no quete chars are used. In such vase values must not contains separator character.");
         //this.txtCsvQuoteChar.setInputPrompt("\"");
-        this.txtCsvQuoteChar.setRequired(true);
         csvLayout.addComponent(this.txtCsvQuoteChar);
 
         this.txtCsvDelimeterChar = new TextField("Delimiter char");

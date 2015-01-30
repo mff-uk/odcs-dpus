@@ -3,12 +3,7 @@ package cz.cuni.mff.xrg.uv.utils.dataunit.metadata;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
-import org.openrdf.model.*;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides easy way how to set/get metadata (predicate/object) for given symbolic name.
@@ -20,15 +15,13 @@ import org.slf4j.LoggerFactory;
  * <pre>
  * {@code
  * // set path to given file with respective symbolicName
- * Manipulator.add(WritableFilesDataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
+ * Manipulator.add(writableFilesDataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, path);
  * }
  * </pre>
  *
  * @author Škoda Petr
  */
 public class Manipulator {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Manipulator.class);
 
     private Manipulator() {
 
@@ -157,6 +150,42 @@ public class Manipulator {
     }
 
     /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     */
+    public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate,
+            RepositoryConnection connection) throws DataUnitException {
+        try (ManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+            return instance.getFirst(predicate);
+        }
+    }
+
+    /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     */
+    public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            RepositoryConnection connection) throws DataUnitException {
+        return getFirst(dataUnit, entry.getSymbolicName(), predicate, connection);
+    }
+
+    /**
      * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
      * metadata under same predicate use
      * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
@@ -172,6 +201,58 @@ public class Manipulator {
         try (WritableManipulatorInstance instance = create(dataUnit, symbolicName)) {
             instance.set(predicate, value);
         }
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @throws DataUnitException
+     */
+    public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value) throws DataUnitException {
+        set(dataUnit, entry.getSymbolicName(), predicate, value);
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     */
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+            instance.set(predicate, value);
+        }
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     */
+    public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        set(dataUnit, entry.getSymbolicName(), predicate, value, connection);
     }
 
     /**
@@ -192,83 +273,52 @@ public class Manipulator {
     }
 
     /**
-     * Dump content of metadata graphs into logs. Use for debug purpose.
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
      *
      * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
      * @throws DataUnitException
      */
-    public static void dump(MetadataDataUnit dataUnit) throws DataUnitException {
-        RepositoryConnection connection = null;
-        try {
-            connection = dataUnit.getConnection();
-            dump(connection, dataUnit.getMetadataGraphnames().toArray(new URI[0]));
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (RepositoryException ex) {
-                    LOG.warn("Error in close.", ex);
-                }
-            }
-        }
+    public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value) throws DataUnitException {
+        add(dataUnit, entry.getSymbolicName(), predicate, value);
     }
 
     /**
-     * Dump content of metadata graphs into logs. Use for debug purpose.
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
      *
      * @param dataUnit
-     * @throws DataUnitException
-     */
-    public static void dump(WritableMetadataDataUnit dataUnit) throws DataUnitException {
-        RepositoryConnection connection = null;
-        try {
-            connection = dataUnit.getConnection();
-            dump(connection, new URI[]{dataUnit.getMetadataWriteGraphname()});
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (RepositoryException ex) {
-                    LOG.warn("Error in close.", ex);
-                }
-            }
-        }
-    }
-
-    /**
-     * For debug purpose.
-     *
+     * @param symbolicName
+     * @param predicate
+     * @param value
      * @param connection
-     * @param uris
      * @throws DataUnitException
      */
-    static void dump(RepositoryConnection connection, URI[] uris) throws DataUnitException {
-        final StringBuilder message = new StringBuilder();
-        message.append("\n\tGraphs: ");
-        for (URI uri : uris) {
-            message.append(uri.stringValue());
-            message.append(" ");
+    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        try (WritableManipulatorInstance instance = create(dataUnit, symbolicName, connection)) {
+            instance.add(predicate, value);
         }
-        message.append("\n");
-        try {
-            RepositoryResult r = connection.getStatements(null, null, null,
-                    true, uris);
-            while (r.hasNext()) {
-                Statement s = (Statement) r.next();
+    }
 
-                message.append("'");
-                message.append(s.getSubject().stringValue());
-                message.append("' <");
-                message.append(s.getPredicate().stringValue());
-                message.append("> '");
-                message.append(s.getObject().stringValue());
-                message.append("'\n");
-            }
-            message.append("------------");
-            LOG.debug("{}", message.toString());
-        } catch (RepositoryException ex) {
-            throw new DataUnitException("Dump failed.", ex);
-        }
+    /**
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     */
+    public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        add(dataUnit, entry.getSymbolicName(), predicate, value, connection);
     }
 
 }

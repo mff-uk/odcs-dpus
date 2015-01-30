@@ -1,6 +1,5 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.link;
 
-import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.uriGenerator.IntLibLink;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -15,8 +14,8 @@ import org.w3c.dom.*;
  */
 public class Work implements Comparable<Work> {
     
-    
-     private static final org.slf4j.Logger log= LoggerFactory.getLogger(Work.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(
+            Work.class);
     
     // Label to separate section
     public static final String EMPTY_SECTION_LABEL = "-";
@@ -509,7 +508,6 @@ public class Work implements Comparable<Work> {
                 }
             }
         } catch (IllegalArgumentException ex) {
-            log.error(ex.getLocalizedMessage());
         }
         return w;
     }
@@ -521,7 +519,7 @@ public class Work implements Comparable<Work> {
             year = Integer.parseInt(yearstr);
             
         } catch (Exception e) { 
-            log.error("Year {} cannot be parsed", yearstr);
+            Logger.getLogger("intlib").log(Level.WARNING, "Year \"{0}\" cannot be parsed", yearstr);
             return 0;}
         if (year < 100)
         {

@@ -71,8 +71,6 @@ public abstract class DpuAdvancedBase<CONFIG>
         public Context(DPU dpu, List<AddonInitializer.AddonInfo> addons, ConfigHistory<CONFIG> configHistory) {
             this.dpu = dpu;
             this.serializationXml = SerializationXmlFactory.serializationXmlGeneral();
-            // This alias is also set in AdvamcedVaadinDialogBase, they muset be tha same!
-            this.serializationXml.addAlias(MasterConfigObject.class, "MasterConfigObject");
             this.addons = addons;
             this.configHistory = configHistory;
             // Create config manager.
@@ -82,6 +80,7 @@ public abstract class DpuAdvancedBase<CONFIG>
                     configAddons.add((ConfigTransformerAddon) item.getAddon());
                 }
             }
+            // Warn: This set alias for MasterConfigObject class.
             this.configManager = new ConfigManager(this.serializationXml, configAddons);
         }
 
@@ -189,6 +188,8 @@ public abstract class DpuAdvancedBase<CONFIG>
             LOG.info("innerInit:end");
         } catch (DataUnitException ex) {
             throw new DPUException("Problem in innerInit().", ex);
+        } catch (DPUException ex) {
+            throw ex;
         } catch (Throwable ex) {
             throw new DPUException("innerInit() throws unexpected exception.", ex);
         }
@@ -214,6 +215,7 @@ public abstract class DpuAdvancedBase<CONFIG>
         } catch (Exception ex) {
             context.sendMessage(MessageType.ERROR, "DPU Failed", "DPU throws DPUException.", ex);
         } catch (Throwable ex) {
+            LOG.error("DPU throws Throwable.", ex);
             context.sendMessage(MessageType.ERROR, "DPU Failed",
                     "DPU throws Throwable. See logs for more details.");
         }
@@ -317,11 +319,15 @@ public abstract class DpuAdvancedBase<CONFIG>
     }
 
     /**
-     * Is called before {@link #innerExecute()}.
+     * Is called before {@link #innerExecute()}. If this method throws DPU execution is immediately 
+     * stopped. No other function (not Add-on) is executed.
      *
+     * DPU's configuration is already accessible.
+     *
+     * @throws eu.unifiedviews.dpu.DPUException
      * @throws DataUnitException
      */
-    protected void innerInit() throws DataUnitException {
+    protected void innerInit() throws DPUException, DataUnitException {
         // Do nothing implementation.
     }
 

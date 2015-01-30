@@ -1,19 +1,22 @@
 package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.UnzipException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
-import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext.MessageType;
-import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.configuration.ConfigException;
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.message.MessageType;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,12 +24,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +44,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author tomasknap
  */
-@DPU.AsExtractor
-public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
+@AsExtractor
+public class Unzipper extends ConfigurableBase<UnzipperConfig> implements ConfigDialogProvider<UnzipperConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             Unzipper.class);
@@ -45,20 +54,21 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
     private String dateTo;
 
     public Unzipper() {
-        super(UnzipperConfig.class, AddonInitializer.noAddons());
+        super(UnzipperConfig.class);
     }
 	
-    @DataUnit.AsOutput(name = "output")
-    public WritableFilesDataUnit outputFiles;
+    @OutputDataUnit(name = "output")
+    public WritableRDFDataUnit rdfOutput;
 
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
+    public AbstractConfigDialog<UnzipperConfig> getConfigurationDialog() {
         return new UnzipperDialog();
     }
 
-       @Override
-    protected void innerExecute() throws DPUException, DataUnitException {
-                //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
+    @Override
+    public void execute(DPUContext context) throws DPUException, DataUnitException {
+
+        //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 
 
         //get working dir
@@ -137,12 +147,15 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
         }
       
 
+
+
+
         //*****************************
         //OUTPUT
         int i = 0;
 		
-//		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);	
-//		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);	
+		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         for (File file : (new File(tmpCourtFiles)).listFiles()) {
             i++;
@@ -153,25 +166,25 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
             }
 
             //process each extracted file
+            LOG.info("Processing fle name {}", file.getName());
             try {
-                LOG.debug("Processing file with name {} and path{}", file.getName(), file.getCanonicalPath().toString());
+                LOG.debug("Processing file with path: {}", file.getCanonicalPath().toString());
             } catch (IOException ex) {
                 LOG.error(ex.getLocalizedMessage());
             }
 
-                      
-//            String output = null;
-//            try {
-//                output =  DataUnitUtils.readFile(file.getCanonicalPath().toString(), Charset.forName("Cp1250"));
-//            } catch (IOException ex) {
-//                LOG.error("Failed to read file", ex);
-//            }
-//
-//            if (output == null) {
-//                LOG.warn("File {} cannot be read", file.getName());
-//                LOG.warn("File skipped");
-//            }
-//            LOG.debug("File was read, the content of the file: {}", output);
+            String output = null;
+            try {
+                output =  DataUnitUtils.readFile(file.getCanonicalPath().toString(), Charset.forName("Cp1250"));
+            } catch (IOException ex) {
+                LOG.error("Failed to read file", ex);
+            }
+
+            if (output == null) {
+                LOG.warn("File {} cannot be read", file.getName());
+                LOG.warn("File skipped");
+            }
+            LOG.debug("File was read, the content of the file: {}", output);
 
 
             //OUTPUT
@@ -183,49 +196,37 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
             //////////////////////
            
             
-                       
             String subject = config.getDecisionPrefix() + file.getName();
             String newSubjectPrefix = subject.substring(0, subject.lastIndexOf("/"));
             String decisionID = subject.substring(subject.lastIndexOf("-") + 1, subject.lastIndexOf(".txt")).replaceAll("_", "-");
             //String decisionID = prepare
           
             String year = decisionID.substring(decisionID.lastIndexOf("-") + 1);
-            String newSymbolicName = newSubjectPrefix + "/" + year + "/" + decisionID + "/expression";
+            String newSubject = newSubjectPrefix + "/" + year + "/" + decisionID + "/expression";
             
             //adjust the subject based on the latest adjustment:\
             // add /cz/decision/2010/22-Cdo-4430-2010/cs
-            newSymbolicName = newSymbolicName + "/cz/decision/" + year + "/" + decisionID + "/cs";
+            newSubject = newSubject + "/cz/decision/" + year + "/" + decisionID + "/cs";
 
-                        
-            //add file to the output (symbolic name is newSubject
-            outputFiles.addExistingFile(newSymbolicName, file.toURI().toASCIIString());
+            Resource subj = valueFactory.createURI(newSubject);
+            URI pred = valueFactory.createURI(config.getOutputPredicate());
+            Value obj = valueFactory.createLiteral(output);
+
+
+            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+            LOG.debug("Prepared triple {}", preparedTriple);
+
+            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
+            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
             
-            //set up virtual path of the output, so that the loader to file at the end knows under which name the output should be stored. 
-            String outputVirtualPath = file.getName();
-            VirtualPathHelpers.setVirtualPath(outputFiles, newSymbolicName, outputVirtualPath);
-                     
-            LOG.debug("Adding new file with sn {} and path{}", newSymbolicName, file.toURI().toASCIIString());
-            
-            
-//            Resource subj = valueFactory.createURI(newSubject);
-//            URI pred = valueFactory.createURI(config.getOutputPredicate());
-//            Value obj = valueFactory.createLiteral(output);
-//
-//
-//            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
-//            LOG.debug("Prepared triple {}", preparedTriple);
-//
-//            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
-//            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
-//            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
-//            
-//			try {
-//				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
-//				LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
-//			} catch (OperationFailedException e) {
-//				LOG.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
-//				LOG.info("Continues with the next file");
-//			}
+			try {
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+				LOG.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+			} catch (OperationFailedException e) {
+				LOG.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
+				LOG.info("Continues with the next file");
+			}
 			
 			if (context.canceled()) {
 				LOG.info("DPU cancelled");
@@ -346,5 +347,4 @@ public class Unzipper extends DpuAdvancedBase<UnzipperConfig> {
 //        byte[] encoded = Files.readAllBytes(Paths.get(path));
 //        return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 //    }
-
- }
+}

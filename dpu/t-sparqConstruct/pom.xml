@@ -7,15 +7,15 @@
         <version>1.1.1</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
-    <artifactId>t-SparqConstruct</artifactId>
-    <version>1.0.0</version>
+    <artifactId>t-sparqlConstruct</artifactId>
+    <version>1.1.1</version>
     <packaging>bundle</packaging>
-    <name>t-sparqConstruct</name>
+    <name>t-SparqlConstruct</name>
     <description>Execute a single SPARQL construct query. Does not support quads!</description>
 	
     <properties>
-        <dpu.package>cz.cuni.mff.xrg.uv.transformer.sparq.construct</dpu.package>
-        <dpu.mainClass>SparqConstruct</dpu.mainClass>
+        <dpu.package>cz.cuni.mff.xrg.uv.transformer.sparql.construct</dpu.package>
+        <dpu.mainClass>SparqlConstruct</dpu.mainClass>
     </properties>
 
     <dependencies>

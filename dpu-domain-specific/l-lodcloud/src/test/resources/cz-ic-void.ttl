@@ -1,0 +1,33 @@
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ns1:	<http://linked.opendata.cz/resource/dataset/> .
+@prefix void:	<http://rdfs.org/ns/void#> .
+ns1:ic	rdf:type	void:Dataset .
+@prefix dcat:	<http://www.w3.org/ns/dcat#> .
+ns1:ic	rdf:type	dcat:Dataset .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms:	<http://purl.org/dc/terms/> .
+ns1:ic	dcterms:modified	"2014-11-20+01:00"^^xsd:date .
+@prefix ns6:	<http://purl.org/klimek#> .
+ns1:ic	dcterms:creator	ns6:me ;
+	dcterms:description	"Dataset description"@en ,
+		"Jedn\u00E1 se o aktu\u00E1ln\u011B platn\u00FD soubor I\u010C v\u010Detn\u011B dal\u0161\u00EDch atribut\u016F. V n\u00E1zvu souboru je uvedeno datum, ke kter\u00E9mu byl proveden export ze syst\u00E9mu ARES a d\u00E1le \u010D\u00EDslo verze souboru v dan\u00E9m m\u011Bs\u00EDci."@cs ;
+	dcterms:publisher	<http://opendata.cz> .
+@prefix ns7:	<http://www.statnipokladna.cz/cs/csuis/> .
+ns1:ic	dcterms:source	ns7:sprava-ciselniku ;
+	dcterms:title	"Data file with Czech Business Entities identification numbers"@en ,
+		"Datov\u00FD soubor s daty Identifika\u010Dn\u00EDch \u010D\u00EDsel (I\u010C)"@cs ;
+	void:classes	3 ;
+	void:distinctObjects	11157027 ;
+	void:distinctSubjects	8276312 ;
+	void:entities	8276312 ;
+	void:properties	8 ;
+	void:exampleResource <http://linked.opendata.cz/resource/business-entity/CZ01475461> ;
+	void:triples	38595597 ;
+	void:dataDump	<http://linked.opendata.cz/dump/ic.zip> .
+@prefix ns8:	<http://linked.opendata.cz/> .
+ns1:ic	void:sparqlEndpoint	ns8:sparql ;
+	dcterms:license	<http://opendatacommons.org/licenses/pddl/1-0/> .
+@prefix ns9:	<http://id.loc.gov/vocabulary/iso639-1/> .
+ns1:ic	dcterms:language	ns9:cs .
+@prefix ns10:	<http://linked.opendata.cz/resource/dataset/ic/> .
+ns1:ic	dcat:distribution	ns10:distribution .

@@ -2,18 +2,22 @@ package cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.usoud;
 
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.USoudHTTPRequests;
 import cz.cuni.mff.xrg.intlib.extractor.legislation.decisions.utils.FileRecord;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
-import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
-import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 
+import cz.cuni.mff.xrg.odcs.commons.data.DataUnitException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUContext;
+import cz.cuni.mff.xrg.odcs.commons.dpu.DPUException;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.AsExtractor;
+import cz.cuni.mff.xrg.odcs.commons.dpu.annotation.OutputDataUnit;
+import cz.cuni.mff.xrg.odcs.commons.module.dpu.ConfigurableBase;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.AddTripleWorkaround;
+import cz.cuni.mff.xrg.odcs.commons.module.utils.DataUnitUtils;
+import cz.cuni.mff.xrg.odcs.commons.web.AbstractConfigDialog;
+import cz.cuni.mff.xrg.odcs.commons.web.ConfigDialogProvider;
+import cz.cuni.mff.xrg.odcs.rdf.WritableRDFDataUnit;
+import cz.cuni.mff.xrg.uv.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfFactory;
+import cz.cuni.mff.xrg.uv.rdf.simple.SimpleRdfWrite;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -40,8 +44,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author tomasknap
  */
-@DPU.AsExtractor
-public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
+@AsExtractor
+public class Extractor extends ConfigurableBase<ExtractorConfig> implements ConfigDialogProvider<ExtractorConfig> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
             Extractor.class);
@@ -50,25 +54,23 @@ public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
 	
     private String dateTo;
 
-   public Extractor(){
-		super(ExtractorConfig.class, AddonInitializer.noAddons());
-	}
+    public Extractor() {
+        super(ExtractorConfig.class);
+    }
 	
-    @DataUnit.AsOutput(name = "output")
-	public WritableFilesDataUnit outputFiles;
-    
-          @Override
-        public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-            return new ExtractorDialog();
-        }
+    @OutputDataUnit(name = "output")
+    public WritableRDFDataUnit rdfOutput;
 
-     @Override
-        protected void innerExecute() throws DPUException, DataUnitException {
-             
-        log.info("DPU is running ...");
+    @Override
+    public AbstractConfigDialog<ExtractorConfig> getConfigurationDialog() {
+        return new ExtractorDialog();
+    }
 
-//        final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
-//        final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
+    @Override
+    public void execute(DPUContext context) throws DPUException, DataUnitException {
+
+		final SimpleRdfWrite rdfOutputWrap = SimpleRdfFactory.create(rdfOutput, context);
+		final ValueFactory valueFactory = rdfOutputWrap.getValueFactory();
 		
         //log.info("\n ****************************************************** \n STARTING UNZIPPER \n *****************************************************");
 
@@ -151,23 +153,30 @@ public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
 
             String filePath = fileRecord.getFilePath();
             String expressionURI = fileRecord.getExpression();
-            File newFile = new File(filePath);
 
             //process each extracted file
-            log.info("Processing file {}", newFile.toURI().toASCIIString());
+            log.info("Processing file {}", filePath);
             
+
+            //use the expression
+            Resource subj = valueFactory.createURI(expressionURI);
+            URI pred = valueFactory.createURI(config.getOutputPredicate());
+            Value obj = valueFactory.createLiteral(output);
+
+            String preparedTriple = AddTripleWorkaround.prepareTriple(subj, pred, obj);
+            log.debug("Prepared triple {}", preparedTriple);
+
+            DataUnitUtils.checkExistanceOfDir(pathToWorkingDir + File.separator + "out");
+            String tempFileLoc = pathToWorkingDir + File.separator + "out" + File.separator + String.valueOf(i) + ".txt";
+            DataUnitUtils.storeStringToTempFile(preparedTriple, tempFileLoc);
             
-            
-               //add file to the output (symbolic name is newSubject
-            outputFiles.addExistingFile(expressionURI, newFile.toURI().toASCIIString());
-            
-            //set up virtual path of the output, so that the loader to file at the end knows under which name the output should be stored. 
-            String outputVirtualPath = newFile.getName();
-            VirtualPathHelpers.setVirtualPath(outputFiles, expressionURI, outputVirtualPath);
-                     
-            log.debug("Adding new file with sn {} and path{}", expressionURI, newFile.toURI().toASCIIString());
-            
-            
+            try {
+				rdfOutputWrap.extract(new File(tempFileLoc), RDFFormat.TURTLE, null);
+                log.debug("Result was added to output data unit as turtle data containing one triple {}", preparedTriple);
+            } catch(OperationFailedException e) {
+                log.warn("Error parsing file for subject {}, exception {}", subj, e.getLocalizedMessage());
+                log.info("Continues with the next file");
+            }
 
             if (context.canceled()) {
                 log.info("DPU cancelled");
@@ -183,6 +192,9 @@ public class Extractor extends DpuAdvancedBase<ExtractorConfig> {
 
         //LOG.info("Processed {} files", i);
         context.sendMessage(DPUContext.MessageType.INFO, "Processed " + i +" files");
+
+
+
 
 
     }

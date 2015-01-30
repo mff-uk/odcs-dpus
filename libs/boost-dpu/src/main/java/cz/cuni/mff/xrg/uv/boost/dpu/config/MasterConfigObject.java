@@ -16,6 +16,14 @@ public class MasterConfigObject {
      */
     public static final String CONFIG_NAME = "master_config_object";
 
+    /**
+     * Type name used during serialisation.
+     */
+    public static final String TYPE_NAME = "MasterConfigObject";
+
+    /**
+     * Storage for configurations.
+     */
     private Map<String, String> configurations = new HashMap<>();
     
     public Map<String, String> getConfigurations() {

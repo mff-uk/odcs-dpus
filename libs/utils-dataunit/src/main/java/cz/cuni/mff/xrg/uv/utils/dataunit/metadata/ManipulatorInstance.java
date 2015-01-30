@@ -8,6 +8,7 @@ import java.util.Set;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.*;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -16,9 +17,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Can read metadata.
  *
+ * Sample usage:
+ * <pre>
+ * {@code
+ * ManipulatorInstance manipulator = Manipulator.create(filesDataUnit, null);
+ * // Read virtual path for
+ * manipulator.setEntry(fileEntry).getFirst(VirtualPathHelper.PREDICATE_VIRTUAL_PATH);
+ * }
+ * </pre>
+ *
  * @author Škoda Petr
+ * @param <THIS> Type of the Manipulator, used in setEntry as a return type to enable chaining.
  */
-public class ManipulatorInstance implements AutoCloseable {
+public class ManipulatorInstance<THIS extends ManipulatorInstance> implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ManipulatorInstance.class);
 
@@ -29,18 +40,26 @@ public class ManipulatorInstance implements AutoCloseable {
     protected static final String OBJECT_BINDING = "object";
 
     /**
-     * First %s must be replaced with FROM clause.
+     * %s - place for using clause
      */
     private static final String SELECT_QUERY
-            = "SELECT %s ?" + OBJECT_BINDING + " WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
-            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
+            = "SELECT ?" + OBJECT_BINDING + " WHERE %s { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
+            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
             + "}";
+
+    /**
+     * If env. property of this name is set, then dataset is not used.
+     *
+     * Will be removed as the Virtuoso or Sesame bug will be fixed.
+     */
+    @Deprecated
+    public static final String ENV_PROP_VIRTUOSO = "virtuoso_used";
 
     /**
      * Used repository connection.
      */
-    protected final RepositoryConnection connection;
+    protected RepositoryConnection connection;
 
     /**
      * Symbolic name of used metadata.
@@ -50,34 +69,70 @@ public class ManipulatorInstance implements AutoCloseable {
     /**
      * If true then given connection is closed when this class is closed.
      */
-    protected final boolean closeConnectionOnClose;
+    protected boolean closeConnectionOnClose;
 
     /**
-     * Select query with FROM clause.
+     * Dataset used for queries.
      */
-    protected final String selectWithGraph;
+    protected final DatasetImpl dataset;
+
+    /**
+     * String version of {@link #dataset}.
+     */
+    protected final String datasetUsingClause;
 
     /**
      *
      * @param connection
-     * @param readGraphs
+     * @param readGraph
      * @param symbolicName           Symbolic name to which this instance is bound. Can be changed later.
      * @param closeConnectionOnClose If true then given connection is close one this instance is closed.
      * @throws DataUnitException
      */
-    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, String symbolicName,
+    ManipulatorInstance(RepositoryConnection connection, Set<URI> readGraph, String symbolicName,
             boolean closeConnectionOnClose) throws DataUnitException {
         this.connection = connection;
         this.symbolicName = symbolicName;
         this.closeConnectionOnClose = closeConnectionOnClose;
-        // Prepare selectWithGraph
-        final StringBuilder fromClause = new StringBuilder();
-        for (URI graph : readGraphs) {
-            fromClause.append("FROM <");
-            fromClause.append(graph.stringValue());
-            fromClause.append("> ");
+        // Add read graphs.
+        if (useDataset()) {
+            this.dataset = new DatasetImpl();
+            for (URI uri : readGraph) {
+                this.dataset.addDefaultGraph(uri);
+            }
+            this.datasetUsingClause = null;
+        } else {
+            this.dataset = null;
+            // Build USING clause
+            final StringBuilder clauseBuilder = new StringBuilder(readGraph.size() * 15);
+            for (URI uri : readGraph) {
+                clauseBuilder.append("USING <");
+                clauseBuilder.append(uri.toString());
+                clauseBuilder.append(">\n");
+            }
+            this.datasetUsingClause = clauseBuilder.toString();
         }
-        this.selectWithGraph = String.format(SELECT_QUERY, fromClause.toString());
+    }
+
+    /**
+     * Replace current connection with given one. Close the old connection if needed (if not given by user).
+     * Given connection is not closed by the helper.
+     *
+     * Can be used to replace corrupted connection in {@link ManipulatorInstance} without the need
+     * of new instance construction.
+     *
+     * @param newConnection New connection that should be used, will not be closed by helper.
+     */
+    public void replaceConnection(RepositoryConnection newConnection) {
+        if (closeConnectionOnClose) {
+            try {
+                this.connection.close();
+            } catch (RepositoryException ex) {
+                LOG.warn("Can't close old connection.");
+            }
+        }
+        this.connection = newConnection;
+        this.closeConnectionOnClose = false;
     }
 
     /**
@@ -91,12 +146,8 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     public String getFirst(String predicate) throws DataUnitException {
         try {
-            final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, selectWithGraph);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+            final TupleQueryResult result = executeSelectQuery(predicate);
             // Return first result.
-            final TupleQueryResult result = tupleQuery.evaluate();
             if (result.hasNext()) {
                 return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
             }
@@ -115,12 +166,8 @@ public class ManipulatorInstance implements AutoCloseable {
      */
     public List<String> getAll(String predicate) throws DataUnitException {
         try {
-            final ValueFactory valueFactory = connection.getValueFactory();
-            final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, selectWithGraph);
-            tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            // Store all the results into list.
-            final TupleQueryResult result = tupleQuery.evaluate();
+            final TupleQueryResult result = executeSelectQuery(predicate);
+            // Dump result list.
             final List<String> resultList = new LinkedList<>();
             while (result.hasNext()) {
                 final String value = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
@@ -133,14 +180,30 @@ public class ManipulatorInstance implements AutoCloseable {
     }
 
     /**
-     * Change used symbolic name. By this operation {@link ManipulatorInstance} can be modified to work with
-     * other metadata object.
+     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance}
+     * can be modified to work with other metadata object.
      *
      * @param symbolicName
+     * @return
      */
-    public void setSymbolicName(String symbolicName) {
+    public THIS setEntry(String symbolicName) {
         this.symbolicName = symbolicName;
+        return (THIS)this;
     }
+
+    /**
+     * Change used entry(symbolic name). By this operation {@link ManipulatorInstance} 
+     * can be modified to work with other metadata object.
+     *
+     * @param entry
+     * @return
+     * @throws eu.unifiedviews.dataunit.DataUnitException
+     */
+    public THIS setEntry(MetadataDataUnit.Entry entry) throws DataUnitException {
+        this.symbolicName = entry.getSymbolicName();
+        return (THIS)this;
+    }
+
 
     @Override
     public void close() throws DataUnitException {
@@ -151,6 +214,43 @@ public class ManipulatorInstance implements AutoCloseable {
                 LOG.warn("Connection.close failed.", ex);
             }
         }
+    }
+
+    /**
+     *
+     * @return True if we should use DataSet class.
+     */
+    protected final boolean useDataset() {
+        return System.getProperty(ENV_PROP_VIRTUOSO) == null;
+    }
+
+    /**
+     * Execute {@link #SELECT_QUERY} for given predicate.
+     *
+     * @param predicate
+     * @return
+     * @throws RepositoryException
+     * @throws MalformedQueryException
+     * @throws QueryEvaluationException
+     */
+    private TupleQueryResult executeSelectQuery(String predicate) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        final ValueFactory valueFactory = connection.getValueFactory();
+        // Prepare query. Add clause if dataset is not used.
+        final String query;
+        if (useDataset()) {
+            query = String.format(SELECT_QUERY, "");
+        } else {
+            query = String.format(SELECT_QUERY, datasetUsingClause);
+        }            
+        final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);            
+        tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
+        tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+        // Use dataset if set.
+        if (useDataset()) {
+            tupleQuery.setDataset(dataset);
+        }
+        // Evaluate and return tuple query result.
+        return tupleQuery.evaluate();
     }
 
 }

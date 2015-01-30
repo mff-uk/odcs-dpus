@@ -19,22 +19,16 @@ package cz.cuni.mff.xrg.uv.boost.dpu.config;
 public class ConfigHistoryEntry<SOURCE, DEST> {
 
     /**
-     * Class alias.
-     */
-    final String alias;
-
-    /**
      * Instance of class for configuration class.
      */
     final Class<SOURCE> configClass;
 
     /**
-     * Pointer to previous entry.
+     * Pointer to previous entry in configuration history.
      */
     final ConfigHistoryEntry<?, SOURCE> previous;
 
-    ConfigHistoryEntry(String alias, Class<SOURCE> configClass, ConfigHistoryEntry<?, SOURCE> previous) {
-        this.alias = alias;
+    ConfigHistoryEntry(Class<SOURCE> configClass, ConfigHistoryEntry<?, SOURCE> previous) {
         this.configClass = configClass;
         this.previous = previous;
     }
@@ -47,23 +41,11 @@ public class ConfigHistoryEntry<SOURCE, DEST> {
      * @return
      */
     public <TARGET, DEST extends VersionedConfig<TARGET>> ConfigHistoryEntry<DEST, TARGET> add(Class<DEST> clazz) {
-        return add(clazz, clazz.getCanonicalName().replaceAll("_", "__"));
+        return new ConfigHistoryEntry<>(clazz, (ConfigHistoryEntry<?, DEST>) this);
     }
 
     /**
-     * This method is not implemented properly yet as {@link ConfigHistory} does not support aliases properly.
-     *
-     * @param <TARGET>
-     * @param <DEST>
-     * @param clazz Configuration class.
-     * @param alias Alias used for this configuration class.
-     * @return
-     */
-    public <TARGET, DEST extends VersionedConfig<TARGET>> ConfigHistoryEntry<DEST, TARGET> add(Class<DEST> clazz, String alias) {
-        return new ConfigHistoryEntry<>(alias, clazz, (ConfigHistoryEntry<?, DEST>) this);
-    }
-
-    /**
+     * End the configuration history with current class.
      *
      * @param clazz Current configuration class.
      * @return

@@ -18,7 +18,7 @@ public class HtmlCssConfig_V1 {
          */
         QUERY,
         /**
-         * Extract content as value string.
+         * Extract content as string.
          *
          * Action data: none
          */
@@ -36,7 +36,8 @@ public class HtmlCssConfig_V1 {
          */
         ATTRIBUTE,
         /**
-         * Create predicate with given value as an object as a subject used last defined subject.
+         * Create statement with input value as an object, as a subject use given predicate
+         * and as a subject used last defined subject.
          *
          * Action data: Used predicate.
          */
@@ -57,7 +58,7 @@ public class HtmlCssConfig_V1 {
          */
         UNLIST,
         /**
-         * Set URI used as subject class.
+         * Set given URI as a subject class.
          *
          * Action data: subject class
          */
@@ -135,6 +136,11 @@ public class HtmlCssConfig_V1 {
      */
     private String hasPredicateAsStr = "http://unifiedviews.eu/ontology/e-htmlCss/hasObject";
 
+    /**
+     * If true then generate triple with information about source file.
+     */
+    private boolean sourceInformation = false;
+
     public HtmlCssConfig_V1() {
 
     }
@@ -163,4 +169,12 @@ public class HtmlCssConfig_V1 {
         this.hasPredicateAsStr = hasPredicateAsStr;
     }
 
+    public boolean isSourceInformation() {
+        return sourceInformation;
+    }
+
+    public void setSourceInformation(boolean sourceInformation) {
+        this.sourceInformation = sourceInformation;
+    }
+    
 }

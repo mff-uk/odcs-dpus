@@ -35,39 +35,29 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
 
     @Override
     protected void innerExecute() throws DPUException {
-        //
-        // prepare
-        //
+        // Prepare target URL.
         final URL url;
         try {
             url = new URL(config.getServer());
         } catch (MalformedURLException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR,
-                    "Invalid solr URL", "", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR, "Invalid solr URL", "", ex);
             return;
         }
-        //
-        // execute
-        //
-        FilesDataUnit.Iteration iter;
+        // Execute.
+        final FilesDataUnit.Iteration iter;
         try {
             iter = inFilesToLoad.getIteration();
             getAddon(CloseCloseable.class).add(iter);
-
             while (iter.hasNext()) {
-                FilesDataUnit.Entry entry = iter.next();
+                final FilesDataUnit.Entry entry = iter.next();
                 if (!uploadFile(url, entry)) {
-                    // upload failed
+                    // Upload failed.
                     return;
                 }
             }
-
             commit();
-        } catch (DataUnitException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR,
-                    "Problem with DataUnit", "", ex);
-        } catch (IOException ex) {
-
+        } catch (DataUnitException | IOException ex) {
+            throw new DPUException(ex);
         }
     }
 
@@ -85,6 +75,7 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
      * @throws IOException
      */
     private boolean uploadFile(URL url, FilesDataUnit.Entry entry) throws DataUnitException, IOException {
+        LOG.debug("uploading file: {}", entry);
         final File file = new File(java.net.URI.create(entry.getFileURIString()));
         final String type = "text/csv";
         try (InputStream is = new FileInputStream(file)) {
@@ -95,14 +86,16 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
             conn.setUseCaches(false);
             conn.setAllowUserInteraction(false);
             conn.setRequestProperty("Content-type", type);
+            // Use chunk mode with auto chunk size. This is necesery for large data, otherwise
+            // HttpURLConnection tries to store all the data to calculate length (for header).
+            conn.setChunkedStreamingMode(0);
             conn.connect();
-            // copy data
+            // Copy data.
             try (final OutputStream out = conn.getOutputStream()) {
                 IOUtils.copy(is, out);
             }
-            // check response
+            // Check response.
             if (!checkResponse(conn)) {
-                // InputStream in = conn.getInputStream();
                 context.sendMessage(DPUContext.MessageType.ERROR,
                         "Upload failed.", "Failed to upload file: " + entry.getSymbolicName());
                 return false;
@@ -120,20 +113,30 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
      */
     private boolean checkResponse(HttpURLConnection conn) throws IOException {
         final int responseCode = conn.getResponseCode();
-        if (responseCode >= 400) {
-            // read complete response
-            final StringBuilder logString = new StringBuilder();
+        LOG.info("Response code is {}", responseCode);
+        // Print response every time for debuggin purpose.
 
-            final List<String> response = IOUtils.readLines(conn
-                    .getErrorStream());
+        try {
+            final StringBuilder logString = new StringBuilder();
+            final List<String> response = IOUtils.readLines(conn.getInputStream());
             for (String line : response) {
                 logString.append(line);
                 logString.append("\n");
             }
+            LOG.debug("Response: {}", logString);
+        } catch (IOException ex) {
+            LOG.error("Can't read response.", ex);
+        }
 
-            LOG.error("Response code is {}", responseCode);
-            LOG.error("Response: {}", logString);
-
+        if (responseCode >= 400) {
+            // Print error response.
+            final StringBuilder logString = new StringBuilder();
+            final List<String> response = IOUtils.readLines(conn.getErrorStream());
+            for (String line : response) {
+                logString.append(line);
+                logString.append("\n");
+            }
+            LOG.error("Response (error): {}", logString);
             return false;
         }
         return true;
@@ -155,18 +158,16 @@ public class Solr extends DpuAdvancedBase<SolrConfig_V1> {
         try {
             connection = (HttpURLConnection) urlCommit.openConnection();
             if (urlCommit.getUserInfo() != null) {
-                // set user info here
+                // Set user info here.
             }
             connection.connect();
             if (!checkResponse(connection)) {
-                context.sendMessage(DPUContext.MessageType.ERROR,
-                        "Commit faield",
+                context.sendMessage(DPUContext.MessageType.ERROR, "Commit faield",
                         "checkResponse return false check logs for more info");
             }
             connection.disconnect();
         } catch (IOException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR, "Commit failed",
-                    "", ex);
+            context.sendMessage(DPUContext.MessageType.ERROR, "Commit failed", "", ex);
         }
     }
 

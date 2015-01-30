@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -14,8 +13,6 @@ import org.w3c.dom.NodeList;
  * @author Jakub Starka
  */
 public class AbbreviationMap extends ShortcutMap {
-    
-       private static final org.slf4j.Logger log= LoggerFactory.getLogger(AbbreviationMap.class);
     
     protected HashMap<Integer, Work> definitionMap;
     //protected HashMap<String, Work> abbreviationMap;
@@ -53,7 +50,7 @@ public class AbbreviationMap extends ShortcutMap {
                 try {
                     definitionId = Integer.parseInt(defId);
                 } catch (NumberFormatException ex) {
-                    log.error(ex.getLocalizedMessage());
+                    //ex.printStackTrace();
                 }
             }
             Work definitionWork = definitionMap.get(definitionId);

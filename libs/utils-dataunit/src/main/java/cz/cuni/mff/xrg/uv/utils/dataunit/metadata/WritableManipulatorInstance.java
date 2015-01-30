@@ -12,46 +12,56 @@ import org.openrdf.repository.RepositoryException;
 /**
  * Manipulator for writing metadata.
  *
+ * Sample usage:
+ * <pre>
+ * {@code
+ * WritableManipulatorInstance manipulator = Manipulator.create(filesDataUnit, null);
+ * // Read virtual path for
+ * manipulator.setEntry(fileEntry).set(VirtualPathHelper.PREDICATE_VIRTUAL_PATH, "myDirectory/file.dat");
+ * }
+ * </pre>
+ *
  * @author Škoda Petr
  */
-public class WritableManipulatorInstance extends ManipulatorInstance {
+public class WritableManipulatorInstance extends ManipulatorInstance<WritableManipulatorInstance> {
 
     /**
-     * %s stand for write graph name.
+     * %s - with clause
+     * %s - using clause
      */
-    private static final String UPDATE_QUERY = "WITH <%s> \n"
-            + "DELETE { ?entry ?" + PREDICATE_BINDING + " ?value }\n"
-            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
-            + "WHERE { "
-            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ; "
-            + "?" + PREDICATE_BINDING + " ?value . "
-            + "}";
-
-
-    /**
-     * %s stand for write graph name.
-     */
-    private static final String INSERT_QUERY = "WITH <%s>\n"
-            + "INSERT { ?entry ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " }\n"
-            + "WHERE { "
-            + "?entry <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+    private static final String UPDATE_QUERY
+            = "%s DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
+            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            + "%s WHERE { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
+            + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o} "
             + " } ";
 
     /**
-     * Update query with proper graph.
+     * %s - with clause
+     * %s - using clause
      */
-    private final String updateWithGraph;
-    
+    private static final String INSERT_QUERY
+            = "%s INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            + "%s WHERE { "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
+            + " } ";
+
     /**
-     * Insert query with proper graph.
+     * String version of {@link #dataset}.
      */
-    private final String insertWithGraph;
+    private final String datasetWithClause;
 
     WritableManipulatorInstance(RepositoryConnection connection, Set<URI> readGraphs, URI writeGraph,
             String symbolicName, boolean closeConnectionOnClose) throws DataUnitException {
         super(connection, readGraphs, symbolicName, closeConnectionOnClose);
-        this.updateWithGraph = String.format(UPDATE_QUERY, writeGraph.stringValue());
-        this.insertWithGraph = String.format(INSERT_QUERY, writeGraph.stringValue());
+        if (useDataset()) {
+            this.dataset.setDefaultInsertGraph(writeGraph);
+            this.dataset.addDefaultRemoveGraph(writeGraph);
+            datasetWithClause = null;
+        } else {
+            datasetWithClause = "WITH <" + writeGraph.toString() + ">\n";
+        }
     }
 
     /**
@@ -69,11 +79,20 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
      */
     public WritableManipulatorInstance add(String predicate, String value) throws DataUnitException {
         try {
+            final String query;
+            if (useDataset()) {
+                query = String.format(INSERT_QUERY, "", "");
+            } else {
+                query = String.format(INSERT_QUERY, datasetWithClause, datasetUsingClause);
+            }
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, insertWithGraph);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
+            if (useDataset()) {
+                update.setDataset(dataset);
+            }
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);
@@ -96,11 +115,19 @@ public class WritableManipulatorInstance extends ManipulatorInstance {
      */
     public WritableManipulatorInstance set(String predicate, String value) throws DataUnitException {
         try {
+            final String query;
+            if (useDataset()) {
+                query = String.format(UPDATE_QUERY, "", "");
+            } else {
+                query = String.format(UPDATE_QUERY, datasetWithClause, datasetUsingClause);
+            }
             final ValueFactory valueFactory = connection.getValueFactory();
-            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, updateWithGraph);
+            final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
-            update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
+            if (useDataset()) {
+                update.setDataset(dataset);
+            }
             update.execute();
         } catch (MalformedQueryException | RepositoryException | UpdateExecutionException ex) {
             throw new DataUnitException("Failed to execute update.", ex);

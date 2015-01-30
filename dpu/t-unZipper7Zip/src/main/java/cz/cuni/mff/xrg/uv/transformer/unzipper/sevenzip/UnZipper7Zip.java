@@ -123,7 +123,7 @@ public class UnZipper7Zip extends DpuAdvancedBase<UnZipper7ZipConfig_V1> {
      */
     private void scanDirectory(File directory) throws DataUnitException {
         LOG.debug("> scanDirectory");
-        final Path directoryPath = directory.toPath();
+        final Path directoryPath = directory.getParentFile().toPath();
         final Iterator<File> iter = FileUtils.iterateFiles(directory, null, true);
         while (iter.hasNext()) {
             final File newFile = iter.next();

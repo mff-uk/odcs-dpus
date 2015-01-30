@@ -1,12 +1,13 @@
 package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * DPU's configuration class.
  */
-public class RdfStatementParserConfig_V1 {
+public class RdfStatementParserConfig_V1 implements VersionedConfig<RdfStatementParserConfig_V2> {
 
     /**
      * Action type for group.
@@ -94,5 +95,19 @@ public class RdfStatementParserConfig_V1 {
     public void setTransferLabels(boolean transferLabels) {
         this.transferLabels = transferLabels;
     }
-    
+
+    @Override
+    public RdfStatementParserConfig_V2 toNextVersion() {
+        RdfStatementParserConfig_V2 c = new RdfStatementParserConfig_V2();
+
+        c.setSelectQuery(selectQuery);
+        c.setTransferLabels(transferLabels);
+
+        for (String key : actions.keySet()) {
+            c.getActions().add(new RdfStatementParserConfig_V2.ActionInfo(key, actions.get(key)));
+        }
+
+        return c;
+    }
+
 }

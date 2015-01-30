@@ -91,7 +91,7 @@ public class AddressMapper extends DpuAdvancedBase<AddressMapperConfig_V1> {
     }
 
     @Override
-    protected void innerInit() throws DataUnitException {
+    protected void innerInit() throws DataUnitException, DPUException {
         super.innerInit();
         // Inputs.
         rdfPostalAddress = SimpleRdfFactory.create(inRdfPostalAddress, context);

@@ -193,11 +193,14 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
         final ValueFactory valueFactory;
         try {
             valueFactory = outData.getValueFactory();
+
         } catch (OperationFailedException ex) {
             SendMessage.sendMessage(context, ex);
             return;
         }
         // Parse files.
+        final URI predicateSource;
+        predicateSource = valueFactory.createURI(HtmlCssOntology.PREDICATE_SOURCE);
         try {
             while (iter.hasNext() && !context.canceled()) {
                 final FilesDataUnit.Entry entry = iter.next();
@@ -205,7 +208,21 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                 Document doc = Jsoup.parse(new File(java.net.URI.create(entry.getFileURIString())), null);
                 outData.setOutputGraph(entry.getFileURIString());
                 // TODO Better generation for subjects.
-                parse(valueFactory, doc, entry.getFileURIString());
+                final URI rootSubject = valueFactory.createURI(entry.getFileURIString());
+                parse(valueFactory, doc, rootSubject);
+                // Add "metadata"
+                if (config.getClassAsStr() != null && !config.getClassAsStr().isEmpty()) {
+                    // Class for root object.
+                    final URI rootClass = valueFactory.createURI(config.getClassAsStr());
+                    outData.add(rootSubject,
+                            valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                            rootClass);
+                }
+                if (config.isSourceInformation()) {
+                    // Symbolic name of a source file.
+                    outData.add(rootSubject, predicateSource,
+                            valueFactory.createLiteral(entry.getSymbolicName()));
+                }
             }
         } catch (OperationFailedException ex) {
             throw new DPUException(ex);
@@ -226,20 +243,11 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      *
      * @param fileUriStr
      * @param doc
-     * @param docUri
+     * @param rootSubject Root subject for this document.
      */
-    private void parse(ValueFactory valueFactory, Document doc, String docUri)
+    private void parse(ValueFactory valueFactory, Document doc, URI rootSubject)
             throws OperationFailedException, DataUnitException, IOException, WrongActionArgs {
        final URI defaultHasPredicate = createUri(valueFactory, config.getHasPredicateAsStr());
-        // Create root subject.
-        final URI rootSubject = valueFactory.createURI(docUri);
-        // Insert initial data
-        if (config.getClassAsStr() != null && !config.getClassAsStr().isEmpty()) {
-            final URI rootClass = valueFactory.createURI(config.getClassAsStr());
-            outData.add(rootSubject,
-                    valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                    rootClass);
-        }
         // Start and parse.
         final Stack<NamedData> states = new Stack();
         states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(), rootSubject, null, null));

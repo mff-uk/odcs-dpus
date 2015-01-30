@@ -1,10 +1,15 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.config;
 
+import java.util.LinkedList;
+import java.util.List;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlFailure;
 import cz.cuni.mff.xrg.uv.service.serialization.xml.SerializationXmlGeneral;
 import org.junit.Assert;
 import org.junit.Test;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
+import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
 
 /**
  * 
@@ -26,7 +31,9 @@ public class ConfigHistoryVersionTest {
         v1.setValue(3);
 
         final String v1Str = serialization.convert(v1);
-        Config_V3 v3 = historyHolder.parse(v1Str, serialization);
+        final List<ConfigSerializer> serializers = new LinkedList<>();
+        serializers.add(new XStreamSerializer(serialization));
+        Config_V3 v3 = historyHolder.parse(v1Str, serializers);
 
         Assert.assertEquals("3", v3.getStr1());
         Assert.assertEquals("<a>3</a>", v3.getStr2());
@@ -39,7 +46,10 @@ public class ConfigHistoryVersionTest {
         v3.setStr2("abc");
 
         final String v3Str = serialization.convert(v3);
-        Config_V3 v3New = historyHolder.parse(v3Str, serialization);
+
+        final List<ConfigSerializer> serializers = new LinkedList<>();
+        serializers.add(new XStreamSerializer(serialization));
+        Config_V3 v3New = historyHolder.parse(v3Str, serializers);
 
         Assert.assertEquals("3", v3New.getStr1());
         Assert.assertEquals("abc", v3New.getStr2());

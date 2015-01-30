@@ -39,8 +39,8 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
         setSizeFull();
 
         table = new ComponentTable<>(DownloadInfo_V1.class,
-                new ComponentTable.ColumnInfo("uri", "Uri", new UrlValidator(), 0.7f),
-                new ComponentTable.ColumnInfo("virtualPath", "Download as (optional)", null, 0.3f)
+                new ComponentTable.ColumnInfo("uri", "Uri", new UrlValidator(), 0.5f),
+                new ComponentTable.ColumnInfo("virtualPath", "Download as (optional)", null, 0.5f)
         );
 
         table.setPolicy(new ComponentTable.Policy<DownloadInfo_V1>() {
@@ -52,7 +52,6 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
 
         });
 
-        setCompositionRoot(table
-        );
+        setCompositionRoot(table);
     }
 }

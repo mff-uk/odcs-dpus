@@ -142,7 +142,7 @@ public class Scraper_parser extends ScrapingTemplate{
                 case "detail-o":
                     logger.debug("Processing objednávka " + ++currentObjednavky + "/" + numObjednavky + ": " + url.toString());
 
-                    File fo = new File(URI.create(smlouvy.addNewFile(url.toString())));
+                    File fo = new File(URI.create(objednavky.addNewFile(url.toString())));
 					FileUtils.writeStringToFile(fo, doc, "UTF-8");
                     
                     Map<String, String> xsltParamsMapO = new HashMap<String, String>();
@@ -153,12 +153,12 @@ public class Scraper_parser extends ScrapingTemplate{
                 case "detail-p":
                     logger.debug("Processing plnění " + ++currentPlneni + "/" + numPlneni + ": " + url.toString());
 
-                    File fp = new File(URI.create(smlouvy.addNewFile(url.toString())));
+                    File fp = new File(URI.create(plneni.addNewFile(url.toString())));
 					FileUtils.writeStringToFile(fp, doc, "UTF-8");
                     
                     Map<String, String> xsltParamsMapP = new HashMap<String, String>();
                     xsltParamsMapP.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
-                    MapHelpers.putMap(objednavky, url.toString(), "xsltParameters", xsltParamsMapP);
+                    MapHelpers.putMap(plneni, url.toString(), "xsltParameters", xsltParamsMapP);
                     
                     break;
                 case "seznamrok-s":

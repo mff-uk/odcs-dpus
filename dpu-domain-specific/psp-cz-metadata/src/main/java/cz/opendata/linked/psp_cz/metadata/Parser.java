@@ -25,7 +25,7 @@ public class Parser extends ScrapingTemplate{
     
 	public Logger logger;
 	public PrintStream ps;
-        private String currentId;
+    private String currentId;
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
         /* Projedu si stranku a zkusim z ni ziskat linky */

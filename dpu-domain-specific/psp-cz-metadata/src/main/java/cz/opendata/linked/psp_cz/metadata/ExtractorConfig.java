@@ -2,13 +2,14 @@ package cz.opendata.linked.psp_cz.metadata;
 
 import java.util.Calendar;
 
+import cz.cuni.mff.xrg.odcs.commons.module.config.DPUConfigObjectBase;
 
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class ExtractorConfig {
+public class ExtractorConfig extends DPUConfigObjectBase {
 	
 	private static final long serialVersionUID = -5577275030298541080L;
 
@@ -26,10 +27,10 @@ public class ExtractorConfig {
 
 	private int interval = 2000;
 	
-//	@Override
-//    public boolean isValid() {
-//        return Start_year <= End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
-//    }
+	@Override
+    public boolean isValid() {
+        return Start_year <= End_year && Start_year >= 1918 && End_year <= Calendar.getInstance().get(Calendar.YEAR);
+    }
 
 	public int getStart_year() {
 		return Start_year;
