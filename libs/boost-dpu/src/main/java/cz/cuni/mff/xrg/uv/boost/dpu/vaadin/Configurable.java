@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.gui;
+package cz.cuni.mff.xrg.uv.boost.dpu.vaadin;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
@@ -21,7 +21,7 @@ public interface Configurable<CONFIG> extends AutoInitializer.Initializable {
 
     /**
      * 
-     * @return Caption that is used for {@link AbstractAddonVaadinDialog}, ie. name of respective Tab.
+     * @return Caption that is used for {@link AbstractAddonDialog}, ie. name of respective Tab.
      */
     String getDialogCaption();
 
@@ -29,6 +29,6 @@ public interface Configurable<CONFIG> extends AutoInitializer.Initializable {
      * 
      * @return Respective configuration dialog.
      */
-    AbstractAddonVaadinDialog<CONFIG> getDialog();
+    AbstractAddonDialog<CONFIG> getDialog();
 
 }

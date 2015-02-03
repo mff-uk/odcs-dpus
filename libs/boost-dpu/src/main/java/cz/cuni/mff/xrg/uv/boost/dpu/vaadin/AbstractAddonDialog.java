@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.gui;
+package cz.cuni.mff.xrg.uv.boost.dpu.vaadin;
 
 import com.vaadin.ui.CustomComponent;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
@@ -12,7 +12,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AbstractAddonVaadinDialog<CONFIG> extends CustomComponent {
+public abstract class AbstractAddonDialog<CONFIG> extends CustomComponent {
 
     /**
      * Dialog context.
@@ -25,7 +25,7 @@ public abstract class AbstractAddonVaadinDialog<CONFIG> extends CustomComponent 
      */
     private final ConfigHistory<CONFIG> configHistory;
 
-    public AbstractAddonVaadinDialog(ConfigHistory<CONFIG> configHistory) {
+    public AbstractAddonDialog(ConfigHistory<CONFIG> configHistory) {
         this.configHistory = configHistory;
     }
 

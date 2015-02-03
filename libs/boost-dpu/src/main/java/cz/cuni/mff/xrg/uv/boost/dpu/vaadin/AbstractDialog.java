@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.dpu.gui;
+package cz.cuni.mff.xrg.uv.boost.dpu.vaadin;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
@@ -9,12 +9,9 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
@@ -29,52 +26,10 @@ import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu.DPU_CONFIG_NAME;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefinition>
+public abstract class AbstractDialog<CONFIG, ONTOLOGY extends OntologyDefinition>
         extends AbstractConfigDialog<MasterConfigObject> implements InitializableConfigDialog {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractVaadinDialog.class);
-
-    /**
-     * Holds information stored in dialog.
-     */
-    public class DialogContext extends Context<CONFIG, ONTOLOGY> {
-
-        /**
-         * Owner dialog.
-         */
-        private final AbstractVaadinDialog dialog;
-
-        /**
-         * Core context.
-         */
-        private final ConfigDialogContext dialogContext;
-
-        /**
-         * List of add-on dialogs.
-         */
-        private final List<AbstractAddonVaadinDialog> addonDialogs = new LinkedList<>();
-
-        public DialogContext(AbstractVaadinDialog dialog, ConfigDialogContext dialogContext,
-                Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass, AbstractDpu<CONFIG, ONTOLOGY> dpuInstance)
-                throws DPUException {
-            super(dpuClass, dpuInstance);
-            this.dialog = dialog;
-            this.dialogContext = dialogContext;
-        }
-
-        public AbstractVaadinDialog getDialog() {
-            return dialog;
-        }
-
-        public ConfigDialogContext getDialogContext() {
-            return dialogContext;
-        }
-
-        public List<AbstractAddonVaadinDialog> getAddonDialogs() {
-            return addonDialogs;
-        }
-
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDialog.class);
 
     /**
      * Main tab sheet.
@@ -94,12 +49,12 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
     /**
      * Dialog's originalDialogContext.
      */
-    private DialogContext ctx = null;
+    private DialogContext<CONFIG, ONTOLOGY> context = null;
 
     /**
      * Original dialog context.
      */
-    private ConfigDialogContext dialogContext = null;
+    private ConfigDialogContext dialogContextHolder = null;
 
     /**
      * Class of associated DPU.
@@ -107,26 +62,26 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
     private final Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass;
 
     /**
-     * Ontology class visible to the DPU.
+     * User visible dialog context.
      */
-    protected ONTOLOGY ontology;
+    protected UserDialogContext ctx;
 
-    public <DPU extends AbstractDpu<CONFIG, ONTOLOGY>> AbstractVaadinDialog(Class<DPU> dpuClass) {
+    public <DPU extends AbstractDpu<CONFIG, ONTOLOGY>> AbstractDialog(Class<DPU> dpuClass) {
         this.dpuClass = (Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuClass;
     }
 
     @Override
     public void initialize() {
         try {
-            ctx = new DialogContext(this, dialogContext, dpuClass, null);
-            ctx.init(null);
+            context = new DialogContext(this, dialogContextHolder, dpuClass, null);
         } catch (DPUException ex) {
             LOG.error("Can't create dialog context!", ex);
             throw new RuntimeException("Dialog initialization failed!", ex);
         }
-        this.ontology = this.ctx.getOntology();
         // Build main layout.
         buildMainLayout();
+        // Set user context.
+        this.ctx = new UserDialogContext(this.context);
         //  Build user layout.
         buildDialogLayout();
     }
@@ -140,19 +95,19 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
         setSizeFull();
         tabSheet.setSizeFull();
         // Prepare add-ons.
-        for (Configurable addon : this.ctx.getConfigurableAddons()) {
-            final AbstractAddonVaadinDialog dialog = addon.getDialog();
+        for (Configurable addon : this.context.getConfigurableAddons()) {
+            final AbstractAddonDialog dialog = addon.getDialog();
             if (dialog == null) {
                 LOG.error("Dialog is ignored as it's null: {}", addon.getDialogCaption());
             } else {
                 dialog.buildLayout();
                 addTab(dialog, addon.getDialogCaption());
-                this.ctx.addonDialogs.add(dialog);
+                this.context.addonDialogs.add(dialog);
             }
         }
         // Add AboutTab.
         final AboutTab aboutTab = new AboutTab();
-        aboutTab.buildLayout(ctx);
+        aboutTab.buildLayout(context);
         addTab(aboutTab, aboutTab.getCaption());
         // We do not register for this.ctx.addonDialogs.add(dialog); as this is static element.
 
@@ -188,7 +143,7 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
 
     @Override
     public void setContext(ConfigDialogContext newContext) {
-        this.dialogContext = newContext;
+        this.dialogContextHolder = newContext;
     }
 
     /**
@@ -196,19 +151,19 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
      * @return Dialog originalDialogContext.
      */
     protected ConfigDialogContext getContext() {
-        return this.ctx.getDialogContext();
+        return this.context.getDialogContext();
     }
 
     @Override
     public void setConfig(String conf) throws DPUConfigException {
-        ctx.getConfigManager().setMasterConfig(conf);
+        context.getConfigManager().setMasterConfig(conf);
         // Configure DPU's dialog.
-        final CONFIG dpuConfig = ctx.getConfigManager().get(DPU_CONFIG_NAME,
-                this.ctx.getConfigHistory());
+        final CONFIG dpuConfig = context.getConfigManager().get(DPU_CONFIG_NAME,
+                this.context.getConfigHistory());
         setConfiguration(dpuConfig);
         // Configura add-ons.
-        for (AbstractAddonVaadinDialog dialogs : this.ctx.addonDialogs) {
-            dialogs.loadConfig(ctx.getConfigManager());
+        for (AbstractAddonDialog dialogs : this.context.addonDialogs) {
+            dialogs.loadConfig(context.getConfigManager());
         }
         // Update last configuration.
         this.lastSetConfiguration = conf;
@@ -217,17 +172,17 @@ public abstract class AbstractVaadinDialog<CONFIG, ONTOLOGY extends OntologyDefi
     @Override
     public String getConfig() throws DPUConfigException {
         // Clear config mamanger.
-        ctx.getConfigManager().setMasterConfig(new MasterConfigObject());
+        context.getConfigManager().setMasterConfig(new MasterConfigObject());
         // Get configuration from DPU.
         CONFIG dpuConfig = getConfiguration();
-        ctx.getConfigManager().set(dpuConfig, AbstractDpu.DPU_CONFIG_NAME);
+        context.getConfigManager().set(dpuConfig, AbstractDpu.DPU_CONFIG_NAME);
         // Get configuration from addons.
-        for (AbstractAddonVaadinDialog dialogs : this.ctx.addonDialogs) {
-            dialogs.storeConfig(ctx.getConfigManager());
+        for (AbstractAddonDialog dialogs : this.context.addonDialogs) {
+            dialogs.storeConfig(context.getConfigManager());
         }
         // Convert all into a string.
         try {
-            return ctx.getSerializationXml().convert(ctx.getConfigManager().getMasterConfig());
+            return context.getSerializationXml().convert(context.getConfigManager().getMasterConfig());
         } catch (SerializationFailure | SerializationXmlFailure ex) {
             throw new DPUConfigException("Conversion failed.", ex);
         }

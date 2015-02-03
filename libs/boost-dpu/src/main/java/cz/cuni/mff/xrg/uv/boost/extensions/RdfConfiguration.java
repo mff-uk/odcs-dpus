@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
@@ -200,12 +201,12 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
     @Override
     public void afterInit(Context context) throws DPUException {
         this.context = context;
-        if (context instanceof AbstractDpu.ExecutionContext) {
+        if (context instanceof ExecContext) {
 
         } else {
             return;
         }
-        final AbstractDpu.ExecutionContext execContext = (AbstractDpu.ExecutionContext)context;
+        final ExecContext execContext = (ExecContext)context;
         final AbstractDpu dpu = execContext.getDpu();
         // Search for source RDFDataUnit.
         for (Field field : dpu.getClass().getFields()) {

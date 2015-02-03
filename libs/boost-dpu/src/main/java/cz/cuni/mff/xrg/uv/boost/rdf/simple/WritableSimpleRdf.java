@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
@@ -123,6 +124,7 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
     public WritableSimpleRdf add(Resource s, URI p, Value o) throws SimpleRdfException {
+        LOG.info("add({}, {}, {})", s, p, o);
         // Add to buffer.
         writeBuffer.add(new StatementImpl(s, p, o));
         applyFlushBufferPolicy();
@@ -172,6 +174,7 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * @throws SimpleRdfException
      */
     private void flushBufferInner() throws SimpleRdfException {
+        LOG.info("flushBufferInner!");
         if (writeBuffer.isEmpty()) {
             // Nothing to save into repository.
             return;
@@ -320,14 +323,14 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
     public void afterInit(Context context) throws DPUException {
         super.afterInit(context);
         //
-        if (context instanceof AbstractDpu.ExecutionContext) {
+        if (context instanceof ExecContext) {
             // Ok we can process.
         } else {
             // Nothin for the dialog.
             return;
         }
         // Get underliyng RDFDataUnit and other objects.
-        final AbstractDpu.ExecutionContext execContext = (AbstractDpu.ExecutionContext) context;
+        final ExecContext execContext = (ExecContext) context;
         //
         final Object dpu = execContext.getDpu();
         final Field field;

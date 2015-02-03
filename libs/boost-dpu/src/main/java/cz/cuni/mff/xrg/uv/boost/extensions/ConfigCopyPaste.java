@@ -11,9 +11,10 @@ import com.vaadin.ui.VerticalLayout;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractAddonDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.DialogContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
@@ -32,7 +33,7 @@ public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configurati
         
     }
 
-    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
+    public class VaadinDialog extends AbstractAddonDialog<Configuration_V1> {
 
         private TextArea txtConfiguration;
 
@@ -126,7 +127,7 @@ public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configurati
     /**
      * Dialog context.
      */
-    private AbstractVaadinDialog.DialogContext dialogContext = null;
+    private DialogContext dialogContext = null;
 
     @Override
     public void preInit(String param) throws DPUException {
@@ -135,8 +136,8 @@ public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configurati
 
     @Override
     public void afterInit(Context context) {
-        if (context instanceof AbstractVaadinDialog.DialogContext) {
-            this.dialogContext = (AbstractVaadinDialog.DialogContext)context;
+        if (context instanceof DialogContext) {
+            this.dialogContext = (DialogContext)context;
         }
     }
 
@@ -151,7 +152,7 @@ public class ConfigCopyPaste implements Configurable<ConfigCopyPaste.Configurati
     }
 
     @Override
-    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
+    public AbstractAddonDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
     }
 

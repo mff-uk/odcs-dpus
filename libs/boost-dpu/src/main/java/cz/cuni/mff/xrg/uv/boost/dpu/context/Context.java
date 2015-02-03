@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.boost.dpu.context;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import org.openrdf.model.impl.ValueFactoryImpl;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
@@ -11,7 +12,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
@@ -79,6 +80,11 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
     private final ONTOLOGY ontology;
 
     /**
+     * Module for localization support.
+     */
+    private final Localization localization = new Localization();
+
+    /**
      * Set base fields and create
      *
      * @param <T>
@@ -99,9 +105,14 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
         // Set properties.
         this.dpuClass = dpuClass;
         this.dialog = true;
-        this.configHistory = dpuInstance.getConfigHistory();
+        this.configHistory = dpuInstance.getConfigHistoryHolder();
         this.serializationXml = SerializationXmlFactory.serializationXml();
-        this.ontology = dpuInstance.getOntology();
+        // Create ontology instance.
+        try {
+            this.ontology = dpuInstance.getOntologyHolder().newInstance();
+        } catch (IllegalAccessException | InstantiationException ex) {
+            throw new RuntimeException("Can't create ontologz class.", ex);
+        }
         // Prepare initializer.
         this.initializer = new AutoInitializer(dpuInstance);        
         // Prepare configuration manager - without addons, configuration transformers etc ..
@@ -115,7 +126,10 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
      *                       later.
      * @throws DPUException
      */
-    public void init(String configAsString) throws DPUException {
+    protected final void init(String configAsString, Locale locale, ClassLoader classLoader)
+            throws DPUException {
+        // Initialize localization.
+        this.localization.setLocale(locale, classLoader);
         // Start with ontology initialization.
         this.ontology.init(ValueFactoryImpl.getInstance());
         // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
@@ -142,13 +156,13 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
      */
     @Override
     public void onField(Field field, Object value) {
-        if (Addon.class.isAssignableFrom(value.getClass())) {
+        if (value instanceof Addon) {
             addons.add((Addon) value);
         }
-        if (ConfigTransformer.class.isAssignableFrom(value.getClass())) {
+        if (value instanceof ConfigTransformer) {
             configTransformers.add((ConfigTransformer) value);
         }
-        if (Configurable.class.isAssignableFrom(value.getClass())) {
+        if (value instanceof Configurable) {
             configurable.add((Configurable) value);
         }
     }
@@ -211,6 +225,7 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
      * @param clazz
      * @return Null if no {@link Addon} of given type exists.
      */
+    @SuppressWarnings("unchecked")
     public <T> T getInstance(Class<T> clazz) {
         for (Addon item : addons) {
             if (item.getClass() == clazz) {
@@ -229,6 +244,18 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
             }
         }
         return null;
+    }
+
+    public Localization getLocalization() {
+        return localization;
+    }
+
+    /**
+     *
+     * @return Return new instance of {@link UserContext} that wrap this context.
+     */
+    public UserContext asUserContext() {
+        return new UserContext(this);
     }
 
 }

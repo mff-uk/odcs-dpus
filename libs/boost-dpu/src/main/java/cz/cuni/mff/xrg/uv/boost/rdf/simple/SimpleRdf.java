@@ -8,6 +8,7 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 import eu.unifiedviews.dataunit.DataUnitException;
@@ -53,14 +54,14 @@ public class SimpleRdf implements AutoInitializer.Initializable {
 
     @Override
     public void afterInit(Context context) throws DPUException {
-        if (context instanceof AbstractDpu.ExecutionContext) {
+        if (context instanceof ExecContext) {
             // Ok we can process.
         } else {
             // Nothin for the dialog.
             return;
         }
         // Get underliyng RDFDataUnit.
-        final AbstractDpu.ExecutionContext execContext = (AbstractDpu.ExecutionContext)context;
+        final ExecContext execContext = (ExecContext)context;
         final Object dpu = execContext.getDpu();
         final Field field;
         try {

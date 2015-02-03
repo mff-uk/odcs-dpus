@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Holds annotations to describe RDF ontology for POJO.
+ * Holds annotations to describe RDF ontology for POJO. It's recommended to store ontology definition in
+ * instance of {@link OntologyDefinition} class.
  *
  * @author Škoda Petr
  */
@@ -25,7 +26,7 @@ public class Ontology {
 
         /**
          *
-         * @return URI of predicate for this property.
+         * @return String URI of predicate for this property.
          */
         String uri();
 

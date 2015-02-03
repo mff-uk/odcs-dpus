@@ -3,7 +3,10 @@ package cz.cuni.mff.xrg.uv.boost.dpu.context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Utilities for context.
@@ -25,16 +28,21 @@ public class ContextUtils {
      * @param type
      * @param caption
      * @param bodyFormat
-     * @param params
+     * @param args
      */
-    public static void sendMessage(DPUContext context, DPUContext.MessageType type, String caption,
-            String bodyFormat, Object... params) {
-        final String body = String.format(bodyFormat, params);
-        if (context == null) {
-            LOG.info("Message ignored:\ntype:{}\ncaption:{}\ntext:{}\n", type, caption, body);
-        } else {
-            context.sendMessage(type, caption, body);
+    public static void sendMessage(UserContext context, DPUContext.MessageType type, String caption,
+            String bodyFormat, Object... args) {
+        final String body = String.format(bodyFormat, args);
+        if (context.getMasterContext() instanceof ExecContext) {
+            final UserExecContext execContext = (UserExecContext)context;
+            final DPUContext dpuContext = ((ExecContext)execContext.getMasterContext()).getDpuContext();
+            if (dpuContext != null) {
+                dpuContext.sendMessage(type, caption, body);
+                return;
+            }
         }
+        // Else context has not yet been initialized.
+        LOG.info("Message ignored:\ntype:{}\ncaption:{}\ntext:{}\n", type, caption, body);
     }
 
     /**
@@ -45,16 +53,21 @@ public class ContextUtils {
      * @param caption
      * @param exception
      * @param bodyFormat
-     * @param params
+     * @param args
      */
-    public static void sendMessage(DPUContext context, DPUContext.MessageType type, String caption,
-            Exception exception, String bodyFormat, Object... params) {
-        final String body = String.format(bodyFormat, params);
-        if (context == null) {
-            LOG.info("Message ignored:\ntype:{}\ncaption:{}\ntext:{}\n", type, caption, body);
-        } else {
-            context.sendMessage(type, caption, body, exception);
+    public static void sendMessage(UserContext context, DPUContext.MessageType type, String caption,
+            Exception exception, String bodyFormat, Object... args) {
+        final String body = String.format(bodyFormat, args);
+        if (context.getMasterContext() instanceof ExecContext) {
+            final UserExecContext execContext = (UserExecContext)context;
+            final DPUContext dpuContext = ((ExecContext)execContext.getMasterContext()).getDpuContext();
+            if (dpuContext != null) {
+                dpuContext.sendMessage(type, caption, body, exception);
+                return;
+            }
         }
+        // Else context has not yet been initialized.
+        LOG.info("Message ignored:\ntype:{}\ncaption:{}\ntext:{}\n", type, caption, body);
     }
 
     /**
@@ -63,10 +76,10 @@ public class ContextUtils {
      * @param context
      * @param caption    Caption ie. short message.
      * @param bodyFormat
-     * @param params
+     * @param args
      */
-    public static void sendInfo(DPUContext context, String caption, String bodyFormat, Object... params) {
-        sendMessage(context, DPUContext.MessageType.INFO, caption, bodyFormat, params);
+    public static void sendInfo(UserContext context, String caption, String bodyFormat, Object... args) {
+        sendMessage(context, DPUContext.MessageType.INFO, caption, bodyFormat, args);
     }
 
     /**
@@ -75,30 +88,85 @@ public class ContextUtils {
      * @param context
      * @param caption    Caption ie. short message.
      * @param bodyFormat
-     * @param params
+     * @param args
      */
-    public static void sendWarn(DPUContext context, String caption, String bodyFormat, Object... params) {
-        sendMessage(context, DPUContext.MessageType.WARNING, caption, bodyFormat, params);
+    public static void sendWarn(UserContext context, String caption, String bodyFormat, Object... args) {
+        sendMessage(context, DPUContext.MessageType.WARNING, caption, bodyFormat, args);
     }
 
-    public static void sendWarn(DPUContext context, String caption, Exception exception,
-            String bodyFormat, Object... params) {
-        sendMessage(context, DPUContext.MessageType.WARNING, caption, exception, bodyFormat, params);
+    /**
+     * Send formated {@link DPUContext.MessageType#WARNING} message.
+     *
+     * @param context
+     * @param caption
+     * @param exception
+     * @param bodyFormat
+     * @param args
+     */
+    public static void sendWarn(UserContext context, String caption, Exception exception,
+            String bodyFormat, Object... args) {
+        sendMessage(context, DPUContext.MessageType.WARNING, caption, exception, bodyFormat, args);
     }
 
-    public static void sendError(DPUContext context, String caption, Exception exception,
-            String bodyFormat, Object... params) {
-        sendMessage(context, DPUContext.MessageType.ERROR, caption, exception, bodyFormat, params);
+    /**
+     * Send formated {@link DPUContext.MessageType#ERROR} message.
+     *
+     * @param context
+     * @param caption
+     * @param exception
+     * @param bodyFormat
+     * @param args
+     */
+    public static void sendError(UserContext context, String caption, Exception exception,
+            String bodyFormat, Object... args) {
+        sendMessage(context, DPUContext.MessageType.ERROR, caption, exception, bodyFormat, args);
     }
 
-    public static void sendShortInfo(DPUContext context, String captionFormat, Object... params) {
-        final String caption = String.format(captionFormat, params);
+    /**
+     * Send short {@link DPUContext.MessageType#INFO message (caption only). The caption is formated.
+     *
+     * @param context
+     * @param captionFormat
+     * @param args
+     */
+    public static void sendShortInfo(UserContext context, String captionFormat, Object... args) {
+        final String caption = String.format(captionFormat, args);
         sendMessage(context, DPUContext.MessageType.INFO, caption, "");
     }
 
-    public static void sendShortWarn(DPUContext context, String captionFormat, Object... params) {
-        final String caption = String.format(captionFormat, params);
+    /**
+     * Send short {@link DPUContext.MessageType#WARNING} message (caption only). The caption is formated.
+     *
+     * @param context
+     * @param captionFormat
+     * @param args
+     */
+    public static void sendShortWarn(UserContext context, String captionFormat, Object... args) {
+        final String caption = String.format(captionFormat, args);
         sendMessage(context, DPUContext.MessageType.WARNING, caption, "");
+    }
+
+    /**
+     * Throw DPU exception of given text. Before throw given text is localized based on current locale
+     * setting.
+     *
+     * @param message Exception message.
+     * @throws DPUException
+     */
+    public void throwDpuException(String message) throws DPUException {
+
+    }
+
+    /**
+     * Throw DPU exception of given text. Before throw given text is localized based on current locale
+     * setting.
+     * 
+     * @param message
+     * @param args
+     * @throws DPUException
+     */
+    public void throwDpuException(String message, Object... args) throws DPUException {
+
     }
 
 

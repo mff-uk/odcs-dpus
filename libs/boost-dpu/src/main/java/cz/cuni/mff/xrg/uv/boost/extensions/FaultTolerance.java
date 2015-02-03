@@ -16,13 +16,13 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractAddonDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
@@ -132,7 +132,7 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
 
     }
 
-    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
+    public class VaadinDialog extends AbstractAddonDialog<Configuration_V1> {
 
         private CheckBox checkEnabled;
 
@@ -234,7 +234,7 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
     }
 
     @Override
-    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
+    public AbstractAddonDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
     }
 
@@ -247,8 +247,8 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
     @Override
     public void afterInit(Context context) {
         LOG.info("afterInit called!");
-        if (context instanceof AbstractDpu.ExecutionContext) {
-            this.dpuContext = ((AbstractDpu.ExecutionContext) context).getDpuContext();
+        if (context instanceof ExecContext) {
+            this.dpuContext = ((ExecContext) context).getDpuContext();
             LOG.info("\tcontext set to: {}", this.dpuContext);
         }
         // Load configuration.
@@ -256,12 +256,12 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, configHistory);
         } catch (ConfigException ex) {
             LOG.warn("Can't load configuration.", ex);
-            ContextUtils.sendInfo(this.dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendInfo(context.asUserContext(), "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
         if (this.config == null) {
-            ContextUtils.sendInfo(this.dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendInfo(context.asUserContext(), "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }

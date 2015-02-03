@@ -27,7 +27,7 @@ import eu.unifiedviews.dpu.DPUException;
  *      // Do nothing here. Ontology is just not available, default values will be used.
  *  }
  *  try {
- *      // Use another try-vatch block to load next depedency.
+ *      // Use another try-catch block to load next dependency.
  *      load(cz.cuni.mff.xrg.uv.transformer.xslt.XsltTOntology.class);
  *  } catch (DPUException ex) {
  *      throw ex;
@@ -41,9 +41,11 @@ import eu.unifiedviews.dpu.DPUException;
  * <ul>
  * <li>This class assumes that all public static fields are of type string.</li>
  * <li>External annotation should be used only on on public static non-final string fields.</li>
+ * <li>As the values can change base on presence of other DPUs in the system, do not store them.!</li>
  * </ul>
  *
  * TODO Petr: Implements test!
+ * TODO Petr: Should we initialize the target instance to enable chaining?
  *
  * @author Škoda Petr
  */
@@ -69,9 +71,15 @@ public class OntologyDefinition {
     }
 
     /**
-     * Store initialized URIs.
+     * Store initialized URIs. Mapping is from original values.
      */
-    private final Map<String, URI> dictionary = new HashMap<>();
+    private final Map<String, URI> uris = new HashMap<>();
+
+    /**
+     * Store mapping from initial values to loaded ones. Used as a temporary storage
+     * before {@link #uris} is initialized.
+     */
+    private final Map<String, String> translations = new HashMap<>();
 
     /**
      * Call this to load {@link OntologyDefinition} from other DPU. Call of this function will require address
@@ -101,8 +109,8 @@ public class OntologyDefinition {
             final String sourceFieldName = path.substring(className.length() + 1);
             try {
                 final Field sourceField = clazz.getField(sourceFieldName);
-                // Get and set.
-                field.set(null, sourceField.get(null));
+                // Store in translation list.
+                translations.put((String)field.get(null), (String)sourceField.get(null));
             } catch (NoSuchFieldException | SecurityException |
                     IllegalAccessException | IllegalArgumentException ex) {
                 throw new DPUException("Can't copy field: " + sourceFieldName, ex);
@@ -129,7 +137,12 @@ public class OntologyDefinition {
                 throw new DPUException("Can't read field value.", ex);
             }
             try {
-                dictionary.put(fieldValue, valueFactory.createURI(fieldValue));
+                if (translations.containsKey(fieldValue)) {
+                    uris.put(fieldValue, valueFactory.createURI(translations.get(fieldValue)));
+                } else {
+                    // original value is used.
+                    uris.put(fieldValue, valueFactory.createURI(fieldValue));
+                }                
             } catch (IllegalArgumentException ex) {
                 throw new DPUException("Current value: " + fieldValue + " is not a valid URI for field" +
                         field.getName(), ex);
@@ -144,7 +157,7 @@ public class OntologyDefinition {
      * @return URI for given ontology URI.
      */
     public URI get(String uri) {
-        return dictionary.get(uri);
+        return uris.get(uri);
     }
 
     /**

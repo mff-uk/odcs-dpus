@@ -26,7 +26,7 @@ public interface Addon extends AutoInitializer.Initializable {
     /**
      * Interface for executable ad-don.
      */
-    public interface Executable {
+    public interface Executable extends Addon {
 
         /**
          *

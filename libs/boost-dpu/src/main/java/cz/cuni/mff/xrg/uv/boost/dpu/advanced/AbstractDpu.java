@@ -13,9 +13,8 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
@@ -32,61 +31,6 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
         ConfigDialogProvider<MasterConfigObject> {
 
     /**
-     * Holds all information from {@link AbstractDpu} to make manipulation with them easier.
-     */
-    public class ExecutionContext extends Context<CONFIG, ONTOLOGY> {
-
-        /**
-         * Owner DPU instance.
-         */
-        private final AbstractDpu<CONFIG, ONTOLOGY> dpu;
-
-        /**
-         * Execution context.
-         */
-        private DPUContext dpuContext = null;
-
-        /**
-         * DPU's configuration.
-         */
-        private CONFIG config = null;
-
-        /**
-         * Cause given DPU initialization. Must not be called in constructor!
-         *
-         * @param dpuClass
-         * @param dpuInstance
-         * @param ontology
-         * @throws DPUException
-         */
-        public ExecutionContext(AbstractDpu<CONFIG, ONTOLOGY> dpuInstance) {
-            super((Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuInstance.getClass(), dpuInstance);
-            this.dpu = dpuInstance;
-        }
-
-        public CONFIG getConfig() {
-            return config;
-        }
-
-        public void setConfig(CONFIG config) {
-            this.config = config;
-        }
-
-        public DPUContext getDpuContext() {
-            return dpuContext;
-        }
-
-        public AbstractDpu<CONFIG, ONTOLOGY> getDpu() {
-            return dpu;
-        }
-
-        private void setDpuContext(DPUContext dpuContext) {
-            this.dpuContext = dpuContext;
-        }
-
-    }
-
-    /**
      * Name used for DPU's configuration class.
      */
     public static final String DPU_CONFIG_NAME = "dpu_config";
@@ -96,12 +40,21 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     /**
      * Holds all variables of this class.
      */
-    private ExecutionContext masterContext = null;
+    private ExecContext<CONFIG, ONTOLOGY> masterContext = null;
 
     /**
      * History of configuration.
+     *
+     * As holder is used to store information until it's used by context.
      */
-    private ConfigHistory<CONFIG> configHistory = null;
+    private final ConfigHistory<CONFIG> configHistoryHolder;
+
+    /**
+     * Holds definition of ontology class.
+     *
+     * As holder is used to store information until it's used by context.
+     */
+    private final Class<ONTOLOGY> ontologyHolder;
 
     /**
      * Configuration class visible for the DPU.
@@ -109,14 +62,14 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     protected CONFIG config;
 
     /**
-     * {@link DPUContext} visible to the DPU.
+     * User visible context.
      */
-    protected DPUContext context;
+    protected UserExecContext ctx;
 
     /**
      * Class of user dialog.
      */
-    private Class<AbstractVaadinDialog<CONFIG, ONTOLOGY>> dialogClass;
+    private final Class<AbstractDialog<CONFIG, ONTOLOGY>> dialogClass;
 
     /**
      * Used to hold configuration between {@link #configure(java.lang.String)} and
@@ -125,39 +78,32 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     private String configAsString;
 
     /**
-     * Hold ontology so it may be accessible by contexts.
-     */
-    protected ONTOLOGY ontology;
-
-    /**
      *
      * @param configHistory
      */
-    public <DIALOG extends AbstractVaadinDialog<CONFIG, ONTOLOGY>> AbstractDpu(Class<DIALOG> dialogClass,
-            ConfigHistory<CONFIG> configHistory, ONTOLOGY ontology) {
-        this.dialogClass = (Class<AbstractVaadinDialog<CONFIG, ONTOLOGY>>) dialogClass;
-        this.configHistory = configHistory;
+    public <DIALOG extends AbstractDialog<CONFIG, ONTOLOGY>> AbstractDpu(Class<DIALOG> dialogClass,
+            ConfigHistory<CONFIG> configHistory, Class<ONTOLOGY> ontology) {
+        this.dialogClass = (Class<AbstractDialog<CONFIG, ONTOLOGY>>) dialogClass;
+        this.configHistoryHolder = configHistory;
+        this.ontologyHolder = ontology;
         // Initialize master context.
-        this.masterContext = new ExecutionContext(this);
-        this.ontology = ontology;
+        this.masterContext = new ExecContext(this);
     }
 
     @Override
     public void execute(DPUContext context) throws DPUException {
-        // Set context.
-        this.masterContext.setDpuContext(context);
         // Set master configuration and initialize ConfigTransformer -> initialize addons.
-        this.masterContext.init(configAsString);
+        this.masterContext.init(configAsString, context);
         // ConfigTransformer are ready from setConfiguration method -> get DPU configuration.
         try {
-            this.masterContext.config = (CONFIG) this.masterContext.getConfigManager().get(
-                    DPU_CONFIG_NAME, this.masterContext.getConfigHistory());
+            this.masterContext.setDpuConfig((CONFIG) this.masterContext.getConfigManager().get(
+                    DPU_CONFIG_NAME, this.masterContext.getConfigHistory()));
         } catch (ConfigException ex) {
             throw new DPUException("Configuration preparation failed.", ex);
         }
         // Set variables for DPU.
-        this.config = this.masterContext.config;
-        this.context = this.masterContext.dpuContext;
+        this.config = this.masterContext.getDpuConfig();
+        this.ctx = new UserExecContext(this.masterContext);
         // Execute DPU's code - innerInit.
         try {
             LOG.info("innerInit:start");
@@ -270,7 +216,7 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
                             execPoint.toString());
                     execAddon.execute(execPoint);
                 } catch (AddonException ex) {
-                    ContextUtils.sendError(this.masterContext.dpuContext, "Addon execution failed",
+                    ContextUtils.sendError(this.ctx, "Addon execution failed",
                             ex, "Addon: s", addon.getClass().getSimpleName());
                     result = false;
                 }
@@ -279,16 +225,12 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
         return result;
     }
 
-    public ConfigHistory<CONFIG> getConfigHistory() {
-        return this.configHistory;
+    public ConfigHistory<CONFIG> getConfigHistoryHolder() {
+        return this.configHistoryHolder;
     }
 
-    /**
-     *
-     * @return Ontology definition.
-     */
-    public ONTOLOGY getOntology() {
-        return ontology;
+    public Class<ONTOLOGY> getOntologyHolder() {
+        return ontologyHolder;
     }
 
     /**

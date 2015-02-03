@@ -5,10 +5,9 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.CancelledException;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractAddonVaadinDialog;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.Configurable;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractAddonDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
@@ -142,7 +142,7 @@ public class CachedFileDownloader
     /**
      * Vaadin configuration dialog.
      */
-    public class VaadinDialog extends AbstractAddonVaadinDialog<Configuration_V1> {
+    public class VaadinDialog extends AbstractAddonDialog<Configuration_V1> {
 
         private TextField txtMaxAttemps;
 
@@ -341,8 +341,8 @@ public class CachedFileDownloader
     @Override
     public void afterInit(Context context) {
         this.context = context;
-        if (context instanceof AbstractDpu.ExecutionContext) {
-            this.dpuContext = ((AbstractDpu.ExecutionContext)context).getDpuContext();
+        if (context instanceof ExecContext) {
+            this.dpuContext = ((ExecContext)context).getDpuContext();
         }
     }
 
@@ -370,13 +370,13 @@ public class CachedFileDownloader
             // Load configuration.
             this.config = context.getConfigManager().get(USED_CONFIG_NAME, configHistory);
         } catch (ConfigException ex) {
-            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration", ex,
+            ContextUtils.sendWarn(context.asUserContext(), "Addon failed to load configuration", ex,
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
 
         if (this.config == null) {
-            ContextUtils.sendWarn(dpuContext, "Addon failed to load configuration",
+            ContextUtils.sendWarn(context.asUserContext(), "Addon failed to load configuration",
                     "Failed to load configuration for: %s default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
@@ -405,7 +405,7 @@ public class CachedFileDownloader
     }
 
     @Override
-    public AbstractAddonVaadinDialog<Configuration_V1> getDialog() {
+    public AbstractAddonDialog<Configuration_V1> getDialog() {
         return new VaadinDialog();
     }
 
@@ -610,7 +610,7 @@ public class CachedFileDownloader
             }
         } catch (IOException ex) {
             //throw new AddonException("Can't read cache into from file.", ex);
-            ContextUtils.sendWarn(dpuContext, ADDON_NAME,
+            ContextUtils.sendWarn(context.asUserContext(), ADDON_NAME,
                     "Can't read cache file from: '%s'. This is normal if DPU is running for the first time.",
                     cacheFile.toString());
         } catch (SerializationFailure | SerializationXmlFailure  ex) {
