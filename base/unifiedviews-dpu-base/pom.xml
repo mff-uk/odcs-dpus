@@ -19,6 +19,8 @@
         <vaadin.version>7.3.7</vaadin.version>
         <!-- Must end with comma if not empty. Can be used to influence the OSGI import package list. -->
         <osgi.packages></osgi.packages>
+        <!-- http://jira.codehaus.org/browse/MRESOURCES-99 -->
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
     </properties>
     
     <dependencies>
@@ -84,6 +86,23 @@
         </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <!--  Used by cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AboutTab. -->
+                    <include>build-info.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>build-info.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin> <!-- Main build plugin. -->
                 <groupId>org.apache.felix</groupId>
