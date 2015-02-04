@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdf;
-import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Common utility class for serialization.
@@ -69,8 +68,8 @@ public class SerializationUtils {
     }
 
     /**
-     * Merge (add) data from source to target. If value in target is not set then original value in source is
-     * used.
+     * Merge (add) data from source to target. All null-values in target are overwritten with values from
+     * source, collections are merged.
      *
      * In case of collection the elements from target are added to source.
      *
@@ -89,14 +88,27 @@ public class SerializationUtils {
         }
     }
 
+    /**
+     * If target field is null, then value from source is used instead. In case of collection all elements
+     * from source are added to target.
+     *
+     * @param <T>
+     * @param field
+     * @param source
+     * @param target
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
     private static <T> void mergeField(Field field, T source, T target) throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException {
-        Object sourceValue;
+        Object sourceValue, targetValue;
         final PropertyDescriptor fieldDesc;
         // Read source value.
         if ((field.getModifiers() & Modifier.PUBLIC) > 0) {
             fieldDesc = null; // We do not use this here.
             sourceValue = field.get(source);
+            targetValue = field.get(target);
         } else {
             try {
                 fieldDesc = new PropertyDescriptor(field.getName(), source.getClass());
@@ -105,12 +117,13 @@ public class SerializationUtils {
                         + field.getName(), ex);
             }
             sourceValue = fieldDesc.getReadMethod().invoke(source);
+            targetValue = fieldDesc.getReadMethod().invoke(target);
         }
         if (sourceValue == null) {
-            // Do not copy!
+            // Do not copy, no value in source.
             return;
         }
-        if (Collection.class.isAssignableFrom(field.getType())) {
+        if (sourceValue instanceof Collection) {
             // Get representation (as collection) of source and target. The merge here is to add
             // data from source colleciton to target one.
             final Collection sourceCollection = (Collection) sourceValue;
@@ -122,7 +135,7 @@ public class SerializationUtils {
             }
             // Add items.
             targetCollection.addAll(sourceCollection);
-        } else if (Map.class.isAssignableFrom(field.getType())) {
+        } else if (sourceValue instanceof Map) {
             // Same as for collections abovbe.
             final Map sourceMap = (Map) sourceValue;
             final Map targetMap;
@@ -134,12 +147,16 @@ public class SerializationUtils {
             // Add items.
             targetMap.putAll(sourceMap);
         } else {
-            // Primitive type -> just write.
-            if (fieldDesc == null) {
-                field.set(target, sourceValue);
-            } else {
-                fieldDesc.getWriteMethod().invoke(target, sourceValue);
-            }
+             if (targetValue != null) {
+                 // Skip as we preserve primitive values from target.
+             } else {
+                 // Primitive type -> just write.
+                 if (fieldDesc == null) {
+                     field.set(target, sourceValue);
+                 } else {
+                     fieldDesc.getWriteMethod().invoke(target, sourceValue);
+                 }
+             }
         }
     }
 
