@@ -12,6 +12,8 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPUContext;
@@ -282,7 +284,7 @@ public class SparqlUtils {
      * @throws MalformedQueryException
      * @throws DPUException
      */
-    public static void execute(RepositoryConnection connection, DPUContext context, 
+    public static void execute(RepositoryConnection connection, UserExecContext<?> context,
             SparqlSelectObject queryObject, TupleIterator callback)
             throws SparqlProblemException, MalformedQueryException, DPUException {
         LOG.debug("Executing query: {}", queryObject.sparqlQuery);
@@ -323,7 +325,7 @@ public class SparqlUtils {
      * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws MalformedQueryException
      */
-     public static void execute(RepositoryConnection connection, DPUContext context,
+     public static void execute(RepositoryConnection connection, UserExecContext<?> context,
              SparqlConstructObject constructObject, StatementIterator callback)
             throws SparqlProblemException, MalformedQueryException, DPUException {
         LOG.debug("Executing construct: {}", constructObject.sparqlQuery);
