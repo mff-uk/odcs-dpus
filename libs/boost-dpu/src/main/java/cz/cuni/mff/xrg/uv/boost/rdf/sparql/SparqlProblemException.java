@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql;
+package cz.cuni.mff.xrg.uv.boost.rdf.sparql;
 
 import cz.cuni.mff.xrg.uv.utils.dataunit.FailedOperationException;
 
