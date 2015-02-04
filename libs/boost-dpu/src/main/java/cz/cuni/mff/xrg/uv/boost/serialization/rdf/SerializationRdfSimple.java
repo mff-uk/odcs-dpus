@@ -108,6 +108,10 @@ class SerializationRdfSimple implements SerializationRdf {
             // We know that all subjects are equal to rootResource. The predicates
             // need to be map to configurations.
             final String predicateStr = statement.getPredicate().stringValue();
+            if ("http://www.w3.org/2000/01/rdf-schema#type".equals(predicateStr)) {
+                // It's object type, we can skip it as we do not use it.
+                continue;
+            }
             final String propertyName = getPropertyName(context.config, predicateStr);
             if (propertyName == null) {
                 // Uknown predicate log and skip the predicate.
