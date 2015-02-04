@@ -207,7 +207,7 @@ public class SparqlUtils {
 
     /**
      *
-     * @param query
+     * @param query Query must contains INSERT statement.
      * @param sources
      * @param target
      * @return Prepared SPARQL update query.
