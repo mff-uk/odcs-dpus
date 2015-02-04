@@ -64,7 +64,7 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     /**
      * User visible context.
      */
-    protected UserExecContext ctx;
+    protected UserExecContext<ONTOLOGY> ctx;
 
     /**
      * Class of user dialog.
