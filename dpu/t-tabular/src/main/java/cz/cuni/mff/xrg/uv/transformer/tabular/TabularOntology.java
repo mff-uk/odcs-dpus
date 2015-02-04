@@ -1,13 +1,12 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 
 /**
  *
  * @author Škoda Petr
  */
-public class TabularOntology {
+public class TabularOntology extends OntologyDefinition {
 
     private TabularOntology() {
 
@@ -36,29 +35,5 @@ public class TabularOntology {
 
     public static String ROW_CLASS =
             "http://unifiedviews.eu/ontology/t-tabular/Row";
-
-    public static URI URI_BLANK_CELL;
-
-    public static URI URI_ROW_NUMBER;
-
-    public static URI URI_RDF_ROW_LABEL;
-
-    public static URI URI_TABLE_HAS_ROW;
-
-    public static URI URI_TABLE_SYMBOLIC_NAME;
-
-    public static URI URI_RDF_A_PREDICATE;
-
-    public static URI URI_TABLE_CLASS;
     
-    public static void init(ValueFactory valueFactory) {
-        URI_BLANK_CELL = valueFactory.createURI(BLANK_CElL);
-        URI_ROW_NUMBER = valueFactory.createURI(ROW_NUMBER);
-        URI_RDF_ROW_LABEL = valueFactory.createURI(RDF_ROW_LABEL);
-        URI_TABLE_HAS_ROW = valueFactory.createURI(TABLE_HAS_ROW);
-        URI_TABLE_SYMBOLIC_NAME = valueFactory.createURI(TABLE_SYMBOLIC_NAME);
-        URI_RDF_A_PREDICATE = valueFactory.createURI(RDF_A_PREDICATE);
-        URI_TABLE_CLASS = valueFactory.createURI(TABLE_CLASS);
-    }
-
 }

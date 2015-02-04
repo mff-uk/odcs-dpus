@@ -4,27 +4,18 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.xls.ParserXls;
 import cz.cuni.mff.xrg.uv.transformer.tabular.dbf.ParserDbf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.csv.ParserCsv;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.*;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
-import eu.unifiedviews.dataunit.files.FilesDataUnit.Entry;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.fileshelper.FilesHelper;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.openrdf.model.URI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
@@ -39,9 +30,7 @@ import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class Tabular extends AbstractDpu<TabularConfig_V2> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Tabular.class);
+public class Tabular extends AbstractDpu<TabularConfig_V2, TabularOntology> {
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;
@@ -57,12 +46,8 @@ public class Tabular extends AbstractDpu<TabularConfig_V2> {
 
     public Tabular() {
         super(TabularVaadinDialog.class,
-                ConfigHistory.history(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class));
-    }
-
-    @Override
-    protected void innerInit() throws DataUnitException {
-        TabularOntology.init(rdfTableWrap.getValueFactory());
+                ConfigHistory.history(TabularConfig_V1.class).addCurrent(TabularConfig_V2.class),
+                TabularOntology.class);
     }
 
     @Override
@@ -74,18 +59,16 @@ public class Tabular extends AbstractDpu<TabularConfig_V2> {
         final Parser parser;
         switch (config.getTableType()) {
             case CSV:
-                parser = new ParserCsv(config.getParserCsvConfig(), tableToRdf, context);
+                parser = new ParserCsv(config.getParserCsvConfig(), tableToRdf, ctx);
                 break;
             case DBF:
-                parser = new ParserDbf(config.getParserDbfConfig(), tableToRdf, context);
+                parser = new ParserDbf(config.getParserDbfConfig(), tableToRdf, ctx);
                 break;
             case XLS:
-                parser = new ParserXls(config.getParserXlsConfig(), tableToRdf, context);
+                parser = new ParserXls(config.getParserXlsConfig(), tableToRdf, ctx);
                 break;
             default:
-                context.sendMessage(DPUContext.MessageType.ERROR, "Unknown table file: "
-                        + config.getTableType());
-                return;
+                throw new DPUException("Unknown table file: " + config.getTableType());
         }
         // We eager load as there is bug with repository: https://openrdf.atlassian.net/browse/SES-2106
         final List<FilesDataUnit.Entry> files = new LinkedList<>();
@@ -98,7 +81,7 @@ public class Tabular extends AbstractDpu<TabularConfig_V2> {
         });
         // Execute over files.
         for (final FilesDataUnit.Entry entry : files) {
-            if (context.canceled()) {
+            if (ctx.canceled()) {
                 throw new DPUException("Execution cancelled!");
             }
 
@@ -109,7 +92,7 @@ public class Tabular extends AbstractDpu<TabularConfig_V2> {
                     rdfTableWrap.setOutput(RdfDataUnitUtils.addGraph(outRdfTables, entry.getSymbolicName()));
                 }
             });
-            ContextUtils.sendInfo(context, "Processing file: " + entry.getSymbolicName(),
+            ContextUtils.sendInfo(ctx, "Processing file: " + entry.getSymbolicName(),
                     "Source entry: %s", entry);
             // Process data.
             try {
@@ -117,7 +100,7 @@ public class Tabular extends AbstractDpu<TabularConfig_V2> {
                     URI tableURI = rdfTableWrap.getValueFactory().createURI(entry.getFileURIString());
                     tableToRdf.setTableSubject(tableURI);
                     // Add info about symbolic name.
-                    rdfTableWrap.add(tableURI, TabularOntology.URI_TABLE_SYMBOLIC_NAME,
+                    rdfTableWrap.add(tableURI, ctx.getOntology().get(TabularOntology.TABLE_SYMBOLIC_NAME),
                             rdfTableWrap.getValueFactory().createLiteral(entry.getSymbolicName()));
                 }
                 parser.parse(new File(java.net.URI.create(entry.getFileURIString())));

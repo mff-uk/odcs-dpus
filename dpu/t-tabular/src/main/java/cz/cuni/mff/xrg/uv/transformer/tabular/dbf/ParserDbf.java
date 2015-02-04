@@ -4,7 +4,6 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
-import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -17,6 +16,7 @@ import org.jamel.dbf.structure.DbfHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
@@ -31,11 +31,11 @@ public class ParserDbf implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final DPUContext context;
+    private final UserExecContext<?> context;
 
     private int rowNumber = 0;
 
-    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf, DPUContext context) {
+    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
@@ -72,7 +72,7 @@ public class ParserDbf implements Parser {
         Object[] row = reader.nextRecord();
         List<Object> stringRow = new ArrayList(row.length);
         // Configure parser.
-        TableToRdfConfigurator.configure(tableToRdf, header, Arrays.asList(row));
+        TableToRdfConfigurator.configure(tableToRdf, header, Arrays.asList(row), context);
         // Go ...
         if (config.rowLimit == null) {
             LOG.debug("Row limit: not used");
@@ -94,7 +94,7 @@ public class ParserDbf implements Parser {
                     stringRow.add(item);
                 }
             }
-            tableToRdf.paserRow(stringRow, rowNumber);
+            tableToRdf.paserRow(stringRow, rowNumber, context.getOntology());
             // Read next row.
             rowNumber++;
             rowNumPerFile++;

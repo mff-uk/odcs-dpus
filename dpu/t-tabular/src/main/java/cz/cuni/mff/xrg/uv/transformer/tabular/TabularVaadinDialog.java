@@ -20,11 +20,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 
-public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> {
+public class TabularVaadinDialog extends AbstractDialog<TabularConfig_V2, TabularOntology> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(            TabularVaadinDialog.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TabularVaadinDialog.class);
 
     private OptionGroup optionTableType;
 
@@ -100,9 +100,9 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
      */
     private boolean layoutSet = false;
 
-	public TabularVaadinDialog() {
-		super(Tabular.class);
-	}
+    public TabularVaadinDialog() {
+        super(Tabular.class);
+    }
 
     @Override
     protected void buildDialogLayout() {
@@ -110,26 +110,26 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         buildMappingImportExportTab();
 
         // ------------------------ General ------------------------
-
         final VerticalLayout generalLayout = new VerticalLayout();
-		generalLayout.setImmediate(true);
-		generalLayout.setWidth("100%");
-		generalLayout.setHeight("-1px");
+        generalLayout.setImmediate(true);
+        generalLayout.setWidth("100%");
+        generalLayout.setHeight("-1px");
 
-		this.optionTableType = new OptionGroup("Choose the input type:");
+        this.optionTableType = new OptionGroup("Choose the input type:");
         this.optionTableType.setImmediate(true);
         for (ParserType type : ParserType.values()) {
             this.optionTableType.addItem(type);
         }
         this.optionTableType.setNullSelectionAllowed(false);
         this.optionTableType.setValue(ParserType.CSV);
-		generalLayout.addComponent(this.optionTableType);
+        generalLayout.addComponent(this.optionTableType);
 
         this.txtBaseUri = new TextField("Resource URI base");
         this.txtBaseUri.setWidth("100%");
         this.txtBaseUri.setRequired(true);
         this.txtBaseUri.setRequiredError("Resource URI base must be supplied.");
-        this.txtBaseUri.setDescription("This value is used as base URI for automatic column property generation "
+        this.txtBaseUri.setDescription(
+                "This value is used as base URI for automatic column property generation "
                 + "and also to create absolute URI if relative uri is provided in 'Property URI' column.");
         generalLayout.addComponent(this.txtBaseUri);
 
@@ -159,8 +159,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         generalLayout.addComponent(this.txtRowsClass);
 
         // area with check boxes
-
-        GridLayout checkLayout = new GridLayout(3,1);
+        GridLayout checkLayout = new GridLayout(3, 1);
         checkLayout.setWidth("100%");
         checkLayout.setHeight("-1px");
         checkLayout.setSpacing(true);
@@ -171,51 +170,59 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         checkLayout.addComponent(this.checkGenerateNew);
 
         this.checkIgnoreBlankCell = new CheckBox("Ignore blank cells");
-        this.checkIgnoreBlankCell.setDescription("If unchecked and and cell is blank then URI for blank cell is inserted else cell is ignored.");
+        this.checkIgnoreBlankCell.setDescription(
+                "If unchecked and and cell is blank then URI for blank cell is inserted else cell is ignored.");
         checkLayout.addComponent(this.checkIgnoreBlankCell);
 
         this.checkStaticRowCounter = new CheckBox("Use static row counter");
-        this.checkStaticRowCounter.setDescription("If checked and multiple files are precessed, then those files share the same row counter."
+        this.checkStaticRowCounter.setDescription(
+                "If checked and multiple files are precessed, then those files share the same row counter."
                 + "The process can be viewsed as if files are appended before parsing.");
         checkLayout.addComponent(checkStaticRowCounter);
 
         this.checkAdvancedKeyColumn = new CheckBox("Advanced key column");
-        this.checkAdvancedKeyColumn.setDescription("If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used as subject without any additional changes.");
+        this.checkAdvancedKeyColumn.setDescription(
+                "If checked then 'Key column' is interpreted as tempalate. Experimental functionality! If checked the output value of tempalte is used as subject without any additional changes.");
         checkLayout.addComponent(this.checkAdvancedKeyColumn);
 
         this.checkGenerateLabels = new CheckBox("Generate labels");
-        this.checkGenerateLabels.setDescription("If checked then rdfs:labels are generated to column URIs, as the value original column name is used. If file does not contain header then data from first row are used. Does not generate labels for advanced mapping.");
+        this.checkGenerateLabels.setDescription(
+                "If checked then rdfs:labels are generated to column URIs, as the value original column name is used. If file does not contain header then data from first row are used. Does not generate labels for advanced mapping.");
         checkLayout.addComponent(this.checkGenerateLabels);
 
         this.checkGenerateRowTriple = new CheckBox("Generate row column");
-        this.checkGenerateRowTriple.setDescription("If checked then column with row number is generated for each row.");
+        this.checkGenerateRowTriple.setDescription(
+                "If checked then column with row number is generated for each row.");
         checkLayout.addComponent(this.checkGenerateRowTriple);
 
         this.checkTableSubject = new CheckBox("Generate subject for table");
-        this.checkTableSubject.setDescription("If checked then a subject for each table that point to all rows in given table is created. "
+        this.checkTableSubject.setDescription(
+                "If checked then a subject for each table that point to all rows in given table is created. "
                 + "Used predicate is '" + TabularOntology.TABLE_HAS_ROW + "'. By predicate '" + TabularOntology.TABLE_SYMBOLIC_NAME + "'."
                 + "Symbolic name of source file is also attached.");
         checkLayout.addComponent(this.checkTableSubject);
 
         this.checkAutoAsString = new CheckBox("Auto type as string");
-        this.checkAutoAsString.setDescription("If set then all auto types are considered to be strings. This can be usefull with full column mapping to enforce same type over all the columns and get rid of warning messages.");
+        this.checkAutoAsString.setDescription(
+                "If set then all auto types are considered to be strings. This can be usefull with full column mapping to enforce same type over all the columns and get rid of warning messages.");
         checkLayout.addComponent(this.checkAutoAsString);
 
         this.checkGenerateTableClass = new CheckBox("Generate table/row class");
-        this.checkGenerateRowTriple.setDescription("If checked then for table entities statement with type class is generated.");
+        this.checkGenerateRowTriple.setDescription(
+                "If checked then for table entities statement with type class is generated.");
         checkLayout.addComponent(this.checkGenerateTableClass);
 
         // -------------------------- CSV ----------------------------
-
         final FormLayout csvLayout = new FormLayout();
-		csvLayout.setImmediate(true);
+        csvLayout.setImmediate(true);
         csvLayout.setSpacing(true);
-		csvLayout.setWidth("100%");
-		csvLayout.setHeight("-1px");
+        csvLayout.setWidth("100%");
+        csvLayout.setHeight("-1px");
         csvLayout.addComponent(new Label("CSV specific settings"));
 
         this.txtCsvQuoteChar = new TextField("Quote char");
-        this.txtCsvQuoteChar.setDescription("If empty then no quete chars are used. In such vase values must not contains separator character.");
+        this.txtCsvQuoteChar.setDescription(
+                "If empty then no quete chars are used. In such vase values must not contains separator character.");
         //this.txtCsvQuoteChar.setInputPrompt("\"");
         csvLayout.addComponent(this.txtCsvQuoteChar);
 
@@ -229,32 +236,33 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
 
         this.checkCsvHasHeader = new CheckBox("Has header");
         this.checkCsvHasHeader.setDescription("Uncheck if there is no header in given file. "
-                        + "The columns are then accessible under names col0, col1, ..");
+                + "The columns are then accessible under names col0, col1, ..");
         csvLayout.addComponent(this.checkCsvHasHeader);
 
         // XLS
-        
         final FormLayout xlsLayout = new FormLayout();
-		xlsLayout.setImmediate(true);
+        xlsLayout.setImmediate(true);
         xlsLayout.setSpacing(true);
-		xlsLayout.setWidth("100%");
-		xlsLayout.setHeight("-1px");
-        xlsLayout.addComponent(new Label("XLS specific settings"));        
-        
+        xlsLayout.setWidth("100%");
+        xlsLayout.setHeight("-1px");
+        xlsLayout.addComponent(new Label("XLS specific settings"));
+
         this.txtXlsSheetName = new TextField("Sheet name");
         this.txtXlsSheetName.setNullRepresentation("");
         this.txtXlsSheetName.setNullSettingAllowed(true);
-        this.txtXlsSheetName.setDescription("Name of sheet to parse, leave empty to parse every sheet in given file.");
+        this.txtXlsSheetName.setDescription(
+                "Name of sheet to parse, leave empty to parse every sheet in given file.");
         xlsLayout.addComponent(this.txtXlsSheetName);
 
-        xlsLayout.addComponent(new Label("Use property name '" + ParserXls.SHEET_COLUMN_NAME + "' to refer to sheet name."));
+        xlsLayout.addComponent(new Label(
+                "Use property name '" + ParserXls.SHEET_COLUMN_NAME + "' to refer to sheet name."));
 
         this.txtXlsLinesToIgnore = new TextField("Skip n first lines");
         xlsLayout.addComponent(this.txtXlsLinesToIgnore);
 
         this.checkXlsHasHeader = new CheckBox("Has header");
         this.checkXlsHasHeader.setDescription("Uncheck if there is no header in given file. "
-                        + "The columns are then accessible under names col0, col1, ..");
+                + "The columns are then accessible under names col0, col1, ..");
         xlsLayout.addComponent(this.checkXlsHasHeader);
 
         // add change listener
@@ -262,16 +270,15 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
 
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                final ParserType value = (ParserType)event.getProperty().getValue();
+                final ParserType value = (ParserType) event.getProperty().getValue();
                 setControllStates(value);
             }
         });
 
         // --------------------- Mapping - simple ---------------------
-
-        this.basicLayout = new GridLayout(5,1);
-		this.basicLayout.setWidth("100%");
-		this.basicLayout.setHeight("-1px");
+        this.basicLayout = new GridLayout(5, 1);
+        this.basicLayout.setWidth("100%");
+        this.basicLayout.setHeight("-1px");
         this.basicLayout.setImmediate(true);
         this.basicLayout.setSpacing(true);
         this.basicLayout.setMargin(true);
@@ -295,10 +302,9 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         addSimplePropertyMapping(null, null);
 
         // --------------------- Mapping - template based --------------
-
         this.advancedLayout = new GridLayout(2, 1);
-		this.advancedLayout.setWidth("100%");
-		this.advancedLayout.setHeight("-1px");
+        this.advancedLayout.setWidth("100%");
+        this.advancedLayout.setHeight("-1px");
         this.advancedLayout.setImmediate(true);
         this.advancedLayout.setSpacing(true);
         this.advancedLayout.setMargin(true);
@@ -310,10 +316,9 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         this.advancedLayout.setColumnExpandRatio(1, 0.7f);
 
         // ----------------------- Mapping - xls -----------------------
-
         this.xlsStaticLayout = new GridLayout(3, 1);
-		this.xlsStaticLayout.setWidth("100%");
-		this.xlsStaticLayout.setHeight("-1px");
+        this.xlsStaticLayout.setWidth("100%");
+        this.xlsStaticLayout.setHeight("-1px");
         this.xlsStaticLayout.setImmediate(true);
         this.xlsStaticLayout.setSpacing(true);
         this.xlsStaticLayout.setMargin(true);
@@ -330,24 +335,24 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         this.xlsStaticLayout.setColumnExpandRatio(2, 0.2f);
 
         // -------------------------------------------------------------
-
         final TabSheet propertiesTab = new TabSheet();
         propertiesTab.setSizeFull();
 
         propertiesTab.addTab(this.basicLayout, "Simple");
         Tab tabAdv = propertiesTab.addTab(this.advancedLayout, "Advanced - experimental functionality!");
-        tabAdv.setDescription("Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } is part of column name"
+        tabAdv.setDescription(
+                "Templates based on http://w3c.github.io/csvw/csv2rdf/#. If { or } is part of column name"
                 + "then before use they must be escaped ie. \\{ or \\} should be used."
                 + "Use \"...\" to denote literal and <...>  to denote uri. '...' then represent the content of literal/uri.");
         Tab tabXls = propertiesTab.addTab(this.xlsStaticLayout, "Xls mapping");
-        tabXls.setDescription("Can be used for static mapping of cells to named cells. Named cells are accesible as extension in every row.");
+        tabXls.setDescription(
+                "Can be used for static mapping of cells to named cells. Named cells are accesible as extension in every row.");
 
         // -------------------------------------------------------------
-
         // top layout with configuration
         final HorizontalLayout configLayout = new HorizontalLayout();
-		configLayout.setWidth("100%");
-		configLayout.setHeight("-1px");
+        configLayout.setWidth("100%");
+        configLayout.setHeight("-1px");
         configLayout.setSpacing(true);
 
         configLayout.addComponent(generalLayout);
@@ -356,10 +361,10 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
 
         // main layout for whole dialog
         mainLayout = new VerticalLayout();
-		mainLayout.setImmediate(false);
+        mainLayout.setImmediate(false);
         mainLayout.setSpacing(true);
-		mainLayout.setWidth("100%");
-		mainLayout.setHeight("-1px");
+        mainLayout.setWidth("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(true);
         mainLayout.addComponent(configLayout);
         mainLayout.setExpandRatio(configLayout, 0.0f);
@@ -391,7 +396,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         mainLayout.addComponent(btnAddMapping);
         mainLayout.setExpandRatio(configLayout, 0.0f);
 
-		mainPanel = new Panel();
+        mainPanel = new Panel();
         mainPanel.setContent(mainLayout);
         mainPanel.setSizeFull();
 
@@ -400,12 +405,12 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         // setConfiguration method in reaction to dialog type (instance, template)
 
         // then we
-	}
+    }
 
     private void buildMappingImportExportTab() {
         final VerticalLayout generalLayout = new VerticalLayout();
         generalLayout.setMargin(true);
-		generalLayout.setSizeFull();
+        generalLayout.setSizeFull();
 
         final Label label = new Label("Hower over buttons to get additional info",
                 ContentMode.HTML);
@@ -424,7 +429,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
                 + "paresed and used as column names in Mapping. "
                 + "Old data ARE LOST!");
         buttonLine.addComponent(btnImportColNames);
-        
+
         final TextField txtSeparator = new TextField("Separator for 'Import column names'");
         txtSeparator.setValue("\\t");
         generalLayout.addComponent(txtSeparator);
@@ -470,7 +475,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         checkXlsHasHeader.setEnabled(xlsEnabled);
         for (PropertyNamedCell namedCell : xlsNamedCells) {
             namedCell.setEnabled(xlsEnabled);
-        }        
+        }
     }
 
     /**
@@ -505,7 +510,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
 
     /**
      * Add new line into "xls" mapping.
-     * 
+     *
      * @param name
      * @param column
      * @param row
@@ -520,8 +525,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
     }
 
     /**
-     * Parse given string and use it to set column (properties) names. Original
-     * data are lost.
+     * Parse given string and use it to set column (properties) names. Original data are lost.
      *
      * @param str
      */
@@ -533,7 +537,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         int index = 0;
         for (; index < columnNames.length; ++index) {
             if (index >= basisMapping.size()) {
-                addSimplePropertyMapping(columnNames[index], 
+                addSimplePropertyMapping(columnNames[index],
                         new ColumnInfo_V1());
             } else {
                 // use existing
@@ -542,13 +546,13 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
             }
         }
         // clear old
-        for (;index < basisMapping.size(); ++index) {
+        for (; index < basisMapping.size(); ++index) {
             basisMapping.get(index).clear();
         }
     }
 
-	@Override
-	protected void setConfiguration(TabularConfig_V2 c) throws DPUConfigException {
+    @Override
+    protected void setConfiguration(TabularConfig_V2 c) throws DPUConfigException {
         //
         // update dialog, as the isTempalte is decided at the begining
         // this should occure only once per dialog creation
@@ -632,15 +636,15 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         setControllStates(c.getTableType());
     }
 
-	@Override
-	protected TabularConfig_V2 getConfiguration() throws DPUConfigException {
-		TabularConfig_V2 cnf = new TabularConfig_V2();
+    @Override
+    protected TabularConfig_V2 getConfiguration() throws DPUConfigException {
+        TabularConfig_V2 cnf = new TabularConfig_V2();
 
         // check global validity
         if (!txtBaseUri.isValid() || !txtEncoding.isValid()) {
             throw new DPUConfigException("Configuration contains invalid inputs.");
         }
-        
+
         cnf.setKeyColumn(txtKeyColumnName.getValue());
         cnf.setBaseURI(txtBaseUri.getValue());
         // 
@@ -650,11 +654,11 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         //
         // csv data
         //
-        final ParserType value = (ParserType)optionTableType.getValue();
+        final ParserType value = (ParserType) optionTableType.getValue();
         if (value == ParserType.CSV) {
 
-            if (!txtCsvQuoteChar.isValid() || !txtCsvDelimeterChar.isValid() ||
-                    !txtCsvLinesToIgnore.isValid()) {
+            if (!txtCsvQuoteChar.isValid() || !txtCsvDelimeterChar.isValid()
+                    || !txtCsvLinesToIgnore.isValid()) {
                 throw new DPUConfigException(
                         "CSV configuration contains invalid inputs.");
             }
@@ -667,7 +671,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
                     cnf.setLinesToIgnore(0);
                 } else {
                     cnf.setLinesToIgnore(
-                        Integer.parseInt(linesToSkipStr));
+                            Integer.parseInt(linesToSkipStr));
                 }
             } catch (NumberFormatException ex) {
                 throw new DPUConfigException("Wrong format of lines to skip.",
@@ -713,7 +717,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
             }
         }
 
-        cnf.setTableType((ParserType)optionTableType.getValue());
+        cnf.setTableType((ParserType) optionTableType.getValue());
         cnf.setGenerateNew(checkGenerateNew.getValue());
         cnf.setIgnoreBlankCells(checkIgnoreBlankCell.getValue());
         cnf.setStaticRowCounter(checkStaticRowCounter.getValue());
@@ -731,7 +735,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
             // try parse URI
             try {
                 new java.net.URI(rowsClass);
-            } catch(URISyntaxException ex) {
+            } catch (URISyntaxException ex) {
                 throw new DPUConfigException("Wrong uri for row class.", ex);
             }
             cnf.setRowsClass(txtRowsClass.getValue());
@@ -740,18 +744,19 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         // additional checks
         //
         if (!cnf.isGenerateNew() && cnf.getColumnsInfo().isEmpty() && cnf.getColumnsInfoAdv().isEmpty()) {
-            throw new DPUConfigException("Specify at least one column mapping or check 'Full column mapping' option.");
+            throw new DPUConfigException(
+                    "Specify at least one column mapping or check 'Full column mapping' option.");
         }
 
-		return cnf;
-	}
+        return cnf;
+    }
 
-	@Override
-	public String getDescription() {
-		StringBuilder desc = new StringBuilder();
-	
-		return desc.toString();
-	}
+    @Override
+    public String getDescription() {
+        StringBuilder desc = new StringBuilder();
+
+        return desc.toString();
+    }
 
     private void loadColumnMapping(Map<String, ColumnInfo_V1> basic,
             List<TabularConfig_V2.AdvanceMapping> advance) {
@@ -770,7 +775,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
             index++;
         }
         // clear old
-        for (;index < basisMapping.size(); ++index) {
+        for (; index < basisMapping.size(); ++index) {
             basisMapping.get(index).clear();
         }
         //
@@ -790,7 +795,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
                 index++;
             }
             // clear old
-            for (;index < advancedMapping.size(); ++index) {
+            for (; index < advancedMapping.size(); ++index) {
                 advancedMapping.get(index).clear();
             }
         } else {
@@ -811,7 +816,7 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
             index++;
         }
         // clear old
-        for (;index < xlsNamedCells.size(); ++index) {
+        for (; index < xlsNamedCells.size(); ++index) {
             xlsNamedCells.get(index).clear();
         }
     }
@@ -833,8 +838,8 @@ public class TabularVaadinDialog extends AbstractVaadinDialog<TabularConfig_V2> 
         for (PropertyGroupAdv item : advancedMapping) {
             final String uri = item.getUri();
             final String template = item.getTemplate();
-            if (uri != null && template != null &&
-                    !uri.isEmpty() && !template.isEmpty()) {
+            if (uri != null && template != null
+                    && !uri.isEmpty() && !template.isEmpty()) {
                 advance.add(new TabularConfig_V2.AdvanceMapping(uri, template));
             }
         }

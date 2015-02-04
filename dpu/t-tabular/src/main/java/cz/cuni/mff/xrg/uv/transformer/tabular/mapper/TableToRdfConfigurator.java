@@ -13,6 +13,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
@@ -33,11 +34,12 @@ public class TableToRdfConfigurator {
      * @param tableToRdf
      * @param header
      * @param data       Contains first data row, or ColumnType if type is already known.
+     * @param ctx
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
-    public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data)
-            throws ParseFailed, SimpleRdfException {
+    public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data,
+            UserContext ctx) throws ParseFailed, SimpleRdfException {
         // Initial checks,
         if (data == null) {
             throw new ParseFailed("First data row is null!");
@@ -119,7 +121,8 @@ public class TableToRdfConfigurator {
             if (config.generateLabels) {
                 tableToRdf.outRdf.add(
                         tableToRdf.valueFactory.createURI(columnInfo.getURI()),
-                        TabularOntology.URI_RDF_ROW_LABEL, tableToRdf.valueFactory.createLiteral(columnName));
+                        ctx.getOntology().get(TabularOntology.RDF_ROW_LABEL),
+                        tableToRdf.valueFactory.createLiteral(columnName));
             }
         }
         // Do we also use template for key (row subject)?

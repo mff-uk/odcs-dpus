@@ -6,7 +6,6 @@ import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
-import eu.unifiedviews.dpu.DPUContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
 /**
@@ -36,12 +36,11 @@ public class ParserXls implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final DPUContext context;
+    private final UserExecContext<?> context;
 
     private int rowNumber = 0;
 
-    public ParserXls(ParserXlsConfig config, TableToRdf tableToRdf,
-            DPUContext context) {
+    public ParserXls(ParserXlsConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
@@ -186,7 +185,7 @@ public class ParserXls implements Parser {
                 columnNames.add(SHEET_COLUMN_NAME);
                 types.add(ColumnType.String);
                 // Configure.
-                TableToRdfConfigurator.configure(tableToRdf, columnNames, (List) types);
+                TableToRdfConfigurator.configure(tableToRdf, columnNames, (List) types, context);
             }
             // Prepare row.
             final List<String> parsedRow = new ArrayList<>(columnEnd + namedCells.size() + 1);
@@ -204,7 +203,7 @@ public class ParserXls implements Parser {
             // Add global data.
             parsedRow.add(wb.getSheetName(sheetIndex));
             // Convert row into RDF.
-            tableToRdf.paserRow((List) parsedRow, rowNumber);
+            tableToRdf.paserRow((List) parsedRow, rowNumber, context.getOntology());
             if ((rowNumPerFile % 1000) == 0) {
                 LOG.debug("Row number {} processed.", rowNumPerFile);
             }

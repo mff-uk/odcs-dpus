@@ -10,6 +10,8 @@ import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.rdf.simple.WritableSimpleRdf;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 
@@ -55,7 +57,8 @@ public class TableToRdf {
         this.typeUri = valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
     }
 
-    public void paserRow(List<Object> row, int rowNumber) throws SimpleRdfException {
+    public void paserRow(List<Object> row, int rowNumber, OntologyDefinition ontology)
+            throws SimpleRdfException {
         if (row.size() < nameToIndex.size()) {
             LOG.warn("Row is smaller ({} instead of {}) - ignore.",
                     row.size(), nameToIndex.size());
@@ -75,7 +78,7 @@ public class TableToRdf {
                     // Ignore blacnk cell.
                 } else {
                     // Insert blank cell URI.
-                    outRdf.add(subj, predicate, TabularOntology.URI_BLANK_CELL);
+                    outRdf.add(subj, predicate, ontology.get(TabularOntology.BLANK_CElL));
                 }
             } else {
                 // insert value
@@ -84,19 +87,21 @@ public class TableToRdf {
         }
         // Add row data - number, class, connection to table.
         if (config.generateRowTriple) {
-            outRdf.add(subj, TabularOntology.URI_ROW_NUMBER, valueFactory.createLiteral(rowNumber));
+            outRdf.add(subj, ontology.get(TabularOntology.ROW_NUMBER), valueFactory.createLiteral(rowNumber));
         }
         if (rowClass != null) {
             outRdf.add(subj, typeUri, rowClass);
         }
         if (tableSubject != null) {
-            outRdf.add(tableSubject, TabularOntology.URI_TABLE_HAS_ROW, subj);
+            outRdf.add(tableSubject, ontology.get(TabularOntology.TABLE_HAS_ROW), subj);
         }
         // Add table statistict only for the first time.
         if (!tableInfoGenerated && tableSubject != null) {
             tableInfoGenerated = true;
             if (config.generateTableClass) {
-                outRdf.add(tableSubject, TabularOntology.URI_RDF_A_PREDICATE, TabularOntology.URI_TABLE_CLASS);
+                outRdf.add(tableSubject, 
+                        ontology.get(TabularOntology.RDF_A_PREDICATE),
+                        ontology.get(TabularOntology.TABLE_CLASS));
             }
         }
     }

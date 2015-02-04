@@ -2,7 +2,6 @@ package cz.cuni.mff.xrg.uv.transformer.tabular.csv;
 
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdf;
 import cz.cuni.mff.xrg.uv.transformer.tabular.mapper.TableToRdfConfigurator;
-import eu.unifiedviews.dpu.DPUContext;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +13,7 @@ import org.supercsv.prefs.CsvPreference;
 import org.supercsv.quote.QuoteMode;
 import org.supercsv.util.CsvContext;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
@@ -31,11 +31,11 @@ public class ParserCsv implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final DPUContext context;
+    private final UserExecContext<?> context;
 
     private int rowNumber = 0;
 
-    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf, DPUContext context) {
+    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
@@ -90,7 +90,7 @@ public class ParserCsv implements Parser {
             }
 
             // Configure parser.
-            TableToRdfConfigurator.configure(tableToRdf, header, (List) row);
+            TableToRdfConfigurator.configure(tableToRdf, header, (List) row, context);
             // Go ...
             if (config.rowLimit == null) {
                 LOG.debug("Row limit: not used");
@@ -100,7 +100,7 @@ public class ParserCsv implements Parser {
             while (row != null && (config.rowLimit == null || rowNumPerFile < config.rowLimit)
                     && !context.canceled()) {
                 // Cast string to objects.
-                tableToRdf.paserRow((List) row, rowNumber);
+                tableToRdf.paserRow((List) row, rowNumber, context.getOntology());
                 // Read next row.
                 rowNumber++;
                 rowNumPerFile++;
