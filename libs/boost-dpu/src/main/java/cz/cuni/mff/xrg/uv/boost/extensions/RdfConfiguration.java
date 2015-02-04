@@ -168,7 +168,7 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
         RepositoryConnection conn = null;
         try {
             conn = sourceDataUnit.getConnection();
-            final URI type = conn.getValueFactory().createURI("http://www.w3.org/2000/01/rdf-schema#a");
+            final URI type = conn.getValueFactory().createURI("http://www.w3.org/2000/01/rdf-schema#type");
             // Load statemetns into memory.
             List<Statement> statements;
             RepositoryResult<Statement> result = conn.getStatements(null, type, clazz, true, graphs);
