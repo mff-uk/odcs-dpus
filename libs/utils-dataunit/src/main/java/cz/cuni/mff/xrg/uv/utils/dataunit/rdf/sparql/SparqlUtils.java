@@ -1,8 +1,12 @@
 package cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.openrdf.model.Statement;
+import org.openrdf.model.Value;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
@@ -101,7 +105,7 @@ public class SparqlUtils {
     /**
      * User callback for result iteration.
      */
-    public interface TupleIterator {
+    public static interface TupleIterator {
 
         /**
          * Called for every tuple in result.
@@ -117,7 +121,7 @@ public class SparqlUtils {
     /**
      * User callback for result iteration.
      */
-    public interface StatementIterator {
+    public static interface StatementIterator {
 
         /**
          * Called for every tuple in result.
@@ -128,6 +132,30 @@ public class SparqlUtils {
          */
         public void next(Statement binding) throws DPUException;
 
+    }
+
+    /**
+     * Fetch results of query. In case of use with fault tolerance the
+     * {@link #results} should be cleared before every attempt.
+     */
+    public static class QueryResultCollector implements TupleIterator {
+        
+        private final List<Map<String, Value>> results = new LinkedList<>();
+
+        @Override
+        public void next(BindingSet binding) throws DPUException {
+            Map<String, Value> record = new HashMap<>();
+            for (String key : binding.getBindingNames()) {
+                record.put(key, binding.getBinding(key).getValue());
+            }
+            // Add to the result list.
+            results.add(record);
+        }
+
+        public List<Map<String, Value>> getResults() {
+            return results;
+        }
+        
     }
 
     private SparqlUtils() {
@@ -241,7 +269,7 @@ public class SparqlUtils {
     }
 
     /**
-     * Execute given query and call use call-back for each tuple. This function does not provide any fault
+     * Execute given query and call user call-back for each tuple. This function does not provide any fault
      * tolerance, the iteration may fail at any time.
      *
      * Does not close given connection.
