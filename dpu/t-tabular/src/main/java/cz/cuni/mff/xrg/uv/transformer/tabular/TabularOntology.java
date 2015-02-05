@@ -1,16 +1,10 @@
 package cz.cuni.mff.xrg.uv.transformer.tabular;
 
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
-
 /**
  *
  * @author Škoda Petr
  */
-public class TabularOntology extends OntologyDefinition {
-
-    private TabularOntology() {
-
-    }
+public interface TabularOntology {
 
     public static String BLANK_CElL =
             "http://linked.opendata.cz/ontology/odcs/tabular/blank-cell";

@@ -12,8 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
 import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 import cz.cuni.mff.xrg.uv.boost.rdf.simple.WritableSimpleRdf;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Parse table data into rdf. Before usage this class must be configured by
@@ -57,8 +59,8 @@ public class TableToRdf {
         this.typeUri = valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
     }
 
-    public void paserRow(List<Object> row, int rowNumber, OntologyDefinition ontology)
-            throws SimpleRdfException {
+    public void paserRow(List<Object> row, int rowNumber, OntologyHolder ontology)
+            throws SimpleRdfException, DPUException {
         if (row.size() < nameToIndex.size()) {
             LOG.warn("Row is smaller ({} instead of {}) - ignore.",
                     row.size(), nameToIndex.size());

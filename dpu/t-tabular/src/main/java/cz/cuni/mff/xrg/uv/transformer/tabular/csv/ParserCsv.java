@@ -17,6 +17,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed;
 import cz.cuni.mff.xrg.uv.transformer.tabular.parser.Parser;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Parse csv file.
@@ -31,18 +32,18 @@ public class ParserCsv implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final UserExecContext<?> context;
+    private final UserExecContext context;
 
     private int rowNumber = 0;
 
-    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
+    public ParserCsv(ParserCsvConfig config, TableToRdf tableToRdf, UserExecContext context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
     }
 
     @Override
-    public void parse(File inFile) throws ParseFailed, SimpleRdfException {
+    public void parse(File inFile) throws ParseFailed, SimpleRdfException, DPUException {
         final CsvPreference csvPreference;
         // We will use quates only if they are provided
         if (config.quoteChar == null || config.quoteChar.isEmpty()) {

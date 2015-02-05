@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 
-public class TabularVaadinDialog extends AbstractDialog<TabularConfig_V2, TabularOntology> {
+public class TabularVaadinDialog extends AbstractDialog<TabularConfig_V2> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TabularVaadinDialog.class);
 

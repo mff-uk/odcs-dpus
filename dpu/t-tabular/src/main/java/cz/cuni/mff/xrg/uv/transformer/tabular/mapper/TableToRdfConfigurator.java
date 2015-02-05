@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Configure {@link TableToRdf} class.
@@ -39,7 +40,7 @@ public class TableToRdfConfigurator {
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
     public static void configure(TableToRdf tableToRdf, List<String> header, List<Object> data,
-            UserContext ctx) throws ParseFailed, SimpleRdfException {
+            UserContext ctx) throws ParseFailed, SimpleRdfException, DPUException {
         // Initial checks,
         if (data == null) {
             throw new ParseFailed("First data row is null!");

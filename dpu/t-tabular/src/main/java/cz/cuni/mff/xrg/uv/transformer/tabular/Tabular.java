@@ -30,7 +30,7 @@ import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class Tabular extends AbstractDpu<TabularConfig_V2, TabularOntology> {
+public class Tabular extends AbstractDpu<TabularConfig_V2> {
 
     @DataUnit.AsInput(name = "table")
     public FilesDataUnit inFilesTable;

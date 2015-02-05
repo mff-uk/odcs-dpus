@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  *
@@ -31,18 +32,18 @@ public class ParserDbf implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final UserExecContext<?> context;
+    private final UserExecContext context;
 
     private int rowNumber = 0;
 
-    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
+    public ParserDbf(ParserDbfConfig config, TableToRdf tableToRdf, UserExecContext context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
     }
 
     @Override
-    public void parse(File inFile) throws  ParseFailed, SimpleRdfException {
+    public void parse(File inFile) throws  ParseFailed, SimpleRdfException, DPUException {
         final String encoding;
         if (config.encoding == null || config.encoding.isEmpty()) {
             // parse from DBF file

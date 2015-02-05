@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  *
@@ -36,18 +37,18 @@ public class ParserXls implements Parser {
 
     private final TableToRdf tableToRdf;
 
-    private final UserExecContext<?> context;
+    private final UserExecContext context;
 
     private int rowNumber = 0;
 
-    public ParserXls(ParserXlsConfig config, TableToRdf tableToRdf, UserExecContext<?> context) {
+    public ParserXls(ParserXlsConfig config, TableToRdf tableToRdf, UserExecContext context) {
         this.config = config;
         this.tableToRdf = tableToRdf;
         this.context = context;
     }
 
     @Override
-    public void parse(File inFile) throws ParseFailed, SimpleRdfException {
+    public void parse(File inFile) throws ParseFailed, SimpleRdfException, DPUException {
         final Workbook wb;
         try {
             wb = WorkbookFactory.create(inFile);
@@ -78,7 +79,8 @@ public class ParserXls implements Parser {
      * @throws cz.cuni.mff.xrg.uv.transformer.tabular.parser.ParseFailed
      * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
      */
-    public void parseSheet(Workbook wb, Integer sheetIndex) throws ParseFailed, SimpleRdfException {
+    public void parseSheet(Workbook wb, Integer sheetIndex) throws ParseFailed, SimpleRdfException,
+            DPUException {
         LOG.debug("parseSheet({}, {})", wb.getSheetName(sheetIndex), sheetIndex);
         // For every row.
         final Sheet sheet = wb.getSheetAt(sheetIndex);
