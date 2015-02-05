@@ -24,7 +24,7 @@ public class RdfDataUnitUtils {
                 
         private final String symbolicName;
 
-        InMemoryEntry(URI graphUri, String symbolicName) {
+        public InMemoryEntry(URI graphUri, String symbolicName) {
             this.graphUri = graphUri;
             this.symbolicName = symbolicName;
         }

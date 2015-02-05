@@ -23,7 +23,7 @@ public class FilesDataUnitUtils {
                 
         private final String symbolicName;
 
-        InMemoryEntry(String graphUri, String symbolicName) {
+        public InMemoryEntry(String graphUri, String symbolicName) {
             this.fileUri = graphUri;
             this.symbolicName = symbolicName;
         }
