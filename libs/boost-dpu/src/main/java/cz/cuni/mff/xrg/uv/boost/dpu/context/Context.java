@@ -14,7 +14,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
 import eu.unifiedviews.dpu.DPUException;
@@ -26,12 +26,12 @@ import eu.unifiedviews.dpu.DPUException;
  * @param <CONFIG> Last configuration class.
  * @param <ONTOLOGY> Ontology class.
  */
-public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements AutoInitializer.FieldSetListener {
+public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
 
     /**
      * Respective DPU class.
      */
-    private final Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass;
+    private final Class<AbstractDpu<CONFIG>> dpuClass;
 
     /**
      * True if context is used for dialog.
@@ -77,7 +77,7 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
     /**
      * Ontology definition for current DPU.
      */
-    private final ONTOLOGY ontology;
+    private final OntologyHolder ontology;
 
     /**
      * Module for localization support.
@@ -93,7 +93,7 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
      * @param ontology
      * @throws eu.unifiedviews.dpu.DPUException
      */
-    public Context(Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass, AbstractDpu<CONFIG, ONTOLOGY> dpuInstance) {
+    public Context(Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance) {
         // Prepare DPU instance, just to get some classes.
         try {
             if (dpuInstance == null) {
@@ -107,11 +107,12 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
         this.dialog = true;
         this.configHistory = dpuInstance.getConfigHistoryHolder();
         this.serializationXml = SerializationXmlFactory.serializationXml();
-        // Create ontology instance.
+        // Create ontology instance and load ontology from DPU.
+        this.ontology = new OntologyHolder();
         try {
-            this.ontology = dpuInstance.getOntologyHolder().newInstance();
-        } catch (IllegalAccessException | InstantiationException ex) {
-            throw new RuntimeException("Can't create ontologz class.", ex);
+            this.ontology.loadDefinitions(dpuInstance.getOntologyClassHolder());
+        } catch (DPUException ex) {
+            throw new RuntimeException("Can't load class into ontology holder.", ex);
         }
         // Prepare initializer.
         this.initializer = new AutoInitializer(dpuInstance);        
@@ -172,7 +173,7 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
      *
      * @return
      */
-    public Class<AbstractDpu<CONFIG, ONTOLOGY>> getDpuClass() {
+    public Class<AbstractDpu<CONFIG>> getDpuClass() {
         return dpuClass;
     }
 
@@ -214,7 +215,7 @@ public class Context<CONFIG, ONTOLOGY  extends OntologyDefinition> implements Au
         return configManager;
     }
 
-    public ONTOLOGY getOntology() {
+    public OntologyHolder getOntology() {
         return ontology;
     }
 

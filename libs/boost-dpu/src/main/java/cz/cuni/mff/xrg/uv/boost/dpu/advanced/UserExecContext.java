@@ -1,18 +1,17 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 
 /**
  * User version of {@link ExecContext}.
  *
  * @author Škoda Petr
  */
-public class UserExecContext<ONTOLOGY extends OntologyDefinition> extends UserContext<ONTOLOGY> {
+public class UserExecContext extends UserContext {
 
-    protected final ExecContext<?, ONTOLOGY> execMasterContext;
+    protected final ExecContext<?> execMasterContext;
 
-    public UserExecContext(ExecContext<?, ONTOLOGY> execContext) {
+    public UserExecContext(ExecContext<?> execContext) {
         super(execContext);
         this.execMasterContext = execContext;
     }
@@ -25,7 +24,7 @@ public class UserExecContext<ONTOLOGY extends OntologyDefinition> extends UserCo
         return execMasterContext.getDpuContext().canceled();
     }
 
-    public ExecContext<?, ONTOLOGY> getExecMasterContext() {
+    public ExecContext<?> getExecMasterContext() {
         return execMasterContext;
     }
 

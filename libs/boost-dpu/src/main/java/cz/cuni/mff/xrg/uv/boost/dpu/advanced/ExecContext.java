@@ -1,7 +1,6 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.advanced;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 
@@ -9,12 +8,12 @@ import eu.unifiedviews.dpu.DPUException;
  *
  * @author Škoda Petr
  */
-public class ExecContext<CONFIG, ONTOLOGY extends OntologyDefinition> extends Context<CONFIG, ONTOLOGY> {
+public class ExecContext<CONFIG> extends Context<CONFIG> {
 
     /**
      * Owner DPU instance.
      */
-    protected final AbstractDpu<CONFIG, ONTOLOGY> dpu;
+    protected final AbstractDpu<CONFIG> dpu;
 
     /**
      * Execution context.
@@ -34,8 +33,8 @@ public class ExecContext<CONFIG, ONTOLOGY extends OntologyDefinition> extends Co
      * @param ontology
      * @throws DPUException
      */
-    public ExecContext(AbstractDpu<CONFIG, ONTOLOGY> dpuInstance) {
-        super((Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuInstance.getClass(), dpuInstance);
+    public ExecContext(AbstractDpu<CONFIG> dpuInstance) {
+        super((Class<AbstractDpu<CONFIG>>) dpuInstance.getClass(), dpuInstance);
         this.dpu = dpuInstance;
     }
 
@@ -51,7 +50,7 @@ public class ExecContext<CONFIG, ONTOLOGY extends OntologyDefinition> extends Co
         return dpuContext;
     }
 
-    public AbstractDpu<CONFIG, ONTOLOGY> getDpu() {
+    public AbstractDpu<CONFIG> getDpu() {
         return dpu;
     }
 

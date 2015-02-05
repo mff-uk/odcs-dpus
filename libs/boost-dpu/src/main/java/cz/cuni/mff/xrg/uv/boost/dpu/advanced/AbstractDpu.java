@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
@@ -27,7 +27,7 @@ import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
  * @author Škoda Petr
  * @param <CONFIG> Type of DPU's configuration object.
  */
-public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> implements DPU, DPUConfigurable,
+public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
         ConfigDialogProvider<MasterConfigObject> {
 
     /**
@@ -40,7 +40,7 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     /**
      * Holds all variables of this class.
      */
-    private ExecContext<CONFIG, ONTOLOGY> masterContext = null;
+    private ExecContext<CONFIG> masterContext = null;
 
     /**
      * History of configuration.
@@ -54,7 +54,7 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
      *
      * As holder is used to store information until it's used by context.
      */
-    private final Class<ONTOLOGY> ontologyHolder;
+    private final Class<?> ontologyClassHolder;
 
     /**
      * Configuration class visible for the DPU.
@@ -64,12 +64,12 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
     /**
      * User visible context.
      */
-    protected UserExecContext<ONTOLOGY> ctx;
+    protected UserExecContext ctx;
 
     /**
      * Class of user dialog.
      */
-    private final Class<AbstractDialog<CONFIG, ONTOLOGY>> dialogClass;
+    private final Class<AbstractDialog<CONFIG>> dialogClass;
 
     /**
      * Used to hold configuration between {@link #configure(java.lang.String)} and
@@ -81,11 +81,11 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
      *
      * @param configHistory
      */
-    public <DIALOG extends AbstractDialog<CONFIG, ONTOLOGY>> AbstractDpu(Class<DIALOG> dialogClass,
-            ConfigHistory<CONFIG> configHistory, Class<ONTOLOGY> ontology) {
-        this.dialogClass = (Class<AbstractDialog<CONFIG, ONTOLOGY>>) dialogClass;
+    public <DIALOG extends AbstractDialog<CONFIG>> AbstractDpu(Class<DIALOG> dialogClass,
+            ConfigHistory<CONFIG> configHistory, Class<?> ontology) {
+        this.dialogClass = (Class<AbstractDialog<CONFIG>>) dialogClass;
         this.configHistoryHolder = configHistory;
-        this.ontologyHolder = ontology;
+        this.ontologyClassHolder = ontology;
         // Initialize master context.
         this.masterContext = new ExecContext(this);
     }
@@ -229,8 +229,8 @@ public abstract class AbstractDpu<CONFIG, ONTOLOGY extends OntologyDefinition> i
         return this.configHistoryHolder;
     }
 
-    public Class<ONTOLOGY> getOntologyHolder() {
-        return ontologyHolder;
+    public Class<?> getOntologyClassHolder() {
+        return ontologyClassHolder;
     }
 
     /**

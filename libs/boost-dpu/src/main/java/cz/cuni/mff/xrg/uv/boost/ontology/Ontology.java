@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
  * Holds annotations to describe RDF ontology for POJO. It's recommended to store ontology definition in
  * instance of {@link OntologyDefinition} class.
  *
+ * TODO Petr: Rename to EntityDescription
+ *
  * @author Škoda Petr
  */
 public class Ontology {

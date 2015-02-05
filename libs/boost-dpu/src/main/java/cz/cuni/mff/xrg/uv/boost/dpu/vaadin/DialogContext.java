@@ -5,7 +5,6 @@ import java.util.List;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
 
@@ -13,7 +12,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
  *
  * @author Škoda Petr
  */
-public class DialogContext<CONFIG, ONTOLOGY extends OntologyDefinition> extends Context<CONFIG, ONTOLOGY> {
+public class DialogContext<CONFIG> extends Context<CONFIG> {
 
     /**
      * Owner dialog.
@@ -31,7 +30,7 @@ public class DialogContext<CONFIG, ONTOLOGY extends OntologyDefinition> extends 
     protected final List<AbstractAddonDialog> addonDialogs = new LinkedList<>();
 
     public DialogContext(AbstractDialog dialog, ConfigDialogContext dialogContext,
-            Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass, AbstractDpu<CONFIG, ONTOLOGY> dpuInstance)
+            Class<AbstractDpu<CONFIG>> dpuClass, AbstractDpu<CONFIG> dpuInstance)
             throws DPUException {
         super(dpuClass, dpuInstance);
         this.dialog = dialog;

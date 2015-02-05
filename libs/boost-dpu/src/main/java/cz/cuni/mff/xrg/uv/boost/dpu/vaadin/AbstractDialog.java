@@ -12,7 +12,6 @@ import eu.unifiedviews.helpers.dpu.config.ConfigDialogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 import eu.unifiedviews.dpu.DPUException;
@@ -26,7 +25,7 @@ import static cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu.DPU_CONFIG_NAME;
  * @author Škoda Petr
  * @param <CONFIG>
  */
-public abstract class AbstractDialog<CONFIG, ONTOLOGY extends OntologyDefinition>
+public abstract class AbstractDialog<CONFIG>
         extends AbstractConfigDialog<MasterConfigObject> implements InitializableConfigDialog {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDialog.class);
@@ -49,7 +48,7 @@ public abstract class AbstractDialog<CONFIG, ONTOLOGY extends OntologyDefinition
     /**
      * Dialog's originalDialogContext.
      */
-    private DialogContext<CONFIG, ONTOLOGY> context = null;
+    private DialogContext<CONFIG> context = null;
 
     /**
      * Original dialog context.
@@ -59,15 +58,15 @@ public abstract class AbstractDialog<CONFIG, ONTOLOGY extends OntologyDefinition
     /**
      * Class of associated DPU.
      */
-    private final Class<AbstractDpu<CONFIG, ONTOLOGY>> dpuClass;
+    private final Class<AbstractDpu<CONFIG>> dpuClass;
 
     /**
      * User visible dialog context.
      */
     protected UserDialogContext ctx;
 
-    public <DPU extends AbstractDpu<CONFIG, ONTOLOGY>> AbstractDialog(Class<DPU> dpuClass) {
-        this.dpuClass = (Class<AbstractDpu<CONFIG, ONTOLOGY>>) dpuClass;
+    public <DPU extends AbstractDpu<CONFIG>> AbstractDialog(Class<DPU> dpuClass) {
+        this.dpuClass = (Class<AbstractDpu<CONFIG>>) dpuClass;
     }
 
     @Override

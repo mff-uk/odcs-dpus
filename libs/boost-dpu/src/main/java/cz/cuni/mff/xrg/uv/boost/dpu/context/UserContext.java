@@ -1,21 +1,22 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.context;
 
 import java.text.MessageFormat;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
+
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 
 /**
  * Context for the DPU developer.
  *
  * @author Škoda Petr
  */
-public class UserContext<ONTOLOGY extends OntologyDefinition> {
+public class UserContext {
 
     /**
      * Wrapped master context.
      */
-    private final Context<?, ONTOLOGY> context;
+    private final Context<?> context;
 
-    public UserContext(Context<?, ONTOLOGY> context) {
+    public UserContext(Context<?> context) {
         this.context = context;
     }
 
@@ -27,7 +28,7 @@ public class UserContext<ONTOLOGY extends OntologyDefinition> {
      *
      * @return Ontology for this instance.
      */
-    public ONTOLOGY getOntology() {
+    public OntologyHolder getOntology() {
         return context.getOntology();
     }
 

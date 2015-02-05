@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 
 /**
@@ -137,11 +136,11 @@ public class SparqlUtils {
     }
 
     /**
-     * Fetch results of query. In case of use with fault tolerance the
-     * {@link #results} should be cleared before every attempt.
+     * Fetch results of query. Before ever use in execute method the {@link #prepare()} method should be
+     * called.
      */
     public static class QueryResultCollector implements TupleIterator {
-        
+
         private final List<Map<String, Value>> results = new LinkedList<>();
 
         @Override
@@ -154,14 +153,21 @@ public class SparqlUtils {
             results.add(record);
         }
 
+        /**
+         * Reset current content. Call before every use!
+         */
+        public void prepare() {
+            this.results.clear();
+        }
+
         public List<Map<String, Value>> getResults() {
             return results;
         }
-        
+
     }
 
     private SparqlUtils() {
-        
+
     }
 
     /**
@@ -185,7 +191,7 @@ public class SparqlUtils {
      * @param clause
      * @param entries
      * @return
-     * @throws SparqlProblemException Is thrown in ma number of graph is exceeded.
+     * @throws SparqlProblemException                     Is thrown in ma number of graph is exceeded.
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
     public static String prepareClause(String clause, List<RDFDataUnit.Entry> entries)
@@ -196,7 +202,7 @@ public class SparqlUtils {
         }
 
         final StringBuilder clauseBuilder = new StringBuilder((clause.length() + 30) * entries.size());
-        for(RDFDataUnit.Entry entry : entries) {
+        for (RDFDataUnit.Entry entry : entries) {
             clauseBuilder.append(clause);
             clauseBuilder.append(" <");
             clauseBuilder.append(entry.getDataGraphURI().stringValue());
@@ -207,14 +213,14 @@ public class SparqlUtils {
 
     /**
      *
-     * @param query Query must contains INSERT statement.
+     * @param query   Query must contains INSERT statement.
      * @param sources
      * @param target
      * @return Prepared SPARQL update query.
      * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
-    public static SparqlUpdateObject createInsert(String query, List<RDFDataUnit.Entry> sources, 
+    public static SparqlUpdateObject createInsert(String query, List<RDFDataUnit.Entry> sources,
             RDFDataUnit.Entry target) throws SparqlProblemException, DataUnitException {
         query = query.replaceFirst("(?i)INSERT", prepareClause("WITH", target) + "INSERT");
         query = query.replaceFirst("(?i)WHERE", prepareClause("USING", sources) + "WHERE");
@@ -238,6 +244,18 @@ public class SparqlUtils {
     }
 
     /**
+     *
+     * @param query
+     * @param entries
+     * @return Prepared SPARQL select query object.
+     */
+    public static SparqlSelectObject createSelect(String query, List<RDFDataUnit.Entry> entries)
+            throws SparqlProblemException, DataUnitException {
+        query = query.replaceFirst("(?i)WHERE", "USING " + prepareClause("USING", entries) + "WHERE ");
+        return new SparqlSelectObject(query);
+    }
+
+    /**
      * Execute given query.
      *
      * @param connection
@@ -246,10 +264,10 @@ public class SparqlUtils {
      * @throws org.openrdf.query.MalformedQueryException
      * @throws org.openrdf.query.UpdateExecutionException
      */
-    public static void execute(RepositoryConnection connection, SparqlUpdateObject updateObject) 
+    public static void execute(RepositoryConnection connection, SparqlUpdateObject updateObject)
             throws RepositoryException, MalformedQueryException, UpdateExecutionException {
         LOG.debug("Executing update: {}", updateObject.sparqlQuery);
-        connection.prepareUpdate(QueryLanguage.SPARQL, updateObject.sparqlQuery).execute();        
+        connection.prepareUpdate(QueryLanguage.SPARQL, updateObject.sparqlQuery).execute();
     }
 
     /**
@@ -279,12 +297,12 @@ public class SparqlUtils {
      * @param connection
      * @param context
      * @param queryObject
-     * @param callback Must not be null.
+     * @param callback    Must not be null.
      * @throws SparqlProblemException
      * @throws MalformedQueryException
      * @throws DPUException
      */
-    public static void execute(RepositoryConnection connection, UserExecContext<?> context,
+    public static void execute(RepositoryConnection connection, UserExecContext context,
             SparqlSelectObject queryObject, TupleIterator callback)
             throws SparqlProblemException, MalformedQueryException, DPUException {
         LOG.debug("Executing query: {}", queryObject.sparqlQuery);
@@ -312,7 +330,7 @@ public class SparqlUtils {
             } catch (QueryEvaluationException ex) {
                 LOG.warn("Can't close query result.", ex);
             }
-        }        
+        }
     }
 
     /**
@@ -321,12 +339,12 @@ public class SparqlUtils {
      * @param connection
      * @param context
      * @param constructObject
-     * @param callback Use null to not iterate over result.
+     * @param callback        Use null to not iterate over result.
      * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws MalformedQueryException
      */
-     public static void execute(RepositoryConnection connection, UserExecContext<?> context,
-             SparqlConstructObject constructObject, StatementIterator callback)
+    public static void execute(RepositoryConnection connection, UserExecContext context,
+            SparqlConstructObject constructObject, StatementIterator callback)
             throws SparqlProblemException, MalformedQueryException, DPUException {
         LOG.debug("Executing construct: {}", constructObject.sparqlQuery);
         // Prepare query.

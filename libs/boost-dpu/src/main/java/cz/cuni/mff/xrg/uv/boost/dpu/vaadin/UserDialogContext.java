@@ -1,18 +1,17 @@
 package cz.cuni.mff.xrg.uv.boost.dpu.vaadin;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.UserContext;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyDefinition;
 
 /**
  * User version of dialog context.
  *
  * @author Škoda Petr
  */
-public class UserDialogContext<ONTOLOGY extends OntologyDefinition> extends UserContext<ONTOLOGY> {
+public class UserDialogContext extends UserContext {
 
-    protected final DialogContext<?, ONTOLOGY> dialogMasterContext;
+    protected final DialogContext<?> dialogMasterContext;
 
-    public UserDialogContext(DialogContext<?, ONTOLOGY> dialogContext) {
+    public UserDialogContext(DialogContext<?> dialogContext) {
         super(dialogContext);
         this.dialogMasterContext = dialogContext;
     }
@@ -25,7 +24,7 @@ public class UserDialogContext<ONTOLOGY extends OntologyDefinition> extends User
         return this.dialogMasterContext.getDialogContext().isTemplate();
     }
 
-    public DialogContext<?, ONTOLOGY> getDialogMasterContext() {
+    public DialogContext<?> getDialogMasterContext() {
         return dialogMasterContext;
     }
 
