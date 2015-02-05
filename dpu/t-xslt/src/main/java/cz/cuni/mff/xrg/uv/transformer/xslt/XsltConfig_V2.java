@@ -83,6 +83,12 @@ public class XsltConfig_V2 {
 
     private boolean failOnError = true;
 
+    /**
+     * If null then extension does not change. Extension is added to current file name.
+     */
+    @Ontology.Property(uri = XsltTOntology.XSLT_OUTPUT_FILE_EXTENSION)
+    private String outputFileExtension = null;
+
     @Ontology.Property(uri = XsltTOntology.XSLT_FILEINFO_PREDICATE)
     private List<FileInformations> filesParameters = new LinkedList<>();
 
@@ -120,6 +126,14 @@ public class XsltConfig_V2 {
 
     public void setFilesParameters(List<FileInformations> filesParameters) {
         this.filesParameters = filesParameters;
+    }
+
+    public String getOutputFileExtension() {
+        return outputFileExtension;
+    }
+
+    public void setOutputFileExtension(String outputFileExtension) {
+        this.outputFileExtension = outputFileExtension;
     }
 
     /**

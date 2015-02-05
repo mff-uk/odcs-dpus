@@ -58,4 +58,10 @@ public interface XsltTOntology {
             = "http://linked.opendata.cz/ontology/uv/dpu/xslt/param/value";
 
 
+    /**
+     * Extension given set in VirtualPath if it's presented.
+     */
+    public static final String XSLT_OUTPUT_FILE_EXTENSION
+            = "http://linked.opendata.cz/ontology/uv/dpu/xslt/outputFileExtension";
+
 }

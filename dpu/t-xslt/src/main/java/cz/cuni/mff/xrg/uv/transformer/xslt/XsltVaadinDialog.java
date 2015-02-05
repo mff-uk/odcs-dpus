@@ -20,7 +20,7 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
 
     private CheckBox checkSkipFileOnError;
 
-    private TextField txtTemplateName;
+    private TextField txtOutputExtension;
 
     private TextArea txtTemplate;
 
@@ -31,15 +31,15 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
     @Override
     public void setConfiguration(XsltConfig_V2 c) throws DPUConfigException {
         this.checkSkipFileOnError.setValue(!c.isFailOnError());
-        this.txtTemplateName.setValue(c.getXsltTemplateName());
+        this.txtOutputExtension.setValue(c.getOutputFileExtension());
         this.txtTemplate.setValue(c.getXsltTemplate());
     }
 
     @Override
     public XsltConfig_V2 getConfiguration() throws DPUConfigException {
         final XsltConfig_V2 c = new XsltConfig_V2();
-        c.setFailOnError(this.checkSkipFileOnError.getValue());
-        c.setXsltTemplateName(this.txtTemplateName.getValue());
+        c.setFailOnError(!this.checkSkipFileOnError.getValue());
+        c.setOutputFileExtension(this.txtOutputExtension.getValue());
         c.setXsltTemplate(this.txtTemplate.getValue());
         return c;
     }
@@ -56,10 +56,10 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
         mainLayout.addComponent(this.checkSkipFileOnError);
         mainLayout.setExpandRatio(this.checkSkipFileOnError, 0.0f);
 
-        this.txtTemplateName = new TextField(ctx.tr("dpu.dialog.template.name"));
-        this.txtTemplateName.setWidth("100%");
-        mainLayout.addComponent(this.txtTemplateName);
-        mainLayout.setExpandRatio(this.txtTemplateName, 0.0f);
+        this.txtOutputExtension = new TextField(ctx.tr("dpu.dialog.template.output.extension"));
+        this.txtOutputExtension.setWidth("100%");
+        mainLayout.addComponent(this.txtOutputExtension);
+        mainLayout.setExpandRatio(this.txtOutputExtension, 0.0f);
 
         this.txtTemplate = new TextArea(ctx.tr("dpu.dialog.template"));
         this.txtTemplate.setSizeFull();

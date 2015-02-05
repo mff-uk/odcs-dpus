@@ -18,10 +18,12 @@ import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.boost.extensions.RdfConfiguration;
 import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
 import cz.cuni.mff.xrg.uv.utils.dataunit.files.FilesDataUnitUtils;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtils;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -117,10 +119,30 @@ public class Xslt extends AbstractDpu<XsltConfig_V2> {
                         }
 
                     });
-            // Copy metadata ie. also VirtualPath, that may be wrongly set on line before.
+            // If original VirtualPath is set then update extension.
+            faultTolerance.execute(new FaultTolerance.Action() {
 
-            // TODO Petr Copy metadata?
+                @Override
+                public void action() throws Exception {
+                    // Update virtual path.
+                    String virtualPath = MetadataUtils.getFirst(filesInput, source,
+                            VirtualPathHelper.PREDICATE_VIRTUAL_PATH);
+                    if (virtualPath == null) {
+                        // Use symbolic name
+                        LOG.warn("Virtual path is not set for: {}", symbolicName);
+                        return;
+                    }
+                    // Update VirtualPath.
+                    if (config.getOutputFileExtension() != null &&
+                            !config.getOutputFileExtension().isEmpty()) {
+                        virtualPath = virtualPath.substring(0, virtualPath.lastIndexOf(".") + 1)
+                                + config.getOutputFileExtension();
+                    }
 
+                    MetadataUtils.set(filesOutput, target, VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
+                            virtualPath);
+                }
+            });
             final File targetFile = faultTolerance.execute(new FaultTolerance.ActionReturn<File>() {
 
                 @Override
@@ -129,26 +151,24 @@ public class Xslt extends AbstractDpu<XsltConfig_V2> {
                 }
             });
             // Transform file.
+            LOG.debug("Memory used: {}M", String.valueOf((Runtime.getRuntime().totalMemory()
+                    - Runtime.getRuntime().freeMemory()) / 1024 / 1024));
+            // Prepare classes and parameters.
+            final Serializer out = new Serializer(targetFile);
+            final XsltTransformer transformer = executable.load();
+
+            LOG.debug("File: {}", source);
+            LOG.debug("\tsymbolic name: {}", symbolicName);
+
+            for (XsltConfig_V2.Parameter parameter : config.getFilesParameters(symbolicName)) {
+                LOG.debug("\t {} : {}", parameter.getKey(), parameter.getValue());
+                transformer.setParameter(new QName(parameter.getKey()), new XdmAtomicValue(parameter.getValue()));
+            }
             try {
-                LOG.debug("Memory used: {}M", String.valueOf((Runtime.getRuntime().totalMemory()
-                        - Runtime.getRuntime().freeMemory()) / 1024 / 1024));
-                // Prepare classes and parameters.
-                final Serializer out = new Serializer(targetFile);
-                final XsltTransformer transformer = executable.load();
-
-                LOG.debug("File: {}", source);
-                LOG.debug("\tsymbolic name: {}", symbolicName);
-
-                for (XsltConfig_V2.Parameter parameter : config.getFilesParameters(symbolicName)) {
-                    LOG.debug("\t {} : {}", parameter.getKey(), parameter.getValue());
-                    transformer.setParameter(new QName(parameter.getKey()), new XdmAtomicValue(parameter.getValue()));
-                }
                 transformer.setSource(new StreamSource(sourceFile));
                 transformer.setDestination(out);
                 transformer.transform();
                 transformer.getUnderlyingController().clearDocumentPool();                
-                LOG.debug("Memory used: {}M", String.valueOf((Runtime.getRuntime().totalMemory()
-                        - Runtime.getRuntime().freeMemory()) / 1024 / 1024));
                 ++filesSuccessfulCounter;
             } catch (SaxonApiException ex) {
                 ContextUtils.sendError(ctx, "Error processig file", ex,
@@ -156,7 +176,23 @@ public class Xslt extends AbstractDpu<XsltConfig_V2> {
                 if (config.isFailOnError()) {
                     throw new DPUException("Error processig file");
                 }
+            } finally {
+                // In every case close opened resources.
+                try {
+                    out.close();
+                } catch (SaxonApiException ex) {
+                    LOG.warn("Can't close Serializer.", ex);
+                }
+                try {
+                    transformer.close();
+                } catch (SaxonApiException ex) {
+                    LOG.warn("Can't close XsltTransformer.", ex);
+                }
             }
+            LOG.debug("Memory used: {}M", String.valueOf((Runtime.getRuntime().totalMemory()
+                    - Runtime.getRuntime().freeMemory()) / 1024 / 1024));
+                
+
             // Update indexes.
             ++index;
             if (ctx.canceled()) {

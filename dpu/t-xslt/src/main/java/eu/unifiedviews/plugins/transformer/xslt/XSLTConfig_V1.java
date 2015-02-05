@@ -71,6 +71,7 @@ public class XSLTConfig_V1 implements VersionedConfig<XsltConfig_V2> {
         config.setFailOnError(!this.skipOnError);
         config.setXsltTemplate(this.xslTemplate);
         config.setXsltTemplateName(this.xslTemplateFileNameShownInDialog);
+        config.setOutputFileExtension(this.outputFileExtension);
 
         return config;
     }
