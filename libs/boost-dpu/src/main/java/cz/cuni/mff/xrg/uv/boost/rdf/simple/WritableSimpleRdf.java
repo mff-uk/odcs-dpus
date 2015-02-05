@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
@@ -30,22 +29,11 @@ import eu.unifiedviews.dpu.DPUException;
 /**
  * Add write functionality to {@link SimpleRdfRead} by wrapping {@link WritableRDFDataUnit}.
  *
- * <pre>
- * {@code
- * SimpleRdfWrite rdf = SimpleRdfFactory(rdfDataUnit, dpuContext);
- * rdf.setPolicy(AddPolicy.BUFFERED);
- * rdf.setOutputGraph("myOutputGraph");
- * // Add triple and flush buffer called as a chain.
- * rdf.add(subject, predicate, object).flushBuffer();
- * }
- * </pre>
- *
- * Features:
+ * If this class is initialized with {@link cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer} then
+ * all features of {@link SimpleRdf} hold also for this class with addition of:
  * <ul>
- * <li>This class is fault tolerant if {@link FaultTolerance} is presented.</li>
- * <li>Buffer is automatically flushed at the end of the execution.</li>s
+ * <li>Buffer is automatically flushed at the end of the execution.</li>
  * </ul>
- *
  *
  * @author Škoda Petr
  */
@@ -108,8 +96,6 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
 
     protected Configuration configuration = new Configuration();
 
-    private FaultTolerance faultTolerance = null;
-
     /**
      * Add triple into repository. Based on current {@link AddPolicy} can add triple in immediate or lazy way.
      *
@@ -122,16 +108,23 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * @param o
      * @return
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
+     * @throws DPUException 
      */
-    public WritableSimpleRdf add(Resource s, URI p, Value o) throws SimpleRdfException {
-        LOG.info("add({}, {}, {})", s, p, o);
+    public WritableSimpleRdf add(Resource s, URI p, Value o) throws SimpleRdfException, DPUException {
         // Add to buffer.
         writeBuffer.add(new StatementImpl(s, p, o));
         applyFlushBufferPolicy();
         return this;
     }
 
-    public WritableSimpleRdf add(List<Statement> statements) throws SimpleRdfException {
+    /**
+     *
+     * @param statements
+     * @return
+     * @throws SimpleRdfException
+     * @throws DPUException
+     */
+    public WritableSimpleRdf add(List<Statement> statements) throws SimpleRdfException,DPUException {
         writeBuffer.addAll(statements);
         applyFlushBufferPolicy();
         return this;
@@ -150,21 +143,17 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      *
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
-    public void flushBuffer() throws SimpleRdfException {
+    public void flushBuffer() throws SimpleRdfException, DPUException {
         if (faultTolerance == null) {
             flushBufferInner();
         } else {
-            try {
-                faultTolerance.execute(new FaultTolerance.Action() {
+            faultTolerance.execute(new FaultTolerance.Action() {
 
-                    @Override
-                    public void action() throws Exception {
-                        flushBuffer();
-                    }
-                });
-            } catch (DPUException ex) {
-                throw new SimpleRdfException("Can't flush rdf data.", ex);
-            }
+                @Override
+                public void action() throws Exception {
+                    flushBufferInner();
+                }
+            });
         }
     }
 
@@ -172,9 +161,9 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * Same as {@link #flushBuffer()}. Reason for this class is easier usage with fault tolerant wrap.
      *
      * @throws SimpleRdfException
+     * @throws DPUException
      */
-    private void flushBufferInner() throws SimpleRdfException {
-        LOG.info("flushBufferInner!");
+    private void flushBufferInner() throws SimpleRdfException, DPUException {
         if (writeBuffer.isEmpty()) {
             // Nothing to save into repository.
             return;
@@ -211,26 +200,42 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
     }
 
     /**
-     * Set given graph as current output. If existing graph is set then the existing graph is used.
+     * Set given graph as current output.
      *
      * @param entry
      * @return
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
-    public WritableSimpleRdf setOutput(RDFDataUnit.Entry entry) throws SimpleRdfException {
+    public WritableSimpleRdf setOutput(RDFDataUnit.Entry entry) throws SimpleRdfException, DPUException {
         return setOutput(Arrays.asList(entry));
     }
 
     /**
-     * Set given graph as current output. If existing graph is set then the existing graph is used.
+     * Set given graphs as current output.
      *
      * @param entries
      * @return
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
      */
-    public WritableSimpleRdf setOutput(List<RDFDataUnit.Entry> entries) throws SimpleRdfException {
+    public WritableSimpleRdf setOutput(final List<RDFDataUnit.Entry> entries) 
+            throws SimpleRdfException, DPUException {
         // Flush buffer first.
         flushBuffer();
+        if (faultTolerance == null) {
+            setOutputInner(entries);
+        } else {
+            faultTolerance.execute(new FaultTolerance.Action() {
+
+                @Override
+                public void action() throws Exception {
+                    setOutputInner(entries);
+                }
+            });
+        }
+        return this;
+    }
+
+    public void setOutputInner(List<RDFDataUnit.Entry> entries) throws SimpleRdfException {
         // Change target graph.
         final List<URI> newWriteContext = new ArrayList<>(entries.size());
         for (RDFDataUnit.Entry entry : entries) {
@@ -241,7 +246,6 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
             }
         }
         this.writeContext = newWriteContext;
-        return this;
     }
 
     public List<URI> getWriteContext() {
@@ -266,8 +270,9 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      *
      * @param configuration
      * @throws cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException
+     * @throws DPUException
      */
-    public void setConfiguration(Configuration configuration) throws SimpleRdfException {
+    public void setConfiguration(Configuration configuration) throws SimpleRdfException, DPUException {
         this.configuration = configuration;
         // Check if we should not flush buffer.
         if (this.configuration.addPolicy == Configuration.AddPolicy.IMMEDIATE) {
@@ -279,14 +284,25 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * Create and set new default output graph. Fixed symbolic name is used for output graph.
      *
      * @throws SimpleRdfException
+     * @throws DPUException
      */
-    private void createDefaultWriteGraph() throws SimpleRdfException {
+    private void createDefaultWriteGraph() throws SimpleRdfException, DPUException {
         LOG.warn("Default output graph used.");
         final URI writeGraphUri;
-        try {
-            writeGraphUri = writableDataUnit.addNewDataGraph(DEFAULT_SYMBOLIC_NAME);
-        } catch (DataUnitException ex) {
-            throw new SimpleRdfException("Failed to add new graph.", ex);
+        if (faultTolerance == null) {
+            try {
+                writeGraphUri = writableDataUnit.addNewDataGraph(DEFAULT_SYMBOLIC_NAME);
+            } catch (DataUnitException ex) {
+                throw new SimpleRdfException("Failed to add new graph.", ex);
+            }
+        } else {
+            writeGraphUri = faultTolerance.execute(new FaultTolerance.ActionReturn<URI>() {
+
+                @Override
+                public URI action() throws Exception {
+                    return writableDataUnit.addNewDataGraph(DEFAULT_SYMBOLIC_NAME);
+                }
+            });
         }
         writeContext.add(writeGraphUri);
     }
@@ -295,8 +311,9 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
      * Based on policy call {@link #flushBuffer()} if needed.
      *
      * @throws SimpleRdfException
+     * @thrwos DPUException
      */
-    private void applyFlushBufferPolicy() throws SimpleRdfException {
+    private void applyFlushBufferPolicy() throws SimpleRdfException, DPUException {
         switch (configuration.addPolicy) {
             case BUFFERED:
                 if (writeBuffer.size() > configuration.commitSize) {
@@ -322,16 +339,14 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
     @Override
     public void afterInit(Context context) throws DPUException {
         super.afterInit(context);
-        //
         if (context instanceof ExecContext) {
-            // Ok we can process.
-        } else {
-            // Nothin for the dialog.
-            return;
+            final ExecContext execContext = (ExecContext)context;
+            afterInitExecution(execContext);
         }
-        // Get underliyng RDFDataUnit and other objects.
-        final ExecContext execContext = (ExecContext) context;
-        //
+    }
+
+    private void afterInitExecution(ExecContext execContext) throws DPUException {
+        // Get underliyng RDFDataUnit.
         final Object dpu = execContext.getDpu();
         final Field field;
         try {
@@ -354,8 +369,6 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
         } catch (IllegalAccessException | IllegalArgumentException ex) {
             throw new DPUException("Can't get value for: " + dataUnitName, ex);
         }
-        // Check for fault tolerance addon.
-        faultTolerance = (FaultTolerance) context.getInstance(FaultTolerance.class);
     }
 
     @Override
@@ -364,7 +377,7 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
             // Made sure that all data are saved.
             try {
                 flushBuffer();
-            } catch (SimpleRdfException ex) {
+            } catch (DPUException ex) {
                 throw new AddonException("Can't flush data at the end of execution.", ex);
             }
         }
