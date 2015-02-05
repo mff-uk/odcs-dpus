@@ -34,8 +34,7 @@ public class ContextUtils {
             String bodyFormat, Object... args) {
         final String body = String.format(bodyFormat, args);
         if (context.getMasterContext() instanceof ExecContext) {
-            final UserExecContext execContext = (UserExecContext)context;
-            final DPUContext dpuContext = ((ExecContext)execContext.getMasterContext()).getDpuContext();
+            final DPUContext dpuContext = ((ExecContext)context.getMasterContext()).getDpuContext();
             if (dpuContext != null) {
                 dpuContext.sendMessage(type, caption, body);
                 return;
@@ -59,8 +58,7 @@ public class ContextUtils {
             Exception exception, String bodyFormat, Object... args) {
         final String body = String.format(bodyFormat, args);
         if (context.getMasterContext() instanceof ExecContext) {
-            final UserExecContext execContext = (UserExecContext)context;
-            final DPUContext dpuContext = ((ExecContext)execContext.getMasterContext()).getDpuContext();
+            final DPUContext dpuContext = ((ExecContext)context.getMasterContext()).getDpuContext();
             if (dpuContext != null) {
                 dpuContext.sendMessage(type, caption, body, exception);
                 return;
