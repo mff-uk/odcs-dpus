@@ -38,7 +38,7 @@ import eu.unifiedviews.dpu.DPUContext;
  */
 @DPU.AsTransformer
 public class SparqlUpdate 
-        extends AbstractDpu<SparqlUpdateConfig_V1, SparqlUpdateOntology> {
+        extends AbstractDpu<SparqlUpdateConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SparqlUpdate.class);
 
@@ -65,15 +65,15 @@ public class SparqlUpdate
 
     public SparqlUpdate() {
         super(SparqlUpdateVaadinDialog.class, ConfigHistory.noHistory(SparqlUpdateConfig_V1.class),
-                new SparqlUpdateOntology());
+                SparqlUpdateOntology.class);
     }
 
     @Override
     protected void innerExecute() throws DPUException {
         if (useDataset()) {
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "OpenRdf mode.", "");
+            ContextUtils.sendShortInfo(ctx, "OpenRdf mode.");
         } else {
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Virtuoso mode.", "");
+            ContextUtils.sendShortInfo(ctx, "Virtuoso mode.");
         }
         // Get update query.
         final String query = config.getQuery();
@@ -84,7 +84,7 @@ public class SparqlUpdate
         final List<RDFDataUnit.Entry> sourceEntries = getInputEntries(rdfInput);
         // Copy data into a new graph.
         if (config.isPerGraph()) {
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Per-graph query execution",
+            ContextUtils.sendMessage(ctx, DPUContext.MessageType.INFO, "Per-graph query execution",
                     "Number of graphs: %d", sourceEntries.size());
             // Execute on per-graph basis.
             int counter = 1;
@@ -103,8 +103,8 @@ public class SparqlUpdate
                 });
                 // Execute query 1 -> 1.
                 updateEntries(query, Arrays.asList(sourceEntry), targetGraph);
-                if (context.canceled()) {
-                    ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "DPU cancelled ..", "");
+                if (ctx.canceled()) {
+                    ContextUtils.sendMessage(ctx, DPUContext.MessageType.INFO, "DPU cancelled ..", "");
                     // Cancel.
                     break;
                 }
@@ -124,7 +124,7 @@ public class SparqlUpdate
                 }
             });
             // Execute over all intpu graph ie. m -> 1
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO,
+            ContextUtils.sendMessage(ctx, DPUContext.MessageType.INFO,
                     "Executing user query with single output.", "");
             updateEntries(query, sourceEntries, targetGraph);
         }

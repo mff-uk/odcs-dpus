@@ -3,15 +3,15 @@ package cz.cuni.mff.xrg.uv.transformer.sparql.update;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
  *
  * @author Škoda Petr
  */
-public class SparqlUpdateVaadinDialog 
-        extends AbstractVaadinDialog<SparqlUpdateConfig_V1, SparqlUpdateOntology> {
+public class SparqlUpdateVaadinDialog extends AbstractDialog<SparqlUpdateConfig_V1> {
 
     private TextArea txtQuery;
 
@@ -50,7 +50,7 @@ public class SparqlUpdateVaadinDialog
         mainLayout.addComponent(checkPerGraph);
         mainLayout.setExpandRatio(checkPerGraph, 0.0f);
 
-		txtQuery = new TextArea("SPARQL update query");
+        txtQuery = new TextArea("SPARQL update query");
         txtQuery.setSizeFull();
         txtQuery.setRequired(true);
         mainLayout.addComponent(txtQuery);
