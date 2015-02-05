@@ -43,13 +43,13 @@ public class TextHolderVaadinDialog extends AbstractDialog<TextHolderConfig_V1> 
         mainLayout.setMargin(true);
         mainLayout.setSpacing(true);
 
-        txtName = new TextField("Output file name:");
+        txtName = new TextField(ctx.tr("dpu.dialog.output.file"));
         txtName.setWidth("100%");
         txtName.setRequired(true);
         mainLayout.addComponent(txtName);
         mainLayout.setExpandRatio(txtName, 0);
 
-        txtValue = new TextArea("File's content:");
+        txtValue = new TextArea(ctx.tr("dpu.dialog.output.content"));
         txtValue.setSizeFull();
         mainLayout.addComponent(txtValue);
         mainLayout.setExpandRatio(txtValue, 1.0f);
