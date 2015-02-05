@@ -8,23 +8,14 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 
+import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
+
 /**
- * Class designed for easy entity building.
+ * Class designed for easy entity building. Each builder can be used to build just one entity.
  *
  * @author Škoda Petr
  */
 public class EntityBuilder {
-
-    /**
-     * Used to count objects.
-     */
-    private int objectCounter = 0;
-
-    /**
-     * Template for resource URI, must contains exactly one '%d' that is replaced by numbers as objects are
-     * created.
-     */
-    private final String entityUriTemplate;
 
     /**
      * Store statement about currently constructed object.
@@ -34,7 +25,7 @@ public class EntityBuilder {
     /**
      * Uri of currently constructed entity.
      */
-    private URI entityUri;
+    private final URI entityUri;
 
     /**
      * Used value factory.
@@ -42,25 +33,21 @@ public class EntityBuilder {
     private final ValueFactory valueFactory;
 
     /**
-     *
-     * @param entityUriTemplate Template for resource URI. Must contains just one %d that will be replaced by
-     *                          index.
-     * @param valueFactory
+     * Holds ontology.
      */
-    public EntityBuilder(String entityUriTemplate, ValueFactory valueFactory) {
-        this.entityUriTemplate = entityUriTemplate;
-        this.valueFactory = valueFactory;
-    }
+    private final OntologyHolder ontology;
 
     /**
-     * Create a new object. All information about previous object are lost during this call.
      *
-     * @return
+     * @param entityUri
+     * @param valueFactory
+     * @param ontology     Ontology used during creation of this object. Can be null but in such case methods
+     *                     which utilize ontology must no be called.
      */
-    public EntityBuilder createNewObject() {
-        statemetns.clear();
-        entityUri = valueFactory.createURI(String.format(entityUriTemplate, ++objectCounter));
-        return this;
+    public EntityBuilder(String entityUri, ValueFactory valueFactory, OntologyHolder ontology) {
+        this.entityUri = valueFactory.createURI(entityUri);
+        this.valueFactory = valueFactory;
+        this.ontology = ontology;
     }
 
     /**
@@ -84,6 +71,49 @@ public class EntityBuilder {
      */
     public EntityBuilder property(URI property, EntityBuilder entity) {
         statemetns.add(valueFactory.createStatement(entityUri, property, entity.getEntityUri()));
+        return this;
+    }
+
+    /**
+     * Add a property to this object.
+     * 
+     * This method use ontology!
+     * 
+     * @param property String value from the ontology.
+     * @param value
+     * @return
+     */
+    public EntityBuilder property(String property, Value value) {
+        statemetns.add(valueFactory.createStatement(entityUri, ontology.get(property), value));
+        return this;
+    }
+
+    /**
+     * Add a property to this object. As a value the entity URI of given {@link EntityBuilder} is used.
+     *
+     * This method use ontology!
+     * 
+     * @param property String value from the ontology.
+     * @param entity
+     * @return
+     */
+    public EntityBuilder property(String property, EntityBuilder entity) {
+        statemetns.add(valueFactory.createStatement(entityUri, ontology.get(property), entity.getEntityUri()));
+        return this;
+    }
+
+    /**
+     * Add a property to this object.
+     *
+     * This method use ontology!
+     *
+     * @param property String value from the ontology.
+     * @param value String value from the ontology.
+     * @return
+     */
+    public EntityBuilder property(String property, String value) {
+        statemetns.add(valueFactory.createStatement(entityUri, ontology.get(property),
+                ontology.get(value)));
         return this;
     }
 
