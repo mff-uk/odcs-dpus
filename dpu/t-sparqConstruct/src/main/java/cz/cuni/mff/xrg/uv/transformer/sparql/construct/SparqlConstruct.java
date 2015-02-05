@@ -37,7 +37,7 @@ import eu.unifiedviews.dpu.DPUContext.MessageType;
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1, SparqlConstructOntology> {
+public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SparqlConstruct.class);
 
@@ -57,15 +57,15 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1, Sparq
 
     public SparqlConstruct() {
         super(SparqlConstructVaadinDialog.class, ConfigHistory.noHistory(SparqlConstructConfig_V1.class),
-            new SparqlConstructOntology());
+            SparqlConstructOntology.class);
     }
 
     @Override
     protected void innerExecute() throws DPUException {
         if (useDataset()) {
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "OpenRdf mode.", "");
+            ContextUtils.sendShortInfo(ctx, "OpenRdf mode.");
         } else {
-            ContextUtils.sendMessage(context, DPUContext.MessageType.INFO, "Virtuoso mode.", "");
+            ContextUtils.sendShortInfo(ctx, "Virtuoso mode.");
         }
         // Update query ie. substitute constract with insert.
         String query = config.getQuery();
@@ -94,7 +94,7 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1, Sparq
         // Execute based on configuration.
         if (config.isPerGraph()) {
             // Execute one graph at time.
-            ContextUtils.sendMessage(context, MessageType.INFO, "Per-graph query execution",
+            ContextUtils.sendMessage(ctx, MessageType.INFO, "Per-graph query execution",
                     "Number of graphs: %d", sourceEntries.size());
             // Execute one query per graph, the target graph is always the same.
             int counter = 1;
@@ -127,7 +127,7 @@ public class SparqlConstruct extends AbstractDpu<SparqlConstructConfig_V1, Sparq
                 throw new DPUException("Too many graphs .. (limit: " + MAX_GRAPH_COUNT + ", given: "
                         + sourceEntries.size() + ")");
             }
-            ContextUtils.sendMessage(context, MessageType.INFO, "Executing over all graphs",
+            ContextUtils.sendMessage(ctx, MessageType.INFO, "Executing over all graphs",
                     "Executing query over all graphs (%d)", sourceEntries.size());
             // Prepare single output graph.
             final URI targetGraph = faultTolerance.execute(new FaultTolerance.ActionReturn<URI>() {

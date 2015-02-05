@@ -3,15 +3,15 @@ package cz.cuni.mff.xrg.uv.transformer.sparql.construct;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
  *
  * @author Škoda Petr
  */
-public class SparqlConstructVaadinDialog
-        extends AbstractVaadinDialog<SparqlConstructConfig_V1, SparqlConstructOntology> {
+public class SparqlConstructVaadinDialog extends AbstractDialog<SparqlConstructConfig_V1> {
 
     private TextArea txtQuery;
 
