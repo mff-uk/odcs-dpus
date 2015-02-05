@@ -144,20 +144,16 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * @return
      * @throws DataUnitException
      */
-    public String getFirst(String predicate) throws DataUnitException {
-        
+    public String getFirst(String predicate) throws DataUnitException {        
         try {
             final TupleQueryResult result = executeSelectQuery(predicate);
             // Return first result.
-            String out = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
-
-            LOG.info("getFirst({}) -> {}", predicate, out);
             if (result.hasNext()) {
-                LOG.info("> {}", result.next().getBinding(OBJECT_BINDING).getValue().stringValue());
+                return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
+            } else {
+                // No value is presented.
+                return null;
             }
-
-            return out;
-            
         } catch (MalformedQueryException | QueryEvaluationException | RepositoryException ex) {
             throw new DataUnitException("Failed to execute get-query.", ex);
         }
