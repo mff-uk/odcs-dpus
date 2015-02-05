@@ -6,14 +6,15 @@ import java.util.Map;
 
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Base class for ontology definition.
  *
- * Sample {@link #load(java.lang.Class)} method call, this code should be located in
- * {@code
+ * Sample {@link #load(java.lang.Class)} method call, this code should be located in  {@code
  * <pre>
  * @Override
  * protected void loadExternal() throws DPUException {
@@ -40,15 +41,16 @@ import eu.unifiedviews.dpu.DPUException;
  * <li>As the values can change base on presence of other DPUs in the system, do not store them.!</li>
  * </ul>
  *
- * TODO Petr: Implements test!
- * TODO Petr: Should we initialize the target instance to enable chaining?
+ * TODO Petr: Implements test! TODO Petr: Should we initialize the target instance to enable chaining?
  *
  * @author Škoda Petr
  */
 public class OntologyHolder {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OntologyHolder.class);
+
     public OntologyHolder() {
-        
+
     }
 
     /**
@@ -57,8 +59,8 @@ public class OntologyHolder {
     private final Map<String, URI> uris = new HashMap<>();
 
     /**
-     * Store mapping from initial values to loaded ones. Used as a temporary storage
-     * before {@link #uris} is initialized.
+     * Store mapping from initial values to loaded ones. Used as a temporary storage before {@link #uris} is
+     * initialized.
      */
     private final Map<String, String> translations = new HashMap<>();
 
@@ -74,9 +76,8 @@ public class OntologyHolder {
      * @throws ReflectiveOperationException
      */
     public void loadDefinitions(Class<?> clazz) throws DPUException {
-        final String className = clazz.getCanonicalName();
         // Scan for annotations with this class.
-        for (Field field : this.getClass().getFields()) {
+        for (Field field : clazz.getFields()) {
             if (field.getAnnotation(OntologyDefinition.NotUri.class) != null) {
                 // Skip as it's not a URI.
                 continue;
@@ -84,18 +85,18 @@ public class OntologyHolder {
             final String key;
             // Key is the same value as in static field.
             try {
-                key = (String)field.get(null);
+                key = (String) field.get(null);
             } catch (IllegalAccessException | IllegalArgumentException ex) {
                 throw new DPUException("Can't read field: " + field.getName(), ex);
             }
             // Read a value for a key.
             final String uri;
             try {
-                uri = (String)field.get(null);
+                uri = (String) field.get(null);
             } catch (IllegalAccessException | IllegalArgumentException ex) {
                 throw new DPUException("Can't read field: " + field.getName(), ex);
             }
-            
+
             // TODO Petr Solve external annotation here!
 
             // Add to the list.
@@ -124,9 +125,9 @@ public class OntologyHolder {
     }
 
     /**
-     * Prepare URIs for later use. This function should be called before first usage
-     * of {@link #get(java.lang.String)} and after lass call of {@link #load(java.lang.Class)}.
-     * 
+     * Prepare URIs for later use. This function should be called before first usage of
+     * {@link #get(java.lang.String)} and after lass call of {@link #load(java.lang.Class)}.
+     *
      * @param valueFactory
      * @throws DPUException
      */
@@ -134,24 +135,8 @@ public class OntologyHolder {
         // Load dependencies.
         loadExternal();
         // Load fields.
-        for (Field field : this.getClass().getFields()) {
-            final String fieldValue;
-            try {
-                fieldValue = (String)field.get(field);
-            } catch (IllegalAccessException | IllegalArgumentException ex) {
-                throw new DPUException("Can't read field value.", ex);
-            }
-            try {
-                if (translations.containsKey(fieldValue)) {
-                    uris.put(fieldValue, valueFactory.createURI(translations.get(fieldValue)));
-                } else {
-                    // original value is used.
-                    uris.put(fieldValue, valueFactory.createURI(fieldValue));
-                }                
-            } catch (IllegalArgumentException ex) {
-                throw new DPUException("Current value: " + fieldValue + " is not a valid URI for field" +
-                        field.getName(), ex);
-            }
+        for (String key : translations.keySet()) {
+            uris.put(key, valueFactory.createURI(translations.get(key)));
         }
     }
 
@@ -160,9 +145,14 @@ public class OntologyHolder {
      *
      * @param uri Value must be public static member of the ontology class.
      * @return URI for given ontology URI.
+     * @throws DPUException
      */
     public URI get(String uri) {
-        return uris.get(uri);
+        if (uris.containsKey(uri)) {
+            return uris.get(uri);
+        } else {
+            throw new RuntimeException("Missing URI for: " + uri);
+        }
     }
 
     /**
@@ -170,7 +160,7 @@ public class OntologyHolder {
      *
      * @throws DPUException
      */
-    protected void loadExternal() throws DPUException  {
+    protected void loadExternal() throws DPUException {
         // No external sources here.
     }
 
