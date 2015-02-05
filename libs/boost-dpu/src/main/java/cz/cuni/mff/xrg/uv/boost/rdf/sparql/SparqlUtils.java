@@ -251,7 +251,7 @@ public class SparqlUtils {
      */
     public static SparqlSelectObject createSelect(String query, List<RDFDataUnit.Entry> entries)
             throws SparqlProblemException, DataUnitException {
-        query = query.replaceFirst("(?i)WHERE", "USING " + prepareClause("USING", entries) + "WHERE ");
+        query = query.replaceFirst("(?i)WHERE", prepareClause("FROM", entries) + "WHERE ");
         return new SparqlSelectObject(query);
     }
 
