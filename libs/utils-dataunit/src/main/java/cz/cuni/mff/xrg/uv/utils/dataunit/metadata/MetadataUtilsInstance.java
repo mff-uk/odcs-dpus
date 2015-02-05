@@ -44,8 +44,8 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      */
     private static final String SELECT_QUERY
             = "SELECT ?" + OBJECT_BINDING + " WHERE %s { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ";"
-            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + ". "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ;"
+            + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
             + "}";
 
     /**
@@ -128,7 +128,7 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
             try {
                 this.connection.close();
             } catch (RepositoryException ex) {
-                LOG.warn("Can't close old connection.");
+                LOG.warn("Can't close old connection.", ex);
             }
         }
         this.connection = newConnection;
@@ -145,13 +145,19 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * @throws DataUnitException
      */
     public String getFirst(String predicate) throws DataUnitException {
+        
         try {
             final TupleQueryResult result = executeSelectQuery(predicate);
             // Return first result.
+            String out = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
+
+            LOG.info("getFirst({}) -> {}", predicate, out);
             if (result.hasNext()) {
-                return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
+                LOG.info("> {}", result.next().getBinding(OBJECT_BINDING).getValue().stringValue());
             }
-            return null;
+
+            return out;
+            
         } catch (MalformedQueryException | QueryEvaluationException | RepositoryException ex) {
             throw new DataUnitException("Failed to execute get-query.", ex);
         }

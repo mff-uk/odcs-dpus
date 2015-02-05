@@ -8,6 +8,8 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manipulator for writing metadata.
@@ -25,16 +27,18 @@ import org.openrdf.repository.RepositoryException;
  */
 public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<WritableMetadataUtilsInstance> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WritableMetadataUtilsInstance.class);
+
     /**
      * %s - with clause
      * %s - using clause
      */
     private static final String UPDATE_QUERY
-            = "%s DELETE {?s ?" + PREDICATE_BINDING + " ?o} "
-            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            = "%s DELETE {?s ?" + PREDICATE_BINDING + " ?o } "
+            + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
             + "%s WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
-            + "OPTIONAL {?s ?" + PREDICATE_BINDING + " ?o} "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+            + "OPTIONAL { ?s ?" + PREDICATE_BINDING + " ?o } "
             + " } ";
 
     /**
@@ -42,9 +46,9 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
      * %s - using clause
      */
     private static final String INSERT_QUERY
-            = "%s INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + "} "
+            = "%s INSERT { ?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
             + "%s WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + ". "
+            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
             + " } ";
 
     /**
@@ -125,6 +129,7 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
             update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+            update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
             if (useDataset()) {
                 update.setDataset(dataset);
             }
