@@ -29,7 +29,8 @@ public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
     public RdfConfiguration _rdfConfiguration;
 
     public TextHolder() {
-        super(TextHolderVaadinDialog.class, ConfigHistory.noHistory(TextHolderConfig_V1.class));
+        super(TextHolderVaadinDialog.class, ConfigHistory.noHistory(TextHolderConfig_V1.class),
+                TextHolderOntology.class);
     }
 		
     @Override

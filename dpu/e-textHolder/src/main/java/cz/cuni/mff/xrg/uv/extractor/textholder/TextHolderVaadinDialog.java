@@ -4,14 +4,14 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AbstractVaadinDialog;
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
  * 
  * @author Škoda Petr
  */
-public class TextHolderVaadinDialog extends AbstractVaadinDialog<TextHolderConfig_V1> {
+public class TextHolderVaadinDialog extends AbstractDialog<TextHolderConfig_V1> {
 
     private TextField txtName;
     
