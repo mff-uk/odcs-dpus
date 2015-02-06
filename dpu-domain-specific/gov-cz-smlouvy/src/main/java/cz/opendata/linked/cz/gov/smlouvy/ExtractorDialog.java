@@ -6,16 +6,15 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU
  * configuration.
  *
  */
-public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
+public class ExtractorDialog extends AbstractDialog<ExtractorConfig> {
 
     private static final long serialVersionUID = 7003725620084616056L;
 
@@ -31,15 +30,11 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     private TextField timeout;
 
     public ExtractorDialog() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
-        buildMainLayout();
-        Panel panel = new Panel();
-        panel.setSizeFull();
-        panel.setContent(mainLayout);
-        setCompositionRoot(panel);
+        super(Extractor.class);
     }
 
-    private GridLayout buildMainLayout() {
+    @Override
+    protected void buildDialogLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
@@ -79,7 +74,11 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
 
         mainLayout.addComponent(timeout);
 
-        return mainLayout;
+        Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+
+        setCompositionRoot(panel);
     }
 
     @Override
@@ -90,7 +89,6 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
         chkPlneni.setValue(conf.isPlneni());
         interval.setValue(Integer.toString(conf.getInterval()));
         timeout.setValue(Integer.toString(conf.getTimeout()));
-
     }
 
     @Override

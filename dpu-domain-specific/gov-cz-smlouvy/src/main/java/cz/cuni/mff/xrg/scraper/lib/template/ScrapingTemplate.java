@@ -47,7 +47,7 @@ public abstract class ScrapingTemplate {
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      */
     protected abstract void parse(String doc, String docType, URL uri);    
-    
+
     /**
      * Run scraping on given URL and given document type.
      * 
@@ -76,7 +76,7 @@ public abstract class ScrapingTemplate {
                 parsed.add(p);
             } catch (IOException ex) {
                 logger.error(ex.getLocalizedMessage());
-            } 
+            }
         }
         if (context.canceled()) logger.info("Cancelled");
         
