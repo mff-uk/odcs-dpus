@@ -1,1 +1,15 @@
-<b>XSLT transformer</b> can be used to transform input files with a single static template.
+<b>XSLT transformer</b> can be used to transform input files with a single static template. <br/>
+List of options:
+<ul>
+    <li><b>Skip file on error</b> - if selected and transformation fail, then the file is skipped and the
+        execution continues.</li>
+    <li><b>File extension</b> - if provided then file extension in virtual path is set to given value.
+        If no virtual path is set for some file then error message is logged and no virtual path is set.</li>
+    <li><b>Number of extra threads</b> - How many additional workers should be spawn. Remember that higher
+        number of workers may speed up transformation but will also result in greater memory consumption.
+        This option should work better with files that takes longer to transform. One worker thread
+        is always spawned even if the value is zero.</li>
+    <li><b>XSLT template</b> - Template used during transformation.</li>
+</ul>
+<br>
+

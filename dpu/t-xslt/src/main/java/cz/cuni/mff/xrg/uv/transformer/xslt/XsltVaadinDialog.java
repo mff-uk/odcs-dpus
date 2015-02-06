@@ -1,7 +1,5 @@
 package cz.cuni.mff.xrg.uv.transformer.xslt;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -16,11 +14,11 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
  */
 public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(XsltVaadinDialog.class);
-
     private CheckBox checkSkipFileOnError;
 
     private TextField txtOutputExtension;
+
+    private TextField txtNumberOfExtraThreads;
 
     private TextArea txtTemplate;
 
@@ -32,6 +30,7 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
     public void setConfiguration(XsltConfig_V2 c) throws DPUConfigException {
         this.checkSkipFileOnError.setValue(!c.isFailOnError());
         this.txtOutputExtension.setValue(c.getOutputFileExtension());
+        this.txtNumberOfExtraThreads.setValue(Integer.toString(c.getNumberOfExtraThreads()));
         this.txtTemplate.setValue(c.getXsltTemplate());
     }
 
@@ -41,6 +40,20 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
         c.setFailOnError(!this.checkSkipFileOnError.getValue());
         c.setOutputFileExtension(this.txtOutputExtension.getValue());
         c.setXsltTemplate(this.txtTemplate.getValue());
+        // Parse
+        try {
+            int value = Integer.parseInt(this.txtNumberOfExtraThreads.getValue());
+            if (value < 0) {
+                throw new DPUConfigException(ctx.tr("dpu.dialog.extraThreads.negative"));
+            }
+            c.setNumberOfExtraThreads(value);
+        } catch (NumberFormatException ex) {
+            throw new DPUConfigException(ctx.tr("dpu.dialog.extraThreads.formatException"));
+        }
+        // Check file extension.
+        if (!c.getOutputFileExtension().isEmpty() && !c.getOutputFileExtension().startsWith(".") ) {
+            throw new DPUConfigException(ctx.tr("dpu.dialog.template.output.extension.formatExeption"));
+        }
         return c;
     }
 
@@ -58,8 +71,15 @@ public class XsltVaadinDialog extends AbstractDialog<XsltConfig_V2> {
 
         this.txtOutputExtension = new TextField(ctx.tr("dpu.dialog.template.output.extension"));
         this.txtOutputExtension.setWidth("100%");
+        this.txtOutputExtension.setDescription(ctx.tr("dpu.dialog.template.output.extension.desc"));
         mainLayout.addComponent(this.txtOutputExtension);
         mainLayout.setExpandRatio(this.txtOutputExtension, 0.0f);
+
+        this.txtNumberOfExtraThreads = new TextField(ctx.tr("dpu.dialog.extraThreads"));
+        this.txtNumberOfExtraThreads.setWidth("100%");
+        mainLayout.addComponent(this.txtNumberOfExtraThreads);
+        mainLayout.setExpandRatio(this.txtNumberOfExtraThreads, 0.0f);
+
 
         this.txtTemplate = new TextArea(ctx.tr("dpu.dialog.template"));
         this.txtTemplate.setSizeFull();

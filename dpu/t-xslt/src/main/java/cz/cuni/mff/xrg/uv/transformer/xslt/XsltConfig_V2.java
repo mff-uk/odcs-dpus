@@ -87,10 +87,12 @@ public class XsltConfig_V2 {
      * If null then extension does not change. Extension is added to current file name.
      */
     @Ontology.Property(uri = XsltTOntology.XSLT_OUTPUT_FILE_EXTENSION)
-    private String outputFileExtension = null;
+    private String outputFileExtension = "";
 
     @Ontology.Property(uri = XsltTOntology.XSLT_FILEINFO_PREDICATE)
     private List<FileInformations> filesParameters = new LinkedList<>();
+
+    private int numberOfExtraThreads = 0;
 
     public XsltConfig_V2() {
 
@@ -134,6 +136,14 @@ public class XsltConfig_V2 {
 
     public void setOutputFileExtension(String outputFileExtension) {
         this.outputFileExtension = outputFileExtension;
+    }
+
+    public int getNumberOfExtraThreads() {
+        return numberOfExtraThreads;
+    }
+
+    public void setNumberOfExtraThreads(int numberOfExtraThreads) {
+        this.numberOfExtraThreads = numberOfExtraThreads;
     }
 
     /**
