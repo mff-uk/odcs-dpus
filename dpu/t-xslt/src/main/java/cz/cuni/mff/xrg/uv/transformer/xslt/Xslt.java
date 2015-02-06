@@ -26,6 +26,7 @@ import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
+import eu.unifiedviews.plugins.transformer.xslt.XSLTConfig_V1;
 
 @DPU.AsTransformer
 public class Xslt extends AbstractDpu<XsltConfig_V2> {
@@ -36,10 +37,10 @@ public class Xslt extends AbstractDpu<XsltConfig_V2> {
     @DataUnit.AsInput(name = "config", description = "Optional input for RDF configuration.", optional = true)
     public RDFDataUnit rdfConfig;
 
-    @DataUnit.AsInput(name = "input", description = "Files to process with XSLT processor.")
+    @DataUnit.AsInput(name = "filesInput", description = "Files to process with XSLT processor.")
     public FilesDataUnit filesInput;
 
-    @DataUnit.AsOutput(name = "output", description = "Processed files. Only file contet has been changed.")
+    @DataUnit.AsOutput(name = "filesOutput", description = "Processed files. Only file contet has been changed.")
     public WritableFilesDataUnit filesOutput;
 
     @AutoInitializer.Init
@@ -48,8 +49,13 @@ public class Xslt extends AbstractDpu<XsltConfig_V2> {
     @AutoInitializer.Init
     public RdfConfiguration _rdfConfiguration;
 
+    @AutoInitializer.Init
+    public XSLTConfig_V1_Convertor _xsltConfigConvertor;
+
     public Xslt() {
-        super(XsltVaadinDialog.class, ConfigHistory.noHistory(XsltConfig_V2.class), XsltTOntology.class);
+        super(XsltVaadinDialog.class, 
+                ConfigHistory.history(XSLTConfig_V1.class).addCurrent(XsltConfig_V2.class),
+                XsltTOntology.class);
     }
 
     @Override
