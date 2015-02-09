@@ -5,19 +5,19 @@ package ${package};
 
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+
+import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 
 /**
- * DPU's configuration dialog.
+ * Vaadin configuration dialog for ${dpu_name}.
+ *
+ * @author ${author}
  */
-public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name}Config_V1> {
+public class ${dpu_name}VaadinDialog extends AbstractDialog<${dpu_name}Config_V1> {
 
     public ${dpu_name}VaadinDialog() {
-        super(${dpu_name}Config_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(${dpu_name}.class);
     }
 
     @Override
@@ -32,7 +32,8 @@ public class ${dpu_name}VaadinDialog extends AdvancedVaadinDialogBase<${dpu_name
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    public void buildDialogLayout() {
 		final VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");

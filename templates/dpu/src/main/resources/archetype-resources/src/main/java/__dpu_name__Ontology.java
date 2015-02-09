@@ -4,14 +4,10 @@
 package ${package};
 
 /**
- * Configuration class for ${dpu_name}.
+ * Ontology definition for ${dpu_name}.
  *
  * @author ${author}
  */
-public class ${dpu_name}Config_V1 {
-
-    public ${dpu_name}Config_V1() {
-
-    }
+public interface ${dpu_name}Ontology {
 
 }

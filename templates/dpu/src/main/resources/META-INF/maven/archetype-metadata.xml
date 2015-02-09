@@ -4,7 +4,7 @@
 					  name="UberProject" partial="false" >
 	<requiredProperties>
 		<requiredProperty key="parent_version">
-			<defaultValue>1.1.1</defaultValue>
+			<defaultValue>2.0.0</defaultValue>
 		</requiredProperty>
 		<requiredProperty key="dpu_name">
             <defaultValue>Tabular</defaultValue>
@@ -12,13 +12,16 @@
 		<requiredProperty key="dpu_type">
 			<defaultValue>Extractor</defaultValue>
 		</requiredProperty>
+		<requiredProperty key="author">
+			<defaultValue>Unknown</defaultValue>
+		</requiredProperty>
 	</requiredProperties>
 
 	<fileSets>
 		<fileSet filtered="true" packaged="true" encoding="UTF-8" >
 			<directory>src/main/java</directory>
 			<includes>
-				<include>**/*.java</include>
+				<include>**/*.*</include>
 			</includes>
 		</fileSet>
 	</fileSets>

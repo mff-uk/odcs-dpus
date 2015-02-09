@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion> 
 	<groupId>cz.cuni.mff.xrg.uv</groupId> 
 	<artifactId>dpu-template-advanced</artifactId>
-	<version>1.1.1</version>
+	<version>2.0.0</version>
 	<packaging>maven-archetype</packaging> 
 	<name>dpu template advanced</name>
-	<description>Template for DPU - utilize libraries from https://github.com/mff-uk/DPUs </description>
+	<description>Template for DPU - utilizes libraries from https://github.com/mff-uk/DPUs.</description>
 	
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -11,7 +11,7 @@
     <version>${version}</version>
     <packaging>bundle</packaging>
     <name>${dpu_name}</name>
-    <description>Description of ${dpu_name}.</description>
+    <description></description>
 	
     <properties>
         <dpu.package>${package}</dpu.package>
@@ -31,39 +31,11 @@
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dialog</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cuni.mff.xrg.uv</groupId>
             <artifactId>utils-dataunit</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-files</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
