@@ -11,7 +11,7 @@ import java.util.ResourceBundle;
  */
 public class Localization {
 
-    private final String BUNDLE_NAME = "i18n";
+    private final String BUNDLE_NAME = "resources";
 
     /**
      * Used resource bundle.
