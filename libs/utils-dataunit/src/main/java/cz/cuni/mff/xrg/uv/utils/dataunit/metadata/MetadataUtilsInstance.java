@@ -43,7 +43,7 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * %s - place for using clause
      */
     private static final String SELECT_QUERY
-            = "SELECT ?" + OBJECT_BINDING + " WHERE %s { "
+            = "SELECT ?" + OBJECT_BINDING + " %s WHERE { "
             + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ;"
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
             + "}";
@@ -82,6 +82,11 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
     protected final String datasetUsingClause;
 
     /**
+     * String version of {@link #dataset}.
+     */
+    protected final String datasetFromClause;
+
+    /**
      *
      * @param connection
      * @param readGraph
@@ -101,16 +106,23 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
                 this.dataset.addDefaultGraph(uri);
             }
             this.datasetUsingClause = null;
+            this.datasetFromClause = null;
         } else {
             this.dataset = null;
             // Build USING clause
-            final StringBuilder clauseBuilder = new StringBuilder(readGraph.size() * 15);
+            final StringBuilder clauseUsingBuilder = new StringBuilder(readGraph.size() * 15);
+            final StringBuilder clauseFromBuilder = new StringBuilder(readGraph.size() * 15);
             for (URI uri : readGraph) {
-                clauseBuilder.append("USING <");
-                clauseBuilder.append(uri.toString());
-                clauseBuilder.append(">\n");
+                clauseUsingBuilder.append("USING <");
+                clauseUsingBuilder.append(uri.toString());
+                clauseUsingBuilder.append(">\n");
+
+                clauseFromBuilder.append("FROM <");
+                clauseFromBuilder.append(uri.toString());
+                clauseFromBuilder.append(">\n");
             }
-            this.datasetUsingClause = clauseBuilder.toString();
+            this.datasetUsingClause = clauseUsingBuilder.toString();
+            this.datasetFromClause = clauseFromBuilder.toString();
         }
     }
 
