@@ -26,9 +26,6 @@ public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
     public WritableFilesDataUnit outFiles;
 
     @AutoInitializer.Init
-    public RdfConfiguration _rdfConfiguration;
-
-    @AutoInitializer.Init
     public FaultTolerance faultTolerance;
 
     public TextHolder() {
