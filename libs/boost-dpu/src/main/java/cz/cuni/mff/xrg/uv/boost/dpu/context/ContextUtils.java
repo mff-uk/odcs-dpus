@@ -121,6 +121,20 @@ public class ContextUtils {
     }
 
     /**
+     * Send formated {@link DPUContext.MessageType#ERROR} message.
+     *
+     * @param context
+     * @param caption
+     * @param exception
+     * @param bodyFormat
+     * @param args
+     */
+    public static void sendError(UserContext context, String caption, String bodyFormat,
+            Object... args) {
+        sendMessage(context, DPUContext.MessageType.ERROR, caption, bodyFormat, args);
+    }
+
+    /**
      * Send short {@link DPUContext.MessageType#INFO message (caption only). The caption is formated.
      *
      * @param context
