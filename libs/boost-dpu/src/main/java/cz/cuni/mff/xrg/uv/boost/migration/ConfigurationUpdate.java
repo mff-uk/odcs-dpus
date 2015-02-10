@@ -3,8 +3,6 @@ package cz.cuni.mff.xrg.uv.boost.migration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
@@ -35,8 +33,6 @@ public class ConfigurationUpdate implements ConfigTransformer, AutoInitializer.I
     public void configure(ConfigManager configManager) throws ConfigException {
         // No-op here.
     }
-
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUpdate.class);
 
     @Override
     public String transformString(String configName, String config) throws ConfigException {
@@ -82,8 +78,6 @@ public class ConfigurationUpdate implements ConfigTransformer, AutoInitializer.I
                 + "    </configurations>\n"
                 + "  </MasterConfigObject>\n"
                 + "</object-stream>");
-
-        LOG.info("new configuration:\n{}", newConfiguration.toString());
 
         return newConfiguration.toString();
     }
