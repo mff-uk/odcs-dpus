@@ -110,16 +110,17 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
             innerInit();
             LOG.info("innerInit:end");
         } catch (DataUnitException ex) {
-            throw new DPUException("Problem in innerInit().", ex);
+            throw new DPUException("DPU.innerInit fail for problem with data unit.", ex);
         } catch (DPUException ex) {
             throw ex;
         } catch (Throwable ex) {
-            throw new DPUException("innerInit() throws unexpected exception.", ex);
+            throw new DPUException("DPU.innerInit throws throwable.", ex);
         }
         // {@link Addon}'s execution point.
         boolean executeDpu = true;
         executeDpu = executeAddons(Addon.ExecutionPoint.PRE_EXECUTE);
         // Main execution for user code.
+        DPUException exception = null;
         try {
             if (executeDpu) {
                 LOG.info("innerExecute:start");
@@ -127,30 +128,40 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
                 LOG.info("innerExecute:end");
             }
         } catch (DPUException ex) {
-            context.sendMessage(MessageType.ERROR, "DPU Failed", "DPU throws DPUException.", ex);
+            exception = ex;
         } catch (DataUnitException ex) {
-            context.sendMessage(MessageType.ERROR, "Problem with data unit.", "", ex);
+            exception = new DPUException("DPU.innerExecute fail for problem with data unit.", ex);
         } catch (RuntimeException ex) {
-            context.sendMessage(MessageType.ERROR, "DPU Failed", "DPU throws DPUException.", ex);
+            exception = new DPUException("DPU.innerExecute throws runtime exception.", ex);
         } catch (Exception ex) {
-            context.sendMessage(MessageType.ERROR, "DPU Failed", "DPU throws DPUException.", ex);
+            exception = new DPUException("DPU.innerExecute throws general exception.", ex);
         } catch (Throwable ex) {
-            LOG.error("DPU throws Throwable.", ex);
-            context.sendMessage(MessageType.ERROR, "DPU Failed",
-                    "DPU throws Throwable. See logs for more details.");
+            exception = new DPUException("DPU.innerExecute throws throwable.", ex);
         }
+        if (exception != null) {
+            LOG.error("DPU exeution failed!", exception);
+        }
+
         // Execute DPU's code - innerCleanUp.
         try {
             LOG.info("innerCleanUp:start");
             innerCleanUp();
             LOG.info("innerCleanUp:stop");
         } catch (Throwable ex) {
-            context.sendMessage(MessageType.ERROR, "DPU Failed",
-                    "DPU throws Throwable in innerCleanUp method. See logs for more details.");
-            LOG.error("Throwable has ben thrown from innerCleanUp!", ex);
+            if (exception == null) {
+                exception = new DPUException("DPU.innerCleanUp throws throwable.", ex);
+            } else {
+                context.sendMessage(MessageType.ERROR, "DPU Failed",
+                        "DPU throws Throwable in innerCleanUp method. See logs for more details.");
+                LOG.error("Throwable has ben thrown from innerCleanUp!", ex);
+            }
         }
         // {@link Addon}'s execution point.
         executeAddons(Addon.ExecutionPoint.POST_EXECUTE);
+        // And throw an exception.
+        if (exception != null) {
+            throw exception;
+        }
     }
 
     @Override
