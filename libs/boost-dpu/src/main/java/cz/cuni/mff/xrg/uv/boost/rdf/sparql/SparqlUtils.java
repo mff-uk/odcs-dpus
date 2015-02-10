@@ -6,17 +6,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.*;
+import org.openrdf.query.impl.DatasetImpl;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.UserExecContext;
+import cz.cuni.mff.xrg.uv.utils.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPUException;
+
+import static cz.cuni.mff.xrg.uv.utils.dataunit.metadata.MetadataUtilsInstance.ENV_PROP_VIRTUOSO;
 
 /**
  * Utilities for SPARQL execution.
@@ -39,8 +44,14 @@ public class SparqlUtils {
          */
         final String sparqlQuery;
 
-        private SparqlQueryObject(String sparqlQuery) {
+        /**
+         * Dataset used for Sasame during queries.
+         */
+        final Dataset dataset;
+
+        private SparqlQueryObject(String sparqlQuery, Dataset dataset) {
             this.sparqlQuery = sparqlQuery;
+            this.dataset = dataset;
         }
 
         @Override
@@ -55,8 +66,8 @@ public class SparqlUtils {
      */
     public static class SparqlUpdateObject extends SparqlQueryObject {
 
-        public SparqlUpdateObject(String sparql) {
-            super(sparql);
+        public SparqlUpdateObject(String sparql, Dataset dataset) {
+            super(sparql, dataset);
         }
 
     }
@@ -68,8 +79,8 @@ public class SparqlUtils {
 
         public Boolean result = null;
 
-        public SparqlAskObject(String sparql) {
-            super(sparql);
+        public SparqlAskObject(String sparql, Dataset dataset) {
+            super(sparql, dataset);
         }
 
         /**
@@ -86,8 +97,8 @@ public class SparqlUtils {
      */
     public static class SparqlSelectObject extends SparqlQueryObject {
 
-        public SparqlSelectObject(String sparql) {
-            super(sparql);
+        public SparqlSelectObject(String sparql, Dataset dataset) {
+            super(sparql, dataset);
         }
 
     }
@@ -97,8 +108,8 @@ public class SparqlUtils {
      */
     public static class SparqlConstructObject extends SparqlQueryObject {
 
-        public SparqlConstructObject(String sparql) {
-            super(sparql);
+        public SparqlConstructObject(String sparql, Dataset dataset) {
+            super(sparql, dataset);
         }
 
     }
@@ -222,25 +233,29 @@ public class SparqlUtils {
      */
     public static SparqlUpdateObject createInsert(String query, List<RDFDataUnit.Entry> sources,
             RDFDataUnit.Entry target) throws SparqlProblemException, DataUnitException {
-        query = query.replaceFirst("(?i)INSERT", prepareClause("WITH", target) + "INSERT");
-        query = query.replaceFirst("(?i)WHERE", prepareClause("USING", sources) + "WHERE");
+        if (!useDataset()) {
+            query = query.replaceFirst("(?i)INSERT", prepareClause("WITH", target) + "INSERT");
+            query = query.replaceFirst("(?i)WHERE", prepareClause("USING", sources) + "WHERE");
+        }
         // Return new object.
-        return new SparqlUpdateObject(query);
+        return new SparqlUpdateObject(query, prepareDataset(sources, target));
     }
 
     /**
      *
      * @param query
-     * @param entries
+     * @param sources
      * @return Prepared SPARQL update query.
      * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
-    public static SparqlAskObject createAsk(String query, List<RDFDataUnit.Entry> entries)
+    public static SparqlAskObject createAsk(String query, List<RDFDataUnit.Entry> sources)
             throws SparqlProblemException, DataUnitException {
-        query = query.replaceFirst("(?i)ASK", "ASK " + prepareClause("FROM", entries) + "WHERE ");
+        if (!useDataset()) {
+            query = query.replaceFirst("(?i)ASK", "ASK " + prepareClause("FROM", sources) + "WHERE ");
+        }
         // Return new object.
-        return new SparqlAskObject(query);
+        return new SparqlAskObject(query, prepareDataset(sources, null));
     }
 
     /**
@@ -249,10 +264,12 @@ public class SparqlUtils {
      * @param entries
      * @return Prepared SPARQL select query object.
      */
-    public static SparqlSelectObject createSelect(String query, List<RDFDataUnit.Entry> entries)
+    public static SparqlSelectObject createSelect(String query, List<RDFDataUnit.Entry> sources)
             throws SparqlProblemException, DataUnitException {
-        query = query.replaceFirst("(?i)WHERE", prepareClause("FROM", entries) + "WHERE ");
-        return new SparqlSelectObject(query);
+        if (!useDataset()) {
+            query = query.replaceFirst("(?i)WHERE", prepareClause("FROM", sources) + "WHERE ");
+        }
+        return new SparqlSelectObject(query, prepareDataset(sources, null));
     }
 
     /**
@@ -267,7 +284,12 @@ public class SparqlUtils {
     public static void execute(RepositoryConnection connection, SparqlUpdateObject updateObject)
             throws RepositoryException, MalformedQueryException, UpdateExecutionException {
         LOG.debug("Executing update: {}", updateObject.sparqlQuery);
-        connection.prepareUpdate(QueryLanguage.SPARQL, updateObject.sparqlQuery).execute();
+        final Update query = connection.prepareUpdate(QueryLanguage.SPARQL, updateObject.sparqlQuery);
+        // Set dataset if available.
+        if (updateObject.dataset != null) {
+            query.setDataset(updateObject.dataset);
+        }
+        query.execute();
     }
 
     /**
@@ -285,6 +307,10 @@ public class SparqlUtils {
             UpdateExecutionException, QueryEvaluationException {
         LOG.debug("Executing ask: {}", askObject.sparqlQuery);
         final BooleanQuery query = connection.prepareBooleanQuery(QueryLanguage.SPARQL, askObject.sparqlQuery);
+        // Set dataset if available.
+        if (askObject.dataset != null) {
+            query.setDataset(askObject.dataset);
+        }
         askObject.result = query.evaluate();
     }
 
@@ -312,6 +338,10 @@ public class SparqlUtils {
             query = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryObject.sparqlQuery);
         } catch (RepositoryException ex) {
             throw new SparqlProblemException("Can't prepare query because of problem with repository.", ex);
+        }
+        // Set dataset if available.
+        if (queryObject.dataset != null) {
+            query.setDataset(queryObject.dataset);
         }
         // Execute and iterate over result.
         TupleQueryResult queryResult = null;
@@ -354,6 +384,10 @@ public class SparqlUtils {
         } catch (RepositoryException ex) {
             throw new SparqlProblemException("Can't prepare query because of problem with repository.", ex);
         }
+        // Set dataset if available.
+        if (constructObject.dataset != null) {
+            query.setDataset(constructObject.dataset);
+        }
         // Execute and iterate over result.
         GraphQueryResult queryResult = null;
         try {
@@ -374,6 +408,29 @@ public class SparqlUtils {
                 LOG.warn("Can't close query result.", ex);
             }
         }
+    }
+
+    /**
+     *
+     * @return Null if no dataset should be used.
+     */
+    protected static Dataset prepareDataset(List<RDFDataUnit.Entry> source, RDFDataUnit.Entry target)
+            throws DataUnitException {
+        final DatasetImpl dataset = new DatasetImpl();
+        // Add read graphs.
+        for (URI uri : RdfDataUnitUtils.asGraphs(source)) {
+            dataset.addDefaultGraph(uri);
+        }
+        // Add write graph.
+        if (target != null) {
+            dataset.setDefaultInsertGraph(target.getDataGraphURI());
+            dataset.addDefaultRemoveGraph(target.getDataGraphURI());
+        }
+        return dataset;
+    }
+
+    protected static boolean useDataset() {
+        return System.getProperty(ENV_PROP_VIRTUOSO) == null;
     }
 
 }
