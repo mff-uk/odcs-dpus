@@ -190,8 +190,10 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
             // Construct exception string.
             final StringBuilder exceptionList = new StringBuilder();
             for (String item : conf.getExceptionNames()) {
-                exceptionList.append(item);
-                exceptionList.append(";");
+                if (!item.isEmpty()) {
+                    exceptionList.append(item);
+                    exceptionList.append(";");
+                }
             }
             txtExceptionNames.setValue(exceptionList.toString());
         }
