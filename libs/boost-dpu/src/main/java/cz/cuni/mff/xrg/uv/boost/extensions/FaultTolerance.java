@@ -351,6 +351,56 @@ public class FaultTolerance implements Addon, Configurable<FaultTolerance.Config
 
     /**
      *
+     * @param codeToExecute
+     * @param failMessage Text of exception that should be thrown in case of failure.
+     * @throws DPUException
+     */
+    public void execute(Action codeToExecute, String failMessage) throws DPUException {
+        try {
+            execute(codeToExecute);
+        } catch (DPUException ex) {
+            // Rethrow with custom user message.
+            throw new DPUException(failMessage, ex);
+        }
+    }
+
+    /**
+     *
+     * @param <TYPE>
+     * @param codeToExecute
+     * @param failMessage Text of exception that should be thrown in case of failure.
+     * @return
+     * @throws DPUException
+     */
+    public <TYPE> TYPE execute(ActionReturn<TYPE> codeToExecute, String failMessage) throws DPUException {
+        try {
+            return execute(codeToExecute);
+        } catch (DPUException ex) {
+            // Rethrow with custom user message.
+            throw new DPUException(failMessage, ex);
+        }
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param dataUnit
+     * @param codeToExecute
+     * @param failMessage Text of exception that should be thrown in case of failure.
+     * @throws DPUException
+     */
+    public <T extends MetadataDataUnit> void execute(T dataUnit, ConnectionAction codeToExecute,
+            String failMessage) throws DPUException {
+        try {
+            execute(dataUnit, codeToExecute);
+        } catch (DPUException ex) {
+            // Rethrow with custom user message.
+            throw new DPUException(failMessage, ex);
+        }
+    }
+
+    /**
+     *
      * @param ex
      * @return True if this add-on is configured to catch this type of exception.
      */
