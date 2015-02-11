@@ -6,48 +6,60 @@ import java.util.Map;
 
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.unifiedviews.dpu.DPUException;
 
 /**
- * Base class for ontology definition.
+ * Holds ontology. Load interface with public String fields and prepare URI for of of them. Then this
+ * class can be asked for translation by {@link #get(java.lang.String)} method.
  *
- * Sample {@link #load(java.lang.Class)} method call, this code should be located in  {@code
- * <pre>
- * @Override
- * protected void loadExternal() throws DPUException {
- *  try {
- *      load(cz.cuni.mff.xrg.uv.transformer.xslt.XsltTOntology.class);
- *  } catch (Exception ex) {
- *      // Do nothing here. Ontology is just not available, default values will be used.
- *  }
- *  try {
- *      // Use another try-catch block to load next dependency.
- *      load(cz.cuni.mff.xrg.uv.transformer.xslt.XsltTOntology.class);
- *  } catch (DPUException ex) {
- *      throw ex;
- *  } catch (Throwable ex) {
- *      // Do nothing here. Ontology is just not available, default values will be used.
- *  }
- * }
- * </pre> }
- *
- * Use conditions:
+ * <b>Use conditions</b>
  * <ul>
  * <li>This class assumes that all public static fields are of type string.</li>
- * <li>External annotation should be used only on on public static non-final string fields.</li>
- * <li>As the values can change base on presence of other DPUs in the system, do not store them.!</li>
+ * <li>As the values of filed can change base on presence of other DPUs in the system, do not store them.!</li>
+ * <li>In case of OntologyDefinition.UpdateFrom annotation is used, proper method must be called.</li>
  * </ul>
  *
- * TODO Petr: Implements test! TODO Petr: Should we initialize the target instance to enable chaining?
+ * <b>Updating ontology</b>
+ * In order to OntologyDefinition.UpdateFrom annotation takes effect, a method must be called at the 
+ * DPU construct. Find the sample call of this function bellow:
+ * We assume that we update only from a single ontology class
+ * "cz.cuni.mff.xrg.uv.transformer.xslt.XsltTOntology", if more then one source is used the code must be
+ * duplicated for each source. Also in order to work code must be located in DPU's constructor!
+ * {@code
+ * <pre>
+ * 
+ * </pre>
+ * }
+ * Project that is used only as a source of soft update (above) should be marked as a optional in pom.xml.
  *
  * @author Škoda Petr
  */
 public class OntologyHolder {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OntologyHolder.class);
+    private class UriDefinition {
+        
+        /**
+         * Value of OntologyDefinition.UpdateFrom if presented.
+         */
+        private final String updateFromPath;
+
+        /**
+         * URI as string.
+         */
+        private String uriAsString;
+
+        /**
+         * URI as URI, translation of {@link #uriAsString}.
+         */
+        private URI uri = null;
+
+        public UriDefinition(String updateFromPath, String uriAsString) {
+            this.updateFromPath = updateFromPath;
+            this.uriAsString = uriAsString;
+        }
+        
+    }
 
     public OntologyHolder() {
 
@@ -56,13 +68,8 @@ public class OntologyHolder {
     /**
      * Store initialized URIs. Mapping is from original values.
      */
-    private final Map<String, URI> uris = new HashMap<>();
+    private final Map<String, UriDefinition> storage = new HashMap<>();
 
-    /**
-     * Store mapping from initial values to loaded ones. Used as a temporary storage before {@link #uris} is
-     * initialized.
-     */
-    private final Map<String, String> translations = new HashMap<>();
 
     /**
      * Call this to load {@link OntologyDefinition} from other DPU. Call of this function will require address
@@ -96,31 +103,39 @@ public class OntologyHolder {
             } catch (IllegalAccessException | IllegalArgumentException ex) {
                 throw new DPUException("Can't read field: " + field.getName(), ex);
             }
-
-            // TODO Petr Solve external annotation here!
-
+            final String updateFromPath;
+            OntologyDefinition.UpdateFrom updateFrom = field.getAnnotation(OntologyDefinition.UpdateFrom.class);
+            if (updateFrom == null) {
+                updateFromPath = null;
+            } else {
+                updateFromPath = updateFrom.path();
+            }
             // Add to the list.
-            translations.put(key, uri);
+            storage.put(key, new UriDefinition(updateFromPath, uri));
+        }
+    }
 
-//            final OntologyDefinition.External annotation = field.getAnnotation(OntologyDefinition.External.class);
-//            if (annotation == null) {
-//                continue;
-//            }
-//            final String path = annotation.path();
-//            if (!path.startsWith(className)) {
-//                // It's not from this class.
-//                continue;
-//            }
-//            // Copy value.
-//            final String sourceFieldName = path.substring(className.length() + 1);
-//            try {
-//                final Field sourceField = clazz.getField(sourceFieldName);
-//                // Store in translation list.
-//                translations.put((String)field.get(null), (String)sourceField.get(null));
-//            } catch (NoSuchFieldException | SecurityException |
-//                    IllegalAccessException | IllegalArgumentException ex) {
-//                throw new DPUException("Can't copy field: " + sourceFieldName, ex);
-//            }
+    /**
+     * Update loaded ontology from given target.
+     *
+     * @param clazz
+     * @throws DPUException
+     */
+    public void updateFromSource(Class<?> clazz) throws DPUException {
+        final String className = clazz.getCanonicalName();
+        for (UriDefinition definition : storage.values()) {
+            if (definition.updateFromPath == null) {
+                // Does not update from enywhere.
+            } else if (definition.updateFromPath.startsWith(className)) {
+                final String sourceFieldName = definition.updateFromPath.substring(className.length() + 1);
+                try {
+                    final Field sourceField = clazz.getField(sourceFieldName);
+                    definition.uriAsString = (String)sourceField.get(null);
+                } catch (NoSuchFieldException | SecurityException |
+                        IllegalAccessException | IllegalArgumentException ex) {
+                    throw new DPUException("Can't copy field: " + sourceFieldName, ex);
+                }
+            }
         }
     }
 
@@ -135,8 +150,8 @@ public class OntologyHolder {
         // Load dependencies.
         loadExternal();
         // Load fields.
-        for (String key : translations.keySet()) {
-            uris.put(key, valueFactory.createURI(translations.get(key)));
+        for (UriDefinition definition : storage.values()) {
+            definition.uri = valueFactory.createURI(definition.uriAsString);
         }
     }
 
@@ -145,11 +160,11 @@ public class OntologyHolder {
      *
      * @param uri Value must be public static member of the ontology class.
      * @return URI for given ontology URI.
-     * @throws DPUException
+     * @throws DPUException If given URI is not part of the ontology.
      */
     public URI get(String uri) {
-        if (uris.containsKey(uri)) {
-            return uris.get(uri);
+        if (storage.containsKey(uri)) {
+            return storage.get(uri).uri;
         } else {
             throw new RuntimeException("Missing URI for: " + uri);
         }
