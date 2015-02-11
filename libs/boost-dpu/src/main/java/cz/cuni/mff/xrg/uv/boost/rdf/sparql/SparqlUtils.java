@@ -224,7 +224,7 @@ public class SparqlUtils {
 
     /**
      *
-     * @param query   Query must contains INSERT statement.
+     * @param query   Query must contains INSERT as a first command.
      * @param sources
      * @param target
      * @return Prepared SPARQL update query.
@@ -235,6 +235,27 @@ public class SparqlUtils {
             RDFDataUnit.Entry target) throws SparqlProblemException, DataUnitException {
         if (!useDataset()) {
             query = query.replaceFirst("(?i)INSERT", prepareClause("WITH", target) + "INSERT");
+            query = query.replaceFirst("(?i)WHERE", prepareClause("USING", sources) + "WHERE");
+        }
+        // Return new object.
+        return new SparqlUpdateObject(query, prepareDataset(sources, target));
+    }
+
+    /**
+     *
+     * @param query   Query must contains DELETE as a first command, it may optionally contains INSERT.
+     * @param sources
+     * @param target
+     * @return Prepared SPARQL update query.
+     * @throws cz.cuni.mff.xrg.uv.utils.dataunit.rdf.sparql.SparqlProblemException
+     * @throws eu.unifiedviews.dataunit.DataUnitException
+     */
+    public static SparqlUpdateObject createDelete(String query, List<RDFDataUnit.Entry> sources,
+            RDFDataUnit.Entry target) throws SparqlProblemException, DataUnitException {
+        if (!useDataset()) {
+            if (query.contains(query))
+
+            query = query.replaceFirst("(?i)DELETE", prepareClause("WITH", target) + "DELETE");
             query = query.replaceFirst("(?i)WHERE", prepareClause("USING", sources) + "WHERE");
         }
         // Return new object.
