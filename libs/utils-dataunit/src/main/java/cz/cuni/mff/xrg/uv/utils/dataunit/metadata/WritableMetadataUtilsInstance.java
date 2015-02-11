@@ -8,8 +8,6 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Manipulator for writing metadata.
@@ -26,8 +24,6 @@ import org.slf4j.LoggerFactory;
  * @author Škoda Petr
  */
 public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<WritableMetadataUtilsInstance> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(WritableMetadataUtilsInstance.class);
 
     /**
      * %s - with clause
@@ -76,12 +72,12 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
      *
      * Also as this method return 'this' pointer it can be used in chained expressions.
      *
-     * @param predicate Must be valid URI in string form.
+     * @param predicate
      * @param value
      * @return
      * @throws DataUnitException
      */
-    public WritableMetadataUtilsInstance add(String predicate, String value) throws DataUnitException {
+    public WritableMetadataUtilsInstance add(URI predicate, String value) throws DataUnitException {
         try {
             final String query;
             if (useDataset()) {
@@ -92,7 +88,7 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
             final ValueFactory valueFactory = connection.getValueFactory();
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+            update.setBinding(PREDICATE_BINDING, predicate);
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
             if (useDataset()) {
                 update.setDataset(dataset);
@@ -112,12 +108,12 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
      *
      * Also as this method return 'this' pointer it can be used in chained expressions.
      *
-     * @param predicate Must be valid URI in string form.
+     * @param predicate
      * @param value
      * @return
      * @throws DataUnitException
      */
-    public WritableMetadataUtilsInstance set(String predicate, String value) throws DataUnitException {
+    public WritableMetadataUtilsInstance set(URI predicate, String value) throws DataUnitException {
         try {
             final String query;
             if (useDataset()) {
@@ -128,7 +124,7 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
             final ValueFactory valueFactory = connection.getValueFactory();
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             update.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-            update.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+            update.setBinding(PREDICATE_BINDING, predicate);
             update.setBinding(OBJECT_BINDING, valueFactory.createLiteral(value));
             if (useDataset()) {
                 update.setDataset(dataset);

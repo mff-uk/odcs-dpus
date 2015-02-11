@@ -1,5 +1,7 @@
 package cz.cuni.mff.xrg.uv.utils.dataunit.metadata;
 
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
@@ -125,11 +127,29 @@ public class MetadataUtils {
      * @param predicate
      * @return
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate)
             throws DataUnitException {
+        return getFirst(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate));
+    }
+
+    /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @return
+     * @throws DataUnitException
+     */
+    public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, URI predicate)
+            throws DataUnitException {
         try (MetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
-            return instance.getFirst(predicate);
+            return instance.getFirst(predicate).stringValue();
         }
     }
 
@@ -143,8 +163,26 @@ public class MetadataUtils {
      * @param predicate
      * @return
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate)
+            throws DataUnitException {
+        return getFirst(dataUnit, entry.getSymbolicName(), predicate);
+    }
+
+    /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @return
+     * @throws DataUnitException
+     */
+    public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate)
             throws DataUnitException {
         return getFirst(dataUnit, entry.getSymbolicName(), predicate);
     }
@@ -160,12 +198,13 @@ public class MetadataUtils {
      * @param connection
      * @return
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, String predicate,
             RepositoryConnection connection) throws DataUnitException {
-        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
-            return instance.getFirst(predicate);
-        }
+        return getFirst(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate),
+                connection);
     }
 
     /**
@@ -180,9 +219,65 @@ public class MetadataUtils {
      * @return
      * @throws DataUnitException
      */
+    public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
+            RepositoryConnection connection) throws DataUnitException {
+        return getFirst(dataUnit, entry.getSymbolicName(), predicate, connection);
+    }
+
+    /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
+     */
+    @Deprecated
     public static String getFirst(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
             RepositoryConnection connection) throws DataUnitException {
         return getFirst(dataUnit, entry.getSymbolicName(), predicate, connection);
+    }
+
+    /**
+     * Get a strings stored under given predicate and symbolicName.
+     *
+     * If more strings are stored under given predicate then one of them is returned.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     */
+    public static String getFirst(MetadataDataUnit dataUnit, String symbolicName, URI predicate,
+            RepositoryConnection connection) throws DataUnitException {
+        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
+            return instance.getFirst(predicate).toString();
+        }
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param value
+     * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
+     */
+    @Deprecated
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value) throws DataUnitException {
+        set(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate), value);
     }
 
     /**
@@ -196,7 +291,7 @@ public class MetadataUtils {
      * @param value
      * @throws DataUnitException
      */
-    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, URI predicate,
             String value) throws DataUnitException {
         try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
             instance.set(predicate, value);
@@ -213,10 +308,48 @@ public class MetadataUtils {
      * @param predicate
      * @param value
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
             String value) throws DataUnitException {
         set(dataUnit, entry.getSymbolicName(), predicate, value);
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @throws DataUnitException
+     */
+    public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
+            String value) throws DataUnitException {
+        set(dataUnit, entry.getSymbolicName(), predicate, value);
+    }
+
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
+     */
+    @Deprecated
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        set(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate), value, connection);
     }
 
     /**
@@ -231,7 +364,7 @@ public class MetadataUtils {
      * @param connection
      * @throws DataUnitException
      */
-    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+    public static void set(WritableMetadataDataUnit dataUnit, String symbolicName, URI predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
         try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
             instance.set(predicate, value);
@@ -249,8 +382,27 @@ public class MetadataUtils {
      * @param value
      * @param connection
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        set(dataUnit, entry.getSymbolicName(), predicate, value, connection);
+    }
+
+    /**
+     * Set metadata under given predicate If the predicate is already set then is replaced. To add multiple
+     * metadata under same predicate use
+     * {@link #add(eu.unifiedviews.dataunit.WritableMetadataDataUnit, java.lang.String, java.lang.String, java.lang.String)}.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     */
+    public static void set(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
         set(dataUnit, entry.getSymbolicName(), predicate, value, connection);
     }
@@ -264,8 +416,25 @@ public class MetadataUtils {
      * @param predicate
      * @param value
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value) throws DataUnitException {
+        add(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate), value);
+    }
+
+    /**
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param value
+     * @throws DataUnitException
+     */
+    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, URI predicate,
             String value) throws DataUnitException {
         try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
             instance.add(predicate, value);
@@ -281,10 +450,46 @@ public class MetadataUtils {
      * @param predicate
      * @param value
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
             String value) throws DataUnitException {
         add(dataUnit, entry.getSymbolicName(), predicate, value);
+    }
+
+    /**
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @throws DataUnitException
+     */
+    public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
+            String value) throws DataUnitException {
+        add(dataUnit, entry.getSymbolicName(), predicate, value);
+    }
+
+
+    /**
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
+     */
+    @Deprecated
+    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        add(dataUnit, symbolicName, ValueFactoryImpl.getInstance().createURI(predicate), value, connection);
     }
 
     /**
@@ -298,7 +503,7 @@ public class MetadataUtils {
      * @param connection
      * @throws DataUnitException
      */
-    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, String predicate,
+    public static void add(WritableMetadataDataUnit dataUnit, String symbolicName, URI predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
         try (WritableMetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
             instance.add(predicate, value);
@@ -315,8 +520,26 @@ public class MetadataUtils {
      * @param value
      * @param connection
      * @throws DataUnitException
+     * @deprecated Use version with {@link URI} instead.
      */
+    @Deprecated
     public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, String predicate,
+            String value, RepositoryConnection connection) throws DataUnitException {
+        add(dataUnit, entry.getSymbolicName(), predicate, value, connection);
+    }
+
+    /**
+     * Add metadata for given symbolic name. The old data under same predicate are not deleted. Use to add
+     * multiple metadata of same meaning.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param value
+     * @param connection
+     * @throws DataUnitException
+     */
+    public static void add(WritableMetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
             String value, RepositoryConnection connection) throws DataUnitException {
         add(dataUnit, entry.getSymbolicName(), predicate, value, connection);
     }

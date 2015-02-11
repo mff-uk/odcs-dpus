@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.*;
 import org.openrdf.query.impl.DatasetImpl;
@@ -13,6 +14,8 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Can read metadata.
@@ -156,12 +159,12 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * @return
      * @throws DataUnitException
      */
-    public String getFirst(String predicate) throws DataUnitException {        
+    public Value getFirst(URI predicate) throws DataUnitException {
         try {
             final TupleQueryResult result = executeSelectQuery(predicate);
             // Return first result.
             if (result.hasNext()) {
-                return result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
+                return result.next().getBinding(OBJECT_BINDING).getValue();
             } else {
                 // No value is presented.
                 return null;
@@ -171,6 +174,27 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
         }
     }
 
+    public Value get(URI predicate) throws DataUnitException, DPUException {
+        try {
+            final TupleQueryResult result = executeSelectQuery(predicate);
+            // Return first result.
+            final Value resultValue;
+            if (result.hasNext()) {
+                resultValue =  result.next().getBinding(OBJECT_BINDING).getValue();
+            } else {
+                // No value is presented.
+                return null;
+            }
+            if (result.hasNext()) {
+                // Second result .. 
+                throw new DPUException("More then one value found for predicate: " + predicate.stringValue());
+            }
+            return resultValue;
+        } catch (MalformedQueryException | QueryEvaluationException | RepositoryException ex) {
+            throw new DataUnitException("Failed to execute get-query.", ex);
+        }        
+    }
+
     /**
      * Get all strings stored under given predicate. For metadata under current {@link #symbolicName}.
      *
@@ -178,14 +202,13 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * @return
      * @throws DataUnitException
      */
-    public List<String> getAll(String predicate) throws DataUnitException {
+    public List<Value> getAll(URI predicate) throws DataUnitException {
         try {
             final TupleQueryResult result = executeSelectQuery(predicate);
             // Dump result list.
-            final List<String> resultList = new LinkedList<>();
+            final List<Value> resultList = new LinkedList<>();
             while (result.hasNext()) {
-                final String value = result.next().getBinding(OBJECT_BINDING).getValue().stringValue();
-                resultList.add(value);
+                resultList.add(result.next().getBinding(OBJECT_BINDING).getValue());
             }
             return resultList;
         } catch (MalformedQueryException | QueryEvaluationException | RepositoryException ex) {
@@ -249,7 +272,7 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      * @throws MalformedQueryException
      * @throws QueryEvaluationException
      */
-    private TupleQueryResult executeSelectQuery(String predicate) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+    private TupleQueryResult executeSelectQuery(URI predicate) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
         final ValueFactory valueFactory = connection.getValueFactory();
         // Prepare query. Add clause if dataset is not used.
         final String query;
@@ -260,7 +283,7 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
         }            
         final TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);            
         tupleQuery.setBinding(SYMBOLIC_NAME_BINDING, valueFactory.createLiteral(symbolicName));
-        tupleQuery.setBinding(PREDICATE_BINDING, valueFactory.createURI(predicate));
+        tupleQuery.setBinding(PREDICATE_BINDING, predicate);
         // Use dataset if set.
         if (useDataset()) {
             tupleQuery.setDataset(dataset);
