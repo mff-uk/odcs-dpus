@@ -21,7 +21,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
-import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SimpleRdfException;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPUException;

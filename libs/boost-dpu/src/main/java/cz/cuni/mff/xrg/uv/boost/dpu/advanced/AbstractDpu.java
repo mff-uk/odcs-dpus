@@ -15,10 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.AbstractDialog;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 
 /**

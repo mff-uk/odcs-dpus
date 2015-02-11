@@ -45,7 +45,7 @@ public class SparqlUtils {
         final String sparqlQuery;
 
         /**
-         * Dataset used for Sasame during queries.
+         * Dataset used for Sesame during queries.
          */
         final Dataset dataset;
 

@@ -204,8 +204,7 @@ public class SerializationUtils {
             final Ontology.Property property = field.getAnnotation(Ontology.Property.class);
             final SerializationRdf.Configuration.Property propertyConfig;
             if (property != null) {
-                propertyConfig = new SerializationRdf.Configuration.Property(property.uri(),
-                        property.description());
+                propertyConfig = new SerializationRdf.Configuration.Property(property.uri());
             } else {
                 // We need to generate uri -> we need base URI.
                 if (baseOntologyURI == null) {
@@ -213,7 +212,7 @@ public class SerializationUtils {
                             + " and no general base URI is provided.");
                 }
                 propertyConfig = new SerializationRdf.Configuration.Property(
-                        baseOntologyURI + "/" + field.getName(), "");
+                        baseOntologyURI + "/" + field.getName());
             }
             config.getProperties().put(className + "." + field.getName(), propertyConfig);
             // Check if we do not need to load other object.

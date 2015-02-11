@@ -1,20 +1,13 @@
 package cz.cuni.mff.xrg.uv.boost.serialization.rdf;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
@@ -22,7 +15,7 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 /**
  * Provide serialisation of simple POJO classes into rdf statements and back.
  *
- * Does not support generic classes, objects. The only supported generic are those with whose super type is
+ * Does not support generic classes. The only supported generic are those with whose super type is
  * {@link java.util.Collection}.
  *
  * Collection must be initialised in given object.
@@ -43,11 +36,8 @@ public interface SerializationRdf {
 
             public String uri;
 
-            public String description;
-
-            public Property(String uri, String description) {
+            public Property(String uri) {
                 this.uri = uri;
-                this.description = description;
             }
             
         }
@@ -100,18 +90,5 @@ public interface SerializationRdf {
     public void convert(RepositoryConnection connection, Resource rootResource, 
             List<RDFDataUnit.Entry> context, Object object, Configuration config)
             throws SerializationFailure, SerializationRdfFailure, DataUnitException, RepositoryException;
-
-    /**
-     *
-     * @param object Instance of object for conversion.
-     * @param rootResource
-     * @param valueFactory
-     * @param config
-     * @return List of statement representing the object.
-     * @throws cz.cuni.mff.xrg.uv.service.serialization.SerializationFailure
-     * @throws SerializationRdfFailure
-     */
-    public List<Statement> convert(Object object, Resource rootResource, ValueFactory valueFactory,
-            Configuration config) throws SerializationFailure, SerializationRdfFailure;
 
 }

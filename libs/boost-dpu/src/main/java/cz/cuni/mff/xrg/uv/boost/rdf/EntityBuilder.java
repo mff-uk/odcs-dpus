@@ -13,6 +13,8 @@ import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 /**
  * Class designed for easy entity building. Each builder can be used to build just one entity.
  *
+ * As entity builder is in-memory entity is should not be used to build bigger objects (100+ statement).
+ *
  * @author Škoda Petr
  */
 public class EntityBuilder {

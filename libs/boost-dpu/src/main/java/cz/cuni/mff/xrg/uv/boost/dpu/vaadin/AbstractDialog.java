@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.InitializableConfigDialog;
 

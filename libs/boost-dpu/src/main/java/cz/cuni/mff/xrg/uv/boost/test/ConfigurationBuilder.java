@@ -5,9 +5,9 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 
 /**
  * This class can be used to prepare configuration for DPU. Sample usage:

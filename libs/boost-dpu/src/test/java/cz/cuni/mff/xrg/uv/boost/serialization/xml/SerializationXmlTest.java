@@ -1,8 +1,5 @@
 package cz.cuni.mff.xrg.uv.boost.serialization.xml;
 
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 import org.junit.Assert;
 import org.junit.Test;
 

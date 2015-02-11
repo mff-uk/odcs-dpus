@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.serialization;
+package cz.cuni.mff.xrg.uv.boost.serialization.xml;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -53,7 +53,7 @@ class SerializationXmlImpl implements SerializationXml {
                         // The goal of this is to ignore missing fields.
                         if (definedIn == Object.class) {
                             // Skip the missing values (ie. deleted fields).
-                            LOG.warn("Skipping missing field: {}", fieldName);
+                            LOG.info("Skipping missing field: {}", fieldName);
                             return false;
                         }
                         if (super.shouldSerializeMember(definedIn, fieldName)) {
@@ -75,7 +75,6 @@ class SerializationXmlImpl implements SerializationXml {
     @Override
     public synchronized <T> T convert(Class<T> clazz, String string)
             throws SerializationFailure, SerializationXmlFailure {
-        LOG.debug("Convert called for class: {}", clazz.getSimpleName());
         // Clear the list of skipped fields and set main class.
         loadedMainClass = clazz;
         loadedFields.clear();
@@ -158,7 +157,6 @@ class SerializationXmlImpl implements SerializationXml {
      * @param fieldNames Names of fields to copy.
      */
     protected <T> void copyFields(Class<T> clazz, T source, T target, List<String> fieldNames) {
-        LOG.trace("copyFields for: {}", fieldNames.size());
         for (String fieldName : fieldNames) {
             try {
                 final PropertyDescriptor descriptor = new PropertyDescriptor(fieldName, clazz);

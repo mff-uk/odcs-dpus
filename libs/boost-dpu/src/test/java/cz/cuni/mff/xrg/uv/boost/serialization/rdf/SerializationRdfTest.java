@@ -1,20 +1,20 @@
 package cz.cuni.mff.xrg.uv.boost.serialization.rdf;
 
 import java.util.Arrays;
-import cz.cuni.mff.xrg.uv.test.boost.rdf.RdfDataUnitFactory;
-import cz.cuni.mff.xrg.uv.test.boost.rdf.TripleInserter;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
 import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+import cz.cuni.mff.xrg.uv.test.boost.rdf.RdfDataUnitFactory;
+import cz.cuni.mff.xrg.uv.test.boost.rdf.TripleInserter;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import junit.framework.Assert;
 
 /**
  * TODO Petr: Test for enum!

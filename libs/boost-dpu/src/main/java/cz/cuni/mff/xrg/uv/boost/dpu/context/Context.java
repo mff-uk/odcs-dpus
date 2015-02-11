@@ -15,8 +15,8 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
 import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
 import eu.unifiedviews.dpu.DPUException;
 
 /**

@@ -32,9 +32,9 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.ContextUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 
@@ -45,8 +45,6 @@ import eu.unifiedviews.dpu.DPUException;
  * <li>Contains optional simple file cache</li>
  * <li>User can specify the pause between downloads</li>
  * </ul>
- *
- * TODO: Should use versioned configuration. The configuration class should be renamed to "Configuration_V1".
  *
  * @see cz.cuni.mff.xrg.uv.boost.dpu.addonAddon
  * @author Škoda Petr

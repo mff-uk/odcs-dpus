@@ -4,9 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 
 /**
  * Configuration deserializer based on SerializationXml - xStream.

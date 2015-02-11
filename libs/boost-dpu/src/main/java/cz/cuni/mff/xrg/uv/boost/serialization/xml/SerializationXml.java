@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.serialization;
+package cz.cuni.mff.xrg.uv.boost.serialization.xml;
 
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 

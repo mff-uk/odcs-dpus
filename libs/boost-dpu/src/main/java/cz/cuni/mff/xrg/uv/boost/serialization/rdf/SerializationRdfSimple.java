@@ -69,15 +69,8 @@ class SerializationRdfSimple implements SerializationRdf {
         loadIntoObject(new Context(connection, graphs, config), rootResource, object);
     }
 
-    @Override
-    public List<Statement> convert(Object object, Resource rootResource, ValueFactory valueFactory,
-            Configuration config) throws SerializationFailure, SerializationRdfFailure {
-        
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     /**
-     * Load configuration into givne object.
+     * Load configuration into given object.
      *
      * @param context
      * @param rootResource

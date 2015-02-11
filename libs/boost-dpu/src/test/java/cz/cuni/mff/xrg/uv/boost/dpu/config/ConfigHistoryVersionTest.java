@@ -8,9 +8,9 @@ import org.junit.Test;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.ConfigSerializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.serializer.XStreamSerializer;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXml;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
-import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
+import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFailure;
 
 /**
  * 

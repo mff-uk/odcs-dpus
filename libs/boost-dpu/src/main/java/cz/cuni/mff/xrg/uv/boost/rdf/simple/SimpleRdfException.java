@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.boost.serialization.rdf;
+package cz.cuni.mff.xrg.uv.boost.rdf.simple;
 
 import eu.unifiedviews.dpu.DPUException;
 
