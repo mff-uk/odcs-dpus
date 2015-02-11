@@ -53,6 +53,20 @@ public class EntityBuilder {
     }
 
     /**
+     *
+     * @param entityUri
+     * @param valueFactory
+     * @param ontology     Ontology used during creation of this object. Can be null but in such case methods
+     *                     which utilize ontology must no be called.
+     */
+    public EntityBuilder(URI entityUri, ValueFactory valueFactory, OntologyHolder ontology) {
+        this.entityUri = entityUri;
+        this.valueFactory = valueFactory;
+        this.ontology = ontology;
+    }
+
+
+    /**
      * Add a property to this object.
      *
      * @param property
