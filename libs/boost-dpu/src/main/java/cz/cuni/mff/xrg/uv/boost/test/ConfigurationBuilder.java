@@ -1,9 +1,5 @@
 package cz.cuni.mff.xrg.uv.boost.test;
 
-import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
@@ -14,6 +10,15 @@ import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFactory;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationXmlFailure;
 
 /**
+ * This class can be used to prepare configuration for DPU. Sample usage:
+ * <pre>
+ * {@code 
+ * ZipperConfig_V1 config = new ZipperConfig_V1();
+ * Zipper dpu = new Zipper();
+ * // Set configuration to DPU.
+ * dpu.configure((new ConfigurationBuilder()).setDpuConfiguration(config).toString());
+ * }
+ * </pre>
  *
  * @author Škoda Petr
  */
@@ -33,6 +38,11 @@ public class ConfigurationBuilder {
         }
     }
 
+    /**
+     *
+     * @param configuration COnfiguration of DPU.
+     * @return This instance for chaining.
+     */
     public ConfigurationBuilder setDpuConfiguration(Object configuration) {
         configManager.set(configuration, AbstractDpu.DPU_CONFIG_NAME);
         return this;
