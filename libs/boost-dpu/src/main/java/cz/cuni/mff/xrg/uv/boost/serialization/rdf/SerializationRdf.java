@@ -46,11 +46,8 @@ public interface SerializationRdf {
 
             public String type;
 
-            public String resourceSuffix;
-
-            public Entity(String type, String resourceSuffix) {
+            public Entity(String type) {
                 this.type = type;
-                this.resourceSuffix = resourceSuffix;
             }
 
         }

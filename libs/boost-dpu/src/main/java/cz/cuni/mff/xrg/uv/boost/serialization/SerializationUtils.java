@@ -13,7 +13,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+import cz.cuni.mff.xrg.uv.boost.ontology.EntityDescription;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdf;
 
 /**
@@ -185,11 +185,11 @@ public class SerializationUtils {
         }
         final String className = clazz.getCanonicalName();
         // Load entity annotation.
-        final Ontology.Entity entity = clazz.getAnnotation(Ontology.Entity.class);
+        final EntityDescription.Entity entity = clazz.getAnnotation(EntityDescription.Entity.class);
         final SerializationRdf.Configuration.Entity entityConfig;
         final String baseOntologyURI;
         if (entity != null) {
-            entityConfig = new SerializationRdf.Configuration.Entity(entity.type(), entity.resourceSuffix());
+            entityConfig = new SerializationRdf.Configuration.Entity(entity.type());
             // Use type as default ontology prefix.
             baseOntologyURI = entity.type();
         } else {
@@ -201,7 +201,7 @@ public class SerializationUtils {
         for (Field field : fields) {
             final Class<?> fieldClass = field.getType();
             // Load property anottation.
-            final Ontology.Property property = field.getAnnotation(Ontology.Property.class);
+            final EntityDescription.Property property = field.getAnnotation(EntityDescription.Property.class);
             final SerializationRdf.Configuration.Property propertyConfig;
             if (property != null) {
                 propertyConfig = new SerializationRdf.Configuration.Property(property.uri());

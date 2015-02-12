@@ -9,13 +9,11 @@ import java.lang.annotation.Target;
  * Holds annotations to describe RDF ontology for POJO. It's recommended to store ontology definition in
  * instance of {@link OntologyDefinition} class.
  *
- * TODO Petr: Rename to EntityDescription
- *
  * @author Škoda Petr
  */
-public class Ontology {
+public class EntityDescription {
 
-    private Ontology() {
+    private EntityDescription() {
 
     }
 
@@ -32,12 +30,6 @@ public class Ontology {
          */
         String uri();
 
-        /**
-         *
-         * @return Property description in RDF, used only during serialization into RDF.
-         */
-        String description() default "";
-
     }
 
     /**
@@ -53,13 +45,6 @@ public class Ontology {
          */
         String type();
 
-        /**
-         *
-         * @return If this object is used in other object that is being serialized then resource URI for this
-         *         object must be created. The URI of parent is taken appended by number and then by this
-         *         value.
-         */
-        String resourceSuffix() default "";
-
     }
+
 }
