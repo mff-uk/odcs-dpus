@@ -26,14 +26,6 @@ public class UserContext {
 
     /**
      *
-     * @return Ontology for this instance.
-     */
-    public OntologyHolder getOntology() {
-        return context.getOntology();
-    }
-
-    /**
-     *
      * @param <T>
      * @param clazz
      * @return Class of given instance if such class is initialized in context of current DPU/dialog.

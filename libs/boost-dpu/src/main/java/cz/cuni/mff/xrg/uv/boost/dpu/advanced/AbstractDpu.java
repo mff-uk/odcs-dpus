@@ -49,13 +49,6 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
     private final ConfigHistory<CONFIG> configHistoryHolder;
 
     /**
-     * Holds definition of ontology class.
-     *
-     * As holder is used to store information until it's used by context.
-     */
-    private final Class<?> ontologyClassHolder;
-
-    /**
      * Configuration class visible for the DPU.
      */
     protected CONFIG config;
@@ -76,15 +69,10 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
      */
     private String configAsString;
 
-    /**
-     *
-     * @param configHistory
-     */
     public <DIALOG extends AbstractDialog<CONFIG>> AbstractDpu(Class<DIALOG> dialogClass,
-            ConfigHistory<CONFIG> configHistory, Class<?> ontology) {
+            ConfigHistory<CONFIG> configHistory) {
         this.dialogClass = (Class<AbstractDialog<CONFIG>>) dialogClass;
         this.configHistoryHolder = configHistory;
-        this.ontologyClassHolder = ontology;
         // Initialize master context.
         this.masterContext = new ExecContext(this);
     }
@@ -235,12 +223,12 @@ public abstract class AbstractDpu<CONFIG> implements DPU, DPUConfigurable,
         return result;
     }
 
+    /**
+     *
+     * @return Current instance of used {@link ConfigHistory} class.
+     */
     public ConfigHistory<CONFIG> getConfigHistoryHolder() {
         return this.configHistoryHolder;
-    }
-
-    public Class<?> getOntologyClassHolder() {
-        return ontologyClassHolder;
     }
 
     /**

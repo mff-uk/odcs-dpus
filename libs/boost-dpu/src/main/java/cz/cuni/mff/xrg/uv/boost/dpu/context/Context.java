@@ -75,11 +75,6 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
     private final AutoInitializer initializer;
 
     /**
-     * Ontology definition for current DPU.
-     */
-    private final OntologyHolder ontology;
-
-    /**
      * Module for localization support.
      */
     private final Localization localization = new Localization();
@@ -107,13 +102,6 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
         this.dialog = true;
         this.configHistory = dpuInstance.getConfigHistoryHolder();
         this.serializationXml = SerializationXmlFactory.serializationXml();
-        // Create ontology instance and load ontology from DPU.
-        this.ontology = new OntologyHolder();
-        try {
-            this.ontology.loadDefinitions(dpuInstance.getOntologyClassHolder());
-        } catch (DPUException ex) {
-            throw new RuntimeException("Can't load class into ontology holder.", ex);
-        }
         // Prepare initializer.
         this.initializer = new AutoInitializer(dpuInstance);        
         // Prepare configuration manager - without addons, configuration transformers etc ..
@@ -131,8 +119,6 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
             throws DPUException {
         // Initialize localization.
         this.localization.setLocale(locale, classLoader);
-        // Start with ontology initialization.
-        this.ontology.init(ValueFactoryImpl.getInstance());
         // Init DPU use callback to get info about Addon, ConfigTransformer, ConfigurableAddon.
         initializer.addCallback(this);
         initializer.preInit();
@@ -213,10 +199,6 @@ public class Context<CONFIG> implements AutoInitializer.FieldSetListener {
 
     public ConfigManager getConfigManager() {
         return configManager;
-    }
-
-    public OntologyHolder getOntology() {
-        return ontology;
     }
 
     /**
