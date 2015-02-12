@@ -2,8 +2,6 @@ package cz.cuni.mff.xrg.uv.boost.dpu.context;
 
 import java.text.MessageFormat;
 
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
-
 /**
  * Context for the DPU developer.
  *

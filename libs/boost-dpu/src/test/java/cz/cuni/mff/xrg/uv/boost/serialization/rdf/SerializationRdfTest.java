@@ -9,7 +9,7 @@ import org.mockito.Mockito;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+import cz.cuni.mff.xrg.uv.boost.ontology.EntityDescription;
 import cz.cuni.mff.xrg.uv.test.boost.rdf.RdfDataUnitFactory;
 import cz.cuni.mff.xrg.uv.test.boost.rdf.TripleInserter;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
@@ -23,10 +23,10 @@ import junit.framework.Assert;
  */
 public class SerializationRdfTest {
 
-    @Ontology.Entity(type = "http://localhost/ontology/SecondLevel")
+    @EntityDescription.Entity(type = "http://localhost/ontology/SecondLevel")
     public static class SecondLevel {
 
-        @Ontology.Property(uri = "http://localhost/ontology/value")
+        @EntityDescription.Property(uri = "http://localhost/ontology/value")
         private String value;
 
         public SecondLevel() {
@@ -46,7 +46,7 @@ public class SerializationRdfTest {
 
     }
 
-    @Ontology.Entity(type = "http://localhost/ontology/FirstLevel")
+    @EntityDescription.Entity(type = "http://localhost/ontology/FirstLevel")
     public static class FirstLevel {
 
         private int value;

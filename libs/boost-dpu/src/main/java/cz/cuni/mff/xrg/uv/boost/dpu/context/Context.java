@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import org.openrdf.model.impl.ValueFactoryImpl;
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.Addon;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.AbstractDpu;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
@@ -14,7 +13,6 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.vaadin.Configurable;
 import cz.cuni.mff.xrg.uv.boost.dpu.initialization.AutoInitializer;
-import cz.cuni.mff.xrg.uv.boost.ontology.OntologyHolder;
 import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXml;
 import cz.cuni.mff.xrg.uv.boost.serialization.xml.SerializationXmlFactory;
 import eu.unifiedviews.dpu.DPUException;

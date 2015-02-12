@@ -20,7 +20,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.ExecContext;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
 import cz.cuni.mff.xrg.uv.boost.extensions.FaultTolerance;
-import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+import cz.cuni.mff.xrg.uv.boost.ontology.EntityDescription;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPUException;
@@ -41,7 +41,7 @@ public class WritableSimpleRdf extends SimpleRdf implements Addon.Executable {
     public static final String CONFIGURATION_CLASS_URI
             = "http://uv.xrg.mff.cuni.cz/ontology/dpu/boost/rdf/simple/Configuration";
 
-    @Ontology.Entity(type = CONFIGURATION_CLASS_URI)
+    @EntityDescription.Entity(type = CONFIGURATION_CLASS_URI)
     public static class Configuration {
 
         public enum AddPolicy {

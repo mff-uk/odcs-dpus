@@ -24,7 +24,7 @@ import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigException;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigManager;
 import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigTransformer;
 import cz.cuni.mff.xrg.uv.boost.dpu.context.Context;
-import cz.cuni.mff.xrg.uv.boost.ontology.Ontology;
+import cz.cuni.mff.xrg.uv.boost.ontology.EntityDescription;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationFailure;
 import cz.cuni.mff.xrg.uv.boost.serialization.SerializationUtils;
 import cz.cuni.mff.xrg.uv.boost.serialization.rdf.SerializationRdf;
@@ -80,7 +80,7 @@ public class RdfConfiguration implements ConfigTransformer, Addon {
         }
         final FaultTolerance wrap = (FaultTolerance)context.getInstance(FaultTolerance.class);
         // Check if object has annotations.
-        final Ontology.Entity annotation = config.getClass().getAnnotation(Ontology.Entity.class);
+        final EntityDescription.Entity annotation = config.getClass().getAnnotation(EntityDescription.Entity.class);
         if (annotation == null) {
             return;
         }
