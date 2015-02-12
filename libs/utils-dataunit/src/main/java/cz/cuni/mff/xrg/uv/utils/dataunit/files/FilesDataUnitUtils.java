@@ -45,20 +45,34 @@ public class FilesDataUnitUtils {
     }
 
     /**
-     * Add file to the DataUnit. Relative path (from root to file) is used as path to file.
+     * Add file to the DataUnit. OInly file name is used as a path to file.
      * 
      * @param dataUnit
-     * @param root Root.
+     * @param file
+     * @return
+     * @throws DataUnitException 
+     */
+    public static FilesDataUnit.Entry addFile(WritableFilesDataUnit dataUnit, File file)
+            throws DataUnitException {
+        return addFile(dataUnit, file, file.getName());
+    }
+
+    /**
+     * Add file to the DataUnit. 
+     * 
+     * @param dataUnit
      * @param file File to add, must be under root.
+     * @param path
      * @return
      * @throws eu.unifiedviews.dataunit.DataUnitException
      */
-    public static FilesDataUnit.Entry addFile(WritableFilesDataUnit dataUnit, File root, File file) throws DataUnitException {
-        final String symbolicName = root.toPath().relativize(file.toPath()).toString();
+    public static FilesDataUnit.Entry addFile(WritableFilesDataUnit dataUnit, File file, String path) 
+            throws DataUnitException {
+        final String symbolicName = path;
         // Add existing file to DataUnit.
         dataUnit.addExistingFile(symbolicName, file.toURI().toString());
         // Set available metadata.
-        MetadataUtils.add(dataUnit, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, symbolicName);
+        MetadataUtils.add(dataUnit, symbolicName, FilesVocabulary.UV_VIRTUAL_PATH, symbolicName);
         // Return representing instance.
         return new InMemoryEntry(file.toString(), symbolicName);
     }
@@ -87,7 +101,7 @@ public class FilesDataUnitUtils {
     public static FilesDataUnit.Entry createFile(WritableFilesDataUnit dataUnit, String virtualPath)
             throws DataUnitException {
         final String fileUri = dataUnit.addNewFile(virtualPath);
-        MetadataUtils.add(dataUnit, virtualPath, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
+        MetadataUtils.add(dataUnit, virtualPath, FilesVocabulary.UV_VIRTUAL_PATH, virtualPath);
         return new InMemoryEntry(fileUri, virtualPath);
     }
 
