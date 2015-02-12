@@ -33,7 +33,7 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
             = "%s DELETE {?s ?" + PREDICATE_BINDING + " ?o } "
             + "INSERT {?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
             + "%s WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+            + "?s <" + MetadataVocabulary.UV_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
             + "OPTIONAL { ?s ?" + PREDICATE_BINDING + " ?o } "
             + " } ";
 
@@ -44,7 +44,7 @@ public class WritableMetadataUtilsInstance extends MetadataUtilsInstance<Writabl
     private static final String INSERT_QUERY
             = "%s INSERT { ?s ?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " } "
             + "%s WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
+            + "?s <" + MetadataVocabulary.UV_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " . "
             + " } ";
 
     /**

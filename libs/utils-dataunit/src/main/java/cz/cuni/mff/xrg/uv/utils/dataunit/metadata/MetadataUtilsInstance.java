@@ -47,7 +47,7 @@ public class MetadataUtilsInstance<THIS extends MetadataUtilsInstance> implement
      */
     private static final String SELECT_QUERY
             = "SELECT ?" + OBJECT_BINDING + " %s WHERE { "
-            + "?s <" + MetadataDataUnit.PREDICATE_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ;"
+            + "?s <" + MetadataVocabulary.UV_SYMBOLIC_NAME + "> ?" + SYMBOLIC_NAME_BINDING + " ;"
             + "?" + PREDICATE_BINDING + " ?" + OBJECT_BINDING + " . "
             + "}";
 
