@@ -7,6 +7,8 @@ import eu.unifiedviews.dataunit.MetadataDataUnit;
 import eu.unifiedviews.dataunit.WritableMetadataDataUnit;
 import org.openrdf.repository.RepositoryConnection;
 
+import eu.unifiedviews.dpu.DPUException;
+
 /**
  * Provides easy way how to set/get metadata (predicate/object) for given symbolic name.
  *
@@ -115,6 +117,41 @@ public class MetadataUtils {
         return new WritableMetadataUtilsInstance(connection,
                 dataUnit.getMetadataGraphnames(),
                 dataUnit.getMetadataWriteGraphname(), symbolicName, false);
+    }
+
+    /**
+     * Get a string stored under given predicate and symbolicName.
+     * 
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @return
+     * @throws DataUnitException
+     * @throws DPUException If more then one object is found for given predicate and symbolicName.
+     */
+    public static String get(MetadataDataUnit dataUnit, String symbolicName, URI predicate)
+            throws DataUnitException, DPUException {
+        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName)) {
+            return instance.get(predicate).stringValue();
+        }
+    }
+
+    /**
+     * Get a string stored under given predicate and symbolicName.
+     *
+     * @param dataUnit
+     * @param symbolicName
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     * @throws DPUException If more then one object is found for given predicate and symbolicName.
+     */
+    public static String get(MetadataDataUnit dataUnit, String symbolicName, URI predicate,
+            RepositoryConnection connection) throws DataUnitException, DPUException {
+        try (MetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
+            return instance.get(predicate).stringValue();
+        }
     }
 
     /**
