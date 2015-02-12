@@ -138,6 +138,23 @@ public class MetadataUtils {
 
     /**
      * Get a string stored under given predicate and symbolicName.
+     * 
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @return
+     * @throws DataUnitException
+     * @throws DPUException If more then one object is found for given predicate and symbolicName.
+     */
+    public static String get(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate)
+            throws DataUnitException, DPUException {
+        try (MetadataUtilsInstance instance = create(dataUnit, entry)) {
+            return instance.get(predicate).stringValue();
+        }
+    }
+
+    /**
+     * Get a string stored under given predicate and symbolicName.
      *
      * @param dataUnit
      * @param symbolicName
@@ -150,6 +167,24 @@ public class MetadataUtils {
     public static String get(MetadataDataUnit dataUnit, String symbolicName, URI predicate,
             RepositoryConnection connection) throws DataUnitException, DPUException {
         try (MetadataUtilsInstance instance = create(dataUnit, symbolicName, connection)) {
+            return instance.get(predicate).stringValue();
+        }
+    }
+
+    /**
+     * Get a string stored under given predicate and symbolicName.
+     *
+     * @param dataUnit
+     * @param entry
+     * @param predicate
+     * @param connection
+     * @return
+     * @throws DataUnitException
+     * @throws DPUException If more then one object is found for given predicate and symbolicName.
+     */
+    public static String get(MetadataDataUnit dataUnit, MetadataDataUnit.Entry entry, URI predicate,
+            RepositoryConnection connection) throws DataUnitException, DPUException {
+        try (MetadataUtilsInstance instance = create(dataUnit, entry, connection)) {
             return instance.get(predicate).stringValue();
         }
     }
