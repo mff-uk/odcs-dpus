@@ -20,8 +20,10 @@ import org.xml.sax.XMLReader;
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
+import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.helpers.dataunit.maphelper.MapHelpers;
+import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -137,7 +139,7 @@ public class Scraper_parser extends ScrapingTemplate{
                     Map<String, String> xsltParamsMapS = new HashMap<String, String>();
                     xsltParamsMapS.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
                     MapHelpers.putMap(smlouvy, url.toString(), "xsltParameters", xsltParamsMapS);
-                    
+                    Manipulator.set(smlouvy, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH, url.toString() );
                     break;
                 case "detail-o":
                     logger.debug("Processing objednávka " + ++currentObjednavky + "/" + numObjednavky + ": " + url.toString());
@@ -148,6 +150,7 @@ public class Scraper_parser extends ScrapingTemplate{
                     Map<String, String> xsltParamsMapO = new HashMap<String, String>();
                     xsltParamsMapO.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
                     MapHelpers.putMap(objednavky, url.toString(), "xsltParameters", xsltParamsMapO);
+                    Manipulator.set(objednavky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
                     
                     break;
                 case "detail-p":
@@ -159,22 +162,26 @@ public class Scraper_parser extends ScrapingTemplate{
                     Map<String, String> xsltParamsMapP = new HashMap<String, String>();
                     xsltParamsMapP.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
                     MapHelpers.putMap(plneni, url.toString(), "xsltParameters", xsltParamsMapP);
+                    Manipulator.set(plneni, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH, url.toString());
                     
                     break;
                 case "seznamrok-s":
                     logger.debug("Processing yearly list of smlouva " + ++currentSmlouvyRoks + "/" + numSmlouvyRoks + ": " + url.toString());
                     File fss = new File(URI.create(smlouvy_roky.addNewFile(url.toString())));
 					FileUtils.writeStringToFile(fss, doc, "UTF-8");
+                    Manipulator.set(smlouvy_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
                     break;
                 case "seznamrok-o":
                     logger.debug("Processing yearly list of objednávka " + ++currentObjednavkyRoks + "/" + numObjednavkyRoks + ": " + url.toString());
                     File fso = new File(URI.create(objednavky_roky.addNewFile(url.toString())));
 					FileUtils.writeStringToFile(fso, doc, "UTF-8");
+                    Manipulator.set(objednavky_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
                     break;
                 case "seznamrok-p":
                     logger.debug("Processing yearly list of plnění " + ++currentPlneniRoks + "/" + numPlneniRoks + ": " + url.toString());
                     File fsp = new File(URI.create(plneni_roky.addNewFile(url.toString())));
 					FileUtils.writeStringToFile(fsp, doc, "UTF-8");
+                    Manipulator.set(plneni_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
                     break;
             }
         }
