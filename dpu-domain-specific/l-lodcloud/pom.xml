@@ -10,8 +10,8 @@
     <artifactId>L-LODCloud</artifactId>
     <name>loader LODCloud</name>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
-    <description>This loader loads metadata to datahub.io in a LODCloud compatible way</description>
+    <version>1.1.0</version>
+    <description>This loader loads metadata to CKAN in a LODCloud compatible way</description>
     <properties>    
         <dpu.package>cz.opendata.linked.lodcloud.loader</dpu.package>
         <dpu.mainClass>Loader</dpu.mainClass>    

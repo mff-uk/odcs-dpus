@@ -22,10 +22,14 @@ public class LoadTest {
         LoaderConfig config = new LoaderConfig();
         
         config.setDatasetID("cz-test");
-        config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
+        //config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
+        config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
+        config.setApiUri("http://ckan.opendata.cz:5000/api/rest/dataset");
         config.setSchemaUrl("http://ruian.linked.opendata.cz/dump/CUZK-2-RUIAN-CODELISTS.zip");
         //config.setDatasetDescription("Description");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
+        config.setOrgID("d2664e4e-25ba-4dcc-a842-dcc5f2d2f326");
+        config.setCreateFirst(true);
         config.getVocabularies().add("skos");
         config.getVocabularies().add("gr");
         config.getVocabularies().add("adms");

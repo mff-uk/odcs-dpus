@@ -11,13 +11,18 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -43,6 +48,7 @@ import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
+import eu.unifiedviews.dpu.DPUContext.MessageType;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 
@@ -266,10 +272,64 @@ extends DpuAdvancedBase<LoaderConfig>
 			root.put("resources", resources);
 			root.put("extras", extras);
 			
-			if (!context.canceled()) {
-				logger.debug("Posting to datahub.io");
+			boolean created = false;
+			
+			if (config.isCreateFirst()) {
+	            JSONObject createRoot = new JSONObject();
+	            
+	            createRoot.put("name", config.getDatasetID());
+	            createRoot.put("title", title);
+	            createRoot.put("owner_org", config.getOrgID());
+				
+	            logger.debug("Creating dataset in CKAN");
+	            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+				HttpPost httpPost = new HttpPost(config.getApiUri());
+				httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
+	            
+	            String json = createRoot.toString();
+	            
+	            logger.debug("Creating dataset with: " + json);
+	            
+	            httpPost.setEntity(new StringEntity(json, Charset.forName("utf-8")));
+	            
+	            CloseableHttpResponse response = null;
+	            
+	            try {
+	                response = client.execute(httpPost);
+	                if (response.getStatusLine().getStatusCode() == 201) {
+	                	logger.info("Dataset created OK");
+	                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
+	                	created = true;
+	                } else if (response.getStatusLine().getStatusCode() == 409) {
+	                	String ent = EntityUtils.toString(response.getEntity());
+	                	logger.error("Dataset already exists: " + ent);
+	                	context.sendMessage(MessageType.ERROR, "Dataset already exists: " + response.getStatusLine().getStatusCode() + ": " + ent);
+	                } else {
+	                	String ent = EntityUtils.toString(response.getEntity());
+	                	logger.error("Response:" + ent);
+	                	context.sendMessage(MessageType.ERROR, "Response while creating dataset: " + response.getStatusLine().getStatusCode() + ": " + ent);
+	                }
+	            } catch (ClientProtocolException e) {
+	            	logger.error(e.getLocalizedMessage(), e);
+				} catch (IOException e) {
+	            	logger.error(e.getLocalizedMessage(), e);
+				} finally {
+	                if (response != null) {
+	                    try {
+							response.close();
+							client.close();
+						} catch (IOException e) {
+			            	logger.error(e.getLocalizedMessage(), e);
+		                	context.sendMessage(MessageType.ERROR, e.getLocalizedMessage());
+						}
+	                }
+	            }
+			}
+			
+			if (!context.canceled() && (!config.isCreateFirst() || created)) {
+				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + config.getDatasetID());
+	            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + "/" + config.getDatasetID());
 	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
@@ -284,7 +344,9 @@ extends DpuAdvancedBase<LoaderConfig>
 	                if (response.getStatusLine().getStatusCode() == 200) {
 	                	logger.info("Response:" + EntityUtils.toString(response.getEntity()));
 	                } else {
-	                	logger.error("Response:" + EntityUtils.toString(response.getEntity()));
+	                	String ent = EntityUtils.toString(response.getEntity());
+	                	logger.error("Response:" + ent);
+	                	context.sendMessage(MessageType.ERROR, "Response while updating dataset: " + ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -297,6 +359,7 @@ extends DpuAdvancedBase<LoaderConfig>
 							client.close();
 						} catch (IOException e) {
 			            	logger.error(e.getLocalizedMessage(), e);
+		                	context.sendMessage(MessageType.ERROR, e.getLocalizedMessage());
 						}
 	                }
 	            }

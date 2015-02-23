@@ -238,6 +238,8 @@ public class LoaderConfig  {
     
     private Topics topic = Topics.government;
     
+    private boolean CreateFirst = false;
+    
     private boolean limitedSparql = false;
     
     private boolean lodcloudNolinks = false;
@@ -260,7 +262,7 @@ public class LoaderConfig  {
     
     private VocabTags vocabTag = VocabTags.DerefVocab;
 
-    private String apiUri = "http://datahub.io/api/rest/dataset/";
+    private String apiUri = "http://datahub.io/api/rest/dataset";
     
     private String schemaUrl = "";
     
@@ -282,7 +284,7 @@ public class LoaderConfig  {
     
     private Licenses license_id = Licenses.pddl;
     
-    //private String orgID = "9046f134-ea81-462f-aae3-69854d34fc96" ;
+    private String orgID = "9046f134-ea81-462f-aae3-69854d34fc96" ;
     
     private String shortname = "";
     
@@ -370,13 +372,13 @@ public class LoaderConfig  {
 		this.license_id = license_id;
 	}
 
-//	public String getOrgID() {
-//		return orgID;
-//	}
-//
-//	public void setOrgID(String orgID) {
-//		this.orgID = orgID;
-//	}
+	public String getOrgID() {
+		return orgID;
+	}
+
+	public void setOrgID(String orgID) {
+		this.orgID = orgID;
+	}
 
 	public String getShortname() {
 		return shortname;
@@ -584,6 +586,14 @@ public class LoaderConfig  {
 
 	public void setMappingFiles(Collection<MappingFile> mappingFiles) {
 		this.mappingFiles = mappingFiles;
+	}
+
+	public boolean isCreateFirst() {
+		return CreateFirst;
+	}
+
+	public void setCreateFirst(boolean createFirst) {
+		CreateFirst = createFirst;
 	}
 
 }

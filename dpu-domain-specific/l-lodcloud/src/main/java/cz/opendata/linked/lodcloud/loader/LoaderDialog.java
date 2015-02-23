@@ -38,15 +38,18 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
 	
 	private ComponentTable<LoaderConfig.LinkCount> gtLinkCounts;
 	private ComponentTable<LoaderConfig.MappingFile> gtMappingFiles;
+    private CheckBox chkCreateDataset;
     private CheckBox chkLodcloudNolinks;
     private CheckBox chkLodcloudUnconnected;
     private CheckBox chkLodcloudNeedsFixing;
     private CheckBox chkLodcloudNeedsInfo;
     private CheckBox chkLimitedSparql;
 	private VerticalLayout mainLayout;
-    private Label lblRestApiUrl;
+    private TextField tfRestApiUrl;
+	private Label lblRestApiUrl;
     private TextField tfDatasetID;
     private PasswordField tfApiKey;
+    private TextField tfOwnerOrg;
     private TextField tfMaintainerName;
     private TextField tfMaintainerEmail;
     private TextField tfAuthorName;
@@ -93,10 +96,16 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         setWidth("100%");
         setHeight("100%");
         
+        tfRestApiUrl = new TextField();
+        tfRestApiUrl.setWidth("100%");
+        tfRestApiUrl.setCaption("CKAN Rest API URL");
+        tfRestApiUrl.setInputPrompt("http://datahub.io/api/rest/dataset");
+        mainLayout.addComponent(tfRestApiUrl);
+
         tfApiKey = new PasswordField();
         tfApiKey.setWidth("100%");
-        tfApiKey.setCaption("Datahub.io CKAN API Key");
-        tfApiKey.setDescription("Datahub.io CKAN API Key");
+        tfApiKey.setCaption("CKAN API Key");
+        tfApiKey.setDescription("CKAN API Key");
         tfApiKey.setInputPrompt("00000000-0000-0000-0000-000000000000");
         mainLayout.addComponent(tfApiKey);
         
@@ -119,6 +128,22 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lblRestApiUrl.setContentMode(ContentMode.HTML);
         mainLayout.addComponent(lblRestApiUrl);
         
+        chkCreateDataset = new CheckBox();
+        chkCreateDataset.setCaption("Create the dataset (usually usable only once)");
+        chkCreateDataset.setImmediate(true);
+        chkCreateDataset.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				tfOwnerOrg.setEnabled(chkCreateDataset.getValue());
+		}});
+        mainLayout.addComponent(chkCreateDataset);
+        
+        tfOwnerOrg = new TextField();
+        tfOwnerOrg.setWidth("100%");
+        tfOwnerOrg.setCaption("Owner CKAN organization ID");
+        tfOwnerOrg.setInputPrompt("00000000-0000-0000-0000-000000000000");
+        mainLayout.addComponent(tfOwnerOrg);
+
         tfShortName = new TextField();
         tfShortName.setWidth("100%");
         tfShortName.setCaption("Dataset short name - for LOD cloud circle label");
@@ -388,6 +413,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     public void setConfiguration(LoaderConfig conf) throws DPUConfigException {
     	tfApiKey.setValue(conf.getApiKey());
     	tfDatasetID.setValue(conf.getDatasetID());
+    	tfOwnerOrg.setValue(conf.getOrgID());
+    	tfRestApiUrl.setValue(conf.getApiUri());
     	tfMaintainerName.setValue(conf.getMaintainerName());
     	tfMaintainerEmail.setValue(conf.getMaintainerEmail());
     	tfAuthorName.setValue(conf.getAuthorName());
@@ -399,6 +426,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	tfShortName.setValue(conf.getShortname());
     	tfCustomLicenseLink.setValue(conf.getCustomLicenseLink());
     	chkGenerateVersion.setValue(conf.isVersionGenerated());
+    	chkCreateDataset.setValue(conf.isCreateFirst());
     	gtLinkCounts.setValue(conf.getLinks());
     	gtMappingFiles.setValue(conf.getMappingFiles());
     	cbTopic.setValue(conf.getTopic());
@@ -426,7 +454,10 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     public LoaderConfig getConfiguration() throws DPUConfigException {
     	LoaderConfig conf = new LoaderConfig();
         conf.setApiKey(tfApiKey.getValue());
+        conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
+        conf.setCreateFirst(chkCreateDataset.getValue());
+        conf.setOrgID(tfOwnerOrg.getValue());
         conf.setMaintainerName(tfMaintainerName.getValue());
         conf.setMaintainerEmail(tfMaintainerEmail.getValue());
         conf.setAuthorName(tfAuthorName.getValue());
