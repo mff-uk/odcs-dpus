@@ -2,6 +2,7 @@ package cz.opendata.unifiedviews.dpus.distributionMetadata;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -500,6 +501,13 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         } catch (MalformedURLException ex) {
             if (chkSchemaFromInput.getValue()) conf.setSchema("");
             else throw new DPUConfigException("Invalid schema URL.", ex);
+        }
+
+        try {
+            for (String resource: (Collection<String>) lsExampleResources.getValue())
+        	conf.getExampleResources().add(new URL(resource).toString());
+        } catch (MalformedURLException ex) {
+            throw new DPUConfigException("Invalid download URL.", ex);
         }
 
         return conf;
