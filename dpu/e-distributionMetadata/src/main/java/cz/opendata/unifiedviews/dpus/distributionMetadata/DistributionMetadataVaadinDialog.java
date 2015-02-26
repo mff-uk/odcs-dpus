@@ -507,7 +507,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
             for (String resource: (Collection<String>) lsExampleResources.getValue())
         	conf.getExampleResources().add(new URL(resource).toString());
         } catch (MalformedURLException ex) {
-            throw new DPUConfigException("Invalid download URL.", ex);
+            throw new DPUConfigException("Invalid example resource URL: " + ex.getMessage(), ex);
         }
 
         return conf;

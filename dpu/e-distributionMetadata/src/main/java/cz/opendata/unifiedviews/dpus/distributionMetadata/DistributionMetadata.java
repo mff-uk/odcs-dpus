@@ -173,6 +173,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         final EntityBuilder distribution = new EntityBuilder(valueFactory.createURI(distributionURI),
                 valueFactory);
         distribution.property(RDF.TYPE, DistributionMetadataVocabulary.DCAT_DISTRIBUTION_CLASS);
+        distribution.property(RDF.TYPE, DistributionMetadataVocabulary.VOID_DATASET_CLASS);
         
         // Build metadata ...
 
@@ -247,7 +248,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 
         // Lists ...
         for (String example : config.getExampleResources()) {
-            dataset.property(DistributionMetadataVocabulary.VOID_EXAMPLERESOURCE, valueFactory.createURI(example));
+        	distribution.property(DistributionMetadataVocabulary.VOID_EXAMPLERESOURCE, valueFactory.createURI(example));
         }
 
         rdfData.add(distribution.asStatements());
