@@ -32,7 +32,9 @@ public class DistributionMetadataVocabulary {
 
     public static final URI DCAT_MEDIATYPE;
 
-    public static final URI VOID_DATASET;
+    public static final URI VOID_DATASET_CLASS;
+
+    public static final URI VOID_EXAMPLERESOURCE;
 
     public static final URI SCHEMA_ENDDATE;
 
@@ -53,7 +55,8 @@ public class DistributionMetadataVocabulary {
         DCAT_DOWNLOADURL = valueFactory.createURI(DCAT + "downloadURL");
         DCAT_ACCESSURL = valueFactory.createURI(DCAT + "accessURL");
         DCAT_MEDIATYPE = valueFactory.createURI(DCAT + "mediaType");
-        VOID_DATASET = valueFactory.createURI(VOID + "Dataset");
+        VOID_DATASET_CLASS = valueFactory.createURI(VOID + "Dataset");
+        VOID_EXAMPLERESOURCE = valueFactory.createURI(VOID + "exampleResource");
         XSD_DATE = valueFactory.createURI(XSD + "date");
         SCHEMA_ENDDATE = valueFactory.createURI(SCHEMA + "endDate");
         SCHEMA_STARTDATE = valueFactory.createURI(SCHEMA + "startDate");

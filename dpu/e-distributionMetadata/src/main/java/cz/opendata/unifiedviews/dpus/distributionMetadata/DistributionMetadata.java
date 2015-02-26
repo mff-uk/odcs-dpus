@@ -241,12 +241,15 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
             distribution.property(DistributionMetadataVocabulary.DCAT_MEDIATYPE, valueFactory.createLiteral(config.getMediaType()));
             distribution.property(DCTERMS.FORMAT, valueFactory.createLiteral(config.getMediaType()));
         }
-
-        // Lists ...
         if (!StringUtils.isBlank(license)) {
         	distribution.property(DCTERMS.LICENSE, valueFactory.createURI(license));
         }
-        
+
+        // Lists ...
+        for (String example : config.getExampleResources()) {
+            dataset.property(DistributionMetadataVocabulary.VOID_EXAMPLERESOURCE, valueFactory.createURI(example));
+        }
+
         rdfData.add(distribution.asStatements());
         
     }
