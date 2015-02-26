@@ -7,8 +7,8 @@
         <version>1.3.0-SNAPSHOT</version>
 	</parent>
 	<groupId>cz.opendata.unifiedviews.dpus</groupId>
-	<artifactId>E-datasetMetadata</artifactId>
-	<name>E-datasetMetadata</name>
+	<artifactId>E-DatasetMetadata</artifactId>
+	<name>E-DatasetMetadata</name>
 	<description>Enables designers to input dataset level metadata</description>
 	<version>0.1.0</version>
 	<packaging>bundle</packaging>

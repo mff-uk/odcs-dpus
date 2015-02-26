@@ -368,10 +368,14 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
             throw new DPUConfigException("Invalid schema URL.", ex);
         }
 
-        conf.setLicense((String)lsLicenses.getValue());
+        try {
+            conf.setLicense(new URL((String) lsLicenses.getValue()).toString());
+        } catch (MalformedURLException ex) {
+            throw new DPUConfigException("Invalid license URL.", ex);
+        }
+
         conf.setAuthors((Collection<String>) lsAuthors.getValue());
         conf.setPublishers((Collection<String>) lsPublishers.getValue());
-        conf.setLicense((String) lsLicenses.getValue());
         conf.setSources((Collection<String>) lsSources.getValue());
         conf.setThemes((Collection<String>) lsThemes.getValue());
 

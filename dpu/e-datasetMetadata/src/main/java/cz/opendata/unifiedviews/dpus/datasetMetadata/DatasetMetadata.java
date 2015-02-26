@@ -174,7 +174,7 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
         for (String publisherName : config.getPublishers()) {
             dataset.property(DCTERMS.PUBLISHER, valueFactory.createURI(publisherName));
         }
-        if (!StringUtils.isBlank(config.getDesc_en())) {
+        if (!StringUtils.isBlank(config.getLicense())) {
         	dataset.property(DCTERMS.LICENSE, valueFactory.createURI(config.getLicense()));
         }
         for (String source : config.getSources()) {

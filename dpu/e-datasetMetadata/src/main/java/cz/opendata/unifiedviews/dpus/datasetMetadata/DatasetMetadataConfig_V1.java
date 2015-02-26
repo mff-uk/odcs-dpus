@@ -8,6 +8,10 @@ public class DatasetMetadataConfig_V1 {
 
     private String datasetURI = "";
 
+    private String distributionURI = "";
+
+    private boolean useDatasetURIfromInput = true;
+
     /**
      * Language used for {@link title_cs}, {@link desc_cs}
      */
@@ -28,8 +32,6 @@ public class DatasetMetadataConfig_V1 {
     private String license = "";
 
     private Collection<String> sources = new LinkedList<>();
-
-    private Collection<String> exampleResources = new LinkedList<>();
 
     private Collection<String> languages = new LinkedList<>();
 
@@ -143,15 +145,6 @@ public class DatasetMetadataConfig_V1 {
         this.sources = sources;
     }
 
-    public Collection<String> getExampleResources() {
-        return exampleResources;
-    }
-
-    public void setExampleResources(
-            LinkedList<String> exampleResources) {
-        this.exampleResources = exampleResources;
-    }
-
     public Collection<String> getLanguages() {
         return languages;
     }
@@ -262,5 +255,21 @@ public class DatasetMetadataConfig_V1 {
 
 	public void setSchema(String schema) {
 		this.schema = schema;
+	}
+
+	public String getDistributionURI() {
+		return distributionURI;
+	}
+
+	public void setDistributionURI(String distributionURI) {
+		this.distributionURI = distributionURI;
+	}
+
+	public boolean isUseDatasetURIfromInput() {
+		return useDatasetURIfromInput;
+	}
+
+	public void setUseDatasetURIfromInput(boolean useDatasetURIfromInput) {
+		this.useDatasetURIfromInput = useDatasetURIfromInput;
 	}
 }
