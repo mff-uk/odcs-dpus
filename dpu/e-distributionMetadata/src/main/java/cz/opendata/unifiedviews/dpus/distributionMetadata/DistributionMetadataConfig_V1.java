@@ -27,6 +27,8 @@ public class DistributionMetadataConfig_V1 {
 
     private String license = "";
 
+    private String sparqlEndpointUrl = "";
+
     private String mediaType = "";
 
     private String downloadURL = "";
@@ -312,6 +314,14 @@ public class DistributionMetadataConfig_V1 {
 
 	public void setGenerateDistroURIFromDataset(boolean generateDistroURIFromDataset) {
 		this.generateDistroURIFromDataset = generateDistroURIFromDataset;
+	}
+
+	public String getSparqlEndpointUrl() {
+		return sparqlEndpointUrl;
+	}
+
+	public void setSparqlEndpointUrl(String sparqlEndpointUrl) {
+		this.sparqlEndpointUrl = sparqlEndpointUrl;
 	}
 	
 }

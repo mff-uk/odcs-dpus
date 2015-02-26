@@ -36,6 +36,10 @@ public class DistributionMetadataVocabulary {
 
     public static final URI VOID_EXAMPLERESOURCE;
 
+    public static final URI VOID_DATADUMP;
+
+    public static final URI VOID_SPARQLENDPOINT;
+
     public static final URI SCHEMA_ENDDATE;
 
     public static final URI SCHEMA_STARTDATE;
@@ -57,6 +61,8 @@ public class DistributionMetadataVocabulary {
         DCAT_MEDIATYPE = valueFactory.createURI(DCAT + "mediaType");
         VOID_DATASET_CLASS = valueFactory.createURI(VOID + "Dataset");
         VOID_EXAMPLERESOURCE = valueFactory.createURI(VOID + "exampleResource");
+        VOID_DATADUMP = valueFactory.createURI(VOID + "dataDump");
+        VOID_SPARQLENDPOINT = valueFactory.createURI(VOID + "sparqlEndpoint");
         XSD_DATE = valueFactory.createURI(XSD + "date");
         SCHEMA_ENDDATE = valueFactory.createURI(SCHEMA + "endDate");
         SCHEMA_STARTDATE = valueFactory.createURI(SCHEMA + "startDate");

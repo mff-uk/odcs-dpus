@@ -55,6 +55,8 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 
     private TextField tfSchemaType;
 
+    private TextField tfSPARQLEndpointURL;
+
     private TextField tfDownloadURL;
 
     private TextField tfAccessURL;
@@ -134,6 +136,12 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         lsExampleResources.setMultiSelect(true);
         lsExampleResources.setRows(3);
         mainLayout.addComponent(lsExampleResources);
+
+        tfSPARQLEndpointURL = new TextField();
+        tfSPARQLEndpointURL.setCaption("SPARQL Endpoint URL:");
+        tfSPARQLEndpointURL.setInputPrompt("http://linked.opendata.cz/sparql");
+        tfSPARQLEndpointURL.setWidth("100%");
+        mainLayout.addComponent(tfSPARQLEndpointURL);
 
         tfSchemaType = new TextField();
         tfSchemaType.setCaption("Schema MIME type:");
@@ -406,6 +414,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         chkSchemaFromInput.setValue(conf.isSchemaFromDataset());
         tfSchema.setValue(conf.getSchema());
         tfSchemaType.setValue(conf.getSchemaType());
+        tfSPARQLEndpointURL.setValue(conf.getSparqlEndpointUrl());
         
         chkTemporalFromInput.setValue(conf.isTemporalFromDataset());
         dfTemporalStart.setValue(conf.getTemporalStart());
@@ -420,6 +429,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
     	lsLicenses.setValue(conf.getLicense());
     }
 
+	@SuppressWarnings("unchecked")
 	@Override
     public DistributionMetadataConfig_V1 getConfiguration() throws DPUConfigException {
         DistributionMetadataConfig_V1 conf = new DistributionMetadataConfig_V1();
@@ -488,6 +498,12 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
             conf.setDownloadURL(new URL(tfDownloadURL.getValue()).toString());
         } catch (MalformedURLException ex) {
             throw new DPUConfigException("Invalid download URL.", ex);
+        }
+
+        try {
+            conf.setSparqlEndpointUrl(new URL(tfSPARQLEndpointURL.getValue()).toString());
+        } catch (MalformedURLException ex) {
+            throw new DPUConfigException("Invalid SPARQL Endpoint URL.", ex);
         }
 
         try {

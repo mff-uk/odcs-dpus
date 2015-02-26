@@ -236,6 +236,11 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 
         if (!StringUtils.isBlank(config.getDownloadURL())) {
             distribution.property(DistributionMetadataVocabulary.DCAT_DOWNLOADURL, valueFactory.createURI(config.getDownloadURL()));
+            distribution.property(DistributionMetadataVocabulary.VOID_DATADUMP, valueFactory.createURI(config.getDownloadURL()));
+        }
+
+        if (!StringUtils.isBlank(config.getSparqlEndpointUrl())) {
+            distribution.property(DistributionMetadataVocabulary.VOID_SPARQLENDPOINT, valueFactory.createURI(config.getSparqlEndpointUrl()));
         }
 
         if (!StringUtils.isBlank(config.getMediaType())) {
