@@ -89,7 +89,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         // Start business
         String datasetURI;
         if (config.isUseDatasetURIfromInput()) {
-        	datasetURI = executeSelectQuery("SELECT ?d WHERE {?d a <" + DistributionMetadataVocabulary.DCAT_DATASET_CLASS + ">}", "d");        	
+        	datasetURI = executeSimpleSelectQuery("SELECT ?d WHERE {?d a <" + DistributionMetadataVocabulary.DCAT_DATASET_CLASS + ">}", "d");        	
         }
         else datasetURI = config.getDatasetURI();
         
@@ -101,26 +101,26 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         
         String schemaURL;
         if (config.isSchemaFromDataset()) {
-        	schemaURL = executeSelectQuery("SELECT ?schema WHERE {<" + datasetURI + "> <"+ DCTERMS.REFERENCES + "> ?schema }", "schema");
+        	schemaURL = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + datasetURI + "> <"+ DCTERMS.REFERENCES + "> ?schema }", "schema");
         }
         else schemaURL = config.getSchema();
         
         String license;
         if (config.isLicenseFromDataset()) {
-        	license = executeSelectQuery("SELECT ?license WHERE {<" + datasetURI + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
+        	license = executeSimpleSelectQuery("SELECT ?license WHERE {<" + datasetURI + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
         }
         else license = config.getLicense();
         
         String originalLanguage;
         if (config.isOriginalLanguageFromDataset()) {
-        	originalLanguage = executeSelectQuery("SELECT ?language WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(!LANGMATCHES(LANG(?title), \"en\")) BIND(LANG(?title) as ?language) }", "language");
+        	originalLanguage = executeSimpleSelectQuery("SELECT ?language WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(!LANGMATCHES(LANG(?title), \"en\")) BIND(LANG(?title) as ?language) }", "language");
         }
         else originalLanguage = config.getLanguage_orig();
         
         String title_orig, title_en;
         if (config.isTitleFromDataset()) {
-        	title_en = executeSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"en\"))}", "title");
-        	title_orig = executeSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"" + originalLanguage + "\"))}", "title");
+        	title_en = executeSimpleSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"en\"))}", "title");
+        	title_orig = executeSimpleSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"" + originalLanguage + "\"))}", "title");
         }
         else {
         	title_orig = config.getTitle_orig();
@@ -129,8 +129,8 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 
         String description_orig, description_en;
         if (config.isTitleFromDataset()) {
-        	description_en = executeSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"en\"))}", "description");
-        	description_orig = executeSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"" + originalLanguage + "\"))}", "description");
+        	description_en = executeSimpleSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"en\"))}", "description");
+        	description_orig = executeSimpleSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"" + originalLanguage + "\"))}", "description");
         }
         else {
         	description_orig = config.getDesc_orig();
@@ -139,8 +139,8 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         
         String temporalStart, temporalEnd;
         if (config.isTemporalFromDataset()) {
-        	temporalStart = executeSelectQuery("SELECT ?temporalStart WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
-        	temporalEnd = executeSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
+        	temporalStart = executeSimpleSelectQuery("SELECT ?temporalStart WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
+        	temporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
         }
         else {
         	temporalStart = dateFormat.format(config.getTemporalStart());
@@ -149,13 +149,13 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         
         String spatial;
         if (config.isSpatialFromDataset()) {
-        	spatial = executeSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
+        	spatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
         }
         else spatial = config.getSpatial();
         
         String issued;
         if (config.isIssuedFromDataset()) {
-        	issued = executeSelectQuery("SELECT ?issued WHERE {<" + datasetURI + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
+        	issued = executeSimpleSelectQuery("SELECT ?issued WHERE {<" + datasetURI + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
         }
         else {
         	issued = dateFormat.format(config.getIssued());
@@ -260,7 +260,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         
     }
     
-    private String executeSelectQuery(final String queryAsString, String bindingName) throws DPUException {
+    private String executeSimpleSelectQuery(final String queryAsString, String bindingName) throws DPUException {
         // Prepare SPARQL update query.
         final SparqlUtils.SparqlSelectObject query = faultTolerance.execute(
                 new FaultTolerance.ActionReturn<SparqlUtils.SparqlSelectObject>() {
