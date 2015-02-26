@@ -6,7 +6,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 
 public class DatasetMetadataVocabulary {
 
-    public static final String STR_METADATA_GRAPH = "http://unifiedviews.eu/resources/dpu/transformer/metadata/";
+    public static final String STR_METADATA_GRAPH = "http://unifiedviews.eu/resources/dpu/extractor/datasetMetadata/";
 
     public static final String SCHEMA = "http://schema.org/";
 
