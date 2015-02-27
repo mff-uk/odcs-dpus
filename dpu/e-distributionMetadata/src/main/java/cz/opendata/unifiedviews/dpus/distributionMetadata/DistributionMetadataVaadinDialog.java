@@ -501,7 +501,9 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         }
 
         try {
-            conf.setSparqlEndpointUrl(new URL(tfSPARQLEndpointURL.getValue()).toString());
+            String val = tfSPARQLEndpointURL.getValue();
+            if (val.isEmpty()) conf.setSparqlEndpointUrl("");
+            else conf.setSparqlEndpointUrl(new URL(tfSPARQLEndpointURL.getValue()).toString());
         } catch (MalformedURLException ex) {
             throw new DPUConfigException("Invalid SPARQL Endpoint URL.", ex);
         }
