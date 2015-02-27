@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>eu.unifiedviews</groupId>
+        <artifactId>uv-pom-dpu</artifactId>
+        <version>1.3.0-SNAPSHOT</version>
+    </parent>    
+	<groupId>cz.opendata.unifiedviews.dpus</groupId>
+    <artifactId>L-CKANOdcz</artifactId>
+    <name>L-CKANOdcz</name>
+    <description>This loader loads Dataset and Distributions metadata to CKAN according to the OpenData.cz methodology</description>
+    <version>0.1.0</version>
+    <packaging>bundle</packaging>
+
+    <properties>    
+        <dpu.package>cz.opendata.unifiedviews.dpus.ckan</dpu.package>
+        <dpu.mainClass>CKANLoader</dpu.mainClass>    
+    </properties>
+    
+     <dependencies>
+        <!-- Provided by Core. -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.0</version>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+			<version>4.3.3</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore-osgi</artifactId>
+			<version>4.3.2</version>
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.8</version>
+			<scope>provided</scope>
+        </dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
+		</dependency>       
+        <!-- UnifiedViews helpers. -->
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>[1.3.0-SNAPSHOT,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <version>[1.0.0-SNAPSHOT,2.0.0)</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
+</project>
+
