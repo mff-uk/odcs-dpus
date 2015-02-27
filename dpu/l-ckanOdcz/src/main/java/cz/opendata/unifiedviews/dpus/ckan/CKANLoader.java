@@ -111,7 +111,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             JSONObject root = new JSONObject();
             
             JSONArray tags = new JSONArray();
-            tags.put(keywords);
+            //tags.put(keywords);
+            for (String keyword : keywords) tags.put(keyword);
             
             JSONArray resources = new JSONArray();
             
@@ -190,18 +191,20 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			//TODO: Matching?
 			root.put("license_id", "other-open");
 			
-			extras.put("license_link", license);
-			extras.put("temporalStart", temporalStart);
-			extras.put("temporalEnd", temporalEnd);
-			extras.put("accrualPeriodicity", periodicity);
+			
+			root.put("license_link", license);
+			root.put("temporalStart", temporalStart);
+			root.put("temporalEnd", temporalEnd);
+			root.put("accrualPeriodicity", periodicity);
 			
 			//TODO: Spatial
-			extras.put("spatialNotation", "stát");
-			extras.put("spatialType", "1");
+			root.put("spatialNotation", "stát");
+			root.put("spatialType", "1");
 			
 			String concatThemes = "";
 			for (String theme: themes) { concatThemes += theme + " ";}
-			extras.put("themes", concatThemes);
+			root.put("themes", concatThemes);
+			
 			
 			//Distributions
 			for (String distribution: distributions) {
@@ -228,7 +231,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		    	distro.put("describedBy", dschemaURL);
 		    	distro.put("describedByType", dschemaType);
 		    	distro.put("format", dformat);
-		    	distro.put("download_url", dwnld);
+		    	distro.put("url", dwnld);
 
 		    	distro.put("created", dissued);
 		    	distro.put("last_modified", dmodified);
@@ -303,6 +306,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = root.toString();
+	            
+	            logger.trace(json);
 	            
 	            httpPost.setEntity(new StringEntity(json, Charset.forName("utf-8")));
 	            

@@ -110,7 +110,7 @@ public class CKANLoaderConfig  {
     
     private boolean CreateFirst = false;
     
-    private String apiUri = "http://ckan.opendata.cz/api/rest";
+    private String apiUri = "http://ckan.opendata.cz/api/rest/dataset";
     
     private String apiKey = "";
     
