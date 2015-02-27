@@ -23,6 +23,7 @@ import eu.unifiedviews.helpers.cuni.extensions.FaultTolerance;
 import eu.unifiedviews.helpers.cuni.migration.ConfigurationUpdate;
 import eu.unifiedviews.helpers.cuni.rdf.EntityBuilder;
 import eu.unifiedviews.helpers.cuni.rdf.simple.WritableSimpleRdf;
+import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
 import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
 
 @DPU.AsExtractor
@@ -68,7 +69,7 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
 
             @Override
             public RDFDataUnit.Entry action() throws Exception {
-                return RdfDataUnitUtils.addGraph(outRdfData, DatasetMetadataVocabulary.STR_METADATA_GRAPH);
+                return RdfDataUnitUtils.addGraph(outRdfData, DataUnitUtils.generateSymbolicName(DatasetMetadata.class));
             }
         });
         faultTolerance.execute(new FaultTolerance.Action() {

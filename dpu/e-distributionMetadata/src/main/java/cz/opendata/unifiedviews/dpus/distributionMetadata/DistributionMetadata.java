@@ -73,7 +73,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 
             @Override
             public RDFDataUnit.Entry action() throws Exception {
-                return RdfDataUnitUtils.addGraph(outRdfData, DistributionMetadataVocabulary.STR_METADATA_GRAPH);
+                return RdfDataUnitUtils.addGraph(outRdfData, DataUnitUtils.generateSymbolicName(DistributionMetadata.class));
             }
         });
         faultTolerance.execute(new FaultTolerance.Action() {
