@@ -15,16 +15,15 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.cuni.dpu.config.ConfigHistory;
-import eu.unifiedviews.helpers.cuni.dpu.context.ContextUtils;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AbstractDpu;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AutoInitializer;
-import eu.unifiedviews.helpers.cuni.extensions.FaultTolerance;
-import eu.unifiedviews.helpers.cuni.migration.ConfigurationUpdate;
-import eu.unifiedviews.helpers.cuni.rdf.EntityBuilder;
-import eu.unifiedviews.helpers.cuni.rdf.simple.WritableSimpleRdf;
 import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
 import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+import eu.unifiedviews.helpers.dpu.rdf.EntityBuilder;
 
 @DPU.AsExtractor
 public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
@@ -32,14 +31,11 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
     @DataUnit.AsOutput(name = "metadata")
     public WritableRDFDataUnit outRdfData;
 
-    @AutoInitializer.Init(param = "outRdfData")
+    @ExtensionInitializer.Init(param = "outRdfData")
     public WritableSimpleRdf rdfData;
 
-    @AutoInitializer.Init
+    @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
-
-    @AutoInitializer.Init(param = "cz.opendata.unifiedviews.dpus.datasetMetadata.DatasetMetadataConfig__V1")
-    public ConfigurationUpdate _ConfigurationUpdate;
 
     public DatasetMetadata() {
         super(DatasetMetadataVaadinDialog.class, ConfigHistory.noHistory(DatasetMetadataConfig_V1.class));
@@ -123,8 +119,12 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
             dataset.property(DCTERMS.IDENTIFIER, valueFactory.createLiteral(config.getIdentifier()));
         }
 
-        for (String keyword : config.getKeywords()) {
-            dataset.property(DatasetMetadataVocabulary.DCAT_KEYWORD, valueFactory.createLiteral(keyword));
+        for (String keyword : config.getKeywords_orig()) {
+            dataset.property(DatasetMetadataVocabulary.DCAT_KEYWORD, valueFactory.createLiteral(keyword, config.getLanguage_orig()));
+        }
+
+        for (String keyword : config.getKeywords_en()) {
+            dataset.property(DatasetMetadataVocabulary.DCAT_KEYWORD, valueFactory.createLiteral(keyword, "en"));
         }
 
         for (String language : config.getLanguages()) {

@@ -35,7 +35,9 @@ public class DatasetMetadataConfig_V1 {
 
     private Collection<String> languages = new LinkedList<>();
 
-    private Collection<String> keywords = new LinkedList<>();
+    private Collection<String> keywords_orig = new LinkedList<>();
+
+    private Collection<String> keywords_en = new LinkedList<>();
 
     private Collection<String> themes = new LinkedList<>();
 
@@ -153,12 +155,20 @@ public class DatasetMetadataConfig_V1 {
         this.languages = languages;
     }
 
-    public Collection<String> getKeywords() {
-        return keywords;
+    public Collection<String> getKeywords_orig() {
+        return keywords_orig;
     }
 
-    public void setKeywords(Collection<String> keywords) {
-        this.keywords = keywords;
+    public void setKeywords_orig(Collection<String> keywords_orig) {
+        this.keywords_orig = keywords_orig;
+    }
+
+    public Collection<String> getKeywords_en() {
+        return keywords_en;
+    }
+
+    public void setKeywords_en(Collection<String> keywords_en) {
+        this.keywords_en = keywords_en;
     }
 
     public Collection<String> getThemes() {

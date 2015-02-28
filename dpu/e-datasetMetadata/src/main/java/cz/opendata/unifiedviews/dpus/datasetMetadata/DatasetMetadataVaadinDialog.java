@@ -17,7 +17,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import eu.unifiedviews.helpers.cuni.dpu.vaadin.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataConfig_V1> {
 
@@ -67,7 +67,9 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
     private ListSelect lsPublishers;
 
-    private ListSelect lsKeywords;
+    private ListSelect lsKeywords_orig;
+
+    private ListSelect lsKeywords_en;
 
     private ListSelect lsThemes;
 
@@ -174,13 +176,21 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         tfIdentifier.setWidth("100%");
         mainLayout.addComponent(tfIdentifier);
 
-        lsKeywords = new ListSelect();
-        lsKeywords.setWidth("100%");
-        lsKeywords.setNewItemsAllowed(true);
-        lsKeywords.setCaption("Keywords");
-        lsKeywords.setMultiSelect(true);
-        lsKeywords.setRows(3);
-        mainLayout.addComponent(lsKeywords);
+        lsKeywords_orig = new ListSelect();
+        lsKeywords_orig.setWidth("100%");
+        lsKeywords_orig.setNewItemsAllowed(true);
+        lsKeywords_orig.setCaption("Keywords in original language");
+        lsKeywords_orig.setMultiSelect(true);
+        lsKeywords_orig.setRows(3);
+        mainLayout.addComponent(lsKeywords_orig);
+
+        lsKeywords_en = new ListSelect();
+        lsKeywords_en.setWidth("100%");
+        lsKeywords_en.setNewItemsAllowed(true);
+        lsKeywords_en.setCaption("Keywords in English");
+        lsKeywords_en.setMultiSelect(true);
+        lsKeywords_en.setRows(3);
+        mainLayout.addComponent(lsKeywords_en);
 
         lsLanguages = new ListSelect();
         lsLanguages.setWidth("100%");
@@ -296,10 +306,13 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         chkNow.setValue(conf.isUseNow());
         tfIdentifier.setValue(conf.getIdentifier());
         
-    	for (String s: conf.getKeywords()) lsKeywords.addItem(s);
-        lsKeywords.setValue(conf.getKeywords());
+    	for (String s: conf.getKeywords_orig()) lsKeywords_orig.addItem(s);
+        lsKeywords_orig.setValue(conf.getKeywords_orig());
 
-    	for (String s: conf.getLanguages()) lsLanguages.addItem(s);
+    	for (String s: conf.getKeywords_en()) lsKeywords_en.addItem(s);
+        lsKeywords_en.setValue(conf.getKeywords_en());
+
+        for (String s: conf.getLanguages()) lsLanguages.addItem(s);
     	lsLanguages.setValue(conf.getLanguages());
 
         tfContactPoint.setValue(conf.getContactPoint());
@@ -347,7 +360,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setModified(dfModified.getValue());
         conf.setUseNow((boolean) chkNow.getValue());
         conf.setIdentifier(tfIdentifier.getValue());
-        conf.setKeywords((Collection<String>) lsKeywords.getValue());
+        conf.setKeywords_orig((Collection<String>) lsKeywords_orig.getValue());
+        conf.setKeywords_en((Collection<String>) lsKeywords_en.getValue());
         conf.setLanguages((Collection<String>) lsLanguages.getValue());
         conf.setContactPoint(tfContactPoint.getValue());
         conf.setTemporalStart(dfTemporalStart.getValue());
