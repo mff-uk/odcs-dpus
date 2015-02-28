@@ -33,13 +33,13 @@ import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.cuni.dpu.config.ConfigHistory;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AbstractDpu;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AutoInitializer;
-import eu.unifiedviews.helpers.cuni.extensions.FaultTolerance;
-import eu.unifiedviews.helpers.cuni.migration.ConfigurationUpdate;
-import eu.unifiedviews.helpers.cuni.rdf.sparql.SparqlUtils;
 import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
+
 
 @DPU.AsLoader
 public class CKANLoader extends AbstractDpu<CKANLoaderConfig> 
@@ -50,11 +50,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     @DataUnit.AsInput(name = "metadata")
     public RDFDataUnit metadata;
 
-    @AutoInitializer.Init
+    @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
-
-    @AutoInitializer.Init(param = "cz.opendata.unifiedviews.dpus.ckan.CKANLoaderConfig")
-    public ConfigurationUpdate _ConfigurationUpdate;
 
     public CKANLoader() {
         super(CKANLoaderDialog.class, ConfigHistory.noHistory(CKANLoaderConfig.class));
@@ -67,7 +64,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
         long start = date.getTime();
 
         logger.debug("Querying metadata");
-        
+     
         String datasetURI = executeSimpleSelectQuery("SELECT ?d WHERE {?d a <" + CKANLoaderVocabulary.DCAT_DATASET_CLASS + ">}", "d");
         String title = executeSimpleSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"cs\"))}", "title");
         String description = executeSimpleSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"cs\"))}", "description");
@@ -362,7 +359,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             } catch (NumberFormatException ex) {
                 throw new DPUException(ex);
             }
-        } else if (result.getResults().size() == 0) {
+        } else if (result.getResults().isEmpty()) {
         	return "";
         } else {
             throw new DPUException("Unexpected number of results: " + result.getResults().size() );
