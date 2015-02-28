@@ -17,7 +17,8 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import eu.unifiedviews.helpers.cuni.dpu.vaadin.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+
 
 public class DistributionMetadataVaadinDialog extends AbstractDialog<DistributionMetadataConfig_V1> {
 

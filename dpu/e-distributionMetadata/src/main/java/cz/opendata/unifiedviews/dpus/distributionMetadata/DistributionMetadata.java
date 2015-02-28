@@ -15,17 +15,16 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.cuni.dpu.config.ConfigHistory;
-import eu.unifiedviews.helpers.cuni.dpu.context.ContextUtils;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AbstractDpu;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AutoInitializer;
-import eu.unifiedviews.helpers.cuni.extensions.FaultTolerance;
-import eu.unifiedviews.helpers.cuni.migration.ConfigurationUpdate;
-import eu.unifiedviews.helpers.cuni.rdf.EntityBuilder;
-import eu.unifiedviews.helpers.cuni.rdf.simple.WritableSimpleRdf;
-import eu.unifiedviews.helpers.cuni.rdf.sparql.SparqlUtils;
 import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
 import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+import eu.unifiedviews.helpers.dpu.rdf.EntityBuilder;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 @DPU.AsExtractor
 public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig_V1> {
@@ -36,14 +35,11 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 	@DataUnit.AsOutput(name = "metadata")
     public WritableRDFDataUnit outRdfData;
 
-    @AutoInitializer.Init(param = "outRdfData")
+    @ExtensionInitializer.Init(param = "outRdfData")
     public WritableSimpleRdf rdfData;
 
-    @AutoInitializer.Init
+    @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
-
-    @AutoInitializer.Init(param = "cz.opendata.unifiedviews.dpus.datasetMetadata.DistributionMetadataConfig__V1")
-    public ConfigurationUpdate _ConfigurationUpdate;
 
     public DistributionMetadata() {
         super(DistributionMetadataVaadinDialog.class, ConfigHistory.noHistory(DistributionMetadataConfig_V1.class));
@@ -56,7 +52,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         generateMetadata();
 
         final Date dateEnd = new Date();
-        ContextUtils.sendShortInfo(ctx, "Done in %d ms", (dateEnd.getTime() - dateStart.getTime()));
+        ContextUtils.sendShortInfo(ctx, "Done in {0} ms", (dateEnd.getTime() - dateStart.getTime()));
     }
 
     private void generateMetadata() throws DPUException {
@@ -286,7 +282,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
             } catch (NumberFormatException ex) {
                 throw new DPUException(ex);
             }
-        } else if (result.getResults().size() == 0) {
+        } else if (result.getResults().isEmpty()) {
         	return "";
         } else {
             throw new DPUException("Unexpected number of results: " + result.getResults().size() );
