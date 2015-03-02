@@ -9,21 +9,22 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 @DPU.AsExtractor
 public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
+extends AbstractDpu<ExtractorConfig> 
 {
 
     private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
@@ -34,13 +35,17 @@ extends DpuAdvancedBase<ExtractorConfig>
     @DataUnit.AsOutput(name = "XMLZsj")
     public WritableFilesDataUnit outZsj;    
 
-    public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
-    }
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+    
+    @ExtensionInitializer.Init(param = "outObce")
+    public WritableSimpleFiles outObceSimple;
+    
+    @ExtensionInitializer.Init(param = "outZsj")
+    public WritableSimpleFiles outZsjSimple;
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
+    public Extractor(){
+        super(ExtractorDialog.class,ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     @Override
@@ -48,14 +53,14 @@ extends DpuAdvancedBase<ExtractorConfig>
     {
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
-        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.setBaseDir(ctx.getExecMasterContext().getDpuContext().getUserDirectory() + "/cache/");
         Cache.logger = LOG;
         //Cache.rewriteCache = config.rewriteCache;
         Scraper_parser s = new Scraper_parser();
         s.logger = LOG;
-        s.context = context;
-        s.obce = outObce;
-        s.zsj = outZsj;
+        s.context = ctx.getExecMasterContext().getDpuContext();
+        s.obce = outObceSimple;
+        s.zsj = outZsjSimple;
         s.outputFiles = config.isPassToOutput();
 
         java.util.Date date = new java.util.Date();
@@ -80,13 +85,13 @@ extends DpuAdvancedBase<ExtractorConfig>
                 Path path, pathStat;
                 if (config.isInclGeoData())
                 {
-                    path = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=K&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
-                    pathStat = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=K&vf.vu=Z&_vf.vu=on&vf.vu=G&_vf.vu=on&vf.vu=H&_vf.vu=on&_vf.vu=on&search=Vyhledat");
+                    path = Paths.get(ctx.getExecMasterContext().getDpuContext().getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=K&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
+                    pathStat = Paths.get(ctx.getExecMasterContext().getDpuContext().getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku?vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=K&vf.vu=Z&_vf.vu=on&vf.vu=G&_vf.vu=on&vf.vu=H&_vf.vu=on&_vf.vu=on&search=Vyhledat");
                 }
                 else
                 {
-                    path = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
-                    pathStat = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&search=Vyhledat");
+                    path = Paths.get(ctx.getExecMasterContext().getDpuContext().getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=OB&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&vf.uo=A&search=Vyhledat");
+                    pathStat = Paths.get(ctx.getExecMasterContext().getDpuContext().getUserDirectory().getAbsolutePath() + "/cache/vdp.cuzk.cz/vdp/ruian/vymennyformat/seznamlinku@vf.pu=S&_vf.pu=on&_vf.pu=on&vf.cr=U&vf.up=ST&vf.ds=Z&vf.vu=Z&_vf.vu=on&_vf.vu=on&_vf.vu=on&_vf.vu=on&search=Vyhledat");
                 }
                 LOG.info("Deleting " + path);
                 Files.deleteIfExists(path);
@@ -112,7 +117,7 @@ extends DpuAdvancedBase<ExtractorConfig>
         java.util.Date date2 = new java.util.Date();
         long end = date2.getTime();
 
-        context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms");
+        ContextUtils.sendShortInfo(ctx, "Processed in {0} ms", (end-start));
 
     }
 

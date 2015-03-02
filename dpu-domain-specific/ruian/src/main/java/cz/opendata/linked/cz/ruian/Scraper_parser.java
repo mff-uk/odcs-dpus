@@ -1,16 +1,13 @@
 package cz.opendata.linked.cz.ruian;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.LinkedList;
 
-import org.apache.commons.io.FileUtils;
-
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
-import eu.unifiedviews.dataunit.DataUnitException;
-import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 
 /**
  * Scraper pro RUIAN
@@ -20,7 +17,7 @@ import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-    public WritableFilesDataUnit obce, zsj;
+    public WritableSimpleFiles obce, zsj;
     private int numDetails = 0;
     private int current;
     public boolean outputFiles;
@@ -65,10 +62,10 @@ public class Scraper_parser extends ScrapingTemplate{
         {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
             if (outputFiles) {
-                try {
-					File file = new File(doc);
-                	obce.addExistingFile(file.getName(), file.toURI().toString());
-				} catch (DataUnitException e) {
+                File file = new File(doc);
+				try {
+					obce.add(file, file.getName());
+				} catch (DPUException e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
             }
@@ -76,13 +73,14 @@ public class Scraper_parser extends ScrapingTemplate{
         else if (docType.equals("zsj"))
         {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
-            if (outputFiles)
-                try {
-					File file = new File(doc);
-					zsj.addExistingFile(file.getName(), file.toURI().toString());
-				} catch (DataUnitException e) {
+            if (outputFiles) {
+				File file = new File(doc);
+				try {
+					zsj.add(file, file.getName());
+				} catch (DPUException e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
+			}
         }
     }
 }

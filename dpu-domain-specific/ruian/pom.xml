@@ -2,20 +2,23 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>cz.cuni.mff.xrg.uv</groupId>
-        <artifactId>unifiedviews-dpu-base</artifactId>
-        <version>1.1.1</version>
-    </parent>    
+	<parent>
+        <groupId>eu.unifiedviews</groupId>
+        <artifactId>uv-pom-dpu</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+	</parent>
     <artifactId>E-RUIAN</artifactId>
     <name>ext. ruian</name>
     <packaging>bundle</packaging>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
     <description>This extractor scrapes RUIAN from http://vdp.cuzk.cz/vdp/ruian/vymennyformat/vyhledej</description>
     
     <properties>    
         <dpu.package>cz.opendata.linked.cz.ruian</dpu.package>
         <dpu.mainClass>Extractor</dpu.mainClass>    
+        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
+        <junit.version>4.12</junit.version>
+        <module-test.version>1.6.0-SNAPSHOT</module-test.version>
     </properties>
 
 
@@ -26,40 +29,30 @@
 			<version>2.4</version>
 			<scope>provided</scope>
 		</dependency>
-       <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>boost-dpu</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <!-- compile library -->
         <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
+		<dependency>
+			<groupId>cz.cuni.mff.xrg.odcs</groupId>
+			<artifactId>module-test</artifactId>
+			<version>${module-test.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>		        
 	</dependencies>
 </project>
 
