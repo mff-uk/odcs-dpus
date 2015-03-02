@@ -3,7 +3,6 @@ package cz.opendata.linked.cz.gov.organy;
 import org.junit.Test;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.helpers.dpu.test.config.ConfigurationBuilder;
 
 public class ScrapeTest {
@@ -24,12 +23,12 @@ public class ScrapeTest {
         TestEnvironment env = new TestEnvironment();
         // prepare input and output data units
 
-        // here we can simply pre-fill input data unit with content from 
+    	env.createFilesOutput("XMLList");
+    	env.createFilesOutput("XMLDetails");
+
+    	// here we can simply pre-fill input data unit with content from 
         // resource file
         try {
-        	env.createFilesOutput("XMLList");
-        	env.createFilesOutput("XMLDetails");
-        	
         	// run the execution
             env.run(extractor);
 
