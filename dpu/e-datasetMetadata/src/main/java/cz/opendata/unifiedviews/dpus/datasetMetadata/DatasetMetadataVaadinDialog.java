@@ -377,7 +377,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setLandingPage(tfLandingPage.getValue());
         
         try {
-            conf.setSchema(new URL(tfSchema.getValue()).toString());
+            if (tfSchema.getValue().isEmpty()) conf.setSchema("");
+            else conf.setSchema(new URL(tfSchema.getValue()).toString());
         } catch (MalformedURLException ex) {
             throw new DPUConfigException("Invalid schema URL.", ex);
         }
