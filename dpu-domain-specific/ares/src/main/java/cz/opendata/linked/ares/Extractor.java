@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -18,35 +19,33 @@ import java.util.TreeSet;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.nodes.Document;
 import org.openrdf.model.Statement;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.*;
+import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
+import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
+import info.aduna.iteration.Iterations;
 
-import org.openrdf.model.ValueFactory;
 
 @DPU.AsExtractor
-public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
-{
+public class Extractor extends AbstractDpu<ExtractorConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
     
@@ -62,8 +61,14 @@ extends DpuAdvancedBase<ExtractorConfig>
     @DataUnit.AsOutput(name = "RZP")
     public WritableFilesDataUnit outRZP;
 
+    @ExtensionInitializer.Init(param = "duICs")
+    public SimpleRdf duICsWrap;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorDialog.class, ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     private int countTodaysCacheFiles(DPUContext context) throws ParseException 
@@ -93,18 +98,12 @@ extends DpuAdvancedBase<ExtractorConfig>
         return count;
     }
 
-
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
-    }
+    protected void innerExecute() throws DPUException {
 
-    @Override
-    protected void innerExecute() throws DPUException, OperationFailedException
-    {    
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
-        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.setBaseDir(ctx.getExecMasterContext().getDpuContext().getUserDirectory() + "/cache/");
         Cache.logger = LOG;
         Scraper_parser s = new Scraper_parser();
         s.logger = LOG;
@@ -115,22 +114,41 @@ extends DpuAdvancedBase<ExtractorConfig>
         Set<String> ICs = new TreeSet<>();
 
         //Load ICs from input DataUnit
-        
-        context.sendMessage(DPUContext.MessageType.INFO, "Interval: " + config.getInterval());
-        context.sendMessage(DPUContext.MessageType.INFO, "Timeout: " + config.getTimeout());
-        context.sendMessage(DPUContext.MessageType.INFO, "Hours to check: " + config.getHoursToCheck());
-        context.sendMessage(DPUContext.MessageType.INFO, "Dowload per time frame: " + config.getPerDay());
-        context.sendMessage(DPUContext.MessageType.INFO, "Cache base dir: " + Cache.basePath);
-        context.sendMessage(DPUContext.MessageType.INFO, "Cache only: " + config.isUseCacheOnly());
-        context.sendMessage(DPUContext.MessageType.INFO, "Generating output: " + config.isGenerateOutput());
-        context.sendMessage(DPUContext.MessageType.INFO, "BAS Active only: " + config.isBas_active());
-        context.sendMessage(DPUContext.MessageType.INFO, "Puvadr in BAS: " + config.isBas_puvadr());
-        context.sendMessage(DPUContext.MessageType.INFO, "Stdadr in OR: " + config.isOr_stdadr());
+        ContextUtils.sendShortInfo(ctx, "Interval: {0}", config.getInterval());
+        ContextUtils.sendShortInfo(ctx, "Timeout: {0}", config.getTimeout());
+        ContextUtils.sendShortInfo(ctx, "Hours to check: {0}", config.getHoursToCheck());
+        ContextUtils.sendShortInfo(ctx, "Download per time frame: {0}", config.getPerDay());
+        ContextUtils.sendShortInfo(ctx, "Cache base dir: {0}", Cache.basePath);
+        ContextUtils.sendShortInfo(ctx, "Cache only: {0}", config.isUseCacheOnly());
+        ContextUtils.sendShortInfo(ctx, "Generating output: {0}", config.isGenerateOutput());
+        ContextUtils.sendShortInfo(ctx, "BAS Active only: {0}", config.isBas_active());
+        ContextUtils.sendShortInfo(ctx, "Puvadr in BAS: {0}", config.isBas_puvadr());
+        ContextUtils.sendShortInfo(ctx, "Stdadr in OR: {0}", config.isOr_stdadr());
+
 
         int lines = 0;
-        
-        SimpleRdfRead duICsWrap = SimpleRdfFactory.create(duICs, context);
-        final List<Statement> statements = duICsWrap.getStatements();
+
+        // getStatements()
+        final List<Statement> statements = new LinkedList<>();
+        faultTolerance.execute(duICs, new FaultTolerance.ConnectionAction() {
+
+            @Override
+            public void action(RepositoryConnection connection) throws Exception {
+                final org.openrdf.model.URI[] uris =
+                        RdfDataUnitUtils.asGraphs(DataUnitUtils.getEntries(duICs, RDFDataUnit.Entry.class));
+                RepositoryResult<Statement> results = null;
+                try {
+                    results = connection.getStatements(null, null, null, true, uris);
+                    Iterations.addAll(results, statements);
+                } finally {
+                    if (results != null) {
+                        results.close();
+                    }
+                }
+            }
+        });
+        //
+
         if (statements != null && !statements.isEmpty())
         {
             URL textPredicate;
@@ -154,7 +172,7 @@ extends DpuAdvancedBase<ExtractorConfig>
         BufferedReader in;
         lines = 0;
         try {
-            in = new BufferedReader(new FileReader(new File(context.getUserDirectory(),"ic.txt")));
+            in = new BufferedReader(new FileReader(new File(ctx.getExecMasterContext().getDpuContext().getUserDirectory(),"ic.txt")));
             while (in.ready()) {
                 ICs.add(in.readLine());
                 lines++;
@@ -171,12 +189,12 @@ extends DpuAdvancedBase<ExtractorConfig>
         int cachedEarlier = 0;
         
         try {
-            cachedToday = countTodaysCacheFiles(context);
+            cachedToday = countTodaysCacheFiles(ctx.getExecMasterContext().getDpuContext());
         } catch (ParseException e) {
             LOG.info("countTodaysCacheFiles throws", e);
         }
 
-        context.sendMessage(DPUContext.MessageType.INFO, "I see " + ICs.size() + " ICs.");
+        ContextUtils.sendShortInfo(ctx, "I see {0} ICs.", ICs.size());
 
         /*//Remove duplicate ICs
         List<String> dedupICs = new LinkedList<String>();    
@@ -190,18 +208,17 @@ extends DpuAdvancedBase<ExtractorConfig>
         
         ICs = dedupICs;*/
         
-        if (context.canceled()) {
-            return;
+        if (ctx.canceled()) {
+            throw ContextUtils.dpuExceptionCancelled(ctx);
         }
         
-
         //Download
         int toCache = (config.getPerDay() - cachedToday);
         Iterator<String> li = ICs.iterator();
         //context.sendMessage(DPUContext.MessageType.INFO, "I see " + ICs.size() + " ICs after deduplication.");
 
         try {
-            while (li.hasNext() && !context.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
+            while (li.hasNext() && !ctx.canceled() && (config.isUseCacheOnly() || (downloaded < (toCache - 1)))) {
                 String currentIC = li.next();
                 URL current;
 
@@ -253,7 +270,9 @@ extends DpuAdvancedBase<ExtractorConfig>
                     }
                 }
 
-                if (context.canceled()) break;
+                if (ctx.canceled()) {
+                    throw ContextUtils.dpuExceptionCancelled(ctx);
+                }
 
                 if (config.isDownloadOR()) {
                     current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_or.cgi?ico=" + currentIC + (config.isOr_stdadr()? "&stdadr=true" : ""));
@@ -302,7 +321,9 @@ extends DpuAdvancedBase<ExtractorConfig>
                     }
                 }
 
-                if (context.canceled()) break;
+                if (ctx.canceled()) {
+                    throw ContextUtils.dpuExceptionCancelled(ctx);
+                }
 
                 if (config.isDownloadRZP()) {
                     current = new URL("http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_rzp.cgi?ico=" + currentIC + "&rozsah=2");
@@ -352,19 +373,21 @@ extends DpuAdvancedBase<ExtractorConfig>
                 }
             
             }
-            if (context.canceled()) LOG.error("Interrupted");
+            if (ctx.canceled()) {
+                throw ContextUtils.dpuExceptionCancelled(ctx);
+            }
         } catch (BannedException e) {
-            LOG.warn("Seems like we are banned for today");
+            LOG.warn("Seems like we are banned for today", e);
         } catch (IOException e) {
             LOG.info("IOException", e);
         } catch (InterruptedException e) {
-            LOG.error("Interrupted");
+            LOG.error("Interrupted", e);
         }
 
         java.util.Date date2 = new java.util.Date();
         long end = date2.getTime();
 
-        context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
+        ContextUtils.sendShortInfo(ctx, "Processed in " + (end-start) + "ms, ICs on input: " + ICs.size() + (cachedEarlier > 0? ", files cached earlier: " + cachedEarlier : "") + ", files downloaded now: " + downloaded);
     }
 
 }

@@ -7,14 +7,13 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
+public class ExtractorDialog extends AbstractDialog<ExtractorConfig> {
 
     private static final long serialVersionUID = 7003725620084616056L;
 
@@ -33,19 +32,11 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     private TextField timeout;
     
     public ExtractorDialog() {
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
-        buildMainLayout();
-        Panel panel = new Panel();
-        panel.setSizeFull();
-        panel.setContent(mainLayout);
-        setCompositionRoot(panel);
+        super(Extractor.class);
     }  
-    
-    private GridLayout buildMainLayout() {
-        // top-level component properties
-        setWidth("100%");
-        setHeight("100%");
-        
+
+    @Override
+    protected void buildDialogLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
@@ -119,7 +110,10 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
         
         mainLayout.addComponent(timeout);
         
-        return mainLayout;
+        final Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+        setCompositionRoot(panel);
     }    
      
     @Override
