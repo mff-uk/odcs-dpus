@@ -108,15 +108,13 @@ public class CKANLoaderConfig  {
     	}
     }
     
-    private boolean CreateFirst = false;
-    
     private String apiUri = "http://ckan.opendata.cz/api/rest/dataset";
     
     private String apiKey = "";
     
     private String datasetID = "";
     
-    private String orgID = "9046f134-ea81-462f-aae3-69854d34fc96" ;
+    private String orgID = "d2664e4e-25ba-4dcc-a842-dcc5f2d2f326" ;
     
 	public String getApiKey() {
 		return apiKey;
@@ -148,14 +146,6 @@ public class CKANLoaderConfig  {
 
 	public void setApiUri(String apiUri) {
 		this.apiUri = apiUri;
-	}
-
-	public boolean isCreateFirst() {
-		return CreateFirst;
-	}
-
-	public void setCreateFirst(boolean createFirst) {
-		CreateFirst = createFirst;
 	}
 
 }
