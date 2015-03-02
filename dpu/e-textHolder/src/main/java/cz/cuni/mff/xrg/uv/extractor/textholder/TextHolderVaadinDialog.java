@@ -3,20 +3,17 @@ package cz.cuni.mff.xrg.uv.extractor.textholder;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
-public class TextHolderVaadinDialog extends AdvancedVaadinDialogBase<TextHolderConfig_V1> {
+public class TextHolderVaadinDialog extends AbstractDialog<TextHolderConfig_V1> {
 
     private TextField txtName;
     
     private TextArea txtValue;
 
     public TextHolderVaadinDialog() {
-        super(TextHolderConfig_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(TextHolder.class);
     }
 
     @Override
@@ -35,7 +32,8 @@ public class TextHolderVaadinDialog extends AdvancedVaadinDialogBase<TextHolderC
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
 		final VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("100%");
