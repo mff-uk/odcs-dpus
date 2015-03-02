@@ -120,9 +120,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			root.put("temporalEnd", temporalEnd);
 			root.put("accrualPeriodicity", periodicity);
 			
-			//TODO: Spatial
-			root.put("spatialNotation", "stát");
-			root.put("spatialType", "1");
+			root.put("spatial", spatial);
 			
 			String concatThemes = "";
 			for (String theme: themes) { concatThemes += theme + " ";}
@@ -218,9 +216,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		    	distro.put("created", dissued);
 		    	distro.put("last_modified", dmodified);
 
-		    	//TODO: Spatial
-		    	distro.put("spatialNotation", "stát");
-		    	distro.put("spatialType", "1");
+		    	distro.put("spatial", dspatial);
 				
 				resources.put(distro);
 			}
