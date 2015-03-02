@@ -9,70 +9,62 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
+import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
-import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
-import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 
 @DPU.AsExtractor
 public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
+extends AbstractDpu<ExtractorConfig> 
 {
 
     private static final Logger LOG = LoggerFactory.getLogger(Extractor.class);
 
-//    @DataUnit.AsOutput(name = "XMLList")
-//    public WritableRDFDataUnit outList;
-
-//    @DataUnit.AsOutput(name = "XMLDetails")
-//    public WritableRDFDataUnit outDetails; 
-    
     @DataUnit.AsOutput(name = "XMLList")
     public WritableFilesDataUnit outList;
     
     @DataUnit.AsOutput(name = "XMLDetails")
     public WritableFilesDataUnit outDetails;
     
-//    @SimpleRdfConfigurator.Configure(dataUnitFieldName="outList")
-//    public SimpleRdfWrite outListWrap;
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
     
-//    @SimpleRdfConfigurator.Configure(dataUnitFieldName="outDetails")
-//    public SimpleRdfWrite outDetailsWrap;
+    @ExtensionInitializer.Init(param = "outList")
+    public WritableSimpleFiles outListSimple;
+    
+    @ExtensionInitializer.Init(param = "outDetails")
+    public WritableSimpleFiles outDetailsSimple;
     
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
-    }
-
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
+        super(ExtractorDialog.class,ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     @Override
     protected void innerExecute() throws DPUException
     {
-        Cache.setInterval(config.getInterval());
+    	Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
-        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.setBaseDir(ctx.getExecMasterContext().getDpuContext().getUserDirectory() + "/cache/");
         Cache.logger = LOG;
         Cache.rewriteCache = config.isRewriteCache();
         Scraper_parser s = new Scraper_parser();
         s.logger = LOG;
-        s.context = context;
-        s.list = outList;
-        s.details = outDetails;
+        s.context = ctx.getExecMasterContext().getDpuContext();
+        s.list = outListSimple;
+        s.details = outDetailsSimple;
+        s.faultTolerance = faultTolerance;
 
         java.util.Date date = new java.util.Date();
         long start = date.getTime();
@@ -84,7 +76,7 @@ extends DpuAdvancedBase<ExtractorConfig>
             
             if (config.isRewriteCache())
             {
-                Path path = Paths.get(context.getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
+                Path path = Paths.get(ctx.getExecMasterContext().getDpuContext().getUserDirectory().getAbsolutePath() + "/cache/seznam.gov.cz/ovm/datafile.do@format=xml&service=seznamovm");
                 LOG.info("Deleting " + path);
                 Files.deleteIfExists(path);
             }
@@ -105,7 +97,7 @@ extends DpuAdvancedBase<ExtractorConfig>
         java.util.Date date2 = new java.util.Date();
         long end = date2.getTime();
 
-        context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms");
+        ContextUtils.sendShortInfo(ctx, "Processed in {0} ms", (end-start));
     }
 
 }

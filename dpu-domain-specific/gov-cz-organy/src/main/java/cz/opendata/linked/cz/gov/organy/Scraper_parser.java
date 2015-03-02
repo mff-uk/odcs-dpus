@@ -19,13 +19,19 @@ import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dataunit.files.FilesVocabulary;
+import eu.unifiedviews.helpers.dataunit.metadata.MetadataUtils;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance.Action;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 
 public class Scraper_parser extends ScrapingTemplate {
     
-    //public SimpleRdfWrite list, details;
-    public WritableFilesDataUnit list, details;
+    public WritableSimpleFiles list, details;
 	private int numDetails;
     private int current;
+    public FaultTolerance faultTolerance;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(String doc, String docType) {
@@ -66,12 +72,11 @@ public class Scraper_parser extends ScrapingTemplate {
         if (docType.equals("init"))
         {
         	try {
-				//logger.debug(doc);
-				File f = new File(URI.create(list.addNewFile(url.toString() + docType)));
+				File f = details.create(url.toString() + docType);
 				FileUtils.writeStringToFile(f, doc, "UTF-8");
-			} catch (DataUnitException e) {
-				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {
+				logger.error(e.getLocalizedMessage(),e);
+			} catch (DPUException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			}
         }
@@ -79,10 +84,9 @@ public class Scraper_parser extends ScrapingTemplate {
         {
             logger.debug("Processing detail " + ++current + "/" + numDetails + ": " + url.toString());
         	try {
-				//logger.debug(doc);
-				File f = new File(URI.create(details.addNewFile(url.toString() + docType)));
+				File f = details.create(url.toString() + docType);
 				FileUtils.writeStringToFile(f, doc, "UTF-8");
-			} catch (DataUnitException e) {
+			} catch (DPUException e) {
 				logger.error(e.getLocalizedMessage(),e);
 			} catch (IOException e) {
 				logger.error(e.getLocalizedMessage(),e);
