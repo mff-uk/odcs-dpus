@@ -22,7 +22,6 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
 
 	private static final long serialVersionUID = -1989608763609859477L;
 	
-    private CheckBox chkCreateDataset;
 	private VerticalLayout mainLayout;
     private TextField tfRestApiUrl;
 	private Label lblRestApiUrl;
@@ -79,16 +78,6 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         lblRestApiUrl.setContentMode(ContentMode.HTML);
         mainLayout.addComponent(lblRestApiUrl);
         
-        chkCreateDataset = new CheckBox();
-        chkCreateDataset.setCaption("Create the dataset (usually usable only once)");
-        chkCreateDataset.setImmediate(true);
-        chkCreateDataset.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				tfOwnerOrg.setEnabled(chkCreateDataset.getValue());
-		}});
-        mainLayout.addComponent(chkCreateDataset);
-        
         tfOwnerOrg = new TextField();
         tfOwnerOrg.setWidth("100%");
         tfOwnerOrg.setCaption("Owner CKAN organization ID");
@@ -107,7 +96,6 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
     	tfDatasetID.setValue(conf.getDatasetID());
     	tfOwnerOrg.setValue(conf.getOrgID());
     	tfRestApiUrl.setValue(conf.getApiUri());
-    	chkCreateDataset.setValue(conf.isCreateFirst());
     }
 
 	@Override
@@ -116,7 +104,6 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         conf.setApiKey(tfApiKey.getValue());
         conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
-        conf.setCreateFirst(chkCreateDataset.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
         return conf;
     }
