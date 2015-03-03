@@ -131,7 +131,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             	
             } else {
             	String ent = EntityUtils.toString(queryResponse.getEntity());
-            	logger.error("Dataset not found: " + ent);
+            	logger.info("Dataset not found: " + ent);
             }
         } catch (ClientProtocolException e) {
         	logger.error(e.getLocalizedMessage(), e);
