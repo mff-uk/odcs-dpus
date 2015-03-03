@@ -3,39 +3,16 @@
 # build base
 echo "building base projects .."
 cd ../base 
- cd unifiedviews-base
+ cd uk-pom-dpu
   mvn clean install
- cd ../unifiedviews-dpu-base
-  mvn clean install
- cd ../unifiedviews-lib-base
-  mvn clean install
- cd ..
+  cd ..
 
 # build libs
 echo "building libs .."
 cd ../libs
- for f in utils-*; do
-   cd $f
-    mvn clean install
-   cd ..
-  done
- for f in service-*; do
-   cd $f
-    mvn clean install
-   cd ..
-  done
- for f in boost-*; do
-   cd $f
-    mvn clean install
-   cd ..
-  done
-
-# build template
-echo "preparing dpu template.."
-cd ../templates
- cd dpu
+ cd scraperLib
   mvn clean install
- cd ..
+  cd ..
 
 # go back to tools
 cd ../tools
