@@ -3,9 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -15,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
@@ -195,25 +194,17 @@ protected void addXsltParameter(String symbolicName, String key, String value) t
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
         // Configuration class.
         URI root = valueFactory.createURI("http://localhost/resource/Metadata");
-        metadata.add(root,
-                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
-                ExtractorOntology.XSLT_CLASS);
+        metadata.add(root, RDF.TYPE, ExtractorOntology.XSLT_CLASS);
         // File info.
         URI fileInfo = valueFactory.createURI(symbolicName);
-        metadata.add(fileInfo,
-                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
-                ExtractorOntology.XSLT_FILEINFO_CLASS);
+        metadata.add(fileInfo, RDF.TYPE, ExtractorOntology.XSLT_FILEINFO_CLASS);
         metadata.add(fileInfo,
                 ExtractorOntology.XSLT_FILEINFO_SYMBOLICNAME_PREDICATE,
                 valueFactory.createLiteral(symbolicName));
-        metadata.add(fileInfo,
-                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
-                ExtractorOntology.XSLT_FILEINFO_CLASS);
+        metadata.add(fileInfo, RDF.TYPE, ExtractorOntology.XSLT_FILEINFO_CLASS);
         // Xslt parameters.
         URI parameters = valueFactory.createURI(symbolicName + "/" + key);
-        metadata.add(parameters,
-                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
-                ExtractorOntology.XSLT_PARAM_CLASS);
+        metadata.add(parameters, RDF.TYPE, ExtractorOntology.XSLT_PARAM_CLASS);
         metadata.add(parameters,
                 ExtractorOntology.XSLT_PARAM_NAME_PREDICATE,
                 valueFactory.createLiteral(key));
