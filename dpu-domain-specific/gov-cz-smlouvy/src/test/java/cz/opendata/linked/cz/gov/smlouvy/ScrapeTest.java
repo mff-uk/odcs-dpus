@@ -2,8 +2,6 @@ package cz.opendata.linked.cz.gov.smlouvy;
 
 import org.junit.Test;
 
-import cz.cuni.mff.xrg.odcs.dataunit.file.FileDataUnit;
-import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 
 public class ScrapeTest {

@@ -2,7 +2,6 @@ package cz.opendata.linked.cz.gov.smlouvy;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,17 +12,21 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.FileUtils;
+import org.openrdf.model.URI;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
-import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.helpers.dataunit.maphelper.MapHelpers;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdfException;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -33,12 +36,16 @@ import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
 
 public class Scraper_parser extends ScrapingTemplate{
     
-    public WritableFilesDataUnit smlouvy, objednavky, plneni, smlouvy_roky, objednavky_roky, plneni_roky;
+    private static final Logger LOG = LoggerFactory.getLogger(Scraper_parser.class);
+
+    public WritableSimpleFiles smlouvy, objednavky, plneni, smlouvy_roky, objednavky_roky, plneni_roky;
     public int numSmlouvy = 0, numObjednavky = 0, numPlneni = 0;
     public int numSmlouvyRoks = 0, numObjednavkyRoks = 0, numPlneniRoks = 0;
     public int currentSmlouvy = 0, currentObjednavky = 0, currentPlneni = 0;
     public int currentSmlouvyRoks = 0, currentObjednavkyRoks = 0, currentPlneniRoks = 0;
     
+    public WritableSimpleRdf metadata;
+
     @Override
     protected LinkedList<ParseEntry> getLinks(String doc, String docType) {
         final LinkedList<ParseEntry> out = new LinkedList<>();
@@ -132,65 +139,95 @@ public class Scraper_parser extends ScrapingTemplate{
             switch (docType) {
                 case "detail-s":
                     logger.debug("Processing smlouva " + ++currentSmlouvy + "/" + numSmlouvy + ": " + url.toString());
-                    
-                    File fs = new File(URI.create(smlouvy.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fs, doc, "UTF-8");
-                    
-                    Map<String, String> xsltParamsMapS = new HashMap<String, String>();
-                    xsltParamsMapS.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
-                    MapHelpers.putMap(smlouvy, url.toString(), "xsltParameters", xsltParamsMapS);
-                    Manipulator.set(smlouvy, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH, url.toString() );
+
+                    File fs = smlouvy.create(url.toString());
+                    FileUtils.writeStringToFile(fs, doc, "UTF-8");
+                    addXsltParameter(url.toString(), "recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
+
                     break;
                 case "detail-o":
                     logger.debug("Processing objednávka " + ++currentObjednavky + "/" + numObjednavky + ": " + url.toString());
 
-                    File fo = new File(URI.create(objednavky.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fo, doc, "UTF-8");
-                    
-                    Map<String, String> xsltParamsMapO = new HashMap<String, String>();
-                    xsltParamsMapO.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
-                    MapHelpers.putMap(objednavky, url.toString(), "xsltParameters", xsltParamsMapO);
-                    Manipulator.set(objednavky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
+                    File fo = objednavky.create(url.toString());
+                    FileUtils.writeStringToFile(fo, doc, "UTF-8");
+                    addXsltParameter(url.toString(), "recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
                     
                     break;
                 case "detail-p":
                     logger.debug("Processing plnění " + ++currentPlneni + "/" + numPlneni + ": " + url.toString());
 
-                    File fp = new File(URI.create(plneni.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fp, doc, "UTF-8");
-                    
-                    Map<String, String> xsltParamsMapP = new HashMap<String, String>();
-                    xsltParamsMapP.put("recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
-                    MapHelpers.putMap(plneni, url.toString(), "xsltParameters", xsltParamsMapP);
-                    Manipulator.set(plneni, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH, url.toString());
+                    File fp = plneni.create(url.toString());
+                    FileUtils.writeStringToFile(fp, doc, "UTF-8");
+                    addXsltParameter(url.toString(), "recordid", url.toString().replaceAll(".*rec-([0-9]+)\\.xml", "$1"));
                     
                     break;
                 case "seznamrok-s":
                     logger.debug("Processing yearly list of smlouva " + ++currentSmlouvyRoks + "/" + numSmlouvyRoks + ": " + url.toString());
-                    File fss = new File(URI.create(smlouvy_roky.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fss, doc, "UTF-8");
-                    Manipulator.set(smlouvy_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
+
+                    File fss = smlouvy_roky.create(url.toString());
+                    FileUtils.writeStringToFile(fss, doc, "UTF-8");
+
                     break;
                 case "seznamrok-o":
                     logger.debug("Processing yearly list of objednávka " + ++currentObjednavkyRoks + "/" + numObjednavkyRoks + ": " + url.toString());
-                    File fso = new File(URI.create(objednavky_roky.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fso, doc, "UTF-8");
-                    Manipulator.set(objednavky_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
+
+                    File fso = objednavky_roky.create(url.toString());
+                    FileUtils.writeStringToFile(fso, doc, "UTF-8");
+
                     break;
                 case "seznamrok-p":
                     logger.debug("Processing yearly list of plnění " + ++currentPlneniRoks + "/" + numPlneniRoks + ": " + url.toString());
-                    File fsp = new File(URI.create(plneni_roky.addNewFile(url.toString())));
-					FileUtils.writeStringToFile(fsp, doc, "UTF-8");
-                    Manipulator.set(plneni_roky, url.toString(), VirtualPathHelper.PREDICATE_VIRTUAL_PATH , url.toString());
+
+                    File fsp = plneni_roky.create(url.toString());
+                    FileUtils.writeStringToFile(fsp, doc, "UTF-8");
+
                     break;
             }
-        }
-        catch (OperationFailedException ex) {
-            logger.error("Failed to add triple into storage.", ex);
         }
         catch (Exception e)
         {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
+
+protected void addXsltParameter(String symbolicName, String key, String value) throws SimpleRdfException, DPUException {
+        LOG.info("addXsltParameter: {} {} {}", symbolicName, key, value);
+        final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
+        // Configuration class.
+        URI root = valueFactory.createURI("http://localhost/resource/Metadata");
+        metadata.add(root,
+                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
+                ExtractorOntology.XSLT_CLASS);
+        // File info.
+        URI fileInfo = valueFactory.createURI(symbolicName);
+        metadata.add(fileInfo,
+                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
+                ExtractorOntology.XSLT_FILEINFO_CLASS);
+        metadata.add(fileInfo,
+                ExtractorOntology.XSLT_FILEINFO_SYMBOLICNAME_PREDICATE,
+                valueFactory.createLiteral(symbolicName));
+        metadata.add(fileInfo,
+                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
+                ExtractorOntology.XSLT_FILEINFO_CLASS);
+        // Xslt parameters.
+        URI parameters = valueFactory.createURI(symbolicName + "/" + key);
+        metadata.add(parameters,
+                valueFactory.createURI("http://www.w3.org/2000/01/rdf-schema#type"),
+                ExtractorOntology.XSLT_PARAM_CLASS);
+        metadata.add(parameters,
+                ExtractorOntology.XSLT_PARAM_NAME_PREDICATE,
+                valueFactory.createLiteral(key));
+        metadata.add(parameters,
+                ExtractorOntology.XSLT_PARAM_VALUE_PREDICATE,
+                valueFactory.createLiteral(value));
+        // Class connection.
+        metadata.add(root,
+                ExtractorOntology.XSLT_FILEINFO_PREDICATE,
+                fileInfo);
+        metadata.add(fileInfo,
+                ExtractorOntology.XSLT_FILEINFO_PARAM_PREDICATE,
+                parameters);
+   }
+
+
 }
