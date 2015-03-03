@@ -59,16 +59,16 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
     @ExtensionInitializer.Init(param = "outObjednavkyFiles")
     public WritableSimpleFiles outObjednavky;
 
-    @ExtensionInitializer.Init(param = "XMLPlneni")
+    @ExtensionInitializer.Init(param = "outPlneniFiles")
     public WritableSimpleFiles outPlneni;
 
-    @ExtensionInitializer.Init(param = "XMLSmlouvy-RocniSeznam")
+    @ExtensionInitializer.Init(param = "outSmlouvyRokyFiles")
     public WritableSimpleFiles outSmlouvyRoky;
 
-    @ExtensionInitializer.Init(param = "XMLObjednavky-RocniSeznam")
+    @ExtensionInitializer.Init(param = "outObjednavkyRokyFiles")
     public WritableSimpleFiles outObjednavkyRoky;
 
-    @ExtensionInitializer.Init(param = "XMLPlneni-RocniSeznam")
+    @ExtensionInitializer.Init(param = "outPlneniRokyFiles")
     public WritableSimpleFiles outPlneniRoky;
 
     @ExtensionInitializer.Init
