@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# build base
+# Build base.
 echo "building base projects .."
 cd ../base 
  cd uk-pom-dpu
   mvn clean install
   cd ..
 
-# build libs
+# Build libs.
 echo "building libs .."
 cd ../libs
  cd scraperLib
   mvn clean install
   cd ..
 
-# go back to tools
+# Go back to tools.
 cd ../tools
 echo "done"
