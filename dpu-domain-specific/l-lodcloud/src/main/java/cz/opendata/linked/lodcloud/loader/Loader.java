@@ -129,7 +129,7 @@ extends AbstractDpu<LoaderConfig>
             	
             } else {
             	String ent = EntityUtils.toString(queryResponse.getEntity());
-            	logger.info("Dataset not found: " + ent);
+            	logger.info("Dataset not found");
             }
         } catch (ClientProtocolException e) {
         	logger.error(e.getLocalizedMessage(), e);
@@ -336,16 +336,12 @@ extends AbstractDpu<LoaderConfig>
 	            try {
 	                response = client.execute(httpPost);
 	                if (response.getStatusLine().getStatusCode() == 201) {
-	                	logger.info("Dataset created OK");
-	                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
+	                	logger.info("Dataset created OK: " + response.getStatusLine());
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
-	                	String ent = EntityUtils.toString(response.getEntity());
-	                	logger.error("Dataset already exists: " + ent);
-	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+	                	logger.error("Dataset already exists: " + response.getStatusLine());
+	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}", response.getStatusLine());
 	                } else {
-	                	String ent = EntityUtils.toString(response.getEntity());
-	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}", response.getStatusLine());
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -380,11 +376,9 @@ extends AbstractDpu<LoaderConfig>
 	            try {
 	                response = client.execute(httpPost);
 	                if (response.getStatusLine().getStatusCode() == 200) {
-	                	logger.info("Response:" + EntityUtils.toString(response.getEntity()));
+	                	logger.info("Response: " + response.getEntity());
 	                } else {
-	                	String ent = EntityUtils.toString(response.getEntity());
-	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}", response.getStatusLine());
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
