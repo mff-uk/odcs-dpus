@@ -322,11 +322,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Dataset already exists: " + ent);
-	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -367,7 +367,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);

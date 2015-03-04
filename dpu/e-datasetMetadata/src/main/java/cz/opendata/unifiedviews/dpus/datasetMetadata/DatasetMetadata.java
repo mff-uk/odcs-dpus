@@ -48,7 +48,7 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
         generateMetadata();
 
         final Date dateEnd = new Date();
-        ContextUtils.sendShortInfo(ctx, "Done in %d ms", (dateEnd.getTime() - dateStart.getTime()));
+        ContextUtils.sendShortInfo(ctx, "Done in {0} ms", (dateEnd.getTime() - dateStart.getTime()));
     }
 
     private void generateMetadata() throws DPUException {
