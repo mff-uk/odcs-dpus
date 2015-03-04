@@ -1,33 +1,57 @@
-@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ns1:	<http://linked.opendata.cz/resource/dataset/> .
-@prefix void:	<http://rdfs.org/ns/void#> .
-ns1:ic	rdf:type	void:Dataset .
-@prefix dcat:	<http://www.w3.org/ns/dcat#> .
-ns1:ic	rdf:type	dcat:Dataset .
-@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dcterms:	<http://purl.org/dc/terms/> .
-ns1:ic	dcterms:modified	"2014-11-20+01:00"^^xsd:date .
-@prefix ns6:	<http://purl.org/klimek#> .
-ns1:ic	dcterms:creator	ns6:me ;
-	dcterms:description	"Dataset description"@en ,
-		"Jedn\u00E1 se o aktu\u00E1ln\u011B platn\u00FD soubor I\u010C v\u010Detn\u011B dal\u0161\u00EDch atribut\u016F. V n\u00E1zvu souboru je uvedeno datum, ke kter\u00E9mu byl proveden export ze syst\u00E9mu ARES a d\u00E1le \u010D\u00EDslo verze souboru v dan\u00E9m m\u011Bs\u00EDci."@cs ;
-	dcterms:publisher	<http://opendata.cz> .
-@prefix ns7:	<http://www.statnipokladna.cz/cs/csuis/> .
-ns1:ic	dcterms:source	ns7:sprava-ciselniku ;
-	dcterms:title	"Data file with Czech Business Entities identification numbers"@en ,
-		"Datov\u00FD soubor s daty Identifika\u010Dn\u00EDch \u010D\u00EDsel (I\u010C)"@cs ;
-	void:classes	3 ;
-	void:distinctObjects	11157027 ;
-	void:distinctSubjects	8276312 ;
-	void:entities	8276312 ;
-	void:properties	8 ;
-	void:exampleResource <http://linked.opendata.cz/resource/business-entity/CZ01475461> ;
-	void:triples	38595597 ;
-	void:dataDump	<http://linked.opendata.cz/dump/ic.zip> .
-@prefix ns8:	<http://linked.opendata.cz/> .
-ns1:ic	void:sparqlEndpoint	ns8:sparql ;
-	dcterms:license	<http://opendatacommons.org/licenses/pddl/1-0/> .
-@prefix ns9:	<http://id.loc.gov/vocabulary/iso639-1/> .
-ns1:ic	dcterms:language	ns9:cs .
-@prefix ns10:	<http://linked.opendata.cz/resource/dataset/ic/> .
-ns1:ic	dcat:distribution	ns10:distribution .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+
+<http://linked.opendata.cz/resource/dataset/ic> <http://purl.org/dc/terms/title> "Data file with Czech Business Entities identification numbers"@en , "Datový soubor s daty Identifikačních čísel (IČ)"@cs ;
+	<http://purl.org/dc/terms/description> "Jedná se o aktuálně platný soubor IČ včetně dalších atributů. V názvu souboru je uvedeno datum, ke kterému byl proveden export ze systému ARES a dále číslo verze souboru v daném měsíci."@cs ;
+	<http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> ;
+	<http://purl.org/dc/terms/source> <http://www.statnipokladna.cz/cs/csuis/sprava-ciselniku> ;
+	<http://www.w3.org/ns/adms#contactPoint> <http://linked.opendata.cz/resource/dataset/ic/contactPoint> ;
+	a <http://www.w3.org/ns/dcat#Dataset> ;
+	<http://purl.org/dc/terms/language> <http://id.loc.gov/vocabulary/iso639-1/cs> ;
+	<http://www.w3.org/ns/dcat#keyword> "IČ"@cs , "identification"@en ;
+	<http://purl.org/dc/terms/creator> <http://purl.org/klimek#me> ;
+	<http://purl.org/dc/terms/accrualPeriodicity> "R-P1D" ;
+	<http://www.w3.org/ns/dcat#landingPage> "http://ckan.opendata.cz/seznam-ic" ;
+	<http://purl.org/dc/terms/spatial> <http://ruian.linked.opendata.cz/resource/staty/1> ;
+	<http://purl.org/dc/terms/modified> "2015-03-02+01:00"^^xsd:date ;
+	<http://purl.org/dc/terms/issued> "2015-01-01+01:00"^^xsd:date ;
+	<http://www.w3.org/ns/dcat#distribution> <http://linked.opendata.cz/resource/dataset/ic/distribution> ;
+	<http://purl.org/dc/terms/publisher> <http://opendata.cz> ;
+	<http://purl.org/dc/terms/temporal> <http://linked.opendata.cz/resource/dataset/ic/temporal> .
+
+<http://linked.opendata.cz/resource/dataset/ic/distribution> <http://purl.org/dc/terms/title> "Data file with Czech Business Entities identification numbers"@en , "Datový soubor s daty Identifikačních čísel (IČ)"@cs ;
+	<http://purl.org/dc/terms/description> "Jedná se o aktuálně platný soubor IČ včetně dalších atributů. V názvu souboru je uvedeno datum, ke kterému byl proveden export ze systému ARES a dále číslo verze souboru v daném měsíci."@cs ;
+	<http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> ;
+	<http://rdfs.org/ns/void#triples> "38805505"^^xsd:integer ;
+	a <http://www.w3.org/ns/dcat#Distribution> , <http://rdfs.org/ns/void#Dataset> ;
+	<http://www.w3.org/ns/dcat#accessURL> <http://ckan.opendata.cz/dataset/seznam-ic> ;
+	<http://www.w3.org/ns/dcat#downloadURL> <http://linked.opendata.cz/dump/ic.trig> ;
+	<http://www.w3.org/ns/dcat#mediaType> "application/trig" ;
+	<http://rdfs.org/ns/void#dataDump> <http://linked.opendata.cz/dump/ic.trig> ;
+	<http://rdfs.org/ns/void#distinctSubjects> "8320892"^^xsd:integer ;
+	<http://purl.org/dc/terms/spatial> <http://ruian.linked.opendata.cz/resource/staty/1> ;
+	<http://rdfs.org/ns/void#distinctObjects> "11205903"^^xsd:integer ;
+	<http://purl.org/dc/terms/modified> "2015-03-02+01:00"^^xsd:date ;
+	<http://purl.org/dc/terms/format> "application/trig" ;
+	<http://purl.org/dc/terms/issued> "2015-01-01+01:00"^^xsd:date ;
+	<http://rdfs.org/ns/void#entities> "8320892"^^xsd:integer ;
+	<http://rdfs.org/ns/void#exampleResource> <http://linked.opendata.cz/resource/business-entity/CZ00088455> ;
+	<http://rdfs.org/ns/void#classes> "3"^^xsd:integer ;
+	<http://rdfs.org/ns/void#sparqlEndpoint> <http://linked.opendata.cz/sparql> ;
+	<http://purl.org/dc/terms/temporal> <http://linked.opendata.cz/resource/dataset/ic/distribution/temporal> ;
+	<http://rdfs.org/ns/void#properties> "8"^^xsd:integer .
+
+<http://linked.opendata.cz/resource/dataset/ic/distribution/temporal> <http://schema.org/endDate> "2015-02-26+01:00"^^xsd:date ;
+	<http://schema.org/startDate> "2015-01-01+01:00"^^xsd:date ;
+	a <http://purl.org/dc/terms/PeriodOfTime> .
+
+<http://linked.opendata.cz/resource/dataset/ic/contactPoint> a <http://www.w3.org/2006/vcard/ns#VCard> ;
+	<http://www.w3.org/2006/vcard/ns#hasEmail> "datasets@opendata.cz" .
+
+<http://linked.opendata.cz/resource/dataset/ic/temporal> <http://schema.org/endDate> "2015-02-26+01:00"^^xsd:date ;
+	<http://schema.org/startDate> "2015-01-01+01:00"^^xsd:date ;
+	a <http://purl.org/dc/terms/PeriodOfTime> .

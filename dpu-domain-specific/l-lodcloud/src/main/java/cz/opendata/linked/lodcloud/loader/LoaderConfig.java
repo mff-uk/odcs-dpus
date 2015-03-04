@@ -238,8 +238,6 @@ public class LoaderConfig  {
     
     private Topics topic = Topics.government;
     
-    private boolean CreateFirst = false;
-    
     private boolean limitedSparql = false;
     
     private boolean lodcloudNolinks = false;
@@ -270,8 +268,6 @@ public class LoaderConfig  {
     
     private String datasetID = "";
     
-    //private boolean datasetPrivate = false;
-    
     private String maintainerName = "Jakub Klímek";
     
     private String maintainerEmail = "klimek@opendata.cz";
@@ -291,10 +287,6 @@ public class LoaderConfig  {
     private String namespace = "";
     
     //private String sparql_graph_name = "";
-    
-    //private String datasetDescription = "";
-    
-    private String customLicenseLink = "";
     
     private Collection<String> vocabularies = new LinkedList<String>();
     
@@ -492,14 +484,6 @@ public class LoaderConfig  {
 		this.lodcloudNeedsFixing = lodcloudNeedsFixing;
 	}
 
-	public String getCustomLicenseLink() {
-		return customLicenseLink;
-	}
-
-	public void setCustomLicenseLink(String customLicenseLink) {
-		this.customLicenseLink = customLicenseLink;
-	}
-
 	public Topics getTopic() {
 		return topic;
 	}
@@ -586,14 +570,6 @@ public class LoaderConfig  {
 
 	public void setMappingFiles(Collection<MappingFile> mappingFiles) {
 		this.mappingFiles = mappingFiles;
-	}
-
-	public boolean isCreateFirst() {
-		return CreateFirst;
-	}
-
-	public void setCreateFirst(boolean createFirst) {
-		CreateFirst = createFirst;
 	}
 
 }

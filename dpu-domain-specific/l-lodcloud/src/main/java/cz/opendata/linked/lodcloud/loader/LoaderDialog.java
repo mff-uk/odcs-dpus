@@ -15,10 +15,6 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.LicenseMetadataTags;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.Licenses;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.ProvenanceMetadataTags;
@@ -27,18 +23,19 @@ import cz.opendata.linked.lodcloud.loader.LoaderConfig.Topics;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.VocabMappingsTags;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.VocabTags;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
+public class LoaderDialog extends AbstractDialog<LoaderConfig> {
 
 	private static final long serialVersionUID = -1989608763609859477L;
 	
 	private ComponentTable<LoaderConfig.LinkCount> gtLinkCounts;
 	private ComponentTable<LoaderConfig.MappingFile> gtMappingFiles;
-    private CheckBox chkCreateDataset;
     private CheckBox chkLodcloudNolinks;
     private CheckBox chkLodcloudUnconnected;
     private CheckBox chkLodcloudNeedsFixing;
@@ -60,7 +57,6 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     private TextField tfSPARQLDescription;
     private TextField tfNamespace;
     private TextField tfShortName;
-    private TextField tfCustomLicenseLink;
     private CheckBox chkGenerateVersion;
     private ComboBox cbTopic;
     private ComboBox cbLicense;
@@ -73,16 +69,11 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     private ListSelect lsAdditionalTags;
     
     public LoaderDialog() {
-        super(LoaderConfig.class,AddonInitializer.create(new SimpleRdfConfigurator<>(Loader.class)));
-        buildMainLayout();
-        Panel panel = new Panel();
-        panel.setSizeFull();
-        panel.setContent(mainLayout);
-        setCompositionRoot(panel);
+        super(Loader.class);
     }  
     
-    @SuppressWarnings("serial")
-	private VerticalLayout buildMainLayout() {
+    @Override
+	protected void buildDialogLayout() {
         // common part: create layout
         mainLayout = new VerticalLayout();
         mainLayout.setImmediate(false);
@@ -117,6 +108,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         tfDatasetID.setDescription("CKAN Dataset Name used in CKAN Dataset URL");
         tfDatasetID.setInputPrompt("cz-test");
         tfDatasetID.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -8684376114117545707L;
+
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				String url = "http://datahub.io/api/rest/dataset/" + tfDatasetID.getValue();
@@ -127,16 +120,6 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lblRestApiUrl = new Label();
         lblRestApiUrl.setContentMode(ContentMode.HTML);
         mainLayout.addComponent(lblRestApiUrl);
-        
-        chkCreateDataset = new CheckBox();
-        chkCreateDataset.setCaption("Create the dataset (usually usable only once)");
-        chkCreateDataset.setImmediate(true);
-        chkCreateDataset.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				tfOwnerOrg.setEnabled(chkCreateDataset.getValue());
-		}});
-        mainLayout.addComponent(chkCreateDataset);
         
         tfOwnerOrg = new TextField();
         tfOwnerOrg.setWidth("100%");
@@ -197,6 +180,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         chkGenerateVersion.setCaption("Generate Version as current date");
         chkGenerateVersion.setImmediate(true);
         chkGenerateVersion.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 7348068985822592639L;
+
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				tfVersion.setEnabled(!chkGenerateVersion.getValue());
@@ -216,6 +201,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         cbLicense.setTextInputAllowed(false);
         cbLicense.setNullSelectionAllowed(false);
         cbLicense.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -5553056221069512526L;
+
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				LoaderConfig.Licenses l = (Licenses) cbLicense.getValue();
@@ -225,18 +212,10 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
 				enabled = enabled || l == LoaderConfig.Licenses.othernc;
 				enabled = enabled || l == LoaderConfig.Licenses.otheropen;
 				enabled = enabled || l == LoaderConfig.Licenses.otherpd;
-				tfCustomLicenseLink.setEnabled(enabled);
 		}});
         
         mainLayout.addComponent(cbLicense);
         
-        tfCustomLicenseLink = new TextField();
-        tfCustomLicenseLink.setWidth("100%");
-        tfCustomLicenseLink.setCaption("Custom license link");
-        tfCustomLicenseLink.setDescription("Only valid when no standard license applies");
-        tfCustomLicenseLink.setInputPrompt("http://link.to.license");
-        mainLayout.addComponent(tfCustomLicenseLink);
-
         tfSPARQLName = new TextField();
         tfSPARQLName.setWidth("100%");
         tfSPARQLName.setCaption("SPARQL Endpoint name");
@@ -311,6 +290,8 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         lsVocabTag.setNullSelectionAllowed(false);
         lsVocabTag.setRows(LoaderConfig.VocabTags.values().length);
         lsVocabTag.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -3219117339381453926L;
+
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				tfSchemaUrl.setEnabled(lsVocabTag.getValue() != LoaderConfig.VocabTags.NoProprietaryVocab);
@@ -406,7 +387,10 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         });
         mainLayout.addComponent(gtMappingFiles);
 
-        return mainLayout;
+        Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+        setCompositionRoot(panel);
     }    
      
     @Override
@@ -424,9 +408,7 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
     	tfSPARQLDescription.setValue(conf.getSparqlEndpointDescription());
     	tfNamespace.setValue(conf.getNamespace());
     	tfShortName.setValue(conf.getShortname());
-    	tfCustomLicenseLink.setValue(conf.getCustomLicenseLink());
     	chkGenerateVersion.setValue(conf.isVersionGenerated());
-    	chkCreateDataset.setValue(conf.isCreateFirst());
     	gtLinkCounts.setValue(conf.getLinks());
     	gtMappingFiles.setValue(conf.getMappingFiles());
     	cbTopic.setValue(conf.getTopic());
@@ -456,7 +438,6 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setApiKey(tfApiKey.getValue());
         conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
-        conf.setCreateFirst(chkCreateDataset.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
         conf.setMaintainerName(tfMaintainerName.getValue());
         conf.setMaintainerEmail(tfMaintainerEmail.getValue());
@@ -468,7 +449,6 @@ public class LoaderDialog extends AdvancedVaadinDialogBase<LoaderConfig> {
         conf.setNamespace(tfNamespace.getValue());
         conf.setSchemaUrl(tfSchemaUrl.getValue());
         conf.setShortname(tfShortName.getValue());
-        conf.setCustomLicenseLink(tfCustomLicenseLink.getValue());
         conf.setVersionGenerated(chkGenerateVersion.getValue());
         conf.setLinks(gtLinkCounts.getValue());
         conf.setMappingFiles(gtMappingFiles.getValue());

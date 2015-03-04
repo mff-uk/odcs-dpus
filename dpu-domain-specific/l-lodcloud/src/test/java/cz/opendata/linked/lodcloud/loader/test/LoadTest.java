@@ -4,14 +4,14 @@ import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBaseTest;
-import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
-import cz.cuni.mff.xrg.uv.test.boost.resources.ResourceAccess;
 import cz.opendata.linked.lodcloud.loader.Loader;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig;
-import cz.opendata.linked.lodcloud.loader.LoaderConfig.LinkCount;
 import cz.opendata.linked.lodcloud.loader.LoaderConfig.*;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.test.config.ConfigurationBuilder;
+import eu.unifiedviews.helpers.dpu.test.rdf.InputOutputUtils;
+import eu.unifiedviews.helpers.dpu.test.resources.ResourceUtils;
 
 public class LoadTest {
 
@@ -21,15 +21,10 @@ public class LoadTest {
         Loader loader = new Loader();
         LoaderConfig config = new LoaderConfig();
         
-        config.setDatasetID("cz-test");
-        //config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
-        config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
-        config.setApiUri("http://ckan.opendata.cz:5000/api/rest/dataset");
+        config.setDatasetID("cz-test2");
+        config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
         config.setSchemaUrl("http://ruian.linked.opendata.cz/dump/CUZK-2-RUIAN-CODELISTS.zip");
-        //config.setDatasetDescription("Description");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
-        config.setOrgID("d2664e4e-25ba-4dcc-a842-dcc5f2d2f326");
-        config.setCreateFirst(true);
         config.getVocabularies().add("skos");
         config.getVocabularies().add("gr");
         config.getVocabularies().add("adms");
@@ -40,17 +35,21 @@ public class LoadTest {
         config.setProvenanceMetadataTag(ProvenanceMetadataTags.NoProvenanceMetadata);
         config.setLicenseMetadataTag(LicenseMetadataTags.LicenseMetadata);
 
-        DpuAdvancedBaseTest.setDpuConfiguration(loader, config);
+        loader.configure((new ConfigurationBuilder()).setDpuConfiguration(config).toString());
         
         // prepare test environment, we use system tmp directory
         TestEnvironment env = new TestEnvironment();
         // prepare input and output data units
 
-        WritableRDFDataUnit metadata = env.createRdfInput("metadata", false);
-        InputOutput.extractFromFile(ResourceAccess.getFile("cz-ic-void.ttl"), RDFFormat.TURTLE, metadata);
+        WritableRDFDataUnit input = env.createRdfInput("metadata", false);
 
         // here we can simply pre-fill input data unit with content from 
         // resource file
+        
+        InputOutputUtils.extractFromFile(ResourceUtils.getFile("cz-ic-void.ttl"), RDFFormat.TURTLE, input,
+                RdfDataUnitUtils.addGraph(input, "input"));        
+        WritableRDFDataUnit metadata = env.createRdfInput("metadata", false);
+        
         try {
             // run the execution
             env.run(loader);
