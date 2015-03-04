@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,6 +38,7 @@ import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
@@ -64,9 +64,6 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     @Override
     protected void innerExecute() throws DPUException
     {
-        java.util.Date date = new java.util.Date();
-        long start = date.getTime();
-
         logger.debug("Querying metadata");
      
         String datasetURI = executeSimpleSelectQuery("SELECT ?d WHERE {?d a <" + CKANLoaderVocabulary.DCAT_DATASET_CLASS + ">}", "d");
@@ -162,7 +159,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             
             JSONArray resources = new JSONArray();
             
-            JSONObject extras = new JSONObject();
+            //JSONObject extras = new JSONObject();
 
             if (!config.getDatasetID().isEmpty()) root.put("name", config.getDatasetID());
             root.put("url", datasetURI);
@@ -178,7 +175,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			root.put("temporalStart", temporalStart);
 			root.put("temporalEnd", temporalEnd);
 			root.put("accrualPeriodicity", periodicity);
-			
+			root.put("schema", schemaURL);
 			root.put("spatial", spatial);
 			
 			String concatThemes = "";
@@ -322,13 +319,14 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	                if (response.getStatusLine().getStatusCode() == 201) {
 	                	logger.info("Dataset created OK");
 	                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
-	                	exists = true;
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Dataset already exists: " + ent);
+	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: %s: %s", response.getStatusLine().getStatusCode(), ent);
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
+	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -341,6 +339,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 							client.close();
 						} catch (IOException e) {
 			            	logger.error(e.getLocalizedMessage(), e);
+		                	ContextUtils.sendError(ctx, "Error creating dataset", e.getLocalizedMessage());
 						}
 	                }
 	            }
@@ -368,6 +367,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
+	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -380,6 +380,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 							client.close();
 						} catch (IOException e) {
 			            	logger.error(e.getLocalizedMessage(), e);
+		                	ContextUtils.sendError(ctx, "Error updating dataset", e.getLocalizedMessage());
 						}
 	                }
 	            }
@@ -390,13 +391,6 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
         	logger.error(e.getLocalizedMessage(), e);
 		}
         
-        if (!ctx.canceled()) {
-	        java.util.Date date2 = new java.util.Date();
-	        long end = date2.getTime();
-	
-//	        ctx.sendMessage(DPUContext.MessageType.INFO, "Loaded in " + (end-start) + "ms");
-        }
-
     }
     
     private String executeSimpleSelectQuery(final String queryAsString, String bindingName) throws DPUException {
