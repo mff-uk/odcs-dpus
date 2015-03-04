@@ -332,6 +332,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
     	for (String s: conf.getPublishers()) lsPublishers.addItem(s);
     	lsPublishers.setValue(conf.getPublishers());
 
+    	if (!conf.getLicense().isEmpty()) lsLicenses.addItem(conf.getLicense());
     	lsLicenses.setValue(conf.getLicense());
         
     	for (String s: conf.getThemes()) lsThemes.addItem(s);
