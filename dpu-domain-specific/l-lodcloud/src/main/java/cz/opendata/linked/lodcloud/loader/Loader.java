@@ -87,6 +87,7 @@ extends AbstractDpu<LoaderConfig>
     	String triplecount = executeSimpleSelectQuery("SELECT ?triplecount WHERE {<" + distribution + "> <"+ LoaderVocabulary.VOID_TRIPLES + "> ?triplecount }", "triplecount");
     	String dformat = executeSimpleSelectQuery("SELECT ?format WHERE {<" + distribution + "> <"+ DCTERMS.FORMAT + "> ?format }", "format");
     	String dlicense = executeSimpleSelectQuery("SELECT ?license WHERE {<" + distribution + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
+    	String dschema = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + distribution + "> <"+ LoaderVocabulary.WDRS_DESCRIBEDBY + "> ?schema }", "schema");
 
     	LinkedList<String> examples = new LinkedList<String>();
     	for (Map<String,Value> map: executeSelectQuery("SELECT ?exampleResource WHERE {<" + distribution + "> <"+ LoaderVocabulary.VOID_EXAMPLERESOURCE + "> ?exampleResource }")) {
@@ -200,7 +201,7 @@ extends AbstractDpu<LoaderConfig>
             resources.put(voidJson);
             // End of VoID resource
 
-            if (config.getVocabTag() != LoaderConfig.VocabTags.NoProprietaryVocab && !config.getSchemaUrl().isEmpty()) {
+            if (config.getVocabTag() != LoaderConfig.VocabTags.NoProprietaryVocab && !dschema.isEmpty()) {
 	            // Start of RDFS/OWL schema resource
 	            JSONObject schemaResource = new JSONObject();
 	            
@@ -208,7 +209,7 @@ extends AbstractDpu<LoaderConfig>
 	            schemaResource.put("resource_type","file");
 	            schemaResource.put("description","RDFS/OWL Schema with proprietary vocabulary");
 	            schemaResource.put("name","RDFS/OWL schema");
-	            schemaResource.put("url", config.getSchemaUrl() );
+	            schemaResource.put("url", dschema );
 	            
 	            if (resFormatIdMap.containsKey("meta/rdf-schema")) schemaResource.put("id", resFormatIdMap.get("meta/rdf-schema"));
 
@@ -340,11 +341,11 @@ extends AbstractDpu<LoaderConfig>
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Dataset already exists: " + ent);
-	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
@@ -383,7 +384,7 @@ extends AbstractDpu<LoaderConfig>
 	                } else {
 	                	String ent = EntityUtils.toString(response.getEntity());
 	                	logger.error("Response:" + ent);
-	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: %s: %s", response.getStatusLine().getStatusCode(), ent);
+	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);

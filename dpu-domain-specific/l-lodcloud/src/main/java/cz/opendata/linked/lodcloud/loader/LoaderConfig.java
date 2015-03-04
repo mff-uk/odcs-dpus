@@ -262,8 +262,6 @@ public class LoaderConfig  {
 
     private String apiUri = "http://datahub.io/api/rest/dataset";
     
-    private String schemaUrl = "";
-    
     private String apiKey = "";
     
     private String datasetID = "";
@@ -546,14 +544,6 @@ public class LoaderConfig  {
 
 	public void setVersionGenerated(boolean versionGenerated) {
 		this.versionGenerated = versionGenerated;
-	}
-
-	public String getSchemaUrl() {
-		return schemaUrl;
-	}
-
-	public void setSchemaUrl(String schemaUrl) {
-		this.schemaUrl = schemaUrl;
 	}
 
 	public Collection<String> getAdditionalTags() {

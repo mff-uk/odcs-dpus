@@ -23,7 +23,6 @@ public class LoadTest {
         
         config.setDatasetID("cz-test2");
         config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
-        config.setSchemaUrl("http://ruian.linked.opendata.cz/dump/CUZK-2-RUIAN-CODELISTS.zip");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
         config.getVocabularies().add("skos");
         config.getVocabularies().add("gr");
