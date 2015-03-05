@@ -13,46 +13,41 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.BannedException;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
-
-import org.openrdf.rio.RDFFormat;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 
 @DPU.AsExtractor
-public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
-{
-
-    @DataUnit.AsOutput(name = "BEs")
-    public WritableFilesDataUnit BEs;
+public class Extractor extends AbstractDpu<ExtractorConfig> {
 
     private final static Logger LOG = LoggerFactory.getLogger(DPU.class);
 
+    @DataUnit.AsOutput(name = "BEs")
+    public WritableFilesDataUnit filesBEs;
+
+    @ExtensionInitializer.Init(param = "filesBEs")
+    public WritableSimpleFiles BEs;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.noAddons());
+        super(ExtractorDialog.class, ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
-    }
+    protected void innerExecute() throws DPUException {
+        DPUContext context = ctx.getExecMasterContext().getDpuContext();
 
-    @Override
-    protected void innerExecute() throws DPUException, DataUnitException
-    {
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");
@@ -101,8 +96,10 @@ extends DpuAdvancedBase<ExtractorConfig>
 
             LOG.info("Parsing done. Passing RDF to ODCS");
             
-            BEs.addExistingFile(ICfilename, new File(ICfilename).toURI().toString());
-        
+            //BEs.addExistingFile(ICfilename, new File(ICfilename).toURI().toString());
+            BEs.add(new File(ICfilename), "ic.ttl"); // USE ic.ttl as fileName.
+
+
         } catch (IOException e) {
             LOG.error("IOException", e);
         } catch (InterruptedException e) {
