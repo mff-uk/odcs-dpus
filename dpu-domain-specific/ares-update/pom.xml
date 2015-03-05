@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>    
     <artifactId>E-MFCR_1_002</artifactId>
-    <name>a-Ares updates</name>
+    <name>e-Ares updates</name>
     <packaging>bundle</packaging>
     <version>2.0.0</version>
     <description>This extractor scrapes ARES XML records about updates to Czech business entities and registers their ICs to be updated</description>
