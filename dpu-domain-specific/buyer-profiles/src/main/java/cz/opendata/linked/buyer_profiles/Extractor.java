@@ -29,6 +29,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
@@ -53,6 +54,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
     @ExtensionInitializer.Init(param = "filesProfileStatistics")
     public WritableSimpleRdf profileStatistics;
 
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
 
     private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
