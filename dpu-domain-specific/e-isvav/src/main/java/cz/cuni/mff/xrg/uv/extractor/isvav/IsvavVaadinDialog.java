@@ -4,28 +4,21 @@ import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
-public class IsvavVaadinDialog extends AdvancedVaadinDialogBase<IsvavConfig_V1> {
+public class IsvavVaadinDialog extends AbstractDialog<IsvavConfig_V1> {
 
 	private ComboBox cmbSource;
 	
     private OptionGroup optionExportType;
     
 	public IsvavVaadinDialog() {
-		super(IsvavConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
-
-		buildLayout();
+		super(Isvav.class);
 	}
 
-	private void buildLayout() {
-        // top-level component properties
-        setWidth("100%");
-        setHeight("100%");
-		
+    @Override
+    protected void buildDialogLayout() {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");

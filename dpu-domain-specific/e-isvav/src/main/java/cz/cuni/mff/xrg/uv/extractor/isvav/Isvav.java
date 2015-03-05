@@ -1,20 +1,11 @@
 package cz.cuni.mff.xrg.uv.extractor.isvav;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import cz.cuni.mff.xrg.uv.extractor.isvav.source.*;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -34,54 +25,63 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.CachedFileDownloader;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
+
 /**
  *
  * @author Škoda Petr
  */
 @DPU.AsExtractor
-public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
+public class Isvav extends AbstractDpu<IsvavConfig_V1> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Isvav.class);
 	
 	@DataUnit.AsOutput(name = "zipFiles", description = "Contains one or more zip files.")
 	public WritableFilesDataUnit outFilesData;
-	
+
+    @ExtensionInitializer.Init(param = "outFilesData")
+    public WritableSimpleFiles filesData;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+
+    @ExtensionInitializer.Init
+    public CachedFileDownloader downloader;
+
 	public Isvav() {
-		super(IsvavConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
+		super(IsvavVaadinDialog.class, ConfigHistory.noHistory(IsvavConfig_V1.class));
 	}
 
     @Override
-    protected void innerExecute() throws DPUException, DataUnitException {
+    protected void innerExecute() throws DPUException {
         // create sources
 		final List<AbstractSource> usedSource = createSource();
-        context.sendMessage(DPUContext.MessageType.INFO, "Extracting files ...");
+        ContextUtils.sendShortInfo(ctx, "Extracting files ...");
 		// for each source
         int index = 1;
 		for (AbstractSource source : usedSource) {
             // we rely on fixed order of sources and different
             // base file names
 			final String fileName = source.getFileName() + ".zip";
-			final File file = downloadData(context, source, fileName);
+			final File file = downloadData(ctx.getExecMasterContext().getDpuContext(), source, fileName);
             if (file != null) {
                 // file has been downloaded
-                outFilesData.addExistingFile(fileName, file.toURI().toString());
-                Manipulator.add(outFilesData, fileName,
-                    VirtualPathHelper.PREDICATE_VIRTUAL_PATH,
-                    fileName);
-				context.sendMessage(DPUContext.MessageType.INFO,
-                        "File extracted " + Integer.toString(index++) + "/" + usedSource.size(),
-						"Extracted file saved into: " + fileName);
+                filesData.add(file, fileName);
+                ContextUtils.sendShortInfo(ctx, "File extracted {0}/{1} as {3}", index++, usedSource.size(),
+                        fileName);
 			}
-            if (context.canceled()) {
-                break;
+            if (ctx.canceled()) {
+                throw ContextUtils.dpuExceptionCancelled(ctx);
             }
 		}
 	}
-
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new IsvavVaadinDialog();
-    }
 
 	/**
 	 * Create sources for given data type
@@ -134,7 +134,7 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
      * @param fileName
 	 * @return Downloaded file.
 	 */
-	protected File downloadData(DPUContext context, AbstractSource source, String fileName) {
+	protected File downloadData(DPUContext context, AbstractSource source, String fileName) throws DPUException {
 		String sessionID = null;
 		
 		final CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -177,10 +177,9 @@ public class Isvav extends DpuAdvancedBase<IsvavConfig_V1> {
 			return null;
 		}
 
-        CachedFileDownloader downloader = getAddon(CachedFileDownloader.class);
 		try {
             return downloader.get(fileName, dataUrl);
-		} catch (IOException | AddonException ex) {
+		} catch (IOException | ExtensionException ex) {
 			context.sendMessage(DPUContext.MessageType.ERROR,
                     "Extraction failed", "Failed to download file.", ex);
 			return null;

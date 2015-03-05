@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cz.cuni.mff.xrg.uv</groupId>
-        <artifactId>unifiedviews-dpu-base</artifactId>
-        <version>1.1.1</version>
+        <artifactId>uk-pom-dpu</artifactId>
+        <version>1.0.0</version>
     </parent>
     <artifactId>e-isvav</artifactId>
     <name>e-Isvav</name>
@@ -16,10 +16,12 @@
     <properties>
         <dpu.package>cz.cuni.mff.xrg.uv.extractor.isvav</dpu.package>
         <dpu.mainClass>Isvav</dpu.mainClass>
+        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
     </properties>
  	
     <dependencies>
-        <dependency> <!-- this dependency is provided by UV -->
+        <!-- Dependencies from UV. -->
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
@@ -31,57 +33,17 @@
             <version>4.3.3</version>
             <scope>provided</scope>
         </dependency>
-<!--        <dependency>  dependency of httpclient
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.1</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>  dependency of httpclient 
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.9</version>
-            <scope>compile</scope>
-        </dependency>-->
+        <!-- UnifiedViews helpers. -->
         <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>boost-dpu</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <!-- compile library -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-files</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
