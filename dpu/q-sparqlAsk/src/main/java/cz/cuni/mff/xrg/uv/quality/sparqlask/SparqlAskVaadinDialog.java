@@ -5,15 +5,14 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * DPU's configuration dialog.
  */
-public class SparqlAskVaadinDialog extends AdvancedVaadinDialogBase<SparqlAskConfig_V1> {
+public class SparqlAskVaadinDialog extends AbstractDialog<SparqlAskConfig_V1> {
 
     private CheckBox checkPerGraph;
 
@@ -24,9 +23,7 @@ public class SparqlAskVaadinDialog extends AdvancedVaadinDialogBase<SparqlAskCon
     private TextArea txtAskQuery;
 
     public SparqlAskVaadinDialog() {
-        super(SparqlAskConfig_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(SparqlAsk.class);
     }
 
     @Override
@@ -49,7 +46,8 @@ public class SparqlAskVaadinDialog extends AdvancedVaadinDialogBase<SparqlAskCon
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
         final VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
