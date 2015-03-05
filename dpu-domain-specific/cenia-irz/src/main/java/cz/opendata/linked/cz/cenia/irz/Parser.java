@@ -1,7 +1,5 @@
 package cz.opendata.linked.cz.cenia.irz;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -19,6 +17,7 @@ import org.slf4j.Logger;
 
 import cz.cuni.mff.xrg.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.xrg.scraper.lib.template.ScrapingTemplate;
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * 
@@ -112,7 +111,7 @@ public class Parser extends ScrapingTemplate {
     }
 
     @Override
-    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws OperationFailedException {
+    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws DPUException {
         URI s_Organization = valueFactory.createURI(schemaorg + "Organization");
         URI gr_BusinessEntity = valueFactory.createURI(gr + "BusinessEntity");
         URI gr_legalName = valueFactory.createURI(gr + "legalName");

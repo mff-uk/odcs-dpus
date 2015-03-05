@@ -6,47 +6,37 @@ import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 @DPU.AsExtractor
-public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
-{
+public class Extractor extends AbstractDpu<ExtractorConfig> {
 
-	@SimpleRdfConfigurator.Configure(dataUnitFieldName="output")
-	public SimpleRdfWrite outputWrap;
+    private Logger LOG = LoggerFactory.getLogger(DPU.class);
+
+	@ExtensionInitializer.Init(param = "output")
+	public WritableSimpleRdf outputWrap;
 	
 	@DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit output;
 
-    private Logger LOG = LoggerFactory.getLogger(DPU.class);
-
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
+        super(ExtractorDialog.class, ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
-    }
-
-    @Override
-    protected void innerExecute() throws DPUException, DataUnitException
+    protected void innerExecute() throws DPUException
     {
+        DPUContext context = ctx.getExecMasterContext().getDpuContext();
+
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");
