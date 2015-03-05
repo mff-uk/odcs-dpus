@@ -16,15 +16,15 @@ import org.slf4j.LoggerFactory;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
-import eu.unifiedviews.helpers.cuni.dpu.addon.AddonException;
-import eu.unifiedviews.helpers.cuni.dpu.config.ConfigHistory;
-import eu.unifiedviews.helpers.cuni.dpu.context.ContextUtils;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AbstractDpu;
-import eu.unifiedviews.helpers.cuni.dpu.exec.AutoInitializer;
-import eu.unifiedviews.helpers.cuni.extensions.CachedFileDownloader;
-import eu.unifiedviews.helpers.cuni.extensions.FaultTolerance;
-import eu.unifiedviews.helpers.cuni.extensions.FaultToleranceUtils;
 import eu.unifiedviews.helpers.dataunit.files.FilesDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.extension.files.CachedFileDownloader;
 
 /**
  * Main data processing unit class.
@@ -36,13 +36,13 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListDownloader.class);
 
-    @DataUnit.AsInput(name = "output")
+    @DataUnit.AsOutput(name = "output")
     public WritableFilesDataUnit filesOutput;
 
-    @AutoInitializer.Init
+    @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
 
-    @AutoInitializer.Init
+    @ExtensionInitializer.Init
     public CachedFileDownloader fileCache;
 
 	public ListDownloader() {
@@ -71,15 +71,9 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
             if (!downloadNext(fileEntry)) {
                 break;
             }
-
-            // TODO Removed, for debug purpose only
-            if (pageCounter > 3) {
-                break;
-            }
-
         }
         // Print message.
-        ContextUtils.sendShortInfo(ctx, "Downloaded %d pages.", pageCounter);
+        ContextUtils.sendShortInfo(ctx, "Downloaded {0} pages.", pageCounter);
     }
 
     /**
@@ -94,18 +88,17 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
         final File file;
         try {
             file = fileCache.get(sourceUrl);
-        } catch (AddonException | IOException ex) {
+        } catch (ExtensionException | IOException ex) {
             throw new DPUException(ex);
         }
         // Add to output.
-        faultTolerance.execute(new FaultTolerance.Action() {
+        return faultTolerance.execute(new FaultTolerance.ActionReturn<FilesDataUnit.Entry>() {
 
             @Override
-            public void action() throws Exception {
-                FilesDataUnitUtils.addFile(filesOutput, file, fileName);
+            public FilesDataUnit.Entry action() throws Exception {
+                return FilesDataUnitUtils.addFile(filesOutput, file, fileName);
             }
         });
-        return null;
     }
 
     /**
@@ -123,7 +116,7 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
         } catch (IOException ex) {
             throw new DPUException(ex);
         }
-        // All conitions must hold.
+        // All conditions must hold.
         for (ListDownloaderConfig_V1.NextPageCondition condition : config.getNextPageConditions()) {
             final Elements elemetns = doc.select(condition.getNextButtonSelector());
              if (elemetns.isEmpty()) {

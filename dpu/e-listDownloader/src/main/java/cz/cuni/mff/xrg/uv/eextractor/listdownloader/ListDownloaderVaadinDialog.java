@@ -5,7 +5,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import eu.unifiedviews.helpers.cuni.dpu.vaadin.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * Vaadin configuration dialog for ListDownloader.
@@ -67,8 +67,8 @@ public class ListDownloaderVaadinDialog extends AbstractDialog<ListDownloaderCon
         txtStartIndex = new TextField(ctx.tr("ListDownloader.dialog.startIndex"));
         txtStartIndex.setWidth("100%");
         txtStartIndex.setRequired(true);
-        txtStartIndex.addValidator(new RangeValidator(ctx.tr("ListDownloader.dialog.startIndex.invalid"),
-                Integer.class, 0, null));
+//        txtStartIndex.addValidator(new RangeValidator(ctx.tr("ListDownloader.dialog.startIndex.invalid"),
+//                Integer.class, 0, null));
         mainLayout.addComponent(txtStartIndex);
 
         txtCssSelector = new TextField(ctx.tr("ListDownloader.dialog.nextPageCss"));
