@@ -1,8 +1,6 @@
 package cz.opendata.linked.buyer_profiles;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBaseTest;
-import cz.cuni.mff.xrg.uv.test.boost.rdf.InputOutput;
 
 import org.junit.Test;
 
@@ -12,6 +10,9 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import java.io.File;
 
 import org.openrdf.rio.RDFFormat;
+
+import eu.unifiedviews.helpers.dpu.test.config.ConfigurationBuilder;
+import eu.unifiedviews.helpers.dpu.test.rdf.InputOutputUtils;
 
 public class ScrapeTest {
     @Test
@@ -29,7 +30,7 @@ public class ScrapeTest {
         config.setAccessProfiles(true);        
 
         // configure DPU
-        DpuAdvancedBaseTest.setDpuConfiguration(extractor, config);
+        extractor.configure((new ConfigurationBuilder()).setDpuConfiguration(config).toString());
        
         // prepare test environment, we use system tmp directory
         TestEnvironment env = new TestEnvironment();
@@ -48,7 +49,7 @@ public class ScrapeTest {
 // TODO: add loadToFile method - possibly into test environment?
             //InputOutput.loadToFile(contracts, new File("C:\\temp\\contracts.ttl"), RDFFormat.TURTLE);
             //InputOutput.loadToFile(profiles, new File("C:\\temp\\profiles.ttl"), RDFFormat.TURTLE);
-            InputOutput.loadToFile(profile_stats, new File("C:\\temp\\profile_stats.ttl"), RDFFormat.TURTLE);
+           // InputOutputUtils.loadToFile(profile_stats, new File("C:\\temp\\profile_stats.ttl"), RDFFormat.TURTLE);
         }
         catch(Exception e) {
             e.printStackTrace();

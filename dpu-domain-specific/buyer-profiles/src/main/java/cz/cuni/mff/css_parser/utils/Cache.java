@@ -1,7 +1,5 @@
 package cz.cuni.mff.css_parser.utils;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -17,7 +15,6 @@ import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -30,6 +27,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 
 import org.openrdf.model.ValueFactory;
+
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+
 /**
  *  Document cache. It stores downloaded files to hard drive.
  * 
@@ -40,7 +41,7 @@ public class Cache {
     
     public static Logger logger;
     
-    public static SimpleRdfWrite stats;
+    public static WritableSimpleRdf stats;
     
     private static String BPOprefix = "http://linked.opendata.cz/ontology/domain/buyer-profiles/";
     
@@ -55,7 +56,7 @@ public class Cache {
     public static long timeValidating = 0;
     
     
-    private static boolean validate(String file, String url) throws OperationFailedException
+    private static boolean validate(String file, String url) throws DPUException
     {
         java.util.Date date = new java.util.Date();
         long start = date.getTime();
@@ -188,7 +189,7 @@ public class Cache {
     private static long lastDownload = 0;
     private static int timeout = 30000;
     
-    public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException, OperationFailedException {   
+    public static Document getDocument(URL url, int maxAttempts, String datatype) throws IOException, InterruptedException, DPUException {
     String host = url.getHost();
         if (url.getPath().lastIndexOf("/") == -1) {
             return null;

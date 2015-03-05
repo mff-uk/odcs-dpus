@@ -1,6 +1,5 @@
 package cz.opendata.linked.buyer_profiles;
 
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
 import cz.mff.cuni.scraper.lib.template.ParseEntry;
 import cz.mff.cuni.scraper.lib.template.ScrapingTemplate;
 
@@ -16,6 +15,8 @@ import org.jsoup.select.Elements;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
+
+import eu.unifiedviews.dpu.DPUException;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -55,7 +56,7 @@ public class Scraper_parser extends ScrapingTemplate {
     public ValueFactory valueFactory;
     
     @Override
-    protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) throws OperationFailedException {
+    protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) throws DPUException {
         LinkedList<ParseEntry> out = new LinkedList<>();
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         if (docType.equals("list") || docType.equals("first") || docType.equals("firstCancelled") || docType.equals("cancelledList")) {
@@ -408,7 +409,7 @@ public class Scraper_parser extends ScrapingTemplate {
         return original.replace("\n", " ").replace("\r", " ").replace("<","").replace(">","").replace("\\","\\\\").replace("\"", "\\\"").replace("„", "\\\"").replace("“", "\\\"");
     }
     
-    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL, URI context) throws OperationFailedException
+    private URL parseURL(String rawURL, String ico, String nazevZadavatele, String typURL, URI context) throws DPUException
     {
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         URL cleanURL = null;
@@ -546,7 +547,7 @@ public class Scraper_parser extends ScrapingTemplate {
     }
 
     
-    private String cleanStatKod(String statKod, URI source) throws OperationFailedException
+    private String cleanStatKod(String statKod, URI source) throws DPUException
     {
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         switch (statKod)
@@ -605,7 +606,7 @@ public class Scraper_parser extends ScrapingTemplate {
         }        
     }
     
-    private String getStat(String statKod, URI source) throws OperationFailedException
+    private String getStat(String statKod, URI source) throws DPUException
     {
         return "countries:" + cleanStatKod(statKod, source);
     }
@@ -666,7 +667,7 @@ public class Scraper_parser extends ScrapingTemplate {
         }
     }
 
-    private String getSluzby(String sluzbaKod) throws OperationFailedException
+    private String getSluzby(String sluzbaKod) throws DPUException
     {
         if (sluzbaKod.startsWith("0")) sluzbaKod = sluzbaKod.substring(1);
         
@@ -826,7 +827,7 @@ public class Scraper_parser extends ScrapingTemplate {
         }
     }
     
-    private String fixIC(String oldIC, String docType) throws OperationFailedException
+    private String fixIC(String oldIC, String docType) throws DPUException
     {
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         if (oldIC == null) return null;
@@ -847,7 +848,7 @@ public class Scraper_parser extends ScrapingTemplate {
         return newIC; 
     }
     
-    private String fixDIC(String oldDIC, String docType) throws OperationFailedException
+    private String fixDIC(String oldDIC, String docType) throws DPUException
     {
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         if (oldDIC == null) return null;
@@ -938,7 +939,7 @@ public class Scraper_parser extends ScrapingTemplate {
     }
 
     @Override
-    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws OperationFailedException {
+    protected void parse(org.jsoup.nodes.Document doc, String docType, URL url) throws DPUException {
         URI xsd_boolean = valueFactory.createURI(xsdPrefix + "boolean");
         if (docType.equals("list") || docType.equals("first") || docType.equals("cancelledList") || docType.equals("firstCancelled")) {
             logger.info("Parsing list #" + numlists++);

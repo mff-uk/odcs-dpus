@@ -1,14 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.mff.cuni.scraper.lib.template;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import eu.unifiedviews.dpu.DPUContext;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,6 +11,9 @@ import java.util.LinkedList;
 import org.jsoup.nodes.Document;
 import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
+
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 /**
  * Abstract class of common scraper.
@@ -39,7 +35,7 @@ public abstract class ScrapingTemplate {
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      * @return List of entries for additional scraping.
      */
-    protected abstract LinkedList<ParseEntry> getLinks(Document doc, String docType) throws OperationFailedException;
+    protected abstract LinkedList<ParseEntry> getLinks(Document doc, String docType) throws DPUException;
     
     /**
      * This method parses given document with document type and do something
@@ -47,13 +43,13 @@ public abstract class ScrapingTemplate {
      * @param doc Input JSoup document.
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      */
-    protected abstract void parse(Document doc, String docType, URL uri) throws OperationFailedException;    
+    protected abstract void parse(Document doc, String docType, URL uri) throws DPUException;
     
     public DPUContext context;
     
     public Logger logger;
 
-    public SimpleRdfWrite pstats;
+    public WritableSimpleRdf pstats;
     
     public int maxAttempts;
     
@@ -69,7 +65,7 @@ public abstract class ScrapingTemplate {
      * @param type Initial document type.
      * @throws InterruptedException 
      */
-    public void parse(URL initUrl, String type) throws InterruptedException, OperationFailedException {
+    public void parse(URL initUrl, String type) throws InterruptedException, DPUException {
         ValueFactory valueFactory = pstats.getValueFactory();
         
         LinkedList<ParseEntry> toParse = new LinkedList<>();

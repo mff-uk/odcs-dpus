@@ -18,66 +18,61 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 
-import org.openrdf.rio.RDFFormat;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 @DPU.AsExtractor
-public class Extractor 
-        extends DpuAdvancedBase<ExtractorConfig> 
-        {
+public class Extractor extends AbstractDpu<ExtractorConfig> {
     
     @DataUnit.AsOutput(name = "contracts")
-    public WritableFilesDataUnit contractsDataUnit;
+    public WritableFilesDataUnit filesContractsDataUnit;
 
     @DataUnit.AsOutput(name = "profiles")
-    public WritableFilesDataUnit profilesDataUnit;
-
-    @SimpleRdfConfigurator.Configure(dataUnitFieldName="profileStatistics")
-    public SimpleRdfWrite profileStatisticsWrap;
-    
+    public WritableFilesDataUnit filesProfilesDataUnit;
+   
     @DataUnit.AsOutput(name = "profile_statistics")
-    public WritableRDFDataUnit profileStatistics;
+    public WritableRDFDataUnit filesProfileStatistics;
+
+    @ExtensionInitializer.Init(param = "filesContractsDataUnit")
+    public WritableSimpleFiles contractsDataUnit;
+
+    @ExtensionInitializer.Init(param = "filesProfilesDataUnit")
+    public WritableSimpleFiles profilesDataUnit;
+
+    @ExtensionInitializer.Init(param = "filesProfileStatistics")
+    public WritableSimpleRdf profileStatistics;
+
 
     private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor() {
-        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
-    }
-     
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
+        super(ExtractorDialog.class, ConfigHistory.noHistory(ExtractorConfig.class));
     }
     
     @Override
-    protected void innerExecute() throws DPUException, DataUnitException
+    protected void innerExecute() throws DPUException
     {
+        DPUContext context = ctx.getExecMasterContext().getDpuContext();
+
         Cache.logger = LOG;
         Cache.rewriteCache = config.isRewriteCache();
         Cache.setBaseDir(context.getUserDirectory() + "/cache/");
         Cache.setTimeout(config.getTimeout());
         Cache.setInterval(config.getInterval());
-        Cache.stats = profileStatisticsWrap;
+        Cache.stats = profileStatistics;
         Cache.validate = config.isValidateXSD();
-        
-        profileStatisticsWrap.flushBuffer();
-        
+                
         /*set up xsd validation*/
         // create a SchemaFactory capable of understanding WXS schemas
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -142,8 +137,8 @@ public class Extractor
 
         s.ps.println(prefixes);
         s.zak_ps.println(prefixes);
-        s.pstats = profileStatisticsWrap;
-        s.valueFactory = profileStatisticsWrap.getValueFactory();
+        s.pstats = profileStatistics;
+        s.valueFactory = profileStatistics.getValueFactory();
         // a spustim na vychozi stranku
         
         java.util.Date date = new java.util.Date();
@@ -157,15 +152,8 @@ public class Extractor
                 s.parse(new URL("http://www.vestnikverejnychzakazek.cz/en/Searching/ShowRemovedProfiles"), "firstCancelled");
                 
                 LOG.info("Parsing done. Passing RDF to UV");
-                try {
-                	contractsDataUnit.addExistingFile(zakazkyname, new File(zakazkyname).toURI().toString());
-                	profilesDataUnit.addExistingFile(profilyname, new File(profilyname).toURI().toString());
-                }
-                catch (OperationFailedException e)
-                {
-                    LOG.error("Cannot put TTL to repository: " + e.getLocalizedMessage());
-                    throw new DPUException("Cannot put TTL to repository.", e);
-                }
+                contractsDataUnit.add(new File(zakazkyname), zakazkyname);
+                profilesDataUnit.add(new File(profilyname), profilyname);
             }
             if (context.canceled()) LOG.error("Interrputed");
         } catch (MalformedURLException e) {
@@ -176,9 +164,6 @@ public class Extractor
         
         s.ps.close();
         s.zak_ps.close();
-        
-        // store triples
-        profileStatisticsWrap.flushBuffer();
         
         java.util.Date date2 = new java.util.Date();
         long end = date2.getTime();
