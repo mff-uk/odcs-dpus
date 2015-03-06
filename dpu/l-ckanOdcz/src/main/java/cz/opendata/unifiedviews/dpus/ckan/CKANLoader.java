@@ -66,6 +66,10 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     {
         logger.debug("Querying metadata");
      
+        String datasetID = config.getDatasetID();
+        String orgID = config.getOrgID();
+        String apiURI = config.getApiUri();
+        
         String datasetURI = executeSimpleSelectQuery("SELECT ?d WHERE {?d a <" + CKANLoaderVocabulary.DCAT_DATASET_CLASS + ">}", "d");
         String title = executeSimpleSelectQuery("SELECT ?title WHERE {<" + datasetURI + "> <"+ DCTERMS.TITLE + "> ?title FILTER(LANGMATCHES(LANG(?title), \"cs\"))}", "title");
         String description = executeSimpleSelectQuery("SELECT ?description WHERE {<" + datasetURI + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"cs\"))}", "description");
@@ -100,7 +104,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		
         logger.debug("Querying for the dataset in CKAN");
         CloseableHttpClient queryClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-		HttpGet httpGet = new HttpGet(config.getApiUri() + "/" + config.getDatasetID());
+		HttpGet httpGet = new HttpGet(apiURI + "/" + datasetID);
         CloseableHttpResponse queryResponse = null;
         try {
             queryResponse = queryClient.execute(httpGet);
@@ -161,7 +165,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             
             //JSONObject extras = new JSONObject();
 
-            if (!config.getDatasetID().isEmpty()) root.put("name", config.getDatasetID());
+            if (!datasetID.isEmpty()) root.put("name", datasetID);
             root.put("url", datasetURI);
             root.put("title", title);
 			root.put("notes", description);
@@ -297,13 +301,13 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             if (!exists) {
 	            JSONObject createRoot = new JSONObject();
 	            
-	            createRoot.put("name", config.getDatasetID());
+	            createRoot.put("name", datasetID);
 	            createRoot.put("title", title);
-	            createRoot.put("owner_org", config.getOrgID());
+	            createRoot.put("owner_org", orgID);
 				
 	            logger.debug("Creating dataset in CKAN");
 	            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-				HttpPost httpPost = new HttpPost(config.getApiUri());
+				HttpPost httpPost = new HttpPost(apiURI);
 				httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = createRoot.toString();
@@ -348,7 +352,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			if (!ctx.canceled()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + "/" + config.getDatasetID());
+	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/" + datasetID);
 	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
