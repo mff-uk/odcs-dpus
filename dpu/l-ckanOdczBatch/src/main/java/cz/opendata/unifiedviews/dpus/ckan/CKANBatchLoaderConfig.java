@@ -112,7 +112,11 @@ public class CKANBatchLoaderConfig  {
     
     private String apiKey = "";
     
-	public String getApiKey() {
+    private boolean loadToCKAN = true;
+    
+    private String filename = "ckan-api.json";
+
+    public String getApiKey() {
 		return apiKey;
 	}
 
@@ -126,6 +130,22 @@ public class CKANBatchLoaderConfig  {
 
 	public void setApiUri(String apiUri) {
 		this.apiUri = apiUri;
+	}
+
+	public boolean isLoadToCKAN() {
+		return loadToCKAN;
+	}
+
+	public void setLoadToCKAN(boolean loadToCKAN) {
+		this.loadToCKAN = loadToCKAN;
+	}
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
 	}
 
 }

@@ -1,7 +1,8 @@
 package cz.opendata.unifiedviews.dpus.ckan;
 
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Label;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
@@ -20,7 +21,8 @@ public class CKANBatchLoaderDialog extends AbstractDialog<CKANBatchLoaderConfig>
 	
 	private VerticalLayout mainLayout;
     private TextField tfRestApiUrl;
-	private Label lblRestApiUrl;
+    private TextField tfFileName;
+    private CheckBox chkLoad;
     private PasswordField tfApiKey;
     
     public CKANBatchLoaderDialog() {
@@ -40,6 +42,20 @@ public class CKANBatchLoaderDialog extends AbstractDialog<CKANBatchLoaderConfig>
         setWidth("100%");
         setHeight("100%");
         
+        chkLoad = new CheckBox();
+        chkLoad.setWidth("100%");
+        chkLoad.setImmediate(true);
+        chkLoad.setCaption("Load to CKAN (if disabled, only generates the JSON file)");
+        chkLoad.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 7348068985822592639L;
+
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				tfRestApiUrl.setEnabled(!chkLoad.getValue());
+				tfApiKey.setEnabled(!chkLoad.getValue());
+		}});
+        mainLayout.addComponent(chkLoad);
+        
         tfRestApiUrl = new TextField();
         tfRestApiUrl.setWidth("100%");
         tfRestApiUrl.setCaption("CKAN Rest API URL");
@@ -53,10 +69,12 @@ public class CKANBatchLoaderDialog extends AbstractDialog<CKANBatchLoaderConfig>
         tfApiKey.setInputPrompt("00000000-0000-0000-0000-000000000000");
         mainLayout.addComponent(tfApiKey);
         
-        lblRestApiUrl = new Label();
-        lblRestApiUrl.setContentMode(ContentMode.HTML);
-        mainLayout.addComponent(lblRestApiUrl);
-        
+        tfFileName = new TextField();
+        tfFileName.setWidth("100%");
+        tfFileName.setCaption("Output filename");
+        tfFileName.setInputPrompt("ckan.json");
+        mainLayout.addComponent(tfFileName);
+
         Panel panel = new Panel();
         panel.setSizeFull();
         panel.setContent(mainLayout);
@@ -67,12 +85,14 @@ public class CKANBatchLoaderDialog extends AbstractDialog<CKANBatchLoaderConfig>
     public void setConfiguration(CKANBatchLoaderConfig conf) throws DPUConfigException {
     	tfApiKey.setValue(conf.getApiKey());
     	tfRestApiUrl.setValue(conf.getApiUri());
+    	chkLoad.setValue(conf.isLoadToCKAN());
     }
 
 	@Override
     public CKANBatchLoaderConfig getConfiguration() throws DPUConfigException {
     	CKANBatchLoaderConfig conf = new CKANBatchLoaderConfig();
-        conf.setApiKey(tfApiKey.getValue());
+        conf.setLoadToCKAN(chkLoad.getValue());
+    	conf.setApiKey(tfApiKey.getValue());
         conf.setApiUri(tfRestApiUrl.getValue());
         return conf;
     }
