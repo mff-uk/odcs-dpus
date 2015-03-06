@@ -37,7 +37,7 @@ public class TextHolder extends AbstractDpu<TextHolderConfig_V1> {
 		
     @Override
     protected void innerExecute() throws DPUException {
-        final File file = output.create(config.getText());
+        final File file = output.create(config.getFileName());
         try {
             FileUtils.writeStringToFile(file, config.getText(), "UTF-8");
         } catch (IOException ex) {
