@@ -51,8 +51,8 @@ public class CKANBatchLoaderDialog extends AbstractDialog<CKANBatchLoaderConfig>
 
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				tfRestApiUrl.setEnabled(!chkLoad.getValue());
-				tfApiKey.setEnabled(!chkLoad.getValue());
+				tfRestApiUrl.setEnabled(chkLoad.getValue());
+				tfApiKey.setEnabled(chkLoad.getValue());
 		}});
         mainLayout.addComponent(chkLoad);
         

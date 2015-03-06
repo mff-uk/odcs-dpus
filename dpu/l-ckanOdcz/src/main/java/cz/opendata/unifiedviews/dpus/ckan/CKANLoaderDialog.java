@@ -56,8 +56,8 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
 
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				tfRestApiUrl.setEnabled(!chkLoad.getValue());
-				tfApiKey.setEnabled(!chkLoad.getValue());
+				tfRestApiUrl.setEnabled(chkLoad.getValue());
+				tfApiKey.setEnabled(chkLoad.getValue());
 		}});
         mainLayout.addComponent(chkLoad);
 
