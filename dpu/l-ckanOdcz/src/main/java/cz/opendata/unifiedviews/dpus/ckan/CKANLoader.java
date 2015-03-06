@@ -1,5 +1,6 @@
 package cz.opendata.unifiedviews.dpus.ckan;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -10,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -33,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.unifiedviews.dataunit.DataUnit;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
@@ -42,6 +45,7 @@ import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 
@@ -51,6 +55,12 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 
     private static final Logger logger = LoggerFactory.getLogger(CKANLoader.class);
     
+    @DataUnit.AsOutput(name = "JSON")
+    public WritableFilesDataUnit outFile;    
+
+    @ExtensionInitializer.Init(param = "outFile")
+    public WritableSimpleFiles outFileSimple;
+
     @DataUnit.AsInput(name = "metadata")
     public RDFDataUnit metadata;
 
@@ -298,7 +308,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			root.put("resources", resources);
 			//root.put("extras", extras);
 			
-            if (!exists) {
+            if (!exists && config.isLoadToCKAN()) {
 	            JSONObject createRoot = new JSONObject();
 	            
 	            createRoot.put("name", datasetID);
@@ -349,14 +359,21 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	            }
 			}
 			
-			if (!ctx.canceled()) {
+            String json = root.toString();
+            
+            File outfile = outFileSimple.create(config.getFilename());
+            try {
+				FileUtils.writeStringToFile(outfile, json, "UTF-8");
+			} catch (IOException e) {
+            	logger.error(e.getLocalizedMessage(), e);
+			}
+            
+			if (!ctx.canceled() && config.isLoadToCKAN()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
 	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/" + datasetID);
 	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
-	            
-	            String json = root.toString();
 	            
 	            logger.trace(json);
 	            

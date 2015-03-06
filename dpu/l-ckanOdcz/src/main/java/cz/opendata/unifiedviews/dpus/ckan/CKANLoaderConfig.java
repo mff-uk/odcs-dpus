@@ -112,7 +112,11 @@ public class CKANLoaderConfig  {
     
     private String apiKey = "";
     
+    private boolean loadToCKAN = true;
+    
     private String datasetID = "";
+    
+    private String filename = "ckan-api.json";
     
     private String orgID = "d2664e4e-25ba-4dcc-a842-dcc5f2d2f326" ;
     
@@ -146,6 +150,22 @@ public class CKANLoaderConfig  {
 
 	public void setApiUri(String apiUri) {
 		this.apiUri = apiUri;
+	}
+
+	public boolean isLoadToCKAN() {
+		return loadToCKAN;
+	}
+
+	public void setLoadToCKAN(boolean loadToCKAN) {
+		this.loadToCKAN = loadToCKAN;
+	}
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
 	}
 
 }

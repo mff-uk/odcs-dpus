@@ -1,7 +1,10 @@
 package cz.opendata.unifiedviews.dpus.ckan;
 
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractTextField.TextChangeEventMode;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
@@ -21,7 +24,8 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
 	
 	private VerticalLayout mainLayout;
     private TextField tfRestApiUrl;
-	private Label lblRestApiUrl;
+    private TextField tfFileName;
+    private CheckBox chkLoad;
     private TextField tfDatasetID;
     private PasswordField tfApiKey;
     private TextField tfOwnerOrg;
@@ -43,6 +47,20 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         setWidth("100%");
         setHeight("100%");
         
+        chkLoad = new CheckBox();
+        chkLoad.setWidth("100%");
+        chkLoad.setImmediate(true);
+        chkLoad.setCaption("Load to CKAN (if disabled, only generates the JSON file)");
+        chkLoad.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = 7348068985822592639L;
+
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				tfRestApiUrl.setEnabled(!chkLoad.getValue());
+				tfApiKey.setEnabled(!chkLoad.getValue());
+		}});
+        mainLayout.addComponent(chkLoad);
+
         tfRestApiUrl = new TextField();
         tfRestApiUrl.setWidth("100%");
         tfRestApiUrl.setCaption("CKAN Rest API URL");
@@ -63,23 +81,19 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         tfDatasetID.setCaption("Dataset ID");
         tfDatasetID.setDescription("CKAN Dataset Name used in CKAN Dataset URL");
         tfDatasetID.setInputPrompt("cz-test");
-        /*tfDatasetID.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				String url = tfRestApiUrl + "/" + tfDatasetID.getValue();
-				lblRestApiUrl.setValue("<a href=\"" + url + "\" target=\"_blank\">" + url + "</a>");
-		}});*/
         mainLayout.addComponent(tfDatasetID);
-        
-        lblRestApiUrl = new Label();
-        lblRestApiUrl.setContentMode(ContentMode.HTML);
-        mainLayout.addComponent(lblRestApiUrl);
         
         tfOwnerOrg = new TextField();
         tfOwnerOrg.setWidth("100%");
         tfOwnerOrg.setCaption("Owner CKAN organization ID");
         tfOwnerOrg.setInputPrompt("00000000-0000-0000-0000-000000000000");
         mainLayout.addComponent(tfOwnerOrg);
+
+        tfFileName = new TextField();
+        tfFileName.setWidth("100%");
+        tfFileName.setCaption("Output filename");
+        tfFileName.setInputPrompt("ckan.json");
+        mainLayout.addComponent(tfFileName);
 
         Panel panel = new Panel();
         panel.setSizeFull();
