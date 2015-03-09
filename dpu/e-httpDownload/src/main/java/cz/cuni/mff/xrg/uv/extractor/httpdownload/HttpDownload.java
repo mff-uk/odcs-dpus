@@ -1,23 +1,10 @@
 package cz.cuni.mff.xrg.uv.extractor.httpdownload;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.ConfigurationFromRdf;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -28,33 +15,51 @@ import java.net.URLEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.CachedFileDownloader;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
+import eu.unifiedviews.helpers.dpu.extension.rdf.RdfConfiguration;
+
 /**
  *
  * @author Škoda Petr
  */
 @DPU.AsExtractor
-public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
+public class HttpDownload extends AbstractDpu<HttpDownloadConfig_V2> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpDownload.class);
 
+    @RdfConfiguration.ContainsConfiguration
     @DataUnit.AsInput(name = "config", optional = true, description = "DPU's configuration.")
     public RDFDataUnit inRdfToDownload;
 
     @DataUnit.AsOutput(name = "files", description = "Downloaded files.")
     public WritableFilesDataUnit outFilesFiles;
 
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+    
+    @ExtensionInitializer.Init(param = "outFilesFiles")
+    public WritableSimpleFiles outFiles;
+
+    @ExtensionInitializer.Init
+    public CachedFileDownloader fileDownloader;
+
+    @ExtensionInitializer.Init
+    public RdfConfiguration _rdfConfiguration;
+
     public HttpDownload() {
-        super(ConfigHistory.create(HttpDownloadConfig_V1.class,
-                "eu.unifiedviews.plugins.extractor.httpdownload.HttpDownloadConfig_V1")
-                .addCurrent(HttpDownloadConfig_V2.class),
-                AddonInitializer.create(new CachedFileDownloader(),
-                        new ConfigurationFromRdf("inRdfToDownload")));
+        super(HttpDownloadVaadinDialog.class, ConfigHistory.noHistory(HttpDownloadConfig_V2.class));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
-        context.sendMessage(DPUContext.MessageType.INFO,
-                String.format("%d file to download", config.getToDownload().size()));
+        ContextUtils.sendShortInfo(ctx, "{0} file to download", config.getToDownload().size());
 
         int index = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {
@@ -74,46 +79,31 @@ public class HttpDownload extends DpuAdvancedBase<HttpDownloadConfig_V2> {
                 try {
                     virtualPath = URLEncoder.encode(uriTail, "UTF-8");
                 } catch (UnsupportedEncodingException ex) {
-                    context.sendMessage(DPUContext.MessageType.ERROR, "UTF-8 is not supported!", "", ex);
-                    return;
+                    throw ContextUtils.dpuException(ctx, ex, "UTF-8 is not supported!");
                 }
             }
             // Download file.
             try {
-                downloadFile(url, virtualPath, virtualPath);
-            } catch (DataUnitException ex) {
-                SendMessage.sendMessage(context, ex);
-                return;
-            } catch (AddonException | IOException ex) {
-                SendMessage.sendError(context, "Download failed", ex, "File: %s", info.getUri());
-                return;
+                downloadFile(url, virtualPath);
+            } catch (ExtensionException | IOException ex) {
+                throw ContextUtils.dpuException(ctx, ex, "Can't download: {0}", info.getUri());
             }
         }
 
-    }
-
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new HttpDownloadVaadinDialog();
     }
 
     /**
      * Download file and store it into output {@link #outFilesFiles}.
      *
      * @param sourceUri
-     * @param symbolicName
-     * @param virtualPath
-     * @throws AddonException
+     * @param fileName
+     * @throws ExtensionException
+     * @throws DPUException
      * @throws IOException
-     * @throws DataUnitException
      */
-    private void downloadFile(URL sourceUri, String symbolicName, String virtualPath)
-            throws AddonException, IOException, DataUnitException {
-        final File file = getAddon(CachedFileDownloader.class).get(sourceUri);
-        outFilesFiles.addExistingFile(symbolicName, file.toURI().toString());
-
-        // TODO We can add more metadata here ...
-        Manipulator.set(outFilesFiles, symbolicName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, virtualPath);
+    private void downloadFile(URL sourceUri, String fileName) throws ExtensionException, DPUException, IOException {
+        final File file = fileDownloader.get(sourceUri);
+        outFiles.add(file, fileName);
     }
 
 }

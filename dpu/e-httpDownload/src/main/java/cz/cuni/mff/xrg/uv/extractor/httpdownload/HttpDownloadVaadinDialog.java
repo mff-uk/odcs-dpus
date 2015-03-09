@@ -1,26 +1,16 @@
 package cz.cuni.mff.xrg.uv.extractor.httpdownload;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.ConfigurationFromRdf;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
-import cz.cuni.mff.xrg.uv.utils.dialog.validator.UrlValidator;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.validator.UrlValidator;
 
-public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownloadConfig_V2> {
+public class HttpDownloadVaadinDialog extends AbstractDialog<HttpDownloadConfig_V2> {
 
     private ComponentTable<DownloadInfo_V1> table;
 
     public HttpDownloadVaadinDialog() {
-        super(ConfigHistory.create(HttpDownloadConfig_V1.class,
-                "eu.unifiedviews.plugins.extractor.httpdownload.HttpDownloadConfig_V1")
-                .addCurrent(HttpDownloadConfig_V2.class),
-                AddonInitializer.create(new CachedFileDownloader(),
-                        new ConfigurationFromRdf("inRdfToDownload")));
-
-        buildLayout();
+        super(HttpDownload.class);
     }
 
     @Override
@@ -35,7 +25,8 @@ public class HttpDownloadVaadinDialog extends AdvancedVaadinDialogBase<HttpDownl
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
         setSizeFull();
 
         table = new ComponentTable<>(DownloadInfo_V1.class,
