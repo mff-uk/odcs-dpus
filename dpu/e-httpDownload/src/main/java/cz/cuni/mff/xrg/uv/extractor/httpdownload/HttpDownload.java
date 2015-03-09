@@ -86,7 +86,7 @@ public class HttpDownload extends AbstractDpu<HttpDownloadConfig_V2> {
             try {
                 downloadFile(url, virtualPath);
             } catch (ExtensionException | IOException ex) {
-                throw ContextUtils.dpuException(ctx, ex, "Can't download: {0}", info.getUri());
+                throw ContextUtils.dpuException(ctx, ex, "Can''t download: {0}", info.getUri());
             }
         }
 
