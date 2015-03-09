@@ -63,7 +63,7 @@ public class HttpDownload extends AbstractDpu<HttpDownloadConfig_V2> {
 
         int index = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {
-            LOG.info("Downloading file number: {} from: {}", index, info.getUri());
+            LOG.info("Downloading ({}/{}) : '{}' ", index++, config.getToDownload().size(), info.getUri());
             URL url;
             try {
                 url = new URL(info.getUri());
