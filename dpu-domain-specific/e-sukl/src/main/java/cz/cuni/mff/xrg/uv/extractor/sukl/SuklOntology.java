@@ -1,6 +1,10 @@
 package cz.cuni.mff.xrg.uv.extractor.sukl;
 
 import org.openrdf.model.URI;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.DCTERMS;
+import org.openrdf.model.vocabulary.SKOS;
 
 /**
  *
@@ -12,60 +16,43 @@ public class SuklOntology {
 
     public static final String ONTOLOGY_URI = "http://linked.opendata.cz/ontology/sukl/";
 
-    public static final String SUBJECT_PREFIX =
-            RESOURCE_URI + "medicinal-product-packaging/";
+    public static final String SUBJECT_PREFIX = RESOURCE_URI + "medicinal-product-packaging/";
 
-    public static final String P_HAS_INGREDIEND =
-            ONTOLOGY_URI + "hasActiveIngredient";
+    public static URI HAS_INGREDIEND;
 
-    public static URI P_HAS_INGREDIEND_URI;
+    public static final String INGREDIEND_PREFIX = RESOURCE_URI + "active-ingredient/";
 
-    public static final String INGREDIEND_PREFIX =
-            RESOURCE_URI + "active-ingredient/";
+    public static URI INGREDIEND_CLASS;
 
-    public static final String O_INGREDIEND_CLASS =
-            ONTOLOGY_URI + "ActiveIngredient";
+    public static URI INGREDIEND_NAME_SKOS;
 
-    public static URI O_INGREDIEND_CLASS_URI;
+    public static URI INGREDIEND_NAME_DCTERMS;
 
-    public static final String P_INGREDIEND_NAME_SKOS =
-            "http://www.w3.org/2004/02/skos/core#prefLabel";
+    public static URI SPC;
 
-    public static URI P_INGREDIEND_NAME_SKOS_URI;
+    public static URI SPC_FILE;
 
-    public static final String P_INGREDIEND_NAME_DCTERMS =
-            "http://purl.org/dc/terms/title";
+    public static URI PIL;
 
-    public static URI P_INGREDIEND_NAME_DCTERMS_URI;
+    public static URI PIL_FILE;
 
-    public static final String P_SPC
-            = ONTOLOGY_URI + "spcUri";
+    public static URI TEXT_ON_THE_WRAP;
 
-    public static URI P_SPC_URI;
+    public static URI TEXT_ON_THE_WRAP_FILE;
 
-    public static final String P_SPC_FILE
-            = ONTOLOGY_URI + "spcFile";
-
-    public static URI P_SPC_FILE_URI;
-
-    public static final String P_PIL
-            = ONTOLOGY_URI + "pilUri";
-
-    public static URI P_PIL_URI;
-
-    public static final String P_PIL_FILE
-            = ONTOLOGY_URI + "pilFile";
-
-    public static URI P_PIL_FILE_URI;
-
-    public static final String P_TEXT_ON_THE_WRAP
-            = ONTOLOGY_URI + "textOnTheWrapUri";
-
-    public static URI P_TEXT_ON_THE_WRAP_URI;
-
-    public static final String P_TEXT_ON_THE_WRAP_FILE
-            = ONTOLOGY_URI + "textOnTheWrapFile";
-
-    public static URI P_TEXT_ON_THE_WRAP_FILE_URI;
+    static {
+        final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
+        
+        HAS_INGREDIEND = valueFactory.createURI(ONTOLOGY_URI + "hasActiveIngredient");
+        INGREDIEND_CLASS = valueFactory.createURI(ONTOLOGY_URI + "ActiveIngredient");
+        INGREDIEND_NAME_SKOS = SKOS.PREF_LABEL;
+        INGREDIEND_NAME_DCTERMS = DCTERMS.TITLE;
+        SPC = valueFactory.createURI(ONTOLOGY_URI + "spcUri");
+        SPC_FILE = valueFactory.createURI(ONTOLOGY_URI + "spcFile");
+        PIL = valueFactory.createURI(ONTOLOGY_URI + "pilUri");
+        PIL_FILE = valueFactory.createURI(ONTOLOGY_URI + "pilFile");
+        TEXT_ON_THE_WRAP = valueFactory.createURI(ONTOLOGY_URI + "textOnTheWrapUri");
+        TEXT_ON_THE_WRAP_FILE = valueFactory.createURI(ONTOLOGY_URI + "textOnTheWrapFile");
+    }
 
 }

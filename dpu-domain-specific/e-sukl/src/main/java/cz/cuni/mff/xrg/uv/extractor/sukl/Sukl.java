@@ -1,50 +1,49 @@
 package cz.cuni.mff.xrg.uv.extractor.sukl;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CachedFileDownloader;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.SelectQuery;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.AddPolicy;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
-import cz.cuni.mff.xrg.uv.utils.dataunit.metadata.Manipulator;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelper;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.repository.RepositoryConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.extension.files.CachedFileDownloader;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 /**
  *
  * @author Škoda Petr
  */
 @DPU.AsExtractor
-public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
-        implements SelectQuery.BindingIterator {
+public class Sukl extends AbstractDpu<SuklConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Sukl.class);
 
@@ -70,21 +69,29 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private static final String CSS_SELECTOR
             = "div#medicine-box>table.zebra.vertical tbody tr";
 
-
     @DataUnit.AsInput(name = "SkosNotation")
     public RDFDataUnit rdfInSkosNotation;
 
-    public SimpleRdfRead inSkosNotation;
+    @ExtensionInitializer.Init(param = "rdfInSkosNotation")
+    public SimpleRdf inSkosNotation;
 
     @DataUnit.AsOutput(name = "Info", description = "Active substances and links to files.")
     public WritableRDFDataUnit rdfOutInfo;
 
-    public SimpleRdfWrite outInfo;
+    @ExtensionInitializer.Init(param = "rdfOutInfo")
+    public WritableSimpleRdf outInfo;
 
     @DataUnit.AsOutput(name = "Texts", description = "Text files.")
     public WritableFilesDataUnit filesOutTexts;
 
-    private final CachedFileDownloader downloaderService;
+    @ExtensionInitializer.Init(param = "filesOutTexts")
+    public WritableSimpleFiles outTexts;
+
+    @ExtensionInitializer.Init
+    public CachedFileDownloader downloaderService;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
 
     private ValueFactory valueFactory;
 
@@ -99,85 +106,56 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
     private final Set<String> downloadedFiles = new HashSet<>();
 
     public Sukl() {
-        super(SuklConfig_V1.class, AddonInitializer.create(new CachedFileDownloader()));
-
-        downloaderService = getAddon(CachedFileDownloader.class);
+        super(SuklVaadinDialog.class, ConfigHistory.noHistory(SuklConfig_V1.class));
     }
 
     @Override
     protected void innerInit() throws DataUnitException, DPUException {
         super.innerInit();
-        //
-        // wraps
-        //
-        inSkosNotation = SimpleRdfFactory.create(rdfInSkosNotation, context);
-        outInfo = SimpleRdfFactory.create(rdfOutInfo, context);
-        outInfo.setPolicy(AddPolicy.BUFFERED);
-        valueFactory = this.outInfo.getValueFactory();
-        //
-        // ontology
-        //
-        SuklOntology.O_INGREDIEND_CLASS_URI
-                = valueFactory.createURI(SuklOntology.O_INGREDIEND_CLASS);
-        SuklOntology.P_HAS_INGREDIEND_URI
-                = valueFactory.createURI(SuklOntology.P_HAS_INGREDIEND);
-        SuklOntology.P_INGREDIEND_NAME_DCTERMS_URI 
-                = valueFactory.createURI(
-                SuklOntology.P_INGREDIEND_NAME_DCTERMS);
-        SuklOntology.P_INGREDIEND_NAME_SKOS_URI
-                = valueFactory.createURI(SuklOntology.P_INGREDIEND_NAME_SKOS);
-        SuklOntology.P_PIL_URI
-                = valueFactory.createURI(SuklOntology.P_PIL);
-        SuklOntology.P_PIL_FILE_URI
-                = valueFactory.createURI(SuklOntology.P_PIL_FILE);
-        SuklOntology.P_SPC_URI
-                = valueFactory.createURI(SuklOntology.P_SPC);
-        SuklOntology.P_SPC_FILE_URI
-                = valueFactory.createURI(SuklOntology.P_SPC_FILE);
-        SuklOntology.P_TEXT_ON_THE_WRAP_URI
-                = valueFactory.createURI(SuklOntology.P_TEXT_ON_THE_WRAP);
-        SuklOntology.P_TEXT_ON_THE_WRAP_FILE_URI
-                = valueFactory.createURI(SuklOntology.P_TEXT_ON_THE_WRAP_FILE);
-        // locals
+        // Some local variables.
         filesOnOutput = 0;
         downloadedFiles.clear();
     }
 
     @Override
     protected void innerExecute() throws DPUException {
-        try {
-            // will call processStatement
-            SelectQuery.iterate(inSkosNotation, IN_QUERY, this, context);
-            // flush buffer
-            outInfo.flushBuffer();
-        } catch (OperationFailedException ex) {
-            SendMessage.sendMessage(context, ex);
-        } catch (QueryEvaluationException ex) {
-            throw new DPUException("Query execution failed.", ex);
+        valueFactory = outInfo.getValueFactory();
+        // Go for per-graph mode.
+        final List<RDFDataUnit.Entry> entries = FaultToleranceUtils.getEntries(faultTolerance,
+                rdfInSkosNotation, RDFDataUnit.Entry.class);
+        int counter = 0;
+        for (RDFDataUnit.Entry entry : entries) {
+            LOG.info("Processing {}/{}", ++counter, entries.size());
+            process(Arrays.asList(entry));
         }
-        // log number of files
-        context.sendMessage(DPUContext.MessageType.INFO, filesOnOutput.toString() + " files downloaded.");
+        ContextUtils.sendShortInfo(ctx, "{0} files downloaded", filesOnOutput);
     }
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new SuklVaadinDialog();
-    }
+    /**
+     * Process given graphs.
+     *
+     * @param entries
+     * @throws DPUException
+     */
+    public void process(final List<RDFDataUnit.Entry> entries) throws DPUException {
+        final SparqlUtils.QueryResultCollector colector = new SparqlUtils.QueryResultCollector();
+        faultTolerance.execute(rdfInSkosNotation, new FaultTolerance.ConnectionAction() {
 
-    @Override
-    public void processStatement(BindingSet binding) throws DPUException {
-        final String notation = binding.getBinding(SKOSNOTATION_BINDING).getValue().stringValue();
-        final URI subject = (URI) binding.getBinding(SUBJECT_BINDING).getValue();
-        // get information for given notation
-        try {
-            downloadInfo(subject, notation);
-        } catch (AddonException | IOException e) {
-            context.sendMessage(DPUContext.MessageType.WARNING, "Failed to get info about notation.",
-                    "Notation: " + notation, e);
-
-            // TODO terminate or continue?
-        } catch (DataUnitException ex) {
-            throw new DPUException("Problem with dataUnit.", ex);
+            @Override
+            public void action(RepositoryConnection connection) throws Exception {
+                final SparqlUtils.SparqlSelectObject select = SparqlUtils.createSelect(IN_QUERY, entries);
+                SparqlUtils.execute(connection, ctx, select, colector);
+            }
+        });
+        // For each row of result (tuple).
+        for (Map<String, Value> row : colector.getResults()) {
+            final String notation = row.get(SKOSNOTATION_BINDING).stringValue();
+            final URI subject = (URI) row.get(SUBJECT_BINDING);
+            try {
+                downloadInfo(subject, notation);
+            } catch (IOException | ExtensionException ex) {
+                throw ContextUtils.dpuException(ctx, ex, "Downloading failed.");
+            }
         }
     }
 
@@ -186,33 +164,23 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      *
      * @param subject
      * @param notation Id of given medicament.
-     * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
-     * @throws java.io.IOException
+     * @throws DPUException
      */
-    private void downloadInfo(URI subject, String notation) throws AddonException,
-            IOException, OperationFailedException, DataUnitException {
+    private void downloadInfo(URI subject, String notation) throws DPUException, IOException, ExtensionException {
         LOG.debug("downloadInfo({}, {})", subject.toString(), notation);
-
-        //
-        // parse info cz
-        //
+        // Parse info cz.
         final File fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
         if (fileInfoCz != null) {
             final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
             parseNameCz(subject, docInfoCz);
         }
-        //
-        // parse 'en' only if we get the czech one
-        // as if we not nor english is probably provided
-        //
+        // Parse 'en' only if we get the czech one as if we not nor english is probably provided.
         final File fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
         if (fileInfoEn != null) {
             final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
             parseNameEn(subject, docInfoEn);
         }
-        //
-        // donwload texts
-        //
+        // Donwload texts.
         final File fileText = downloaderService.get(URI_BASE_TEXTS + notation);
         if (fileText != null) {
             final Document docText = Jsoup.parse(fileText, null);
@@ -225,9 +193,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      *
      * @param subject
      * @param doc
-     * @throws OperationFailedException
      */
-    private void parseNameCz(URI subject, Document doc) throws OperationFailedException {
+    private void parseNameCz(URI subject, Document doc) throws DPUException  {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo("Účinná látka") == 0) {
@@ -258,10 +225,8 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      *
      * @param subject
      * @param doc
-     * @throws OperationFailedException
      */
-    private void parseNameEn(URI subject, Document doc)
-            throws OperationFailedException {
+    private void parseNameEn(URI subject, Document doc) throws DPUException  {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo("Active substance") == 0) {
@@ -294,20 +259,16 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * @param nameLa  Identifier of ingredient - name in latin.
      * @param name
      * @param lang
-     * @throws OperationFailedException
      */
-    private void addIngredient(URI subject, String nameLa, String name,
-            String lang) throws OperationFailedException {
+    private void addIngredient(URI subject, String nameLa, String name, String lang) throws DPUException  {
         final String ingredientSubjectStr = SuklOntology.INGREDIEND_PREFIX
                 + Utils.convertStringToURIPart(nameLa);
         final URI ingredientUri = valueFactory.createURI(ingredientSubjectStr);
 
-        outInfo.add(subject, SuklOntology.P_HAS_INGREDIEND_URI, ingredientUri);
-        // add names
-        outInfo.add(ingredientUri, SuklOntology.P_INGREDIEND_NAME_SKOS_URI,
-                valueFactory.createLiteral(nameLa, "la"));
-        outInfo.add(ingredientUri, SuklOntology.P_INGREDIEND_NAME_SKOS_URI,
-                valueFactory.createLiteral(name, lang));
+        outInfo.add(subject, SuklOntology.HAS_INGREDIEND, ingredientUri);
+        // Add names.
+        outInfo.add(ingredientUri, SuklOntology.INGREDIEND_NAME_SKOS, valueFactory.createLiteral(nameLa, "la"));
+        outInfo.add(ingredientUri, SuklOntology.INGREDIEND_NAME_SKOS, valueFactory.createLiteral(name, lang));
     }
 
     /**
@@ -316,68 +277,63 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
      * @param subject
      * @param notation
      * @param doc
-     * @throws cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException
-     * @throws cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonException
-     * @throws java.io.IOException
      */
-    private void parseTexts(URI subject, String notation, Document doc)
-            throws OperationFailedException, AddonException, IOException,
-            DataUnitException {
+    private void parseTexts(URI subject, String notation, Document doc) throws IOException, DPUException, ExtensionException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             final Elements withHref = element.select("td a");
-            // get name and value
+            // Get name and value.
             final String name = element.getElementsByTag("th").first().text();
             final String value = !withHref.isEmpty() ? withHref.first().attr("abs:href") : null;
-            // skil rows without values
+            // Skip rows without values.
             if (value == null) {
                 // TODO we may add info if null value is one of our selected
                 continue;
             }
-            // parse
+            // Parse.
             URI predicate = null;
             URI predicateFile = null;
             switch (name) {
                 case "SPC - Souhrn údajů o přípravku":
-                    predicate = SuklOntology.P_SPC_URI;
-                    predicateFile = SuklOntology.P_SPC_FILE_URI;
+                    predicate = SuklOntology.SPC;
+                    predicateFile = SuklOntology.SPC_FILE;
                     break;
                 case "PIL - Příbalová informace":
-                    predicate = SuklOntology.P_PIL_URI;
-                    predicateFile = SuklOntology.P_PIL_FILE_URI;
+                    predicate = SuklOntology.PIL;
+                    predicateFile = SuklOntology.PIL_FILE;
                     break;
                 case "Text na obalu":
-                    predicate = SuklOntology.P_TEXT_ON_THE_WRAP_URI;
-                    predicateFile = SuklOntology.P_TEXT_ON_THE_WRAP_FILE_URI;
+                    predicate = SuklOntology.TEXT_ON_THE_WRAP;
+                    predicateFile = SuklOntology.TEXT_ON_THE_WRAP_FILE;
                     break;
             }
             if (predicate == null || predicateFile == null) {
-                // value is not interesting for us
+                // Value is not interesting for us.
                 continue;
             }
-            // add info
+            // Add info.
             outInfo.add(subject, predicate, valueFactory.createURI(value));
             final String fileName = Utils.convertStringToURIPart(value);
             outInfo.add(subject, predicateFile, valueFactory.createLiteral(fileName));
-
-            // download
+            // Download.
             final File file = downloaderService.get(value);
             if (file == null) {
-                // file is missing
+                // File is missing.
                 LOG.warn("Missing file: {} with name: {}", value, fileName);
                 return;
-            }
-            
+            }            
             if (downloadedFiles.contains(fileName)) {
-                // already downloaded
+                // Already downloaded.
                 return;
             }
-
-            // add metadata for path
-            while (!context.canceled()) {
+            // Add metadata for path.
+            while (true) {
+                if (ctx.canceled()) {
+                    throw ContextUtils.dpuExceptionCancelled(ctx);
+                }
                 try {
                     filesOutTexts.addExistingFile(fileName, file.toURI().toString());
-                    // files has been added
+                    // Files has been added.
                     ++filesOnOutput;
                     break;
                 } catch (DataUnitException ex) {
@@ -390,8 +346,7 @@ public class Sukl extends DpuAdvancedBase<SuklConfig_V1>
                 }
             }
             LOG.debug("new file {} -> {}", file.toURI().toString(), fileName);
-            Manipulator.add(filesOutTexts, fileName, VirtualPathHelper.PREDICATE_VIRTUAL_PATH, fileName);
-            // add
+            // Add file to touptut.
             downloadedFiles.add(fileName);
         }
     }
