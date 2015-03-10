@@ -107,6 +107,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
     	tfDatasetID.setValue(conf.getDatasetID());
     	tfOwnerOrg.setValue(conf.getOrgID());
     	tfRestApiUrl.setValue(conf.getApiUri());
+    	chkLoad.setValue(conf.isLoadToCKAN());
     }
 
 	@Override
@@ -116,6 +117,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
+        conf.setLoadToCKAN(chkLoad.getValue());
         return conf;
     }
 
