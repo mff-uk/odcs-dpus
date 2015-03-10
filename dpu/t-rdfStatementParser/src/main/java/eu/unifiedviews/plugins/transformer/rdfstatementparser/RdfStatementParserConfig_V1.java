@@ -1,8 +1,9 @@
 package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.config.VersionedConfig;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import eu.unifiedviews.helpers.dpu.config.VersionedConfig;
 
 /**
  * DPU's configuration class.

@@ -2,20 +2,15 @@ package eu.unifiedviews.plugins.transformer.rdfstatementparser;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.ConfigurationCopyPaste;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.ConfigHistory;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  *
  * @author Škoda Petr
  */
-public class RdfStatementParserVaadinDialog
-        extends AdvancedVaadinDialogBase<RdfStatementParserConfig_V2> {
+public class RdfStatementParserVaadinDialog extends AbstractDialog<RdfStatementParserConfig_V2> {
 
     private TextArea txtQuery;
 
@@ -24,13 +19,7 @@ public class RdfStatementParserVaadinDialog
     private CheckBox checkTransferLabels;
 
     public RdfStatementParserVaadinDialog() {
-        super(ConfigHistory.create(RdfStatementParserConfig_V1.class).addCurrent(
-                RdfStatementParserConfig_V2.class),
-                AddonInitializer.create(
-                        new SimpleRdfConfigurator(RdfStatementParser.class),
-                        new ConfigurationCopyPaste()));
-
-        buildLayout();
+        super(RdfStatementParser.class);
     }
 
     @Override
@@ -59,7 +48,8 @@ public class RdfStatementParserVaadinDialog
         return conf;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
         final VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");
