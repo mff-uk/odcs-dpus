@@ -1,18 +1,15 @@
 package cz.cuni.mff.xrg.uv.transformer.graphmerge;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * DPU's configuration dialog.
  */
-public class GraphMergeVaadinDialog extends AdvancedVaadinDialogBase<GraphMergeConfig_V1> {
+public class GraphMergeVaadinDialog extends AbstractDialog<GraphMergeConfig_V1> {
 
     public GraphMergeVaadinDialog() {
-        super(GraphMergeConfig_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(GraphMerge.class);
     }
 
     @Override
@@ -27,7 +24,8 @@ public class GraphMergeVaadinDialog extends AdvancedVaadinDialogBase<GraphMergeC
         return c;
     }
 
-    private void buildLayout() {
-		
+    @Override
+    protected void buildDialogLayout() {
     }
+
 }

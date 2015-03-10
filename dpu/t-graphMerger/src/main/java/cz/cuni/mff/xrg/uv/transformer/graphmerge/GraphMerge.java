@@ -1,39 +1,32 @@
 package cz.cuni.mff.xrg.uv.transformer.graphmerge;
 
+import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
-import org.openrdf.model.URI;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
+import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 @DPU.AsTransformer
-public class GraphMerge extends DpuAdvancedBase<GraphMergeConfig_V1> {
+public class GraphMerge extends AbstractDpu<GraphMergeConfig_V1> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphMerge.class);
 
-    /**
-     * %s - from
-     * %s - to
-     */
-    private static final String COPY_QUERY = "ADD <%s> TO <%s>";
+    private static final String COPY_QUERY = "INSERT { ?s ?p ?o } WHERE { ?s ?p ?o }";
 
     @DataUnit.AsInput(name = "input")
     public RDFDataUnit rdfInput;
@@ -41,66 +34,41 @@ public class GraphMerge extends DpuAdvancedBase<GraphMergeConfig_V1> {
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit rdfOutput;
 
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+
 	public GraphMerge() {
-		super(GraphMergeConfig_V1.class, AddonInitializer.noAddons());
+		super(GraphMergeVaadinDialog.class, ConfigHistory.noHistory(GraphMergeConfig_V1.class));
 	}
 		
     @Override
     protected void innerExecute() throws DPUException {
         // Get list of input graphs.
-        final List<URI> inputGraphs = new LinkedList<>();
-        try {
-            final RDFDataUnit.Iteration iter = rdfInput.getIteration();
-            while (iter.hasNext()) {
-                inputGraphs.add(iter.next().getDataGraphURI());
-            }
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't gent input graphs.", ex);
-        }
+        final List<RDFDataUnit.Entry> inputEntries = FaultToleranceUtils.getEntries(faultTolerance, rdfInput,
+                RDFDataUnit.Entry.class);
         // Prepare output graph.
-        final URI targetGraph;
-        try {
-            targetGraph = rdfOutput.addNewDataGraph(generateOutputSymbolicName());
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't add output graph.", ex);
-        }
-        // Copy data from input graphs to output.
-        RepositoryConnection connection;
-        try {
-            connection = rdfOutput.getConnection();
-        } catch (DataUnitException ex) {
-            throw new DPUException("Can't get output connection.", ex);
-        }
-        try {
-            int counter = 1;
-            for (URI sourceGraph : inputGraphs) {
-                final String query = String.format(COPY_QUERY,
-                        sourceGraph.stringValue(), targetGraph.stringValue());
-                // In case of failure quit. No failure tolerance here.
-                LOG.info("Merging {}/{}", counter++, inputGraphs.size());
-                LOG.debug("Merging {} into {}", sourceGraph.stringValue(), targetGraph.stringValue());
-                LOG.debug("Query {}", query);
-                try {
-                    connection.prepareUpdate(QueryLanguage.SPARQL, query).execute();
-                } catch (MalformedQueryException | UpdateExecutionException ex) {
-                    throw new DPUException("Problem with query.", ex);
-                } catch (RepositoryException ex) {
-                    throw new DPUException("Can't execute query due to a problem with repository.", ex);
-                }
-            }
-        } finally {
-            try {
-                connection.close();
-            } catch (RepositoryException ex) {
-                LOG.error("Can't close connection.");
-            }
-        }
-        // TODO Add metadata here!
-    }
+        final RDFDataUnit.Entry outputEntry = faultTolerance.execute(new FaultTolerance.ActionReturn<RDFDataUnit.Entry>() {
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new GraphMergeVaadinDialog();
+            @Override
+            public RDFDataUnit.Entry action() throws Exception {
+                return RdfDataUnitUtils.addGraph(rdfOutput, generateOutputSymbolicName());
+            }
+        });
+        // Per-graph execution.
+        int counter = 0;
+        for (final RDFDataUnit.Entry entry : inputEntries) {
+            LOG.info("Processing {}/{}", ++counter, inputEntries.size());
+            faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
+
+                @Override
+                public void action(RepositoryConnection connection) throws Exception {
+                    final SparqlUtils.SparqlUpdateObject update =
+                            SparqlUtils.createInsert(COPY_QUERY, Arrays.asList(entry), outputEntry);
+                    // Copy statementes.
+                    SparqlUtils.execute(connection, update);
+                }
+            });
+        }
     }
 
     /**
@@ -110,5 +78,5 @@ public class GraphMerge extends DpuAdvancedBase<GraphMergeConfig_V1> {
     private String generateOutputSymbolicName() {
         return "GraphMerge/output/generated-" + Long.toString((new Date()).getTime());
     }
-	
+
 }
