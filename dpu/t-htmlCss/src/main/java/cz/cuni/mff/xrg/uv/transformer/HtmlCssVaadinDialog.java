@@ -5,20 +5,17 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.ConfigurationCopyPaste;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.HelpHolder;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.utils.dialog.container.ComponentTable;
-import cz.cuni.mff.xrg.uv.utils.dialog.validator.UrlValidator;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+//import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
+import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.validator.UrlValidator;
 
 /**
  *
  * @author Škoda Petr
  */
-public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_V1> {
+public class HtmlCssVaadinDialog extends AbstractDialog<HtmlCssConfig_V1> {
 
     private ComponentTable genTable;
 
@@ -29,12 +26,8 @@ public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_
     private CheckBox checkGenerateSourceInfo;
 
     public HtmlCssVaadinDialog() {
-        super(HtmlCssConfig_V1.class, AddonInitializer.create(
-                new SimpleRdfConfigurator(HtmlCss.class),
-                new HelpHolder(HtmlCssHelp.HELP),
-                new ConfigurationCopyPaste()));
-        buildLayout();
-        buildAdvancedLayout();
+        super(HtmlCss.class);
+
     }
 
     @Override
@@ -57,6 +50,14 @@ public class HtmlCssVaadinDialog extends AdvancedVaadinDialogBase<HtmlCssConfig_
         c.setHasPredicateAsStr(txtHasPredicate.getValue());
         c.setSourceInformation(checkGenerateSourceInfo.getValue());
         return c;
+    }
+
+    @Override
+    protected void buildDialogLayout() {
+        buildLayout();
+        buildAdvancedLayout();
+        // Add configuration tab.
+//        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");
     }
 
     private void buildLayout() {

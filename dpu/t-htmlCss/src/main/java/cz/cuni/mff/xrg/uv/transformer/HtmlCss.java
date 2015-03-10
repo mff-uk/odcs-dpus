@@ -1,21 +1,12 @@
 package cz.cuni.mff.xrg.uv.transformer;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CloseCloseable;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.files.FilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
 import java.io.*;
+import java.util.List;
 import java.util.Stack;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,13 +18,23 @@ import org.openrdf.model.ValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+
 /**
  * Explore the tree of {@link NamedData} using DFS. Does not detect cycles!
  *
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
+public class HtmlCss extends AbstractDpu<HtmlCssConfig_V1> {
 
     /**
      * Store context in processing.
@@ -165,8 +166,11 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     @DataUnit.AsOutput(name = "rdf")
     public WritableRDFDataUnit outRdfData;
 
-    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "outRdfData")
-    public SimpleRdfWrite outData;
+    @ExtensionInitializer.Init(param = "outRdfData")
+    public WritableSimpleRdf outData;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
 
     /**
      * Used to generate original subjects.
@@ -174,68 +178,62 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
     private int subjectIndex = 0;
 
     public HtmlCss() {
-        super(HtmlCssConfig_V1.class,
-                AddonInitializer.create(new SimpleRdfConfigurator(HtmlCss.class), new CloseCloseable()));
+        super(HtmlCssVaadinDialog.class, ConfigHistory.noHistory(HtmlCssConfig_V1.class));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
-
-        final FilesDataUnit.Iteration iter;
-        try {
-            iter = inFilesHtml.getIteration();
-        } catch (DataUnitException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        }
-        getAddon(CloseCloseable.class).add(iter);
-
-        final ValueFactory valueFactory;
-        try {
-            valueFactory = outData.getValueFactory();
-
-        } catch (OperationFailedException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        }
+        final List<FilesDataUnit.Entry> files = FaultToleranceUtils.getEntries(faultTolerance, inFilesHtml,
+                FilesDataUnit.Entry.class);
+        final ValueFactory valueFactory = outData.getValueFactory();
         // Parse files.
-        final URI predicateSource;
-        predicateSource = valueFactory.createURI(HtmlCssOntology.PREDICATE_SOURCE);
-        try {
-            while (iter.hasNext() && !context.canceled()) {
-                final FilesDataUnit.Entry entry = iter.next();
-                LOG.info("Parsing file: {}", entry);
-                Document doc = Jsoup.parse(new File(java.net.URI.create(entry.getFileURIString())), null);
-                outData.setOutputGraph(entry.getFileURIString());
-                // TODO Better generation for subjects.
-                final URI rootSubject = valueFactory.createURI(entry.getFileURIString());
-                parse(valueFactory, doc, rootSubject);
-                // Add "metadata"
-                if (config.getClassAsStr() != null && !config.getClassAsStr().isEmpty()) {
-                    // Class for root object.
-                    final URI rootClass = valueFactory.createURI(config.getClassAsStr());
-                    outData.add(rootSubject,
-                            valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                            rootClass);
-                }
-                if (config.isSourceInformation()) {
-                    // Symbolic name of a source file.
-                    outData.add(rootSubject, predicateSource,
-                            valueFactory.createLiteral(entry.getSymbolicName()));
-                }
+        final URI predicateSource = valueFactory.createURI(HtmlCssOntology.PREDICATE_SOURCE);
+        for (final FilesDataUnit.Entry entry : files) {
+            if (ctx.canceled()) {
+                throw ContextUtils.dpuExceptionCancelled(ctx);
             }
-        } catch (OperationFailedException ex) {
-            throw new DPUException(ex);
-        } catch (DataUnitException ex) {
-            throw new DPUException(ex);
-        } catch (IOException ex) {
-            throw new DPUException("Can't parse given document.", ex);
-        }
-    }
+            LOG.info("Parsing file: {}", entry);
+            // Set output.
+            RDFDataUnit.Entry outputGraph = faultTolerance.execute(
+                    new FaultTolerance.ActionReturn<RDFDataUnit.Entry>() {
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new HtmlCssVaadinDialog();
+                        @Override
+                        public RDFDataUnit.Entry action() throws Exception {
+                            return RdfDataUnitUtils.addGraph(outRdfData, entry.getSymbolicName());
+                        }
+                    });
+            outData.setOutput(outputGraph);
+
+            // TODO Better generation for subjects.
+            final File entryFile = FaultToleranceUtils.asFile(faultTolerance, entry);
+            final URI rootSubject = valueFactory.createURI(entryFile.toURI().toString());
+
+            try {
+                final Document doc = Jsoup.parse(FaultToleranceUtils.asFile(faultTolerance, entry), null);
+                parse(valueFactory, doc, rootSubject);
+            } catch (IOException ex) {
+                throw ContextUtils.dpuException(ctx, "Can't parse object.", ex);
+            }
+            // Add "metadata"
+            if (config.getClassAsStr() != null && !config.getClassAsStr().isEmpty()) {
+                // Class for root object.
+                final URI rootClass = valueFactory.createURI(config.getClassAsStr());
+                outData.add(rootSubject,
+                        valueFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                        rootClass);
+            }
+            if (config.isSourceInformation()) {
+                // Symbolic name of a source file.
+                faultTolerance.execute(new FaultTolerance.Action() {
+
+                    @Override
+                    public void action() throws Exception {
+                        outData.add(rootSubject, predicateSource, valueFactory.createLiteral(entry
+                                .getSymbolicName()));
+                    }
+                });
+            }
+        }
     }
 
     /**
@@ -245,15 +243,14 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
      * @param doc
      * @param rootSubject Root subject for this document.
      */
-    private void parse(ValueFactory valueFactory, Document doc, URI rootSubject)
-            throws OperationFailedException, DataUnitException, IOException, WrongActionArgs {
-       final URI defaultHasPredicate = createUri(valueFactory, config.getHasPredicateAsStr());
+    private void parse(ValueFactory valueFactory, Document doc, URI rootSubject) throws IOException, WrongActionArgs, DPUException {
+        final URI defaultHasPredicate = createUri(valueFactory, config.getHasPredicateAsStr());
         // Start and parse.
         final Stack<NamedData> states = new Stack();
         states.add(new NamedData(WEB_PAGE_NAME, doc.getAllElements(), rootSubject, null, null));
 
         final URI rdfType = valueFactory.createURI(RDF_TYPE_PREDICATE);
-        while (!states.isEmpty() && !context.canceled()) {
+        while (!states.isEmpty() && !ctx.canceled()) {
             // Get group and apply actions.
             final NamedData state = states.pop();
             for (HtmlCssConfig_V1.Action action : config.getActions()) {
@@ -312,7 +309,7 @@ public class HtmlCss extends DpuAdvancedBase<HtmlCssConfig_V1> {
                             final URI newSubject = valueFactory.createURI(SUBJECT_URI_TEMPLATE
                                     + Integer.toString(subjectIndex++));
                             // Create a new subject with given type and put it into the tree.
-                            states.add(new NamedData(state, action, newSubject, null, 
+                            states.add(new NamedData(state, action, newSubject, null,
                                     hasPredicate == null ? defaultHasPredicate : hasPredicate));
                             break;
                         case TEXT:
