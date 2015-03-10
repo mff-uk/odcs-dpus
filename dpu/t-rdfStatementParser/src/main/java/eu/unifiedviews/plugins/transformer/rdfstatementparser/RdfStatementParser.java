@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
@@ -199,9 +200,17 @@ public class RdfStatementParser extends AbstractDpu<RdfStatementParserConfig_V2>
         stack.push(initialAction);
 
         while (!stack.isEmpty()) {
+            if (ctx.canceled()) {
+                throw ContextUtils.dpuExceptionCancelled(ctx);
+            }
+
             final NameValuePair toProcess = stack.pop();
             LOG.debug("toProcess = name:'{}', value: '{}'", toProcess.name, toProcess.value);
             for (RdfStatementParserConfig_V2.ActionInfo actionInfo : config.getActions()) {
+                // Check also here.
+                if (ctx.canceled()) {
+                    throw ContextUtils.dpuExceptionCancelled(ctx);
+                }
                 if (actionInfo.getName().compareTo(toProcess.name) != 0) {
                     // Does not match, skip.
                     continue;
