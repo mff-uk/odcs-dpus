@@ -9,6 +9,7 @@ import eu.unifiedviews.dpu.config.DPUConfigException;
 //import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 import eu.unifiedviews.helpers.dpu.vaadin.validator.UrlValidator;
 
 /**
@@ -57,7 +58,7 @@ public class HtmlCssVaadinDialog extends AbstractDialog<HtmlCssConfig_V1> {
         buildLayout();
         buildAdvancedLayout();
         // Add configuration tab.
-//        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");
+        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");
     }
 
     private void buildLayout() {
