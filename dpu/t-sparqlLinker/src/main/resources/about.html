@@ -1,11 +1,15 @@
-This DPU is designed to execute construct asymetrically on inputs.<br/>
+This DPU can be used to link data (perGraph-Input) to reference data (reference-Input), by asymmetric execution of given SPARQL construct.
+<br/><br/>
 List of inputs:
 <ul>
     <li><strong>perGraph-Input</strong> - data to link.</li>
     <li><strong>reference-Input</strong> - data to link to.</li>
 </ul>
-Common usage is to link data (perGraph-Input) to reference data (reference-Input).
-<br/>
-If per-graph options is not checked then this DPU act as t-sparqlConstruct with per-graph unchecked.<br/>
-If per-graph is <strong>not</strong> checked then following work flow is used: <br/>
-For each input graph (perGraph-Input) <em>G</em> and all reference graphs (reference-Input) <em>R</em> given SPARQL is executed over <em>G</em> unified with <em>R</em>.
+The way in which the given SPARQL Construct is executed depends on <strong>per-graph option</strong>.
+<ul>
+    <li><strong>not checked</strong> - this DPU act as t-sparqlConstruct with per-graph unchecked.</li>
+    <li><strong>is checked</strong> then following work flow is used: <br/>
+        For each input graph (perGraph-Input) <em>G</em> and all reference graphs (reference-Input) <em>R</em>
+        given SPARQL is executed over <em>G</em> unified with <em>R</em>.
+    </li>
+</ul>
