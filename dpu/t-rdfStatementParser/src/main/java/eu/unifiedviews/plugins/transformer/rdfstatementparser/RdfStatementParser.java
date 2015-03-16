@@ -17,6 +17,8 @@ import org.openrdf.repository.RepositoryConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
+import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
@@ -128,6 +130,22 @@ public class RdfStatementParser extends AbstractDpu<RdfStatementParserConfig_V2>
     protected void innerExecute() throws DPUException {
         valueFactory = outData.getValueFactory();
         regExpCache.clear();
+        // Set output.
+        final String symbolicName = DataUnitUtils.generateSymbolicName(RdfStatementParser.class);
+        final RDFDataUnit.Entry output = faultTolerance.execute(new FaultTolerance.ActionReturn<RDFDataUnit.Entry>() {
+
+            @Override
+            public RDFDataUnit.Entry action() throws Exception {
+                return RdfDataUnitUtils.addGraph(rdfOutData, symbolicName);
+            }
+        });
+        faultTolerance.execute(new FaultTolerance.Action() {
+
+            @Override
+            public void action() throws Exception {
+                outData.setOutput(output);
+            }
+        });
         // Go for per-graph mode.
         final List<RDFDataUnit.Entry> entries = FaultToleranceUtils.getEntries(faultTolerance, rdfInData,
                 RDFDataUnit.Entry.class);
