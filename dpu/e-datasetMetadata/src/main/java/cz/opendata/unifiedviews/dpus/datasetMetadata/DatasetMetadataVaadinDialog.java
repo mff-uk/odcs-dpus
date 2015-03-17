@@ -18,6 +18,7 @@ import com.vaadin.ui.VerticalLayout;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 
 public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataConfig_V1> {
 
@@ -291,6 +292,9 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         p.setContent(mainLayout);
 
         setCompositionRoot(p);
+
+        // Tabs.
+        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");
     }
 
     @Override
