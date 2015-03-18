@@ -109,7 +109,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			String temporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + CKANLoaderVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
 			String spatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
 			String schemaURL = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + datasetURI + "> <"+ DCTERMS.REFERENCES + "> ?schema }", "schema");
-	    	String curatorName = executeSimpleSelectQuery("SELECT ?name WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_CONTACT_POINT + ">/<" + CKANLoaderVocabulary.VCARD_NAME + "> ?name }", "name");
+	    	String curatorName = executeSimpleSelectQuery("SELECT ?name WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_CONTACT_POINT + ">/<" + CKANLoaderVocabulary.VCARD_FN + "> ?name }", "name");
 			String contactPoint = executeSimpleSelectQuery("SELECT ?contact WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_CONTACT_POINT + ">/<" + CKANLoaderVocabulary.VCARD_HAS_EMAIL + "> ?contact }", "contact");
 			String issued = executeSimpleSelectQuery("SELECT ?issued WHERE {<" + datasetURI + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
 			String modified = executeSimpleSelectQuery("SELECT ?modified WHERE {<" + datasetURI + "> <"+ DCTERMS.MODIFIED + "> ?modified }", "modified");
