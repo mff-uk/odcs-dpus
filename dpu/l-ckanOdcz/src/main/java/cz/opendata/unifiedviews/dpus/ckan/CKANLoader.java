@@ -307,8 +307,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		    	if (resDistroIdMap.containsKey(distribution)) distro.put("id", resDistroIdMap.get(distribution));
 	            else if (resUrlIdMap.containsKey(dwnld)) distro.put("id", resUrlIdMap.get(dwnld));
 
-		    	if (!dissued.isEmpty()) distro.put("issued", dissued);
-		    	if (!dmodified.isEmpty()) distro.put("modified", dmodified);
+		    	if (!dissued.isEmpty()) distro.put("created", dissued);
+		    	if (!dmodified.isEmpty()) distro.put("last_modified", dmodified);
 
 				if (!dspatial.isEmpty()) {
 					distro.put("ruian_type", "ST");
