@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openrdf.model.Value;
 import org.openrdf.model.vocabulary.DCTERMS;
+import org.openrdf.model.vocabulary.FOAF;
 import org.openrdf.repository.RepositoryConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,10 +89,13 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     	String temporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + CKANLoaderVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
     	String spatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
     	String schemaURL = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + datasetURI + "> <"+ DCTERMS.REFERENCES + "> ?schema }", "schema");
+    	String curatorName = executeSimpleSelectQuery("SELECT ?name WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.ADMS_CONTACT_POINT + ">/<" + CKANLoaderVocabulary.VCARD_NAME + "> ?name }", "name");
     	String contactPoint = executeSimpleSelectQuery("SELECT ?contact WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.ADMS_CONTACT_POINT + ">/<" + CKANLoaderVocabulary.VCARD_HAS_EMAIL + "> ?contact }", "contact");
     	String issued = executeSimpleSelectQuery("SELECT ?issued WHERE {<" + datasetURI + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
     	String modified = executeSimpleSelectQuery("SELECT ?modified WHERE {<" + datasetURI + "> <"+ DCTERMS.MODIFIED + "> ?modified }", "modified");
     	String license = executeSimpleSelectQuery("SELECT ?license WHERE {<" + datasetURI + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
+    	String publisher_uri = executeSimpleSelectQuery("SELECT ?publisher_uri WHERE {<" + datasetURI + "> <"+ DCTERMS.PUBLISHER + "> ?publisher_uri }", "publisher_uri");
+    	String publisher_name = executeSimpleSelectQuery("SELECT ?publisher_name WHERE {<" + datasetURI + "> <" + DCTERMS.PUBLISHER + ">/<" + FOAF.NAME +"> ?publisher_name }", "publisher_name");
     	
     	LinkedList<String> themes = new LinkedList<String>();
     	for (Map<String,Value> map: executeSelectQuery("SELECT ?theme WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_THEME + "> ?theme }")) {
@@ -176,25 +180,32 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             //JSONObject extras = new JSONObject();
 
             if (!datasetID.isEmpty()) root.put("name", datasetID);
-            root.put("url", datasetURI);
-            root.put("title", title);
-			root.put("notes", description);
-			root.put("maintainer_email", contactPoint);
-			root.put("metadata_created", issued);
-			root.put("metadata_modified", modified);
+            if (!title.isEmpty()) root.put("title", title);
+            if (!description.isEmpty()) root.put("notes", description);
+            if (!contactPoint.isEmpty()) root.put("maintainer_email", contactPoint);
+            if (!curatorName.isEmpty()) root.put("maintainer", curatorName);
+            if (!issued.isEmpty()) root.put("metadata_created", issued);
+            if (!modified.isEmpty()) root.put("metadata_modified", modified);
+            if (!publisher_uri.isEmpty()) root.put("publisher_uri", publisher_uri);
+            if (!publisher_name.isEmpty()) root.put("publisher_name", publisher_name);
 			
 			//TODO: Matching?
 			root.put("license_id", "other-open");
 			root.put("license_link", license);
-			root.put("temporalStart", temporalStart);
-			root.put("temporalEnd", temporalEnd);
-			root.put("accrualPeriodicity", periodicity);
-			root.put("schema", schemaURL);
-			root.put("spatial", spatial);
+			
+			if (!temporalStart.isEmpty()) root.put("temporal_start", temporalStart);
+			if (!temporalEnd.isEmpty()) root.put("temporal_end", temporalEnd);
+			if (!periodicity.isEmpty()) root.put("frequency", periodicity);
+			if (!schemaURL.isEmpty()) root.put("schema", schemaURL);
+			if (!spatial.isEmpty()) {
+				root.put("ruian_type", "ST");
+				root.put("ruian_code", 1);
+				root.put("spatial_uri", spatial);
+			}
 			
 			String concatThemes = "";
 			for (String theme: themes) { concatThemes += theme + " ";}
-			root.put("themes", concatThemes);
+			if (!concatThemes.isEmpty())  root.put("theme", concatThemes);
 			
 			
 			//Distributions
@@ -282,24 +293,28 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 
 	            // END OF RDF VOID SPECIFICS
 				
-		    	distro.put("name", dtitle);
-		    	distro.put("description", ddescription);
-		    	distro.put("license_link", dlicense);
-		    	distro.put("temporalStart", dtemporalStart);
-		    	distro.put("temporalEnd", dtemporalEnd);
-		    	distro.put("describedBy", dschemaURL);
-		    	distro.put("describedByType", dschemaType);
-		    	distro.put("format", dformat);
-		    	distro.put("url", dwnld);
-		    	distro.put("distro_url", distribution);
+		    	if (!dtitle.isEmpty()) distro.put("name", dtitle);
+		    	if (!ddescription.isEmpty()) distro.put("description", ddescription);
+		    	if (!dlicense.isEmpty()) distro.put("license_link", dlicense);
+		    	if (!dtemporalStart.isEmpty()) distro.put("temporal_start", dtemporalStart);
+		    	if (!dtemporalEnd.isEmpty()) distro.put("temporal_end", dtemporalEnd);
+		    	if (!dschemaURL.isEmpty()) distro.put("describedBy", dschemaURL);
+		    	if (!dschemaType.isEmpty()) distro.put("describedByType", dschemaType);
+		    	if (!dformat.isEmpty()) distro.put("format", dformat);
+		    	if (!dwnld.isEmpty()) distro.put("url", dwnld);
+		    	if (!distribution.isEmpty()) distro.put("distro_url", distribution);
 	            
 		    	if (resDistroIdMap.containsKey(distribution)) distro.put("id", resDistroIdMap.get(distribution));
 	            else if (resUrlIdMap.containsKey(dwnld)) distro.put("id", resUrlIdMap.get(dwnld));
 
-		    	distro.put("created", dissued);
-		    	distro.put("last_modified", dmodified);
+		    	if (!dissued.isEmpty()) distro.put("issued", dissued);
+		    	if (!dmodified.isEmpty()) distro.put("modified", dmodified);
 
-		    	distro.put("spatial", dspatial);
+				if (!dspatial.isEmpty()) {
+					distro.put("ruian_type", "ST");
+					distro.put("ruian_code", 1);
+					distro.put("spatial_uri", dspatial);
+				}
 				
 				resources.put(distro);
 			}

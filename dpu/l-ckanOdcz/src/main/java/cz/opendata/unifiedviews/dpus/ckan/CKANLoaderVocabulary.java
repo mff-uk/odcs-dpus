@@ -56,6 +56,8 @@ public class CKANLoaderVocabulary {
 
     public static final URI VCARD_HAS_EMAIL;
 
+    public static final URI VCARD_NAME;
+
     public static final URI DCAT_KEYWORD;
 
     public static final URI DCAT_LANDING_PAGE;
@@ -88,6 +90,7 @@ public class CKANLoaderVocabulary {
         DCAT_LANDING_PAGE = valueFactory.createURI(DCAT + "landingPage");
         VCARD_VCARD_CLASS = valueFactory.createURI(VCARD + "VCard");
         VCARD_HAS_EMAIL = valueFactory.createURI(VCARD + "hasEmail");
+        VCARD_NAME = valueFactory.createURI(VCARD + "name");
 
     }
 }
