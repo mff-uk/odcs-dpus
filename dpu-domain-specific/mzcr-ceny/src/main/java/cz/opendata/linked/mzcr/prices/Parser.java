@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import cz.cuni.mff.scraper.lib.selector.CssSelector;
 import cz.cuni.mff.scraper.lib.template.ParseEntry;
 import cz.cuni.mff.scraper.lib.template.ScrapingTemplate;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import org.openrdf.model.ValueFactory;
+
+import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 /**
  * Specificky scraper pro statni spravu.
@@ -21,7 +21,8 @@ import org.openrdf.model.ValueFactory;
 public class Parser extends ScrapingTemplate{
     
     public Logger logger;
-    public SimpleRdfWrite output;
+
+    public WritableSimpleRdf output;
     
     @Override
     protected LinkedList<ParseEntry> getLinks(org.jsoup.nodes.Document doc, String docType) {
@@ -33,12 +34,12 @@ public class Parser extends ScrapingTemplate{
     protected void parse(org.jsoup.nodes.Document doc, String docType) {
         try {
             parseAndAdd(doc, docType);
-        } catch (OperationFailedException ex) {
+        } catch (DPUException ex) {
             logger.error("RDF operation failed", ex);
         }        
     }    
    
-    protected void parseAndAdd(org.jsoup.nodes.Document doc, String docType) throws OperationFailedException {        
+    protected void parseAndAdd(org.jsoup.nodes.Document doc, String docType) throws DPUException {
         ValueFactory valueFactory = output.getValueFactory();        
         if (docType == "tab") {            
             CssSelector rowsSelector;

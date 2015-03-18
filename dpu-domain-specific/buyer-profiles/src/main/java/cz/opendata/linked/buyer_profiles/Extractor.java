@@ -19,7 +19,6 @@ import org.xml.sax.SAXException;
 
 import cz.cuni.mff.css_parser.utils.Cache;
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;

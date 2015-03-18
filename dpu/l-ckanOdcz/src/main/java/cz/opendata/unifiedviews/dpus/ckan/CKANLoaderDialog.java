@@ -13,6 +13,7 @@ import com.vaadin.ui.VerticalLayout;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
@@ -99,6 +100,9 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
         panel.setSizeFull();
         panel.setContent(mainLayout);
         setCompositionRoot(panel);
+
+        // Tabs.
+        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");
     }    
      
     @Override

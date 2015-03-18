@@ -3,7 +3,6 @@ package cz.opendata.linked.mzcr.prices;
 import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
-import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 
 public class ScrapeTest {
