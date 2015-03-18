@@ -138,7 +138,7 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
             contactPoint.property(DatasetMetadataVocabulary.VCARD_HAS_EMAIL, valueFactory.createLiteral(config.getContactPoint()));
             rdfData.add(contactPoint.asStatements());
 
-            dataset.property(DatasetMetadataVocabulary.ADMS_CONTACT_POINT, contactPoint);
+            dataset.property(DatasetMetadataVocabulary.DCAT_CONTACT_POINT, contactPoint);
         }
 
         if (!StringUtils.isBlank(config.getPeriodicity())) {
