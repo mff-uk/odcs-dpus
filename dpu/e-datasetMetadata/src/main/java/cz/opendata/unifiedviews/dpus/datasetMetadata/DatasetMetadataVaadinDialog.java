@@ -40,7 +40,13 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
     private TextField tfDatasetUri;
 
+    private TextField tfContactPointName;
+    
     private TextField tfContactPoint;
+
+    private TextField tfPublisherName;
+    
+    private TextField tfPublisherURI;
 
     private TextField tfSchema;
 
@@ -66,7 +72,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
     private ListSelect lsAuthors;
 
-    private ListSelect lsPublishers;
+//    private ListSelect lsPublishers;
 
     private ListSelect lsKeywords_orig;
 
@@ -202,11 +208,29 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         lsLanguages.setRows(3);
         mainLayout.addComponent(lsLanguages);
 
+        tfContactPointName = new TextField();
+        tfContactPointName.setCaption("Contact point name:");
+        tfContactPointName.setInputPrompt("My organization");
+        tfContactPointName.setWidth("100%");
+        mainLayout.addComponent(tfContactPointName);
+
         tfContactPoint = new TextField();
         tfContactPoint.setCaption("Contact point email:");
         tfContactPoint.setInputPrompt("contact@myorganization.com");
         tfContactPoint.setWidth("100%");
         mainLayout.addComponent(tfContactPoint);
+
+        tfPublisherName = new TextField();
+        tfPublisherName.setCaption("Publisher name:");
+        tfPublisherName.setInputPrompt("Opendata.cz");
+        tfPublisherName.setWidth("100%");
+        mainLayout.addComponent(tfPublisherName);
+
+        tfPublisherURI = new TextField();
+        tfPublisherURI.setCaption("Publisher URI:");
+        tfPublisherURI.setInputPrompt("http://opendata.cz");
+        tfPublisherURI.setWidth("100%");
+        mainLayout.addComponent(tfPublisherURI);
 
         dfTemporalStart = new DateField();
         dfTemporalStart.setCaption("Temporal coverage start:");
@@ -228,7 +252,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
         tfPeriodicity = new TextField();
         tfPeriodicity.setCaption("Periodicity:");
-        tfPeriodicity.setInputPrompt("R-P1Y");
+        tfPeriodicity.setInputPrompt("R/P1Y");
         tfPeriodicity.setWidth("100%");
         mainLayout.addComponent(tfPeriodicity);
 
@@ -278,14 +302,14 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         lsAuthors.setRows(2);
         mainLayout.addComponent(lsAuthors);
 
-        lsPublishers = new ListSelect();
+/*        lsPublishers = new ListSelect();
         lsPublishers.setWidth("100%");
         lsPublishers.setNewItemsAllowed(true);
         lsPublishers.setCaption("Publishers");
         lsPublishers.setMultiSelect(true);
         lsPublishers.addItems(publishers);
         lsPublishers.setRows(2);
-        mainLayout.addComponent(lsPublishers);
+        mainLayout.addComponent(lsPublishers);*/
 
         Panel p = new Panel();
         p.setSizeFull();
@@ -320,6 +344,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
     	lsLanguages.setValue(conf.getLanguages());
 
         tfContactPoint.setValue(conf.getContactPoint());
+        tfContactPointName.setValue(conf.getContactPointName());
         dfTemporalStart.setValue(conf.getTemporalStart());
         dfTemporalEnd.setValue(conf.getTemporalEnd());
         tfSpatial.setValue(conf.getSpatial());
@@ -333,8 +358,10 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
     	for (String s: conf.getAuthors()) lsAuthors.addItem(s);
     	lsAuthors.setValue(conf.getAuthors());
 
-    	for (String s: conf.getPublishers()) lsPublishers.addItem(s);
-    	lsPublishers.setValue(conf.getPublishers());
+    	tfPublisherName.setValue(conf.getPublisherName());
+    	tfPublisherURI.setValue(conf.getPublisherURI());
+    	//for (String s: conf.getPublishers()) lsPublishers.addItem(s);
+    	//lsPublishers.setValue(conf.getPublishers());
 
     	if (!conf.getLicense().isEmpty()) lsLicenses.addItem(conf.getLicense());
     	lsLicenses.setValue(conf.getLicense());
@@ -369,9 +396,12 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setKeywords_en((Collection<String>) lsKeywords_en.getValue());
         conf.setLanguages((Collection<String>) lsLanguages.getValue());
         conf.setContactPoint(tfContactPoint.getValue());
+        conf.setContactPointName(tfContactPointName.getValue());
         conf.setTemporalStart(dfTemporalStart.getValue());
         conf.setTemporalEnd(dfTemporalEnd.getValue());
-
+        conf.setPublisherURI(tfPublisherURI.getValue());
+        conf.setPublisherName(tfPublisherName.getValue());
+        
         try {
 	        conf.setSpatial(new URL(tfSpatial.getValue()).toString());
         } catch (MalformedURLException ex) {
@@ -395,7 +425,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         }
 
         conf.setAuthors((Collection<String>) lsAuthors.getValue());
-        conf.setPublishers((Collection<String>) lsPublishers.getValue());
+        //conf.setPublishers((Collection<String>) lsPublishers.getValue());
         conf.setSources((Collection<String>) lsSources.getValue());
         conf.setThemes((Collection<String>) lsThemes.getValue());
 

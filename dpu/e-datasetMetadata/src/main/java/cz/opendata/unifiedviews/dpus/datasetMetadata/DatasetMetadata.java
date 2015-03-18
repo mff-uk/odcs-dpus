@@ -7,6 +7,7 @@ import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.DCTERMS;
+import org.openrdf.model.vocabulary.FOAF;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.SKOS;
 
@@ -141,8 +142,25 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
             dataset.property(DatasetMetadataVocabulary.DCAT_CONTACT_POINT, contactPoint);
         }
 
+        if (!StringUtils.isBlank(config.getContactPointName())) {
+            final EntityBuilder contactPoint = new EntityBuilder(valueFactory.createURI(config.getDatasetURI() + "/contactPoint"),
+                    valueFactory);
+            contactPoint.property(RDF.TYPE, DatasetMetadataVocabulary.VCARD_VCARD_CLASS);
+            contactPoint.property(DatasetMetadataVocabulary.VCARD_FN, valueFactory.createLiteral(config.getContactPointName()));
+            rdfData.add(contactPoint.asStatements());
+
+            dataset.property(DatasetMetadataVocabulary.DCAT_CONTACT_POINT, contactPoint);
+        }
+
         if (!StringUtils.isBlank(config.getPeriodicity())) {
-            dataset.property(DCTERMS.ACCRUAL_PERIODICITY, valueFactory.createLiteral(config.getPeriodicity()));
+            //TODO: standardni URI?
+        	final EntityBuilder periodicity = new EntityBuilder(valueFactory.createURI("http://linked.opendata.cz/resource/accrualPeriodicity/" + config.getPeriodicity()),
+                    valueFactory);
+            periodicity.property(RDF.TYPE, DCTERMS.FREQUENCY);
+            periodicity.property(DCTERMS.TITLE, valueFactory.createLiteral(config.getPeriodicity()));
+            rdfData.add(periodicity.asStatements());
+
+            dataset.property(DCTERMS.ACCRUAL_PERIODICITY, periodicity);
         }
 
         if (!StringUtils.isBlank(config.getLandingPage())) {
@@ -172,9 +190,18 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
         for (String author : config.getAuthors()) {
             dataset.property(DCTERMS.CREATOR, valueFactory.createURI(author));
         }
-        for (String publisherName : config.getPublishers()) {
-            dataset.property(DCTERMS.PUBLISHER, valueFactory.createURI(publisherName));
+        if (!StringUtils.isBlank(config.getPublisherURI())) {
+            final EntityBuilder publisher = new EntityBuilder(valueFactory.createURI(config.getPublisherURI()),
+                    valueFactory);
+            publisher.property(RDF.TYPE, FOAF.AGENT);
+            if (!StringUtils.isBlank(config.getPublisherName())) publisher.property(FOAF.NAME, valueFactory.createLiteral(config.getPublisherName()));
+            rdfData.add(publisher.asStatements());
+
+            dataset.property(DCTERMS.PUBLISHER, publisher);
         }
+//        for (String publisherName : config.getPublishers()) {
+//            dataset.property(DCTERMS.PUBLISHER, valueFactory.createURI(publisherName));
+//        }
         if (!StringUtils.isBlank(config.getLicense())) {
         	dataset.property(DCTERMS.LICENSE, valueFactory.createURI(config.getLicense()));
         }
