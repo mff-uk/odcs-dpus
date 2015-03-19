@@ -3,36 +3,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cz.cuni.mff.xrg.uv</groupId>
-        <artifactId>unifiedviews-lib-base</artifactId>
-        <version>1.1.1</version>
+        <groupId>eu.unifiedviews</groupId>
+        <artifactId>uv-pom-helpers</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>service-external</artifactId>
-    <version>1.1.1</version>
+    <version>2.0.0</version>
     <packaging>bundle</packaging>
     <name>service external</name>
     
+    <properties>
+        <unifiedviews.helpers.dataunit.version>2.0.0-SNAPSHOT</unifiedviews.helpers.dataunit.version>
+        <unifiedviews.helpers.dataunit.version.max>3.0.0</unifiedviews.helpers.dataunit.version.max>
+    </properties>
+
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId> 
-            <artifactId>junit</artifactId> 
-            <version>4.11</version> 
-            <scope>test</scope> 
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.8.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.unifiedviews</groupId>
-            <artifactId>uv-dataunit-rdf</artifactId>
-            <version>[${unifiedviews.version},${unifiedviews.version.max})</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
+        <!-- OpenRdf. -->
         <dependency>
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-repository-api</artifactId>
@@ -45,56 +32,76 @@
             <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>
-        <dependency> <!-- tuple query result parser -->
+        <dependency> <!-- Tuple query result parser.-->
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-queryresultio-binary</artifactId>
             <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>
-        <dependency> <!-- tuple query result parser -->
+        <dependency> <!-- Tuple query result parser. -->
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-queryresultio-sparqljson</artifactId>
             <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>
-        <dependency> <!-- tuple query result parser -->
+        <dependency> <!-- Tuple query result parser. -->
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-queryresultio-sparqlxml</artifactId>
             <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>
-        <dependency> <!-- tuple query result parser -->
+        <dependency> <!-- Tuple query result parser.-->
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-queryresultio-text</artifactId>
             <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>        
-        <!-- test dependencies for org.openrdf.sesame -->
+        <!-- Test dependencies for org.openrdf.sesame. -->
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
             <scope>test</scope>
         </dependency>
-        
-        <!--        <dependency>
-            <groupId>org.apache.servicemix.bundles</groupId>
-            <artifactId>org.apache.servicemix.bundles.solr-solrj</artifactId>
-            <version>4.8.1_1</version>
+        <!-- UnifiedViews dependencies. -->
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>[${unifiedviews.helpers.dataunit.version},${unifiedviews.helpers.dataunit.version.max})</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>  required by solr-solrj 
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient-osgi</artifactId>
-            <version>4.3.2</version>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <version>[${unifiedviews.helpers.dataunit.version},${unifiedviews.helpers.dataunit.version.max})</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>  required by solr-solrj, json parser 
-            <groupId>org.noggit</groupId>
-            <artifactId>noggit</artifactId>
-            <version>0.6</version>
+        <!-- Libraries provided by UnifiedViews at runtime. -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
             <scope>provided</scope>
-        </dependency>-->
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId> <!-- OSGI alternative: org.apache.servicemix.bundles.xstream -->
+            <version>1.4.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Test environment. -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
