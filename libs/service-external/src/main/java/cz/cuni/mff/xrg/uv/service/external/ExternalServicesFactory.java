@@ -21,7 +21,7 @@ public class ExternalServicesFactory {
      *
      * @param ctx
      * @param endpointUrl
-     * @param graphs
+     * @param graphs To use empty graph set use new URI[0].
      * @return
      * @throws ExternalError
      */
