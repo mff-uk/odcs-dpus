@@ -1,6 +1,5 @@
 package cz.cuni.mff.xrg.uv.service.external;
 
-import eu.unifiedviews.dpu.DPUContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
