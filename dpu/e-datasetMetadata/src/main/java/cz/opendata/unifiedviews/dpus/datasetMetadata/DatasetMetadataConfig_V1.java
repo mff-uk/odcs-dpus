@@ -27,7 +27,11 @@ public class DatasetMetadataConfig_V1 {
 
     private Collection<String> authors = new LinkedList<>();
 
-    private Collection<String> publishers = new LinkedList<>();
+    private String publisherURI = "http://opendata.cz";
+    
+    private String publisherName = "Opendata.cz";
+
+    //private Collection<String> publishers = new LinkedList<>();
 
     private String license = "";
 
@@ -42,6 +46,8 @@ public class DatasetMetadataConfig_V1 {
     private Collection<String> themes = new LinkedList<>();
 
     private String contactPoint = "";
+
+    private String contactPointName = "";
 
     private String periodicity = "";
 
@@ -123,13 +129,13 @@ public class DatasetMetadataConfig_V1 {
         this.authors = authors;
     }
 
-    public Collection<String> getPublishers() {
-        return publishers;
-    }
-
-    public void setPublishers(Collection<String> publishers) {
-        this.publishers = publishers;
-    }
+//    public Collection<String> getPublishers() {
+//        return publishers;
+//    }
+//
+//    public void setPublishers(Collection<String> publishers) {
+//        this.publishers = publishers;
+//    }
 
     public String getLicense() {
         return license;
@@ -281,5 +287,29 @@ public class DatasetMetadataConfig_V1 {
 
 	public void setUseDatasetURIfromInput(boolean useDatasetURIfromInput) {
 		this.useDatasetURIfromInput = useDatasetURIfromInput;
+	}
+
+	public String getContactPointName() {
+		return contactPointName;
+	}
+
+	public void setContactPointName(String contactPointName) {
+		this.contactPointName = contactPointName;
+	}
+
+	public String getPublisherURI() {
+		return publisherURI;
+	}
+
+	public void setPublisherURI(String publisherURI) {
+		this.publisherURI = publisherURI;
+	}
+
+	public String getPublisherName() {
+		return publisherName;
+	}
+
+	public void setPublisherName(String publisherName) {
+		this.publisherName = publisherName;
 	}
 }

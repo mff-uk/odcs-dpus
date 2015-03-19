@@ -58,13 +58,15 @@ public class CKANLoaderVocabulary {
 
     public static final URI VCARD_HAS_EMAIL;
 
+    public static final URI VCARD_FN;
+
     public static final URI DCAT_KEYWORD;
 
     public static final URI DCAT_LANDING_PAGE;
 
     public static final URI DCAT_THEME;
 
-    public static final URI ADMS_CONTACT_POINT;
+    public static final URI DCAT_CONTACT_POINT;
 
     public static final URI LODCZCKAN_DATASET_ID;
     
@@ -92,13 +94,14 @@ public class CKANLoaderVocabulary {
         SCHEMA_STARTDATE = valueFactory.createURI(SCHEMA + "startDate");
         POD_DISTRIBUTION_DESCRIBREBYTYPE = valueFactory.createURI(POD + "distribution-describedByType");
         WDRS_DESCRIBEDBY = valueFactory.createURI(WDRS + "describedBy");
-        ADMS_CONTACT_POINT = valueFactory.createURI(ADMS + "contactPoint");
+        DCAT_CONTACT_POINT = valueFactory.createURI(DCAT + "contactPoint");
         DCAT_LANDING_PAGE = valueFactory.createURI(DCAT + "landingPage");
         VCARD_VCARD_CLASS = valueFactory.createURI(VCARD + "VCard");
         VCARD_HAS_EMAIL = valueFactory.createURI(VCARD + "hasEmail");
         LODCZCKAN_DATASET_ID = valueFactory.createURI(LODCZCKAN + "datasetID");
         LODCZCKAN_AUTHOR = valueFactory.createURI(LODCZCKAN + "author");
         LODCZCKAN_ORG_ID = valueFactory.createURI(LODCZCKAN + "organizationID");
+        VCARD_FN = valueFactory.createURI(VCARD + "fn");
 
     }
 }
