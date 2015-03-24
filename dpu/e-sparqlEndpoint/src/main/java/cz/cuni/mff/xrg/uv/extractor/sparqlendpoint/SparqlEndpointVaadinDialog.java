@@ -50,6 +50,7 @@ public class SparqlEndpointVaadinDialog extends AbstractDialog<SparqlEndpointCon
         final VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
         mainLayout.setMargin(true);
+        mainLayout.setSpacing(true);
 
         txtEndpoint = new TextField("Enpoint URL");
         txtEndpoint.setWidth("100%");
