@@ -11,7 +11,7 @@
     <version>1.0.0</version>
     <packaging>bundle</packaging>
     <name>E-SparqlEndpoint</name>
-    <description></description>
+    <description>Extract RDF data from remote SPARQL.</description>
 
     <properties>
         <dpu.package>cz.cuni.mff.xrg.uv.extractor.sparqlendpoint</dpu.package>
