@@ -57,11 +57,13 @@ public class SparqlEndpointVaadinDialog extends AbstractDialog<SparqlEndpointCon
         txtEndpoint.setRequired(true);
         txtEndpoint.addValidator(new UrlValidator(false));
         mainLayout.addComponent(txtEndpoint);
+        mainLayout.setExpandRatio(txtEndpoint, 0);
 
         txtQuery = new TextArea("SPARQL Construct");
         txtQuery.setSizeFull();
         txtQuery.setRequired(true);
         mainLayout.addComponent(txtQuery);
+        mainLayout.setExpandRatio(txtQuery, 1.0f);
 
         setCompositionRoot(mainLayout);
     }

@@ -82,14 +82,16 @@ public class SparqlEndpoint extends AbstractDpu<SparqlEndpointConfig_V1> {
                     output.add(st.getSubject(), st.getPredicate(), st.getObject());
                     // Print info.
                     ++counter;
-                    if (counter % 10000 == 0) {
+                    if (counter % 100000 == 0) {
                         LOG.info("{} triples extracted", counter);
                     }
                 }
             }
         });
+        // Flush buffre.
+        output.flushBuffer();
         // Get and print size.
-        faultTolerance.execute(remote, new FaultTolerance.ConnectionAction() {
+        faultTolerance.execute(rdfOutput, new FaultTolerance.ConnectionAction() {
 
             @Override
             public void action(RepositoryConnection connection) throws Exception {
