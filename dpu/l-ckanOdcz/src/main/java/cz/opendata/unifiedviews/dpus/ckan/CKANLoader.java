@@ -264,7 +264,9 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		            
 		            try {
 						if (sparqlEndpoint.isEmpty()) exUrl = example;
-						else exUrl = sparqlEndpoint + "?query=" + URLEncoder.encode("DESCRIBE <" + example + ">", "UTF-8") + "&output=" + URLEncoder.encode("text/turtle","UTF-8");
+						else exUrl = sparqlEndpoint + "?query=" + URLEncoder.encode("DESCRIBE <" + example + ">", "UTF-8") 
+													+ "&default-graph-uri=" + URLEncoder.encode(datasetURI,"UTF-8") 
+													+ "&output=" + URLEncoder.encode("text/turtle","UTF-8");
 					} catch (UnsupportedEncodingException e) {
 						exUrl = "";
 						logger.error(e.getLocalizedMessage(), e);
