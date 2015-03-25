@@ -12,56 +12,88 @@ public class AddressMapperOntology {
 
     private static final String BASE_URI = "http://linked.opendata.cz/resource/domain/address-linker/";
 
+    // Reprezentuje mapper
     public static final URI MAPPER_POSTAL_CODE;
 
+    // Reprezentuje mapper
     public static final URI MAPPER_ADDRESS_REGION;
 
+    // Reprezentuje mapper
     public static final URI MAPPER_STREET_ADDRESS;
 
+    // Reprezentuje metodu generujici alternativni podoby entit
+    public static final URI ALT_SWAP_HOUSE_AND_LAND_NUMBER;
+
+    // Do tohoto objektu se parsuji informace ye strukturovane adresy
     public static final URI ENTITY_RUIAN;
 
+    // ENTITY_RUIAN na puvodni adresu, ze ktere byl vytvoren
     public static final URI HAS_POSTAL_ADDRESS;
 
+    // ENTITY_RUIAN ma ..
     public static final URI CISLO_DOMOVNI;
-    
+
+    // ENTITY_RUIAN ma ..
     public static final URI CISLO_ORIENTACNI;
-    
+
+    // ENTITY_RUIAN ma ..
     public static final URI CISLO_ORIENTACNI_PISMENO;
 
+    // ENTITY_RUIAN ma ..
     public static final URI PSC;
 
+    // ENTITY_RUIAN ma ..
     public static final URI ULICE_NAME;
 
+    // ENTITY_RUIAN ma ..
     public static final URI CAST_OBECT_NAME;
 
+    // ENTITY_RUIAN ma ..
     public static final URI OBEC_NAME;
 
+    // ENTITY_RUIAN ma ..
     public static final URI OKRES_NAME;
 
+    // ENTITY_RUIAN ma ..
     public static final URI VUSC_NAME;
 
+    // REPORT je hlaseni o nejake chybe, nebo zmene v entite
     public static final URI REPORT;
 
+    // ENTITY_RUIAN ma ..
     public static final URI HAS_REPORT;
 
+    // HAS_REPORT ma ..
     public static final URI MESSAGE;
-    
+
+    // HAS_REPORT ma .. SOURCE (to jsou hlavne mappery a tvurci alternative)
     public static final URI SOURCE;
 
+    // potomek od REPORT
     public static final URI REPORT_SUBSTITUTE;
-    
+
+    // potomek od REPORT
+    public static final URI REPORT_ALTERNATIVE;
+
+    // REPORT_SUBSTITUTE ... jaka byla puvodne menena hodnota
     public static final URI FROM;
-    
+
+    // REPORT_SUBSTITUTE ... naco se hodnota zmenila
     public static final URI TO;
 
+    // ENTITY_RUIAN ma mapovani na SCHEMA_POSTAL_ADDRESS
     public static final URI MAPPING;
 
+    // ENTITY_RUIAN ma vysledek mapovani
     public static final URI HAS_RESULT;
 
+    // Vysledek kdy bylo nalezeno jedno mapovani
     public static final URI RESULT_SINGLE_MAPPING;
 
+    // Vysledek kdy nebylo nalezeno mapovani
     public static final URI RESULT_NO_MAPPING;
 
+    // Vysledek kdy bylo nalezeno vice mapovani
     public static final URI RESULT_MULTIPLE_MAPPINGS;
 
     private static final String BASE_SCHEMA = "http://schema.org/";
@@ -121,6 +153,8 @@ public class AddressMapperOntology {
        MAPPER_ADDRESS_REGION = valueFactory.createURI(BASE_URI + "mapper/AddressRegionMapper");
        MAPPER_STREET_ADDRESS = valueFactory.createURI(BASE_URI + "mapper/StreetAddressMapper");
 
+       ALT_SWAP_HOUSE_AND_LAND_NUMBER = valueFactory.createURI(BASE_URI + "alternative/swapHouseAndLandNumber");
+
        ENTITY_RUIAN = valueFactory.createURI(BASE_URI + "RuianEntity");
        HAS_POSTAL_ADDRESS = valueFactory.createURI(BASE_URI + "postalAddress");
 
@@ -141,6 +175,8 @@ public class AddressMapperOntology {
        SOURCE = valueFactory.createURI(BASE_URI + "report/source");
 
        REPORT_SUBSTITUTE = valueFactory.createURI(BASE_URI + "Substitution");
+       REPORT_ALTERNATIVE = valueFactory.createURI(BASE_URI + "Alternative");
+
        FROM = valueFactory.createURI(BASE_URI + "substitution/from");
        TO = valueFactory.createURI(BASE_URI + "substitution/to");
 

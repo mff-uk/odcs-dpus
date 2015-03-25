@@ -22,7 +22,7 @@ public class ExecutionTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExecutionTest.class);
 
-    @Test
+    //@Test
     public void ulice_Delnicka() throws Exception {
         final TestEnvironment testEnv = new TestEnvironment();
 

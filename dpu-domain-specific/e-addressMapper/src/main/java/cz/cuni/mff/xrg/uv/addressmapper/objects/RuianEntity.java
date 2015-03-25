@@ -100,19 +100,19 @@ public class RuianEntity {
         this.reports.addAll(other.reports);
     }
 
-    public int getCisloDomovni() {
+    public Integer getCisloDomovni() {
         return cisloDomovni;
     }
 
-    public void setCisloDomovni(int cisloDomovni) {
+    public void setCisloDomovni(Integer cisloDomovni) {
         this.cisloDomovni = cisloDomovni;
     }
 
-    public int getCisloOrientancni() {
+    public Integer getCisloOrientancni() {
         return cisloOrientancni;
     }
 
-    public void setCisloOrientancni(int cisloOrientancni) {
+    public void setCisloOrientancni(Integer cisloOrientancni) {
         this.cisloOrientancni = cisloOrientancni;
     }
 
@@ -124,11 +124,11 @@ public class RuianEntity {
         this.cisloOrientancniPismeno = cisloOrientancniPismeno;
     }
 
-    public int getPsc() {
+    public Integer getPsc() {
         return psc;
     }
 
-    public void setPsc(int psc) {
+    public void setPsc(Integer psc) {
         this.psc = psc;
     }
 
