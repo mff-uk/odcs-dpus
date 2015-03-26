@@ -100,12 +100,10 @@ public class SparqlLinker extends AbstractDpu<SparqlLinkerConfig_V1> {
         if (config.isPerGraph()) {
             // Execute one graph at time.
             ContextUtils.sendMessage(ctx, MessageType.INFO, "Per-graph query execution",
-                    "Number of graphs: %d", sourceEntries.size());
+                    "Number of graphs: {0}", sourceEntries.size());
             // Execute one query per graph, the target graph is always the same.
             int counter = 1;
             // We add current graph to source entries as the last entry.
-            final ArrayList<RDFDataUnit.Entry> sources = new ArrayList<>(referenceEntries.size() + 1);
-            sources.addAll(referenceEntries);
             for (final RDFDataUnit.Entry sourceEntry : sourceEntries) {
                 LOG.info("Executing {}/{}", counter++, sourceEntries.size());
                 // For each input graph prepare output graph.
@@ -120,7 +118,9 @@ public class SparqlLinker extends AbstractDpu<SparqlLinkerConfig_V1> {
 
                 });
                 // Set current input as a source entry.
-                sources.set(sources.size() - 1, sourceEntry);
+                final ArrayList<RDFDataUnit.Entry> sources = new ArrayList<>(referenceEntries.size() + 1);
+                sources.addAll(referenceEntries);
+                sources.add(sourceEntry);
                 // Execute query 1 -> 1.
                 faultTolerance.execute(rdfInput, new FaultTolerance.ConnectionAction() {
 
@@ -134,8 +134,8 @@ public class SparqlLinker extends AbstractDpu<SparqlLinkerConfig_V1> {
         } else {
             // All graph at once, just check size.
             if (sourceEntries.size() > MAX_GRAPH_COUNT) {
-                throw new DPUException("Too many graphs .. (limit: " + MAX_GRAPH_COUNT + ", given: "
-                        + sourceEntries.size() + ")");
+                throw ContextUtils.dpuException(ctx, "Too many graphs .. (limit: {0}, given: {1})",
+                        MAX_GRAPH_COUNT, sourceEntries.size());
             }
             ContextUtils.sendMessage(ctx, MessageType.INFO, "Executing over all graphs",
                     "Executing query over all graphs (%d)", sourceEntries.size());
@@ -184,15 +184,18 @@ public class SparqlLinker extends AbstractDpu<SparqlLinkerConfig_V1> {
             }
             query = query.replaceFirst("(?i)WHERE", prepareUsingClause(sourceEntries) + "WHERE");
         }
-        LOG.debug("Query to execute: {}", query);
+        LOG.debug("Query to execute:\n{}", query);
         try {
             // Execute query.
             final Update update = connection.prepareUpdate(QueryLanguage.SPARQL, query);
             if (useDataset()) {
+                LOG.debug("Using dataset");
                 final DatasetImpl dataset = new DatasetImpl();
                 for (RDFDataUnit.Entry entry : sourceEntries) {
                     dataset.addDefaultGraph(entry.getDataGraphURI());
+                    LOG.debug("Source graph: {}", entry.getDataGraphURI());
                 }
+                LOG.debug("Target graph: {}", targetGraph);
                 dataset.addDefaultRemoveGraph(targetGraph);
                 dataset.setDefaultInsertGraph(targetGraph);
                 update.setDataset(dataset);
