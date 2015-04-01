@@ -198,7 +198,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		        
 		        JSONArray tags = new JSONArray();
 		        //tags.put(keywords);
-		        for (String keyword : keywords) tags.put(keyword);
+	            for (String keyword : keywords) tags.put(new JSONObject().put("name", keyword));
 		        
 		        JSONArray resources = new JSONArray();
 		        
