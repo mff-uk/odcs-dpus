@@ -403,7 +403,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		            
 		            try {
 		                response = client.execute(httpPost);
-		                if (response.getStatusLine().getStatusCode() == 201) {
+		                if (response.getStatusLine().getStatusCode() == 200) {
 		                	logger.info("Dataset created OK");
 		                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
 		                } else if (response.getStatusLine().getStatusCode() == 409) {
