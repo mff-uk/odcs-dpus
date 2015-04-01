@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.ParseException;
@@ -136,10 +137,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			boolean exists = false;
 			Map<String, String> resUrlIdMap = new HashMap<String, String>();
 			Map<String, String> resDistroIdMap = new HashMap<String, String>();
+			Map<String, JSONObject> resourceList = new HashMap<String, JSONObject>();
 			
 		    logger.debug("Querying for the dataset in CKAN");
 		    CloseableHttpClient queryClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-			HttpGet httpGet = new HttpGet(apiURI + "/" + datasetID);
+			HttpGet httpGet = new HttpGet(apiURI + "/package_show?id=" + datasetID);
 		    CloseableHttpResponse queryResponse = null;
 		    try {
 		        queryResponse = queryClient.execute(httpGet);
@@ -147,13 +149,15 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		        	logger.info("Dataset found");
 		        	exists = true;
 		        	
-		        	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity()));
+	            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity())).getJSONObject("result");
 		        	JSONArray resourcesArray = response.getJSONArray("resources"); 
 		        	for (int i = 0; i < resourcesArray.length(); i++ )
 		        	{
 						try {
-		            		String id = resourcesArray.getJSONObject(i).getString("id");
-		            		String url = resourcesArray.getJSONObject(i).getString("url");
+							String id = resourcesArray.getJSONObject(i).getString("id");
+							resourceList.put(id, resourcesArray.getJSONObject(i));
+
+							String url = resourcesArray.getJSONObject(i).getString("url");
 		            		resUrlIdMap.put(url, id);
 		            		
 		            		if (resourcesArray.getJSONObject(i).has("distro_url")) {
@@ -264,7 +268,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		            sparqlEndpointJSON.put("format","api/sparql");
 		            sparqlEndpointJSON.put("resource_type","api");
 		            
-		            if (resUrlIdMap.containsKey(sparqlEndpoint)) sparqlEndpointJSON.put("id", resUrlIdMap.get(sparqlEndpoint));
+		            if (resUrlIdMap.containsKey(sparqlEndpoint)) {
+		            	String id = resUrlIdMap.get(sparqlEndpoint);
+		            	sparqlEndpointJSON.put("id", id);
+		            	resourceList.remove(id);
+		            }
 		            
 		            resources.put(sparqlEndpointJSON);
 		            // End of Sparql Endpoint resource
@@ -295,7 +303,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 						}
 			            exTurtle.put("url", exUrl);
 			            
-			            if (resUrlIdMap.containsKey(exUrl)) exTurtle.put("id", resUrlIdMap.get(exUrl));
+			            if (resUrlIdMap.containsKey(exUrl)) {
+			            	String id = resUrlIdMap.get(exUrl);
+			            	exTurtle.put("id", id);
+			            	resourceList.remove(id);
+			            }
 			            
 			            resources.put(exTurtle);
 			            // End of text/turtle resource
@@ -310,7 +322,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			            exHTML.put("name","Example resource");
 			            exHTML.put("url", example );
 		
-			            if (resUrlIdMap.containsKey(example)) exHTML.put("id", resUrlIdMap.get(example));
+			            if (resUrlIdMap.containsKey(example)) {
+			            	String id = resUrlIdMap.get(example);
+			            	exHTML.put("id", id);
+			            	resourceList.remove(id);
+			            }
 		
 			            resources.put(exHTML);
 			            // End of html resource
@@ -333,8 +349,16 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		            
 			    	distro.put("resource_type","file");
 
-			    	if (resDistroIdMap.containsKey(distribution)) distro.put("id", resDistroIdMap.get(distribution));
-		            else if (resUrlIdMap.containsKey(dwnld)) distro.put("id", resUrlIdMap.get(dwnld));
+			    	if (resDistroIdMap.containsKey(distribution)) {
+			    		String id = resDistroIdMap.get(distribution);
+			    		distro.put("id", id);
+			    		resourceList.remove(id);
+			    	}
+		            else if (resUrlIdMap.containsKey(dwnld)) {
+		            	String id = resUrlIdMap.get(dwnld);
+		            	distro.put("id", id);
+		            	resourceList.remove(id);
+		            }
 		
 			    	if (!dissued.isEmpty()) distro.put("created", dissued);
 			    	if (!dmodified.isEmpty()) distro.put("last_modified", dmodified);
@@ -346,6 +370,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 					}
 					
 					resources.put(distro);
+				}
+				
+				//Add the remaining distributions that were not updated but existed in the original dataset
+				for (Entry<String, JSONObject> resource : resourceList.entrySet()) {
+					resources.put(resource.getValue());
 				}
 				
 				root.put("tags", tags);
@@ -361,7 +390,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 					
 		            logger.debug("Creating dataset in CKAN");
 		            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-					HttpPost httpPost = new HttpPost(apiURI);
+					HttpPost httpPost = new HttpPost(apiURI + "/package_create?id=" + datasetID);
 					httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 		            
 		            String json = createRoot.toString();
@@ -408,8 +437,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 	            if (!ctx.canceled() && config.isLoadToCKAN()) {
 					logger.debug("Posting to CKAN");
 					CloseableHttpClient client = HttpClients.createDefault();
-		            URIBuilder uriBuilder = new URIBuilder(apiURI + "/" + datasetID);
-		            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
+		            HttpPost httpPost = new HttpPost(apiURI + "/package_update?id=" + datasetID);
 		            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 		            
 		            String json = root.toString();
@@ -446,8 +474,6 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 				}
 			} catch (JSONException e) {
 				logger.error(e.getLocalizedMessage(), e);
-			} catch (URISyntaxException e) {
-		    	logger.error(e.getLocalizedMessage(), e);
 			}
 		    
 		    if (ctx.canceled()) break;

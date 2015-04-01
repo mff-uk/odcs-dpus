@@ -10,7 +10,7 @@
     <artifactId>L-CKANOdczBatch</artifactId>
     <name>L-CKANOdczBatch</name>
     <description>This loader loads multiple Dataset and Distributions metadata to CKAN according to the OpenData.cz methodology</description>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
     <packaging>bundle</packaging>
 
     <properties>    
