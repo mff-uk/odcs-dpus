@@ -3,7 +3,6 @@ package cz.opendata.unifiedviews.dpus.ckan;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -51,7 +49,7 @@ import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 
 @DPU.AsLoader
-public class CKANLoader extends AbstractDpu<CKANLoaderConfig> 
+public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3> 
 {
 
     private static final Logger logger = LoggerFactory.getLogger(CKANLoader.class);
@@ -69,7 +67,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     public FaultTolerance faultTolerance;
 
     public CKANLoader() {
-        super(CKANLoaderDialog.class, ConfigHistory.noHistory(CKANLoaderConfig.class));
+        super(CKANLoaderDialog.class, ConfigHistory.history(CKANLoaderConfig.class)
+                .addCurrent(CKANLoaderConfig_V3.class));
     }
 
     @Override
@@ -118,7 +117,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		
         logger.debug("Querying for the dataset in CKAN");
         CloseableHttpClient queryClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-		HttpGet httpGet = new HttpGet(apiURI + "/" + datasetID);
+		HttpGet httpGet = new HttpGet(apiURI + "/package_show?id=" + datasetID);
         CloseableHttpResponse queryResponse = null;
         try {
             queryResponse = queryClient.execute(httpGet);
@@ -126,7 +125,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             	logger.info("Dataset found");
             	exists = true;
             	
-            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity()));
+            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity())).getJSONObject("result");
             	JSONArray resourcesArray = response.getJSONArray("resources"); 
             	for (int i = 0; i < resourcesArray.length(); i++ )
             	{
@@ -173,7 +172,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             
             JSONArray tags = new JSONArray();
             //tags.put(keywords);
-            for (String keyword : keywords) tags.put(keyword);
+            for (String keyword : keywords) tags.put(new JSONObject().put("name", keyword));
             
             JSONArray resources = new JSONArray();
             
@@ -339,7 +338,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 				
 	            logger.debug("Creating dataset in CKAN");
 	            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-				HttpPost httpPost = new HttpPost(apiURI);
+				HttpPost httpPost = new HttpPost(apiURI + "/package_create?id=" + datasetID);
 				httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = createRoot.toString();
@@ -393,8 +392,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			if (!ctx.canceled() && config.isLoadToCKAN()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/" + datasetID);
-	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
+	            HttpPost httpPost = new HttpPost(apiURI + "/package_update?id=" + datasetID);
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            logger.trace(json);
@@ -430,8 +428,6 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			}
 		} catch (JSONException e) {
 			logger.error(e.getLocalizedMessage(), e);
-		} catch (URISyntaxException e) {
-        	logger.error(e.getLocalizedMessage(), e);
 		}
         
     }

@@ -2,10 +2,8 @@ package cz.opendata.unifiedviews.dpus.ckan;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractTextField.TextChangeEventMode;
 import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
@@ -19,7 +17,7 @@ import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
+public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
 
 	private static final long serialVersionUID = -1989608763609859477L;
 	
@@ -106,7 +104,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
     }    
      
     @Override
-    public void setConfiguration(CKANLoaderConfig conf) throws DPUConfigException {
+    public void setConfiguration(CKANLoaderConfig_V3 conf) throws DPUConfigException {
     	tfApiKey.setValue(conf.getApiKey());
     	tfDatasetID.setValue(conf.getDatasetID());
     	tfOwnerOrg.setValue(conf.getOrgID());
@@ -115,8 +113,8 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig> {
     }
 
 	@Override
-    public CKANLoaderConfig getConfiguration() throws DPUConfigException {
-    	CKANLoaderConfig conf = new CKANLoaderConfig();
+    public CKANLoaderConfig_V3 getConfiguration() throws DPUConfigException {
+    	CKANLoaderConfig_V3 conf = new CKANLoaderConfig_V3();
         conf.setApiKey(tfApiKey.getValue());
         conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
