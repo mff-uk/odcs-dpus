@@ -1,0 +1,205 @@
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/uradovna/1/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/uradovna/1/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/uradovna/1/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Moravskoslezský" ;
+	<http://schema.org/postalCode> "74101" ;
+	<http://schema.org/streetAddress> "Štefánikova 2086/12" ;
+	<http://schema.org/addressLocality> "Nový Jičín" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/132> ;
+	<http://ruian.linked.opendata.cz/ontology/links/adresni-misto> <http://ruian.linked.opendata.cz/resource/adresni-mista/25211129> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/horackovaj/address/fromOvmDetail/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/horackovaj/address/fromOvmDetail> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/horackovaj/address/fromOvmDetail> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Středočeský kraj" ;
+	<http://schema.org/postalCode> "29301" ;
+	<http://schema.org/streetAddress> "Táborská 923/19" ;
+	<http://schema.org/addressLocality> "Mladá Boleslav" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/27> ;
+	<http://ruian.linked.opendata.cz/ontology/links/adresni-misto> <http://ruian.linked.opendata.cz/resource/adresni-mista/21262497> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/10/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/10/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/10/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/2/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/2/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/2/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/4/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/4/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/4/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/5/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/5/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/5/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/7/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/7/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/7/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/8/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/8/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/8/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/9/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/9/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/KSZUstLbem/uradovna/9/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Ústecký kraj" ;
+	<http://schema.org/postalCode> "40001" ;
+	<http://schema.org/streetAddress> "Dlouhá 1/12" ;
+	<http://schema.org/addressLocality> "Ústí nad Labem-město" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/60> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmDetail/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmDetail> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmDetail> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Královéhradecký kraj" ;
+	<http://schema.org/postalCode> "51721" ;
+	<http://schema.org/streetAddress> "Nádražní 486" ;
+	<http://schema.org/addressLocality> "Týniště nad Orlicí" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/86> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmList/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmList> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/brychtaboh/address/fromOvmList> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Královéhradecký kraj" ;
+	<http://schema.org/postalCode> "51721" ;
+	<http://schema.org/streetAddress> "Nádražní 486" ;
+	<http://schema.org/addressLocality> "Týniště nad Orlicí" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/86> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmDetail/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmDetail> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmDetail> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Středočeský kraj" ;
+	<http://schema.org/postalCode> "28401" ;
+	<http://schema.org/streetAddress> "Česká 325/41" ;
+	<http://schema.org/addressLocality> "Kutná Hora" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/27> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmList/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmList> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/jakubovska/address/fromOvmList> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Středočeský kraj" ;
+	<http://schema.org/postalCode> "28401" ;
+	<http://schema.org/streetAddress> "Česká 325/41" ;
+	<http://schema.org/addressLocality> "Kutná Hora" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/27> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmDetail/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmDetail> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmDetail> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Jihomoravský kraj" ;
+	<http://schema.org/postalCode> "56301" ;
+	<http://schema.org/streetAddress> "Jezuitské náměstí 156/2" ;
+	<http://schema.org/addressLocality> "Znojmo" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/116> .
+
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmList/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmList> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/koutnikova/address/fromOvmList> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Jihomoravský kraj" ;
+	<http://schema.org/postalCode> "56301" ;
+	<http://schema.org/streetAddress> "Jezuitské náměstí 156/2" ;
+	<http://schema.org/addressLocality> "Znojmo" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/116> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmDetail/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmDetail> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmDetail> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Moravskoslezský kraj" ;
+	<http://schema.org/postalCode> "74101" ;
+	<http://schema.org/streetAddress> "Štefánikova 2086/12" ;
+	<http://schema.org/addressLocality> "Nový Jičín" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/132> ;
+	<http://ruian.linked.opendata.cz/ontology/links/adresni-misto> <http://ruian.linked.opendata.cz/resource/adresni-mista/25211129> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmList/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmList> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/trckovasva/address/fromOvmList> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Moravskoslezský kraj" ;
+	<http://schema.org/postalCode> "74101" ;
+	<http://schema.org/streetAddress> "Štefánikova 2086/12" ;
+	<http://schema.org/addressLocality> "Nový Jičín" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/132> ;
+	<http://ruian.linked.opendata.cz/ontology/links/adresni-misto> <http://ruian.linked.opendata.cz/resource/adresni-mista/25211129> .
+
+
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/VelikaVes/uradovna/1/address/entity> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/VelikaVes/uradovna/1/address> .
+
+<http://linked.opendata.cz/resource/domain/seznam.gov.cz/ovm/ovms/VelikaVes/uradovna/1/address> a <http://schema.org/PostalAddress> ;
+	<http://schema.org/addressRegion> "Středočeský" ;
+	<http://schema.org/postalCode> "25070" ;
+	<http://schema.org/streetAddress> "69" ;
+	<http://schema.org/addressLocality> "Veliká Ves" ;
+	<http://linked.opendata.cz/ontology/domain/seznam.gov.cz/ovm/kraj> <http://ruian.linked.opendata.cz/resource/vusc/27> ;
+	<http://ruian.linked.opendata.cz/ontology/links/adresni-misto> <http://ruian.linked.opendata.cz/resource/adresni-mista/30935661> .
+
+
+
+

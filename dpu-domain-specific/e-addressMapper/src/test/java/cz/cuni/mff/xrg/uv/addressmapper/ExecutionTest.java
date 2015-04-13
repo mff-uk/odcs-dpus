@@ -22,17 +22,22 @@ public class ExecutionTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExecutionTest.class);
 
-    //@Test
-    public void ulice_Delnicka() throws Exception {
+    @Test
+    public void external() throws Exception {
         final TestEnvironment testEnv = new TestEnvironment();
 
         // Prepare input and output.
         final WritableRDFDataUnit input = testEnv.createRdfInput("input", false);
         final WritableRDFDataUnit output = testEnv.createRdfOutput("output", false);
 
-        final RDFDataUnit.Entry entry = RdfDataUnitUtils.addGraph(input, "ulice");
-        InputOutputUtils.extractFromFile(ResourceUtils.getFile("ulice-Delnicka.ttl"), RDFFormat.TURTLE,
+        final RDFDataUnit.Entry entry = RdfDataUnitUtils.addGraph(input, "data");
+
+//        InputOutputUtils.extractFromFile(ResourceUtils.getFile("ulice-Delnicka.ttl"), RDFFormat.TURTLE,
+//                input, entry);
+
+        InputOutputUtils.extractFromFile(new File("d:/Temp/06/data.ttl"), RDFFormat.TURTLE,
                 input, entry);
+
 
         // Prepare configuration - default is enough.
         final AddressMapperConfig_V1 config = new AddressMapperConfig_V1();
@@ -45,7 +50,7 @@ public class ExecutionTest {
             testEnv.run(dpu);
             // Dump output to file ..
 
-            InputOutputUtils.loadToFile(output, new File("d:/Temp/03/out.ttl"), RDFFormat.TURTLE);
+            InputOutputUtils.loadToFile(output, new File("d:/Temp/06/data-out.ttl"), RDFFormat.TURTLE);
             
         } finally {
             testEnv.release();

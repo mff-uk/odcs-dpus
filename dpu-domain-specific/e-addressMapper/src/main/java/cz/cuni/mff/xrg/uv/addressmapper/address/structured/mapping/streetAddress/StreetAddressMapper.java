@@ -1,21 +1,28 @@
-package cz.cuni.mff.xrg.uv.addressmapper.mapping.streetAddress;
+package cz.cuni.mff.xrg.uv.addressmapper.address.structured.mapping.streetAddress;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import cz.cuni.mff.xrg.uv.addressmapper.AddressMapperOntology;
-import cz.cuni.mff.xrg.uv.addressmapper.mapping.AbstractMapper;
-import cz.cuni.mff.xrg.uv.addressmapper.objects.PostalAddress;
+import cz.cuni.mff.xrg.uv.addressmapper.address.structured.mapping.AbstractMapper;
+import cz.cuni.mff.xrg.uv.addressmapper.address.structured.PostalAddress;
+import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBase;
+import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBaseException;
 import cz.cuni.mff.xrg.uv.addressmapper.objects.Report;
-import cz.cuni.mff.xrg.uv.addressmapper.objects.RuianEntity;
+import cz.cuni.mff.xrg.uv.addressmapper.ruian.RuianEntity;
 import cz.cuni.mff.xrg.uv.addressmapper.streetAddress.StreetAddress;
 import cz.cuni.mff.xrg.uv.addressmapper.streetAddress.StreetAddressParser;
 import cz.cuni.mff.xrg.uv.addressmapper.streetAddress.WrongAddressFormatException;
-import eu.unifiedviews.dpu.DPUException;
 
 /**
- * Set: cisloDomovni cisloOrientancni ulice obec
+ * Set: 
+ *  cisloDomovni
+ *  cisloOrientancni
+ *  ulice
+ *  obec
  *
  * @author Škoda Petr
  */
@@ -23,8 +30,16 @@ public class StreetAddressMapper extends AbstractMapper {
 
     private final StreetAddressParser parser = new StreetAddressParser();
 
+    private final KnowledgeBase knowledgeBase;
+
+    private static final Logger LOG = LoggerFactory.getLogger(StreetAddressMapper.class);
+
+    public StreetAddressMapper(KnowledgeBase knowledgeBase) {
+        this.knowledgeBase = knowledgeBase;
+    }
+    
     @Override
-    public List<RuianEntity> map(PostalAddress address, RuianEntity entity) throws DPUException {
+    public List<RuianEntity> map(PostalAddress address, RuianEntity entity) throws KnowledgeBaseException {
         if (address.getStreetAddress() == null) {
             return Arrays.asList(new RuianEntity(entity));
         }
@@ -64,8 +79,8 @@ public class StreetAddressMapper extends AbstractMapper {
         // - - - - -
         if (streetAddress.getHouseNumber() != null) {
             // House number can contains multiple records separated with comma in such case we fail.
-            String houseNumber = streetAddress.getHouseNumber().replaceAll("\\s", "");
-            if (houseNumber.contains(",")) {
+            String cisloOrientacni = streetAddress.getHouseNumber().replaceAll("\\s", "");
+            if (cisloOrientacni.contains(",")) {
                 final Report report = new Report(
                         AddressMapperOntology.MAPPER_STREET_ADDRESS,
                         "Cislo orientancni obsahuje vice hodnot.");
@@ -73,15 +88,15 @@ public class StreetAddressMapper extends AbstractMapper {
             } else {
                 // 'cislo orientacni' can contains a letter
                 String houseNumberLetter = null;
-                final char lastChar = houseNumber.charAt(houseNumber.length() - 1);
+                final char lastChar = cisloOrientacni.charAt(cisloOrientacni.length() - 1);
                 if (Character.isLetter(lastChar)) {
                     // Last character is letter, so read and remove it.
-                    houseNumberLetter = "\"" + lastChar + "\"";
-                    houseNumber = houseNumber.substring(0, houseNumber.length() - 1);
+                    houseNumberLetter = "" + lastChar;
+                    cisloOrientacni = cisloOrientacni.substring(0, cisloOrientacni.length() - 1);
                 }
                 // Parsse houseNumber as a integer.
                 try {
-                    final Integer cisloDomovni = Integer.parseInt(houseNumber.trim());
+                    final Integer cisloDomovni = Integer.parseInt(cisloOrientacni.trim());
                     for (RuianEntity item : output) {
                         item.setCisloOrientancni(cisloDomovni);
                         item.setCisloOrientancniPismeno(houseNumberLetter);

@@ -1,11 +1,11 @@
-package cz.cuni.mff.xrg.uv.addressmapper.mapping;
+package cz.cuni.mff.xrg.uv.addressmapper.address.structured.mapping;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import cz.cuni.mff.xrg.uv.addressmapper.objects.RuianEntity;
-import cz.cuni.mff.xrg.uv.addressmapper.objects.PostalAddress;
-import eu.unifiedviews.dpu.DPUException;
+import cz.cuni.mff.xrg.uv.addressmapper.ruian.RuianEntity;
+import cz.cuni.mff.xrg.uv.addressmapper.address.structured.PostalAddress;
+import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBaseException;
 
 /**
  *
@@ -31,10 +31,9 @@ public abstract class AbstractMapper {
      * @param address
      * @param entity
      * @return All possible mappings, do not add given entity to the result - create a copy.
-     * @throws DPUException
      */
     public abstract List<RuianEntity> map(final PostalAddress address, final RuianEntity entity)
-            throws DPUException;
+            throws KnowledgeBaseException;
 
     /**
      * Can be used to generate alternatives for given list of values.

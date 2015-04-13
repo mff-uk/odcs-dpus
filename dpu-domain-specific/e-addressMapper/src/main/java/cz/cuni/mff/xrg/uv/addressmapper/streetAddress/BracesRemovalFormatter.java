@@ -15,8 +15,7 @@ public class BracesRemovalFormatter implements Formatter {
     private final Pattern pattern;
 
     public BracesRemovalFormatter() {
-        this.pattern = Pattern.compile(REGEXP_PATTERN,
-                Pattern.UNICODE_CHARACTER_CLASS);
+        this.pattern = Pattern.compile(REGEXP_PATTERN, Pattern.UNICODE_CHARACTER_CLASS);
     }
 
     @Override
@@ -25,15 +24,12 @@ public class BracesRemovalFormatter implements Formatter {
         if (!matcher.find()) {
             return streetAddress;
         }
-        if (matcher.group("suffix").isEmpty() || 
-                matcher.group("suffix").startsWith(" ")) {
+        if (matcher.group("suffix").isEmpty() || matcher.group("suffix").startsWith(" ")) {
             // suffix starts with space, we don't need to add new
-            return matcher.group("prefix").trim()
-                    + matcher.group("suffix").trim();
+            return matcher.group("prefix").trim() + matcher.group("suffix").trim();
         } else {
             // insert space
-            return matcher.group("prefix").trim() + " "
-                    + matcher.group("suffix").trim();
+            return matcher.group("prefix").trim() + " " + matcher.group("suffix").trim();
         }
 
     }

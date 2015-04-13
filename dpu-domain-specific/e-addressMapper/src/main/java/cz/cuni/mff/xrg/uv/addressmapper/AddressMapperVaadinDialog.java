@@ -21,6 +21,7 @@ public class AddressMapperVaadinDialog extends AbstractDialog<AddressMapperConfi
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");
+        mainLayout.setMargin(true);
 
         txtRuianUri = new TextField();
         txtRuianUri.setWidth("100%");
@@ -40,17 +41,17 @@ public class AddressMapperVaadinDialog extends AbstractDialog<AddressMapperConfi
 
     @Override
     protected void setConfiguration(AddressMapperConfig_V1 c) throws DPUConfigException {
-        if (!txtRuianUri.isValid()) {
-            throw new DPUConfigException("Invalid SPARQL endpoint URI.");
-        }
         txtRuianUri.setValue(c.getRuainEndpoint());
     }
 
     @Override
     protected AddressMapperConfig_V1 getConfiguration() throws DPUConfigException {
+        if (!txtRuianUri.isValid()) {
+            throw new DPUConfigException("Invalid SPARQL endpoint URI.");
+        }
+
         final AddressMapperConfig_V1 cnf = new AddressMapperConfig_V1();
         cnf.setRuainEndpoint(txtRuianUri.getValue());
-
         return cnf;
     }
 

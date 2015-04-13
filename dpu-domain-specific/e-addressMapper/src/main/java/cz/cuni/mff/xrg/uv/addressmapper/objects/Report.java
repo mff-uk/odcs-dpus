@@ -38,14 +38,22 @@ public class Report {
 
     public List<Statement> asStatements(URI subject) {
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
-        final EntityBuilder entityBuilder = new EntityBuilder(subject, valueFactory);
+        final EntityBuilder entityBuilder = prepareEntityBuilder(subject, valueFactory);
 
         entityBuilder.property(RDF.TYPE, AddressMapperOntology.REPORT);
 
-        entityBuilder.property(AddressMapperOntology.MESSAGE, message);
+        return entityBuilder.asStatements();
+    }
+
+    protected EntityBuilder prepareEntityBuilder(URI subject, ValueFactory valueFactory) {
+        final EntityBuilder entityBuilder = new EntityBuilder(subject, valueFactory);
+
+        if (message != null && message.isEmpty()) {
+            entityBuilder.property(AddressMapperOntology.MESSAGE, message);
+        }
         entityBuilder.property(AddressMapperOntology.SOURCE, source);
 
-        return entityBuilder.asStatements();
+        return entityBuilder;
     }
 
 }

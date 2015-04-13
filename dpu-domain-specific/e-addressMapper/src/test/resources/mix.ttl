@@ -1,0 +1,44 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix s: <http://schema.org/> .
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+<http://localhost/resource/address/01> a <http://schema.org/PostalAddress> ;
+	s:streetAddress "Dělnická" ;
+	s:addressRegion "České Budějovice" ;
+	s:addressLocality "Adamov" .
+
+#<http://localhost/resource/entity/01> <http://localhost/ontology/address> <http://localhost/resource/address/01> ;
+#    <http://localhost/ontology/value/expected> <http://ruian.linked.opendata.cz/resource/ulice/656283> .
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+<http://linked.opendata.cz/resource/domain/ares/postal-address/203779480> a <http://schema.org/PostalAddress> ;
+	s:addressCountry "\u010Cesk\u00E1 republika" ;
+	s:addressLocality "Praha 4, Mod\u0159any" ;
+	s:postalCode "14300" .
+
+#<http://localhost/resource/entity/02> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/ares/postal-address/203779480> ;
+#    <http://localhost/ontology/value/expected> <http://ruian.linked.opendata.cz/resource/casti-obci/400238> .
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+#<http://localhost/resource/entity/03> <http://localhost/ontology/address> "Praha 4, Mod\u0159any" ;
+#    <http://localhost/ontology/value/expected> <http://ruian.linked.opendata.cz/resource/casti-obci/400238> .
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+<http://linked.opendata.cz/resource/domain/ares/postal-address/203156922> rdf:type	s:PostalAddress ;
+	s:addressCountry	"\u010Cesk\u00E1 republika" ;
+	s:addressLocality	"Praha, Praha 4 - Nusle" ;
+	s:postalCode	"14000" ;
+	s:streetAddress	"Na Pankr\u00E1ci 1062/58" .
+
+<http://localhost/resource/entity/04> <http://localhost/ontology/address> <http://linked.opendata.cz/resource/domain/ares/postal-address/203156922> ;
+    <http://localhost/ontology/value/expected> <http://linked.opendata.cz/resource/domain/ares/postal-address/203156922> .
+

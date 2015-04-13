@@ -1,7 +1,9 @@
-package cz.cuni.mff.xrg.uv.addressmapper.objects;
+package cz.cuni.mff.xrg.uv.addressmapper.ruian;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -12,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.uv.addressmapper.AddressMapperOntology;
+import cz.cuni.mff.xrg.uv.addressmapper.objects.Report;
+import cz.cuni.mff.xrg.uv.addressmapper.address.StringAddress;
 import eu.unifiedviews.helpers.dpu.rdf.EntityBuilder;
 
 /**
@@ -23,19 +27,19 @@ public class RuianEntity {
     private static final Logger LOG = LoggerFactory.getLogger(RuianEntity.class);
 
     private static final String ADRESNI_MISTO = "?adrMisto";
-    
+
     private static final String ULICE = "?ulice";
-    
+
     private static final String STAVEBNI_OBJEKT = "?stavebniObjekt";
-    
+
     private static final String CAST_OBCE = "?castObce";
-    
+
     private static final String OBEC = "?obec";
-    
+
     private static final String POU = "?pou";
-    
+
     private static final String ORP = "?orp";
-    
+
     private static final String OKRES = "?okres";
 
     private static final String VUSC = "?vusc";
@@ -45,36 +49,37 @@ public class RuianEntity {
     public static final String ENTITY_TYPE_BINDING = "type";
 
     // Adresni misto
-
     private Integer cisloDomovni; // xsd:integer
 
     private Integer cisloOrientancni; // xsd:integer
 
     private String cisloOrientancniPismeno;
 
+    private Boolean forceMissingPismeno = true;
+
     private Integer psc; // xsd:integer
 
     // Adresni misto -> Ulice
-
     private String ulice;
-    
-    // Stavební objeckt -> Cast obce
-    
+
+    // Stavební objekt -> Cast obce
     private String castObce;
-    
+
     // Cast obce, Ulice -> Obec
-    
     private String obec;
 
     // Obec -> Okres -> VUSC (Kraj)
-
     private String okres;
 
     private String vusc;
 
-    // Metadata
+    // Working data.
+    private final Map<Integer, List<StringAddress.Meaning>> meanings = new HashMap<>();
 
-    private final URI postalAddress;
+    // Metadata
+    private final URI originalStructured;
+
+    private final String originalUnStructured;
 
     private final List<Report> reports = new LinkedList<>();
 
@@ -83,7 +88,13 @@ public class RuianEntity {
     }
 
     public RuianEntity(URI postalAddress) {
-        this.postalAddress = postalAddress;
+        this.originalStructured = postalAddress;
+        this.originalUnStructured = null;
+    }
+
+    public RuianEntity(String addressString) {
+        this.originalStructured = null;
+        this.originalUnStructured = addressString;
     }
 
     public RuianEntity(RuianEntity other) {
@@ -93,10 +104,13 @@ public class RuianEntity {
         this.ulice = other.ulice;
         this.castObce = other.castObce;
         this.obec = other.obec;
-        this.vusc = other.vusc;
         this.okres = other.okres;
+        this.vusc = other.vusc;
+        // Working data.
+        this.meanings.putAll(other.meanings);
         // Metadata
-        this.postalAddress = other.postalAddress;
+        this.originalStructured = other.originalStructured;
+        this.originalUnStructured = other.originalUnStructured;
         this.reports.addAll(other.reports);
     }
 
@@ -122,6 +136,14 @@ public class RuianEntity {
 
     public void setCisloOrientancniPismeno(String cisloOrientancniPismeno) {
         this.cisloOrientancniPismeno = cisloOrientancniPismeno;
+    }
+
+    public Boolean getForceMissingPismeno() {
+        return forceMissingPismeno;
+    }
+
+    public void setForceMissingPismeno(Boolean forceMissingPismeno) {
+        this.forceMissingPismeno = forceMissingPismeno;
     }
 
     public Integer getPsc() {
@@ -164,6 +186,10 @@ public class RuianEntity {
         this.okres = okres;
     }
 
+    public Map<Integer, List<StringAddress.Meaning>> getMeanings() {
+        return meanings;
+    }
+
     public String getVusc() {
         return vusc;
     }
@@ -193,7 +219,9 @@ public class RuianEntity {
                 AddressMapperOntology.RUAIN_CISLO_ORIENTACNI, cisloOrientancni);
         adresniMistoSet |= addProperty(sparqlAdresniMisto, ADRESNI_MISTO,
                 AddressMapperOntology.RUAIN_CISLO_ORIENTACNI_PISMENO, cisloOrientancniPismeno);
-        adresniMistoSet |= addProperty(sparqlAdresniMisto, ADRESNI_MISTO,
+
+        // 'PSC' alone can not determine 'AdresniMisto'.
+        addProperty(sparqlAdresniMisto, ADRESNI_MISTO,
                 AddressMapperOntology.RUAIN_PSC, psc);
 
         if (adresniMistoSet) {
@@ -237,7 +265,7 @@ public class RuianEntity {
         }
         // For linking.
         if (adresniMistoSet) {
-            // ADRESNI_MISTO -> STAVEBNI_OBJEKT -> ULICE
+            // ADRESNI_MISTO -> STAVEBNI_OBJEKT || ULICE
             addLink(sparqlCastObce, STAVEBNI_OBJEKT,
                     AddressMapperOntology.RUIAN_HAS_CAST_OBCE, CAST_OBCE);
             sparqlCastObce.append("\n");
@@ -245,9 +273,7 @@ public class RuianEntity {
                     RDF.TYPE, AddressMapperOntology.RUIAN_STAVEBNI_OBJEKT);
             addLink(sparqlCastObce, ADRESNI_MISTO,
                     AddressMapperOntology.RUIAN_HAS_STAVEBNI_OBJEKT, STAVEBNI_OBJEKT);
-
         }
-
 
         if (castObceSet) {
             if (minProperty == null) {
@@ -270,12 +296,20 @@ public class RuianEntity {
             // CAST_OBCE -> OBEC
             addLink(sparqlObec, CAST_OBCE,
                     AddressMapperOntology.RUIAN_HAS_OBEC, OBEC);
-        } else if (uliceSet || adresniMistoSet) {
+        }
+        if (uliceSet) {
             // ULICE -> OBEC
-            // Use also as default fall back to connect AdresniMisto with Obec.
             addLink(sparqlObec, ULICE,
                     AddressMapperOntology.RUIAN_HAS_OBEC, OBEC);
         }
+        if (!castObceSet && !uliceSet && adresniMistoSet) {
+            // We use CAST_OBCE and STAVEBNI_OBJEKT as a default connection as it's more likely to exist then
+            // 'ulice' if 'ulice' is not provided in address.
+            castObceSet = true;
+            addLink(sparqlObec, CAST_OBCE,
+                    AddressMapperOntology.RUIAN_HAS_OBEC, OBEC);
+        }
+
 
         if (obecSet) {
             if (minProperty == null) {
@@ -312,7 +346,7 @@ public class RuianEntity {
                     AddressMapperOntology.SCHEMA_NAME, vusc);
         }
         // For linking.
-        if (obecSet || uliceSet || castObceSet || adresniMistoSet ) {
+        if (obecSet || uliceSet || castObceSet || adresniMistoSet) {
             // ORP -> VUSC
             addLink(sparqlVUCS, ORP,
                     AddressMapperOntology.RUIAN_HAS_VUSC, VUSC);
@@ -327,14 +361,13 @@ public class RuianEntity {
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // OKRES ( OBEC -> OKRES )
-        
         boolean okresSet = false;
         final StringBuilder sparqlOkres = new StringBuilder();
 
         if (vucsSet) {
             if (okres != null) {
                 // We ignore okres.
-                LOG.warn("Okres ignored for: <{}>", postalAddress);
+                //LOG.warn("Okres ignored for: <{}>, '{}'", originalStructured, originalUnStructured);
             }
         } else {
             if (okres != null) {
@@ -351,14 +384,17 @@ public class RuianEntity {
             }
         }
         // For linking.
-        if (obecSet || uliceSet || castObceSet || adresniMistoSet ) {            
+        if (obecSet || uliceSet || castObceSet || adresniMistoSet) {
             addLink(sparqlOkres, OBEC,
                     AddressMapperOntology.RUIAN_HAS_OKRES, OKRES);
         }
 
+        if (minProperty == null || maxProperty == null) {
+            LOG.error("No value for entity: <{}> '{}'", this.originalStructured, this.originalUnStructured);
+            return "";
+        }
 
         final StringBuilder query = new StringBuilder();
-
         switch (maxProperty) {
             case VUSC:
             case OKRES:
@@ -387,12 +423,14 @@ public class RuianEntity {
                 }
             case CAST_OBCE:
             case ULICE:
+                // Use both values if possible.
+                if (uliceSet) {
                     query.append("\n");
-                if (castObceSet) {
-                    query.append(sparqlCastObce);
-                } else {
-                    // Use otherwise, either if it's set or ass fall back.
                     query.append(sparqlUlice);
+                }
+                if (castObceSet) {
+                    query.append("\n");
+                    query.append(sparqlCastObce);
                 }
                 if (CAST_OBCE.equals(minProperty) || ULICE.equals(minProperty)) {
                     break;
@@ -400,6 +438,26 @@ public class RuianEntity {
             case ADRESNI_MISTO:
                 query.append("\n");
                 query.append(sparqlAdresniMisto);
+                // For some ADRESNI_MISTO 'cisloDomovni' may be 'cislo evidencni' this information is stored
+                // in 'stavebniObjekt'. We need to omit entities with 'cislo evidencni' from results.
+                query.append("\n");
+                query.append("  MINUS {\n");
+                query.append("    ");
+                query.append(ADRESNI_MISTO);
+                query.append("<http://ruian.linked.opendata.cz/ontology/stavebniObjekt> ?obj.\n");
+                query.append("    ?obj <http://ruian.linked.opendata.cz/ontology/typStavebnihoObjektu> <http://ruian.linked.opendata.cz/ontology/stavebni-objekty/TypStavebnihoObjektu#2>.\n");
+                query.append("  }\n");
+                //
+//                if (cisloOrientancniPismeno == null && forceMissingPismeno) {
+//                    query.append("\n");
+//                    query.append("  MINUS {\n");
+//                    query.append("    ");
+//                    query.append(ADRESNI_MISTO);
+//                    query.append(" <");
+//                    query.append(AddressMapperOntology.RUAIN_CISLO_ORIENTACNI_PISMENO);
+//                    query.append("> [].\n");
+//                    query.append("  }\n");
+//                }
         }
         // Add class.
         query.append("\n");
@@ -410,8 +468,9 @@ public class RuianEntity {
         query.append(" .");
         query.append("\n");
 
-        // Assemble query.
-        String queryStr = "SELECT " + minProperty + " ?" + ENTITY_TYPE_BINDING + " WHERE { " + query.toString() + "}";
+        // Assemble query - we limit number of result to 16
+        String queryStr = "SELECT distinct " + minProperty + " WHERE { " + query
+                .toString() + "} LIMIT 16";
         // Replace minProperty with ENTITY_BINDING, so we have fixed result structure.
         queryStr = queryStr.replaceAll("\\" + minProperty, "?" + ENTITY_BINDING);
         return queryStr;
@@ -427,6 +486,14 @@ public class RuianEntity {
         final EntityBuilder entityBuilder = new EntityBuilder(subject, valueFactory);
         // Add type and reference entity.
         entityBuilder.property(RDF.TYPE, AddressMapperOntology.ENTITY_RUIAN);
+
+        if (originalStructured != null) {
+            entityBuilder.property(AddressMapperOntology.HAS_SOURCE_ADDRESS, originalStructured);
+        }
+        if (originalUnStructured != null) {
+            entityBuilder.property(AddressMapperOntology.HAS_SOURCE_ADDRESS, originalUnStructured);
+        }
+
         // Add properties.
         if (this.cisloDomovni != null) {
             entityBuilder.property(AddressMapperOntology.CISLO_DOMOVNI,
@@ -437,7 +504,8 @@ public class RuianEntity {
                     valueFactory.createLiteral(this.cisloOrientancni));
         }
         if (this.cisloOrientancniPismeno != null) {
-            entityBuilder.property(AddressMapperOntology.CISLO_ORIENTACNI_PISMENO, this.cisloOrientancniPismeno);
+            entityBuilder.property(AddressMapperOntology.CISLO_ORIENTACNI_PISMENO,
+                    this.cisloOrientancniPismeno);
         }
         if (this.psc != null) {
             entityBuilder.property(AddressMapperOntology.PSC, valueFactory.createLiteral(this.psc));
@@ -460,8 +528,9 @@ public class RuianEntity {
         // Add reports.
         List<Statement> results = new LinkedList<>(); // Uset to store statements from reports.
         for (int index = 0; index < this.reports.size(); ++index) {
-            final URI reportSubject = valueFactory.createURI(subject.stringValue() + "/report/" + Integer.toString(index));
-            entityBuilder.property(AddressMapperOntology.HAS_REPORT, reportSubject);            
+            final URI reportSubject = valueFactory.createURI(subject.stringValue() + "/report/" + Integer
+                    .toString(index));
+            entityBuilder.property(AddressMapperOntology.HAS_REPORT, reportSubject);
             results.addAll(this.reports.get(index).asStatements(reportSubject));
         }
         // Add statements from main entity.

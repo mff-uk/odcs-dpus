@@ -13,8 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 public class StreetAddressParser {
     
-    private static final Logger LOG = LoggerFactory.getLogger(
-            StreetAddressParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StreetAddressParser.class);
     
     private final static String REGEXP_PATTERN = "^(?<name>(\\w+\\.?\\s*)*([\\p{L}\\.]+\\s*)+)(\\s(?<landNumber>\\d+)?)?(\\s*/\\s*(?<homeNumber>[\\w,]+)?)?$";
 
@@ -23,8 +22,7 @@ public class StreetAddressParser {
     private final List<Formatter> formaters;
         
     public StreetAddressParser() {
-        this.pattern = Pattern.compile(REGEXP_PATTERN,
-                Pattern.UNICODE_CHARACTER_CLASS);
+        this.pattern = Pattern.compile(REGEXP_PATTERN, Pattern.UNICODE_CHARACTER_CLASS);
         // ..
         this.formaters = new LinkedList<>();
         this.formaters.add(new BracesRemovalFormatter());

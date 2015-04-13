@@ -12,6 +12,8 @@ public class AddressMapperOntology {
 
     private static final String BASE_URI = "http://linked.opendata.cz/resource/domain/address-linker/";
 
+    public static final URI UNSTRUCTURED_FACADE;
+
     // Reprezentuje mapper
     public static final URI MAPPER_POSTAL_CODE;
 
@@ -24,11 +26,18 @@ public class AddressMapperOntology {
     // Reprezentuje metodu generujici alternativni podoby entit
     public static final URI ALT_SWAP_HOUSE_AND_LAND_NUMBER;
 
-    // Do tohoto objektu se parsuji informace ye strukturovane adresy
+    // Aletrnativa odbrani znameho PSC.
+    public static final URI ALT_REMOVE_PSC;
+
+    public static final URI ALT_REMOVE_CASTOBCE;
+
+    // Do tohoto objektu se parsuji informace ze strukturovane adresy
     public static final URI ENTITY_RUIAN;
 
+    public static final URI HAS_ENTITY_RUIAN;
+
     // ENTITY_RUIAN na puvodni adresu, ze ktere byl vytvoren
-    public static final URI HAS_POSTAL_ADDRESS;
+    public static final URI HAS_SOURCE_ADDRESS;
 
     // ENTITY_RUIAN ma ..
     public static final URI CISLO_DOMOVNI;
@@ -75,6 +84,9 @@ public class AddressMapperOntology {
     // potomek od REPORT
     public static final URI REPORT_ALTERNATIVE;
 
+    // potomek od REPORT
+    public static final URI REPORT_EXCEPTION;
+
     // REPORT_SUBSTITUTE ... jaka byla puvodne menena hodnota
     public static final URI FROM;
 
@@ -82,7 +94,7 @@ public class AddressMapperOntology {
     public static final URI TO;
 
     // ENTITY_RUIAN ma mapovani na SCHEMA_POSTAL_ADDRESS
-    public static final URI MAPPING;
+    public static final URI HAS_MAPPING;
 
     // ENTITY_RUIAN ma vysledek mapovani
     public static final URI HAS_RESULT;
@@ -95,6 +107,9 @@ public class AddressMapperOntology {
 
     // Vysledek kdy bylo nalezeno vice mapovani
     public static final URI RESULT_MULTIPLE_MAPPINGS;
+
+    // Pouzity dotaz.
+    public static final URI HAS_QUERY;
 
     private static final String BASE_SCHEMA = "http://schema.org/";
 
@@ -131,15 +146,15 @@ public class AddressMapperOntology {
     public static final URI RUIAN_HAS_OBEC;
 
     public static final URI RUIAN_POU;
-    
+
     public static final URI RUIAN_HAS_POU;
-    
+
     public static final URI RUIAN_ORP;
-    
+
     public static final URI RUIAN_HAS_ORP;
-    
+
     public static final URI RUIAN_VUSC;
-    
+
     public static final URI RUIAN_HAS_VUSC;
 
     public static final URI RUIAN_OKRES;
@@ -148,15 +163,19 @@ public class AddressMapperOntology {
 
     static {
        final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
-       
+
+       UNSTRUCTURED_FACADE = valueFactory.createURI(BASE_URI + "facade/Unstructured");
        MAPPER_POSTAL_CODE = valueFactory.createURI(BASE_URI + "mapper/PostalCodeMapper");
        MAPPER_ADDRESS_REGION = valueFactory.createURI(BASE_URI + "mapper/AddressRegionMapper");
        MAPPER_STREET_ADDRESS = valueFactory.createURI(BASE_URI + "mapper/StreetAddressMapper");
 
        ALT_SWAP_HOUSE_AND_LAND_NUMBER = valueFactory.createURI(BASE_URI + "alternative/swapHouseAndLandNumber");
+       ALT_REMOVE_PSC = valueFactory.createURI(BASE_URI + "alternative/removePsc");
+       ALT_REMOVE_CASTOBCE = valueFactory.createURI(BASE_URI + "alternative/obecSameAsCastObce");
 
        ENTITY_RUIAN = valueFactory.createURI(BASE_URI + "RuianEntity");
-       HAS_POSTAL_ADDRESS = valueFactory.createURI(BASE_URI + "postalAddress");
+       HAS_ENTITY_RUIAN = valueFactory.createURI(BASE_URI + "hasRuianEntity");
+       HAS_SOURCE_ADDRESS = valueFactory.createURI(BASE_URI + "sourceAddress");
 
        CISLO_DOMOVNI = valueFactory.createURI(BASE_URI + "cisloDomovni");
        CISLO_ORIENTACNI = valueFactory.createURI(BASE_URI + "cisloOrientaceni");
@@ -176,16 +195,18 @@ public class AddressMapperOntology {
 
        REPORT_SUBSTITUTE = valueFactory.createURI(BASE_URI + "Substitution");
        REPORT_ALTERNATIVE = valueFactory.createURI(BASE_URI + "Alternative");
+       REPORT_EXCEPTION = valueFactory.createURI(BASE_URI + "Exception");
 
        FROM = valueFactory.createURI(BASE_URI + "substitution/from");
        TO = valueFactory.createURI(BASE_URI + "substitution/to");
 
-       MAPPING = valueFactory.createURI(BASE_URI + "mapping");
+       HAS_MAPPING = valueFactory.createURI(BASE_URI + "mapping");
        HAS_RESULT = valueFactory.createURI(BASE_URI + "resultType");
 
        RESULT_SINGLE_MAPPING = valueFactory.createURI(BASE_URI + "singleMapping");
        RESULT_NO_MAPPING = valueFactory.createURI(BASE_URI + "noMapping");
        RESULT_MULTIPLE_MAPPINGS = valueFactory.createURI(BASE_URI + "multipleMappings");
+       HAS_QUERY = valueFactory.createURI(BASE_URI + "hasQuery");
 
        // - - -
 

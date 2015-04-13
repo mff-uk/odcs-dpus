@@ -10,18 +10,25 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.RepositoryConnection;
+
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.addressmapper.facades.RuianFacade;
-import cz.cuni.mff.xrg.uv.addressmapper.facades.SchemaFacade;
-import cz.cuni.mff.xrg.uv.addressmapper.objects.PostalAddress;
-import cz.cuni.mff.xrg.uv.addressmapper.objects.RuianEntity;
+import cz.cuni.mff.xrg.uv.addressmapper.address.processing.AlternativesFacade;
+import cz.cuni.mff.xrg.uv.addressmapper.address.DuplicityFilter;
+import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBase;
+import cz.cuni.mff.xrg.uv.addressmapper.address.structured.StructuredFacade;
+import cz.cuni.mff.xrg.uv.addressmapper.address.structured.PostalAddress;
+import cz.cuni.mff.xrg.uv.addressmapper.ruian.RuianEntity;
+import cz.cuni.mff.xrg.uv.addressmapper.address.unstructured.UnstructuredFacade;
+import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBaseException;
+import cz.cuni.mff.xrg.uv.addressmapper.objects.Report;
 import cz.cuni.mff.xrg.uv.service.external.ExternalError;
 import cz.cuni.mff.xrg.uv.service.external.ExternalServicesFactory;
 import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
@@ -44,12 +51,15 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AddressMapper.class);
 
-    private static final String QUERY = "SELECT ?s WHERE { ?s a <http://schema.org/PostalAddress> . }";
+    /**
+     * %s - Predicate URI.
+     */
+    private static final String QUERY = "SELECT ?s ?o WHERE { ?s <%s> ?o. }";
 
-    @DataUnit.AsInput(name = "input", description = "Trojice s s:PostalAddress a související jenž se mají namapovat na ruian.")
+    @DataUnit.AsInput(name = "input")
     public RDFDataUnit inRdfPostalAddress;
 
-    @DataUnit.AsOutput(name = "output", description = "Mapovani z postalAddress na ruain pomoci http://ruian.linked.opendata.cz/ontology/links/.")
+    @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit outRdfMapping;
 
     @ExtensionInitializer.Init(param = "outRdfMapping")
@@ -58,12 +68,14 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
     @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
 
-    public AddressMapper() {
+
+    public AddressMapper() throws DPUException {
         super(AddressMapperVaadinDialog.class, ConfigHistory.noHistory(AddressMapperConfig_V1.class));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
+        // Get input entries.
         final List<RDFDataUnit.Entry> inputs =
                 FaultToleranceUtils.getEntries(faultTolerance, inRdfPostalAddress, RDFDataUnit.Entry.class);
         final ValueFactory valueFactory = rdfMapping.getValueFactory();
@@ -74,9 +86,14 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
         } catch (ExternalError ex) {
             throw ContextUtils.dpuException(ctx, ex, "Can't connect to remote SPARQL endpoint.");
         }
-        final RuianFacade ruianFacade = new RuianFacade();
-        final SchemaFacade schemaFacade = new SchemaFacade(faultTolerance, inRdfPostalAddress);
+        // Prepare knowledge base.
+        KnowledgeBase knowledgeBase = new KnowledgeBase(config.getSolrEndpoint());
+        final UnstructuredFacade unstructuredFacade = new UnstructuredFacade(knowledgeBase);
+        final StructuredFacade structuredFacade = new StructuredFacade(faultTolerance, inRdfPostalAddress,
+                knowledgeBase, unstructuredFacade);
+        final AlternativesFacade alternativesFacade = new AlternativesFacade();
         // For each graph.
+        final String inputEntitiesQuery = String.format(QUERY, config.getAddressPredicate());
         for (final RDFDataUnit.Entry graph : inputs) {
             final SparqlUtils.QueryResultCollector adresses = new SparqlUtils.QueryResultCollector();
             faultTolerance.execute(inRdfPostalAddress, new FaultTolerance.ConnectionAction() {
@@ -84,7 +101,7 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
                 @Override
                 public void action(RepositoryConnection connection) throws Exception {
                     final SparqlUtils.SparqlSelectObject select =
-                            SparqlUtils.createSelect(QUERY, Arrays.asList(graph));
+                            SparqlUtils.createSelect(inputEntitiesQuery, Arrays.asList(graph));
                     SparqlUtils.execute(connection, ctx, select, adresses);
                 }
             });
@@ -93,21 +110,60 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
 
                 @Override
                 public RDFDataUnit.Entry action() throws Exception {
-                    final String graphName = graph.getSymbolicName();
-                    LOG.debug("Ouput symbolic name: %s", graphName);
+                    final String graphName = graph.getSymbolicName() + "/mapping";
+                    LOG.debug("Ouput symbolic name: {}", graphName);
                     return RdfDataUnitUtils.addGraph(outRdfMapping, graphName);
                 }
             });
             // Set output.
             rdfMapping.setOutput(output);
+            int counterMapped = 0;
+            int progressCounter = 0;
             for (Map<String, Value> item : adresses.getResults()) {
-                final URI postalAddressUri = (URI)item.get("s");
-                // Load entity.
-                final PostalAddress postalAddress = schemaFacade.load(postalAddressUri);
-                // Convert into entity(ies).
-                final List<RuianEntity> entities = ruianFacade.toRuainEntities(postalAddress);
+                LOG.info("Mapping {}/{}", progressCounter++, adresses.getResults().size());
+
+                final URI entityUri = (URI)item.get("s");
+                List<RuianEntity> entities;
+
+                if (item.get("o") instanceof URI) {
+                    // Entity - structured.
+                    final PostalAddress postalAddress = structuredFacade.load((URI)item.get("o"));
+                    try {
+                        entities = structuredFacade.toRuainEntities(postalAddress);
+                    } catch (KnowledgeBaseException ex) {
+                        // Can't parse enetity.
+                        ContextUtils.sendWarn(ctx, "Can't paser entity for exception.", ex,
+                                "Entity: {0}", entityUri);
+                        continue;
+                    }
+                } else {
+                    // It's literal - unstructured.
+                    final String value = item.get("o").stringValue();
+                    RuianEntity initialEntity = new RuianEntity(value);
+                    try {
+                        entities = unstructuredFacade.map(initialEntity, value);
+                    } catch (KnowledgeBaseException ex) {
+                        // Can't parse enetity.
+                        ContextUtils.sendWarn(ctx, "Can't paser entity for exception.", ex,
+                                "Entity: {0} Value: ''{1}''", entityUri, value);
+                        continue;
+                    }
+                }
+                // Generate alternatives and filter the results.
+                entities = DuplicityFilter.filter(entities);
+                alternativesFacade.addAlternatives(entities);
+                entities = DuplicityFilter.filter(entities);
+                // ...
+                Integer counter = 0;
                 // Ask for queries ..
-                for (final RuianEntity entity : entities) {              
+                List<Statement> allStatements = new LinkedList<>();
+
+                for (final RuianEntity entity : entities) {
+                    final String entityQuery = entity.asRuianQuery();
+                    if (entityQuery.isEmpty()) {
+                        // Skip empty.
+                        continue;
+                    }
                     final SparqlUtils.QueryResultCollector ruianResponse = new SparqlUtils.QueryResultCollector();
                     // Execute query.
                     faultTolerance.execute(ruian, new FaultTolerance.ConnectionAction() {
@@ -115,7 +171,7 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
                         @Override
                         public void action(RepositoryConnection connection) throws Exception {
                             final SparqlUtils.SparqlSelectObject select = SparqlUtils.createSelect(
-                                    entity.asRuianQuery(),
+                                    entityQuery,
                                     DataUnitUtils.getEntries(ruian, RDFDataUnit.Entry.class));
                             SparqlUtils.execute(connection, ctx, select, ruianResponse);
                         }
@@ -124,47 +180,70 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
                     final List<Statement> statemetns = new LinkedList<>();
 
                     // Extract ruianResponse, format is defined by RuianEntity.
-                    final URI entityUri = valueFactory.createURI(postalAddressUri.stringValue() + "/mapping");
+                    final URI mappingUri = valueFactory.createURI(
+                            entityUri.stringValue() + "/mapping-" + (counter++));
                     for (Map<String, Value> mapping : ruianResponse.getResults()) {
-                        final URI mappingUri = (URI)mapping.get(RuianEntity.ENTITY_BINDING);
+                        final URI targetInRuain = (URI)mapping.get(RuianEntity.ENTITY_BINDING);
 
                         statemetns.add(valueFactory.createStatement(entityUri,
-                                AddressMapperOntology.MAPPING,
+                                AddressMapperOntology.HAS_ENTITY_RUIAN,
                                 mappingUri));
+
+                        statemetns.add(valueFactory.createStatement(mappingUri,
+                                AddressMapperOntology.HAS_MAPPING,
+                                targetInRuain));
 
                         // TODO We could add type of mapping (ulice, obec, .. ) here as well.
                     }
+                    LOG.info("Results size: {}", ruianResponse.getResults().size());
+
+
                     // Based on number of results determine outpu.
                     switch (ruianResponse.getResults().size()) {
                         case 0: // No results.
-                            statemetns.add(valueFactory.createStatement(entityUri,
+                            statemetns.add(valueFactory.createStatement(mappingUri,
                                     AddressMapperOntology.HAS_RESULT,
                                     AddressMapperOntology.RESULT_NO_MAPPING));
+                            entity.getReports().add(new Report(AddressMapperOntology.HAS_QUERY,
+                                    entity.asRuianQuery()));
+
                             break;
                         case 1: // This is what we want.
-                            statemetns.add(valueFactory.createStatement(entityUri,
+                            statemetns.add(valueFactory.createStatement(mappingUri,
                                     AddressMapperOntology.HAS_RESULT,
-                                    AddressMapperOntology.RESULT_SINGLE_MAPPING));
+                                   AddressMapperOntology.RESULT_SINGLE_MAPPING));
+                            ++counterMapped;
                             break;
                         default: // > 1
-                            statemetns.add(valueFactory.createStatement(entityUri,
+                            statemetns.add(valueFactory.createStatement(mappingUri,
                                     AddressMapperOntology.HAS_RESULT,
                                     AddressMapperOntology.RESULT_MULTIPLE_MAPPINGS));
+                            entity.getReports().add(new Report(AddressMapperOntology.HAS_QUERY,
+                                    entity.asRuianQuery()));
                             break;
                     }
                     // Add information from query.
-                    statemetns.addAll(entity.asStatements(entityUri));
-                    // Add to the output.
-                    rdfMapping.add(statemetns);
+                    statemetns.addAll(entity.asStatements(mappingUri));
 
                     // Check for end.
                     if (ruianResponse.getResults().size() == 1) {
-                        // We have found mapping, continue with another entity.
+                        // We have found mapping, add only sucess mapping and continu ewith another object.
+                        allStatements = statemetns;
                         break;
+                    } else {
+                        // Add information about failure to output.
+                        allStatements.addAll(statemetns);
                     }
                 }
+                // Add all - if mapping has been found we add information only about used mapping entity
+                //           in other case we all information about all the attemps.
+                rdfMapping.add(allStatements);
             }
+            // Print results.
+            LOG.info("Mapped '{}' from '{}' in {}", counterMapped, adresses.getResults().size(), graph);
+            ContextUtils.sendShortInfo(ctx, "Ok/Failed to parse {0}/{1}",
+                    counterMapped, adresses.getResults().size() - counterMapped);
         }
     }
-     
+
 }

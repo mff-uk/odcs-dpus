@@ -35,21 +35,15 @@ public class ReportSubstitution extends Report {
         return to;
     }
 
-
     @Override
     public List<Statement> asStatements(URI subject) {
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
-        final EntityBuilder entityBuilder = new EntityBuilder(subject, valueFactory);
+        final EntityBuilder entityBuilder = prepareEntityBuilder(subject, valueFactory);
 
-        entityBuilder.property(RDF.TYPE, AddressMapperOntology.REPORT);
         entityBuilder.property(RDF.TYPE, AddressMapperOntology.REPORT_SUBSTITUTE);
-
-        entityBuilder.property(AddressMapperOntology.MESSAGE, message);
-        entityBuilder.property(AddressMapperOntology.SOURCE, source);
-
-        entityBuilder.property(AddressMapperOntology.FROM, from);        
+        entityBuilder.property(AddressMapperOntology.FROM, from);
         entityBuilder.property(AddressMapperOntology.TO, to);
-        
+
         return entityBuilder.asStatements();
     }
 

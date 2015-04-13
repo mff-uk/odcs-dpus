@@ -11,16 +11,15 @@ import org.openrdf.model.vocabulary.RDF;
 import cz.cuni.mff.xrg.uv.addressmapper.AddressMapperOntology;
 import eu.unifiedviews.helpers.dpu.rdf.EntityBuilder;
 
-
 /**
- * Used to report
+ * Used to report exception that occurred during entity processing.
  *
  * @author Škoda Petr
  */
-public class ReportAlternative extends Report {
+public class ReportException extends Report {
 
-    public ReportAlternative(URI source, String message) {
-        super(source, message);
+    public ReportException(URI source, Exception exception) {
+        super(source, "Exception: " + exception.getMessage());
     }
 
     @Override
@@ -28,7 +27,7 @@ public class ReportAlternative extends Report {
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
         final EntityBuilder entityBuilder = prepareEntityBuilder(subject, valueFactory);
 
-        entityBuilder.property(RDF.TYPE, AddressMapperOntology.REPORT_ALTERNATIVE);
+        entityBuilder.property(RDF.TYPE, AddressMapperOntology.REPORT_EXCEPTION);
 
         return entityBuilder.asStatements();
     }

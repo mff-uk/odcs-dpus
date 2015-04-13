@@ -25,16 +25,14 @@ public class StreetAddress {
         this.houseNumber = null;
     }
     
-    public StreetAddress(String name, String landRegistryNumber,
-            String houseNumber) {
+    public StreetAddress(String name, String landRegistryNumber, String houseNumber) {
         this.townName = null;
         this.streetName = name;
         this.landRegistryNumber = landRegistryNumber;
         this.houseNumber = houseNumber;
     }
 
-    public StreetAddress(String townName, String streetName,
-            String landRegistryNumber, String houseNumber) {
+    public StreetAddress(String townName, String streetName, String landRegistryNumber, String houseNumber) {
         this.townName = townName;
         this.streetName = streetName;
         this.landRegistryNumber = landRegistryNumber;
