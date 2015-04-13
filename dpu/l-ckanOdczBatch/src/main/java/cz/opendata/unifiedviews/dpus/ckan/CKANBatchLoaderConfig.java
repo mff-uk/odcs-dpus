@@ -108,7 +108,7 @@ public class CKANBatchLoaderConfig  {
     	}
     }
     
-    private String apiUri = "http://ckan.opendata.cz/api/rest/dataset";
+    private String apiUri = "http://ckan.opendata.cz/api/3/action";
     
     private String apiKey = "";
     

@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.helpers.dpu.test.config.ConfigurationBuilder;
@@ -16,10 +17,10 @@ public class LoaderTest {
     public void constructAllTest() throws Exception {
         // prepare dpu instance and configure it
         CKANLoader loader = new CKANLoader();
-        CKANLoaderConfig config = new CKANLoaderConfig();
+        CKANLoaderConfig_V3 config = new CKANLoaderConfig_V3();
 
         config.setDatasetID("cz-test");
-        //config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
+        config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
 
         loader.configure((new ConfigurationBuilder()).setDpuConfiguration(config).toString());
 
@@ -28,6 +29,7 @@ public class LoaderTest {
         // prepare input and output data units
 
         WritableRDFDataUnit input = env.createRdfInput("metadata", false);
+        WritableFilesDataUnit json = env.createFilesOutput("JSON");
 
         // here we can simply pre-fill input data unit with content from 
         // resource file

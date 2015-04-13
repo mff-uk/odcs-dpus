@@ -1,14 +1,11 @@
 package cz.opendata.unifiedviews.dpus.ckan;
 
-import eu.unifiedviews.dpu.config.DPUConfigException;
-import eu.unifiedviews.helpers.dpu.config.VersionedConfig;
-
 /**
  *
  * Put your DPU's configuration here.
  *
  */
-public class CKANLoaderConfig implements VersionedConfig<CKANLoaderConfig_V3> {
+public class CKANLoaderConfig_V3  {
     
    
     public enum Licenses {
@@ -111,7 +108,7 @@ public class CKANLoaderConfig implements VersionedConfig<CKANLoaderConfig_V3> {
     	}
     }
     
-    private String apiUri = "http://ckan.opendata.cz/api/rest/dataset";
+    private String apiUri = "http://ckan.opendata.cz/api/3/action";
     
     private String apiKey = "";
     
@@ -169,20 +166,6 @@ public class CKANLoaderConfig implements VersionedConfig<CKANLoaderConfig_V3> {
 
 	public void setFilename(String filename) {
 		this.filename = filename;
-	}
-
-	@Override
-	public CKANLoaderConfig_V3 toNextVersion() throws DPUConfigException {
-		final CKANLoaderConfig_V3 newconfig = new CKANLoaderConfig_V3();
-		
-		newconfig.setApiKey(getApiKey());
-		newconfig.setApiUri(getApiUri().replace("/rest/dataset", "/3/action"));
-		newconfig.setDatasetID(getDatasetID());
-		newconfig.setFilename(getFilename());
-		newconfig.setLoadToCKAN(isLoadToCKAN());
-		newconfig.setOrgID(getOrgID());
-		
-		return newconfig;
 	}
 
 }

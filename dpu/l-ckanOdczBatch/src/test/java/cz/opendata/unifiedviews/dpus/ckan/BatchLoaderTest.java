@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import cz.cuni.mff.xrg.odcs.dpu.test.TestEnvironment;
+import eu.unifiedviews.dataunit.files.WritableFilesDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.helpers.dataunit.rdf.RdfDataUnitUtils;
 import eu.unifiedviews.helpers.dpu.test.config.ConfigurationBuilder;
@@ -28,6 +29,7 @@ public class BatchLoaderTest {
         // prepare input and output data units
 
         WritableRDFDataUnit input = env.createRdfInput("metadata", false);
+        WritableFilesDataUnit json = env.createFilesOutput("JSON");
 
         // here we can simply pre-fill input data unit with content from 
         // resource file

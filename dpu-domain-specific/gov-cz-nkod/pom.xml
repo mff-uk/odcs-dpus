@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>uk-pom-dpu</artifactId>
+        <version>1.0.0</version>
+    </parent>    
+    <artifactId>UK-gov_cz_nkod</artifactId>
+    <name>ext. gov cz nkod</name>
+    <packaging>bundle</packaging>
+    <version>2.2.0</version>
+    <description>This extractor scrapes nkod catalog entries from portal.gov.cz</description>
+
+    <properties>    
+        <dpu.package>cz.opendata.linked.cz.gov.nkod</dpu.package>
+        <dpu.mainClass>Extractor</dpu.mainClass>
+        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
+    </properties>
+
+
+    <dependencies>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <version>${uv.helpers.version}</version>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
+</project>
+

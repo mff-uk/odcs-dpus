@@ -3,13 +3,13 @@ package cz.opendata.unifiedviews.dpus.ckan;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.ParseException;
@@ -17,7 +17,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -51,7 +50,7 @@ import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 
 @DPU.AsLoader
-public class CKANLoader extends AbstractDpu<CKANLoaderConfig> 
+public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3> 
 {
 
     private static final Logger logger = LoggerFactory.getLogger(CKANLoader.class);
@@ -69,7 +68,8 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
     public FaultTolerance faultTolerance;
 
     public CKANLoader() {
-        super(CKANLoaderDialog.class, ConfigHistory.noHistory(CKANLoaderConfig.class));
+        super(CKANLoaderDialog.class, ConfigHistory.history(CKANLoaderConfig.class)
+                .addCurrent(CKANLoaderConfig_V3.class));
     }
 
     @Override
@@ -115,10 +115,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		boolean exists = false;
 		Map<String, String> resUrlIdMap = new HashMap<String, String>();
 		Map<String, String> resDistroIdMap = new HashMap<String, String>();
+		Map<String, JSONObject> resourceList = new HashMap<String, JSONObject>();
 		
         logger.debug("Querying for the dataset in CKAN");
         CloseableHttpClient queryClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-		HttpGet httpGet = new HttpGet(apiURI + "/" + datasetID);
+		HttpGet httpGet = new HttpGet(apiURI + "/package_show?id=" + datasetID);
         CloseableHttpResponse queryResponse = null;
         try {
             queryResponse = queryClient.execute(httpGet);
@@ -126,12 +127,14 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             	logger.info("Dataset found");
             	exists = true;
             	
-            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity()));
+            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity())).getJSONObject("result");
             	JSONArray resourcesArray = response.getJSONArray("resources"); 
             	for (int i = 0; i < resourcesArray.length(); i++ )
             	{
 					try {
-	            		String id = resourcesArray.getJSONObject(i).getString("id");
+						String id = resourcesArray.getJSONObject(i).getString("id");
+						resourceList.put(id, resourcesArray.getJSONObject(i));
+						
 	            		String url = resourcesArray.getJSONObject(i).getString("url");
 	            		resUrlIdMap.put(url, id);
 	            		
@@ -173,7 +176,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
             
             JSONArray tags = new JSONArray();
             //tags.put(keywords);
-            for (String keyword : keywords) tags.put(keyword);
+            for (String keyword : keywords) tags.put(new JSONObject().put("name", keyword));
             
             JSONArray resources = new JSONArray();
             
@@ -242,7 +245,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	            sparqlEndpointJSON.put("format","api/sparql");
 	            sparqlEndpointJSON.put("resource_type","api");
 	            
-	            if (resUrlIdMap.containsKey(sparqlEndpoint)) sparqlEndpointJSON.put("id", resUrlIdMap.get(sparqlEndpoint));
+	            if (resUrlIdMap.containsKey(sparqlEndpoint)) {
+	            	String id = resUrlIdMap.get(sparqlEndpoint);
+	            	sparqlEndpointJSON.put("id", id);
+	            	resourceList.remove(id);
+	            }
 	            
 	            resources.put(sparqlEndpointJSON);
 	            // End of Sparql Endpoint resource
@@ -264,7 +271,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		            
 		            try {
 						if (sparqlEndpoint.isEmpty()) exUrl = example;
-						else exUrl = sparqlEndpoint + "?query=" + URLEncoder.encode("DESCRIBE <" + example + ">", "UTF-8") 
+						else exUrl = sparqlEndpoint + "?query=" + URLEncoder.encode("DESCRIBE <", "UTF-8") + example + URLEncoder.encode(">", "UTF-8") 
 													+ "&default-graph-uri=" + URLEncoder.encode(datasetURI,"UTF-8") 
 													+ "&output=" + URLEncoder.encode("text/turtle","UTF-8");
 					} catch (UnsupportedEncodingException e) {
@@ -273,7 +280,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 					}
 		            exTurtle.put("url", exUrl);
 		            
-		            if (resUrlIdMap.containsKey(exUrl)) exTurtle.put("id", resUrlIdMap.get(exUrl));
+		            if (resUrlIdMap.containsKey(exUrl)) {
+		            	String id = resUrlIdMap.get(exUrl);
+		            	exTurtle.put("id", id);
+		            	resourceList.remove(id);
+		            }
 		            
 		            resources.put(exTurtle);
 		            // End of text/turtle resource
@@ -288,7 +299,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 		            exHTML.put("name","Example resource");
 		            exHTML.put("url", example );
 
-		            if (resUrlIdMap.containsKey(example)) exHTML.put("id", resUrlIdMap.get(example));
+		            if (resUrlIdMap.containsKey(example)) {
+		            	String id = resUrlIdMap.get(example);
+		            	exHTML.put("id", id);
+		            	resourceList.remove(id);
+		            }
 
 		            resources.put(exHTML);
 		            // End of html resource
@@ -311,8 +326,16 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	            
 		    	distro.put("resource_type","file");
 
-		    	if (resDistroIdMap.containsKey(distribution)) distro.put("id", resDistroIdMap.get(distribution));
-	            else if (resUrlIdMap.containsKey(dwnld)) distro.put("id", resUrlIdMap.get(dwnld));
+		    	if (resDistroIdMap.containsKey(distribution)) {
+		    		String id = resDistroIdMap.get(distribution);
+		    		distro.put("id", id);
+		    		resourceList.remove(id);
+		    	}
+	            else if (resUrlIdMap.containsKey(dwnld)) {
+	            	String id = resUrlIdMap.get(dwnld);
+	            	distro.put("id", id);
+	            	resourceList.remove(id);
+	            }
 
 		    	if (!dissued.isEmpty()) distro.put("created", dissued);
 		    	if (!dmodified.isEmpty()) distro.put("last_modified", dmodified);
@@ -324,6 +347,11 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 				}
 				
 				resources.put(distro);
+			}
+			
+			//Add the remaining distributions that were not updated but existed in the original dataset
+			for (Entry<String, JSONObject> resource : resourceList.entrySet()) {
+				resources.put(resource.getValue());
 			}
 			
 			root.put("tags", tags);
@@ -339,7 +367,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 				
 	            logger.debug("Creating dataset in CKAN");
 	            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-				HttpPost httpPost = new HttpPost(apiURI);
+				HttpPost httpPost = new HttpPost(apiURI + "/package_create?id=" + datasetID);
 				httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = createRoot.toString();
@@ -352,7 +380,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 	            
 	            try {
 	                response = client.execute(httpPost);
-	                if (response.getStatusLine().getStatusCode() == 201) {
+	                if (response.getStatusLine().getStatusCode() == 200) {
 	                	logger.info("Dataset created OK");
 	                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
@@ -393,8 +421,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			if (!ctx.canceled() && config.isLoadToCKAN()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/" + datasetID);
-	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
+	            HttpPost httpPost = new HttpPost(apiURI + "/package_update?id=" + datasetID);
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            logger.trace(json);
@@ -430,8 +457,6 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig>
 			}
 		} catch (JSONException e) {
 			logger.error(e.getLocalizedMessage(), e);
-		} catch (URISyntaxException e) {
-        	logger.error(e.getLocalizedMessage(), e);
 		}
         
     }
