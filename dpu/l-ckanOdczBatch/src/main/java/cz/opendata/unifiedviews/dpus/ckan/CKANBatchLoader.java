@@ -388,6 +388,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		            createRoot.put("title", title);
 		            if (!orgID.isEmpty()) createRoot.put("owner_org", orgID);
 					
+			        ContextUtils.sendShortInfo(ctx, "Creating dataset in CKAN {0}/{1}: {2}", current, total, datasetURI);
 		            logger.debug("Creating dataset in CKAN");
 		            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 					HttpPost httpPost = new HttpPost(apiURI + "/package_create?id=" + datasetID);
@@ -409,11 +410,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		                } else if (response.getStatusLine().getStatusCode() == 409) {
 		                	String ent = EntityUtils.toString(response.getEntity());
 		                	logger.error("Dataset already exists: " + ent);
-		                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+		                	ContextUtils.sendWarn(ctx, "Dataset already exists", "Dataset already exists: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 		                } else {
 		                	String ent = EntityUtils.toString(response.getEntity());
 		                	logger.error("Response:" + ent);
-		                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+		                	ContextUtils.sendWarn(ctx, "Error creating dataset", "Response while creating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 		                }
 		            } catch (ClientProtocolException e) {
 		            	logger.error(e.getLocalizedMessage(), e);
@@ -426,7 +427,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 								client.close();
 							} catch (IOException e) {
 				            	logger.error(e.getLocalizedMessage(), e);
-			                	ContextUtils.sendError(ctx, "Error creating dataset", e.getLocalizedMessage());
+			                	ContextUtils.sendWarn(ctx, "Error creating dataset", e.getLocalizedMessage());
 							}
 		                }
 		            }
@@ -435,6 +436,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 	            outArray.put(root);
 		        
 	            if (!ctx.canceled() && config.isLoadToCKAN()) {
+			        ContextUtils.sendShortInfo(ctx, "Updating dataset in CKAN {0}/{1}: {2}", current, total, datasetURI);
 					logger.debug("Posting to CKAN");
 					CloseableHttpClient client = HttpClients.createDefault();
 		            HttpPost httpPost = new HttpPost(apiURI + "/package_update?id=" + datasetID);
@@ -454,7 +456,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 		                } else {
 		                	String ent = EntityUtils.toString(response.getEntity());
 		                	logger.error("Response:" + ent);
-		                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
+		                	ContextUtils.sendWarn(ctx, "Error updating dataset", "Response while updating dataset: {0}: {1}", response.getStatusLine().getStatusCode(), ent);
 		                }
 		            } catch (ClientProtocolException e) {
 		            	logger.error(e.getLocalizedMessage(), e);
@@ -467,7 +469,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 								client.close();
 							} catch (IOException e) {
 				            	logger.error(e.getLocalizedMessage(), e);
-			                	ContextUtils.sendError(ctx, "Error updating dataset", e.getLocalizedMessage());
+			                	ContextUtils.sendWarn(ctx, "Error updating dataset", e.getLocalizedMessage());
 							}
 		                }
 		            }
