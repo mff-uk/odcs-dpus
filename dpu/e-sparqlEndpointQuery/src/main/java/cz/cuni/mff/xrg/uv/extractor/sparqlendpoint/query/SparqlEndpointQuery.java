@@ -2,6 +2,7 @@ package cz.cuni.mff.xrg.uv.extractor.sparqlendpoint.query;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -76,7 +77,7 @@ public class SparqlEndpointQuery extends AbstractDpu<SparqlEndpointQueryConfig_V
         for (Map<String, Value> resultRow : results.getResults()) {
             String template = config.getQueryTemplate();
             for (String key : resultRow.keySet()){
-                template = template.replaceAll("${" + key + "}", resultRow.get(key).stringValue());
+                template = template.replaceAll(Pattern.quote("${" + key + "}"), resultRow.get(key).stringValue());
             }
             // Execute remote query.
             executeRemote(template);
