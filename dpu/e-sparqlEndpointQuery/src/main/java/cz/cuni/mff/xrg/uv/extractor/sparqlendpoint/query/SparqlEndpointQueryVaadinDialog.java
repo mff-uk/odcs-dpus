@@ -55,9 +55,10 @@ public class SparqlEndpointQueryVaadinDialog extends AbstractDialog<SparqlEndpoi
         mainLayout.setExpandRatio(txtSelectQuery, 0.5f);
 
         txtSparqlEndpoint = new TextField("Remote sparql endpoint:");
-        txtSparqlEndpoint.setSizeFull();
+        txtSparqlEndpoint.setWidth("100%");
+        txtSparqlEndpoint.setHeight("-1px");
         mainLayout.addComponent(txtSparqlEndpoint);
-        mainLayout.setExpandRatio(txtSparqlEndpoint, 0.5f);
+        mainLayout.setExpandRatio(txtSparqlEndpoint, 0.0f);
 
         txtQueryTemplate = new TextArea("Template of remote query:");
         txtQueryTemplate.setSizeFull();
