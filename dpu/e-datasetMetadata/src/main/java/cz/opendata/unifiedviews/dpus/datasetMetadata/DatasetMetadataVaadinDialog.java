@@ -347,6 +347,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         dfIssued.setValue(conf.getIssued());
         dfModified.setValue(conf.getModified());
         chkNow.setValue(conf.isUseNow());
+        chkNowTemporalEnd.setValue(conf.isUseNowTemporalEnd());
         tfIdentifier.setValue(conf.getIdentifier());
         
     	for (String s: conf.getKeywords_orig()) lsKeywords_orig.addItem(s);
@@ -406,6 +407,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setIssued(dfIssued.getValue());
         conf.setModified(dfModified.getValue());
         conf.setUseNow((boolean) chkNow.getValue());
+        conf.setUseNowTemporalEnd((boolean) chkNowTemporalEnd.getValue());
         conf.setIdentifier(tfIdentifier.getValue());
         conf.setKeywords_orig((Collection<String>) lsKeywords_orig.getValue());
         conf.setKeywords_en((Collection<String>) lsKeywords_en.getValue());
