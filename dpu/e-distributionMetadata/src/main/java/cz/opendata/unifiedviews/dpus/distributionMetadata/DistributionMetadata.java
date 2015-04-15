@@ -133,6 +133,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         	description_en = config.getDesc_en();
         }
         
+        
         String temporalStart, temporalEnd;
         if (config.isTemporalFromDataset()) {
         	temporalStart = executeSimpleSelectQuery("SELECT ?temporalStart WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
@@ -205,15 +206,18 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
                     DistributionMetadataVocabulary.XSD_DATE));
         }
         
-        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(distributionURI + "/temporal"),
-                valueFactory);
-        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
-        temporal.property(DistributionMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(temporalStart, DistributionMetadataVocabulary.XSD_DATE));
-        temporal.property(DistributionMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(temporalEnd, DistributionMetadataVocabulary.XSD_DATE));
-        rdfData.add(temporal.asStatements());
-
-        distribution.property(DCTERMS.TEMPORAL, temporal);
-
+        
+        if (!(temporalStart.isEmpty() && temporalEnd.isEmpty()))
+        {
+	        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(distributionURI + "/temporal"),
+	                valueFactory);
+	        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
+	        temporal.property(DistributionMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(temporalStart, DistributionMetadataVocabulary.XSD_DATE));
+	        temporal.property(DistributionMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(temporalEnd, DistributionMetadataVocabulary.XSD_DATE));
+	        rdfData.add(temporal.asStatements());
+	
+	        distribution.property(DCTERMS.TEMPORAL, temporal);
+        }
         if (!StringUtils.isBlank(spatial)) {
             distribution.property(DCTERMS.SPATIAL, valueFactory.createURI(spatial));
         }
