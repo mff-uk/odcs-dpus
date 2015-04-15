@@ -54,6 +54,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
     private CheckBox chkNowTemporalEnd;
 
+    private CheckBox chkUseTemporal;
+
     private DateField dfModified;
 
     private DateField dfIssued;
@@ -234,6 +236,21 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         tfPublisherURI.setWidth("100%");
         mainLayout.addComponent(tfPublisherURI);
 
+        chkUseTemporal = new CheckBox();
+        chkUseTemporal.setCaption("Use temporal coverage");
+        chkUseTemporal.setWidth("100%");
+        chkUseTemporal.setImmediate(true);
+        chkUseTemporal.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -6135328311357043784L;
+
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				dfTemporalStart.setEnabled(chkUseTemporal.getValue());
+				dfTemporalEnd.setEnabled(chkUseTemporal.getValue());
+				chkNowTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue());
+		}});
+        mainLayout.addComponent(chkUseTemporal);
+
         dfTemporalStart = new DateField();
         dfTemporalStart.setCaption("Temporal coverage start:");
         dfTemporalStart.setWidth("100%");
@@ -348,6 +365,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         dfModified.setValue(conf.getModified());
         chkNow.setValue(conf.isUseNow());
         chkNowTemporalEnd.setValue(conf.isUseNowTemporalEnd());
+        chkUseTemporal.setValue(conf.isUseTemporal());
         tfIdentifier.setValue(conf.getIdentifier());
         
     	for (String s: conf.getKeywords_orig()) lsKeywords_orig.addItem(s);
@@ -408,6 +426,7 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setModified(dfModified.getValue());
         conf.setUseNow((boolean) chkNow.getValue());
         conf.setUseNowTemporalEnd((boolean) chkNowTemporalEnd.getValue());
+        conf.setUseTemporal((boolean) chkUseTemporal.getValue());
         conf.setIdentifier(tfIdentifier.getValue());
         conf.setKeywords_orig((Collection<String>) lsKeywords_orig.getValue());
         conf.setKeywords_en((Collection<String>) lsKeywords_en.getValue());

@@ -167,22 +167,25 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
             dataset.property(DatasetMetadataVocabulary.DCAT_LANDING_PAGE, valueFactory.createLiteral(config.getLandingPage()));
         }
 
-        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(config.getDatasetURI() + "/temporal"),
-                valueFactory);
-        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
-        temporal.property(DatasetMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(dateFormat.format(config
-                .getTemporalStart()), DatasetMetadataVocabulary.XSD_DATE));
-
-        if (config.isUseNowTemporalEnd()) {
-            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(new Date()),
-                    DatasetMetadataVocabulary.XSD_DATE));
-        } else {
-            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(config
-                    .getTemporalEnd()), DatasetMetadataVocabulary.XSD_DATE));
+        if (config.isUseTemporal()) {
+	        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(config.getDatasetURI() + "/temporal"),
+	                valueFactory);
+	        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
+	        temporal.property(DatasetMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(dateFormat.format(config
+	                .getTemporalStart()), DatasetMetadataVocabulary.XSD_DATE));
+	
+	        if (config.isUseNowTemporalEnd()) {
+	            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(new Date()),
+	                    DatasetMetadataVocabulary.XSD_DATE));
+	        } else {
+	            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(config
+	                    .getTemporalEnd()), DatasetMetadataVocabulary.XSD_DATE));
+	        }
+	        
+	        rdfData.add(temporal.asStatements());
+	        dataset.property(DCTERMS.TEMPORAL, temporal);
         }
-        rdfData.add(temporal.asStatements());
 
-        dataset.property(DCTERMS.TEMPORAL, temporal);
 
         if (!StringUtils.isBlank(config.getSpatial())) {
             dataset.property(DCTERMS.SPATIAL, valueFactory.createURI(config.getSpatial()));
