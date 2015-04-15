@@ -53,6 +53,8 @@ public class DatasetMetadataConfig_V1 {
 
     private boolean useNow = true;
 
+    private boolean useNowTemporalEnd = false;
+
     private Date modified = new Date();
 
     private Date issued = new Date();
@@ -207,6 +209,14 @@ public class DatasetMetadataConfig_V1 {
 
     public void setUseNow(boolean useNow) {
         this.useNow = useNow;
+    }
+
+    public boolean isUseNowTemporalEnd() {
+        return useNowTemporalEnd;
+    }
+
+    public void setUseNowTemporalEnd(boolean useNowTemporalEnd) {
+        this.useNowTemporalEnd = useNowTemporalEnd;
     }
 
     public Date getModified() {

@@ -52,6 +52,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 
     private CheckBox chkNow;
 
+    private CheckBox chkNowTemporalEnd;
+
     private DateField dfModified;
 
     private DateField dfIssued;
@@ -243,6 +245,19 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         dfTemporalEnd.setWidth("100%");
         dfTemporalEnd.setResolution(Resolution.DAY);
         mainLayout.addComponent(dfTemporalEnd);
+
+        chkNowTemporalEnd = new CheckBox();
+        chkNowTemporalEnd.setCaption("Use current date as temporal coverage end");
+        chkNowTemporalEnd.setWidth("100%");
+        chkNowTemporalEnd.setImmediate(true);
+        chkNowTemporalEnd.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -6135328311357043784L;
+
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				dfTemporalEnd.setEnabled(!chkNowTemporalEnd.getValue());
+		}});
+        mainLayout.addComponent(chkNowTemporalEnd);
 
         tfSpatial = new TextField();
         tfSpatial.setCaption("Spatial coverage URI:");

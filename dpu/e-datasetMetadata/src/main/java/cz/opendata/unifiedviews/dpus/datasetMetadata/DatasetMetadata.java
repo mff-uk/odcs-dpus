@@ -172,8 +172,14 @@ public class DatasetMetadata extends AbstractDpu<DatasetMetadataConfig_V1> {
         temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
         temporal.property(DatasetMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(dateFormat.format(config
                 .getTemporalStart()), DatasetMetadataVocabulary.XSD_DATE));
-        temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(config
-                .getTemporalEnd()), DatasetMetadataVocabulary.XSD_DATE));
+
+        if (config.isUseNowTemporalEnd()) {
+            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(new Date()),
+                    DatasetMetadataVocabulary.XSD_DATE));
+        } else {
+            temporal.property(DatasetMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(dateFormat.format(config
+                    .getTemporalEnd()), DatasetMetadataVocabulary.XSD_DATE));
+        }
         rdfData.add(temporal.asStatements());
 
         dataset.property(DCTERMS.TEMPORAL, temporal);
