@@ -10,6 +10,10 @@ public class AddressMapperVaadinDialog extends AbstractDialog<AddressMapperConfi
 
     private TextField txtRuianUri;
 
+    private TextField txtSolrUri;
+
+    private TextField txtAddressPredicate;
+
     public AddressMapperVaadinDialog() {
         super(AddressMapper.class);
     }
@@ -30,18 +34,31 @@ public class AddressMapperVaadinDialog extends AbstractDialog<AddressMapperConfi
         txtRuianUri.setRequired(true);
         txtRuianUri.addValidator(new UrlValidator(false));
         mainLayout.addComponent(txtRuianUri);
-        mainLayout.setExpandRatio(txtRuianUri, 0);
+        
+        txtSolrUri = new TextField();
+        txtSolrUri.setWidth("100%");
+        txtSolrUri.setHeight("-1px");
+        txtSolrUri.setCaption("Solr query URI (sample: http://ruian.linked.opendata.cz/solr/ruian/query):");
+        txtSolrUri.setRequired(true);
+        txtSolrUri.addValidator(new UrlValidator(false));
+        mainLayout.addComponent(txtSolrUri);
 
-        Panel mainPanel = new Panel();
-        mainPanel.setSizeFull();
-        mainPanel.setContent(mainLayout);
-
-        setCompositionRoot(mainPanel);
+        txtAddressPredicate = new TextField();
+        txtAddressPredicate.setWidth("100%");
+        txtAddressPredicate.setHeight("-1px");
+        txtAddressPredicate.setCaption("Address predicate:");
+        txtAddressPredicate.addValidator(new UrlValidator(false));
+        txtAddressPredicate.setRequired(true);
+        mainLayout.addComponent(txtAddressPredicate);        
+        
+        setCompositionRoot(mainLayout);
     }
 
     @Override
     protected void setConfiguration(AddressMapperConfig_V1 c) throws DPUConfigException {
         txtRuianUri.setValue(c.getRuainEndpoint());
+        txtSolrUri.setValue(c.getSolrEndpoint());
+        txtAddressPredicate.setValue(c.getAddressPredicate());
     }
 
     @Override
@@ -49,9 +66,17 @@ public class AddressMapperVaadinDialog extends AbstractDialog<AddressMapperConfi
         if (!txtRuianUri.isValid()) {
             throw new DPUConfigException("Invalid SPARQL endpoint URI.");
         }
+        if (!txtSolrUri.isValid()) {
+            throw new DPUConfigException("Invalid SOLR endpoint URI.");
+        }
+        if (!txtAddressPredicate.isValid()) {
+            throw new DPUConfigException("Invalid address predicate URI.");
+        }
 
         final AddressMapperConfig_V1 cnf = new AddressMapperConfig_V1();
         cnf.setRuainEndpoint(txtRuianUri.getValue());
+        cnf.setSolrEndpoint(txtSolrUri.getValue());
+        cnf.setAddressPredicate(txtAddressPredicate.getValue());
         return cnf;
     }
 

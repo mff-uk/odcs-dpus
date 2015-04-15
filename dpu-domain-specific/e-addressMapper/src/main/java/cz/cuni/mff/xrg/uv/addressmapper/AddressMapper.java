@@ -60,10 +60,10 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
     public RDFDataUnit inRdfPostalAddress;
 
     @DataUnit.AsOutput(name = "output")
-    public WritableRDFDataUnit outRdfMapping;
+    public WritableRDFDataUnit outRdfOutput;
 
-    @ExtensionInitializer.Init(param = "outRdfMapping")
-    public WritableSimpleRdf rdfMapping;
+    @ExtensionInitializer.Init(param = "outRdfOutput")
+    public WritableSimpleRdf rdfOutput;
 
     @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
@@ -78,7 +78,7 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
         // Get input entries.
         final List<RDFDataUnit.Entry> inputs =
                 FaultToleranceUtils.getEntries(faultTolerance, inRdfPostalAddress, RDFDataUnit.Entry.class);
-        final ValueFactory valueFactory = rdfMapping.getValueFactory();
+        final ValueFactory valueFactory = rdfOutput.getValueFactory();
         // Create remote repository.
         final RDFDataUnit ruian;
         try {
@@ -112,11 +112,11 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
                 public RDFDataUnit.Entry action() throws Exception {
                     final String graphName = graph.getSymbolicName() + "/mapping";
                     LOG.debug("Ouput symbolic name: {}", graphName);
-                    return RdfDataUnitUtils.addGraph(outRdfMapping, graphName);
+                    return RdfDataUnitUtils.addGraph(outRdfOutput, graphName);
                 }
             });
             // Set output.
-            rdfMapping.setOutput(output);
+            rdfOutput.setOutput(output);
             int counterMapped = 0;
             int progressCounter = 0;
             for (Map<String, Value> item : adresses.getResults()) {
@@ -237,7 +237,7 @@ public class AddressMapper extends AbstractDpu<AddressMapperConfig_V1> {
                 }
                 // Add all - if mapping has been found we add information only about used mapping entity
                 //           in other case we all information about all the attemps.
-                rdfMapping.add(allStatements);
+                rdfOutput.add(allStatements);
             }
             // Print results.
             LOG.info("Mapped '{}' from '{}' in {}", counterMapped, adresses.getResults().size(), graph);

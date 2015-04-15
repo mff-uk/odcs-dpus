@@ -1,0 +1,10 @@
+This DPU is an extended version of <strong>E-SparqlEndpoint</strong>. <br />
+It can be used to execute customizable SPARQL construct on remote HTTP endpoint. The result of the query is saved to the DPU output.
+<br />
+The first 'select query' is used to get values that are used in the 'template'. The 'template' construct query
+can contains place holders in format <em>${value-name}</em>. Where 'value-name' must be a property selected by 'select query'.
+For each row of 'select query' results a new template is assembled and executed. Results of different templates (rows of 'select query')
+are stored in separated graphs.
+<br />
+Only text value is used during placeholder substitution, so if a URI is matched only its string content is
+replaced. That means that in case of URI place holder you need to surround the place holder with &lt; &gt;.
