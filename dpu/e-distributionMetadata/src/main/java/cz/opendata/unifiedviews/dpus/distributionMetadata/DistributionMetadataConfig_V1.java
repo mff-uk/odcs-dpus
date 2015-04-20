@@ -56,16 +56,20 @@ public class DistributionMetadataConfig_V1 {
     private boolean licenseFromDataset = true;
     
     private boolean schemaFromDataset = true;
+    
+    private boolean useTemporal = true;
+
+    private boolean useNowTemporalEnd = false;
 
     private boolean temporalFromDataset = true;
     
-    private boolean spatialFromDataset = true;
+    //private boolean spatialFromDataset = true;
 
     private Date temporalEnd = new Date();
 
     private Date temporalStart = new Date();
 
-    private String spatial = "";
+    //private String spatial = "";
     
     private String schema = "";
 
@@ -180,13 +184,21 @@ public class DistributionMetadataConfig_V1 {
 		this.temporalStart = temporalStart;
 	}
 
-	public String getSpatial() {
-		return spatial;
-	}
+    public boolean isUseNowTemporalEnd() {
+        return useNowTemporalEnd;
+    }
 
-	public void setSpatial(String spatial) {
-		this.spatial = spatial;
-	}
+    public void setUseNowTemporalEnd(boolean useNowTemporalEnd) {
+        this.useNowTemporalEnd = useNowTemporalEnd;
+    }
+
+//	public String getSpatial() {
+//		return spatial;
+//	}
+//
+//	public void setSpatial(String spatial) {
+//		this.spatial = spatial;
+//	}
 
 	public String getSchema() {
 		return schema;
@@ -276,13 +288,13 @@ public class DistributionMetadataConfig_V1 {
 		this.temporalFromDataset = temporalFromDataset;
 	}
 
-	public boolean isSpatialFromDataset() {
-		return spatialFromDataset;
-	}
-
-	public void setSpatialFromDataset(boolean spatialFromDataset) {
-		this.spatialFromDataset = spatialFromDataset;
-	}
+//	public boolean isSpatialFromDataset() {
+//		return spatialFromDataset;
+//	}
+//
+//	public void setSpatialFromDataset(boolean spatialFromDataset) {
+//		this.spatialFromDataset = spatialFromDataset;
+//	}
 
 	public boolean isSchemaFromDataset() {
 		return schemaFromDataset;
@@ -322,6 +334,14 @@ public class DistributionMetadataConfig_V1 {
 
 	public void setSparqlEndpointUrl(String sparqlEndpointUrl) {
 		this.sparqlEndpointUrl = sparqlEndpointUrl;
+	}
+
+	public boolean isUseTemporal() {
+		return useTemporal;
+	}
+
+	public void setUseTemporal(boolean useTemporal) {
+		this.useTemporal = useTemporal;
 	}
 	
 }
