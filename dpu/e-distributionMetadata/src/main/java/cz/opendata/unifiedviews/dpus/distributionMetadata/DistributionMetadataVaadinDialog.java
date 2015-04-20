@@ -330,9 +330,9 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				chkTemporalFromInput.setEnabled(chkUseTemporal.getValue());
-				dfTemporalStart.setEnabled(chkUseTemporal.getValue());
-				dfTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue());
+				chkTemporalFromInput.setEnabled(chkUseTemporal.getValue() && !chkTemporalFromInput.getValue());
+				dfTemporalStart.setEnabled(chkUseTemporal.getValue() && !chkTemporalFromInput.getValue());
+				dfTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue() && !chkTemporalFromInput.getValue());
 				chkNowTemporalEnd.setEnabled(chkUseTemporal.getValue());
 		}});
         mainLayout.addComponent(chkUseTemporal);
@@ -347,7 +347,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				dfTemporalStart.setEnabled(!chkTemporalFromInput.getValue());
-				dfTemporalEnd.setEnabled(!chkTemporalFromInput.getValue());
+				dfTemporalEnd.setEnabled(!chkTemporalFromInput.getValue() && !chkNowTemporalEnd.getValue());
 				chkNowTemporalEnd.setEnabled(!chkTemporalFromInput.getValue());
 		}});
         mainLayout.addComponent(chkTemporalFromInput);
