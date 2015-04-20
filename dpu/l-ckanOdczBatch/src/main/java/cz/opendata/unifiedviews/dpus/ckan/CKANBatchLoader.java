@@ -242,7 +242,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			        String ddescription = executeSimpleSelectQuery("SELECT ?description WHERE {<" + distribution + "> <"+ DCTERMS.DESCRIPTION + "> ?description FILTER(LANGMATCHES(LANG(?description), \"cs\"))}", "description");
 			    	String dtemporalStart = executeSimpleSelectQuery("SELECT ?temporalStart WHERE {<" + distribution + "> <"+ DCTERMS.TEMPORAL + ">/<" + CKANLoaderVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
 			    	String dtemporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + distribution + "> <"+ DCTERMS.TEMPORAL + ">/<" + CKANLoaderVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
-			    	String dspatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + distribution + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
+//			    	String dspatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + distribution + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
 			    	String dschemaURL = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + distribution + "> <"+ CKANLoaderVocabulary.WDRS_DESCRIBEDBY + "> ?schema }", "schema");
 			    	String dschemaType = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + distribution + "> <"+ CKANLoaderVocabulary.POD_DISTRIBUTION_DESCRIBREBYTYPE + "> ?schema }", "schema");
 			    	String dissued = executeSimpleSelectQuery("SELECT ?issued WHERE {<" + distribution + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
@@ -363,11 +363,11 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			    	if (!dissued.isEmpty()) distro.put("created", dissued);
 			    	if (!dmodified.isEmpty()) distro.put("last_modified", dmodified);
 		
-					if (!dspatial.isEmpty()) {
-						distro.put("ruian_type", "ST");
-						distro.put("ruian_code", 1);
-						distro.put("spatial_uri", dspatial);
-					}
+//					if (!dspatial.isEmpty()) {
+//						distro.put("ruian_type", "ST");
+//						distro.put("ruian_code", 1);
+//						distro.put("spatial_uri", dspatial);
+//					}
 					
 					resources.put(distro);
 				}
