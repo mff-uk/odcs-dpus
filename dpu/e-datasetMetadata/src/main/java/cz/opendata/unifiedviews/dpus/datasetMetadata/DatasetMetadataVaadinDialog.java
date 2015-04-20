@@ -246,8 +246,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				dfTemporalStart.setEnabled(chkUseTemporal.getValue());
-				dfTemporalEnd.setEnabled(chkUseTemporal.getValue());
-				chkNowTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue());
+				dfTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue());
+				chkNowTemporalEnd.setEnabled(chkUseTemporal.getValue());
 		}});
         mainLayout.addComponent(chkUseTemporal);
 
