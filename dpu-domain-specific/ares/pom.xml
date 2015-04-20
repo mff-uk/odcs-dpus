@@ -9,7 +9,7 @@
     <artifactId>E-MFCR_1_001</artifactId>
     <name>e-Ares</name>
     <packaging>bundle</packaging>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <description>This extractor scrapes ARES XML records about Czech business entities</description>
     
     <properties>
