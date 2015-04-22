@@ -10,7 +10,7 @@
     <artifactId>E-mzp_cz_ippc</artifactId>
     <name>ext. mzp cz ippc</name>
     <packaging>bundle</packaging>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
     <description>This extractor scrapes environmental info from http://www.mzp.cz/www/ippc4.nsf/appliances.xsp</description>
     
     <properties>    
