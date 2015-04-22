@@ -7,15 +7,13 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 
 import eu.unifiedviews.dpu.config.DPUConfigException;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
  *
  */
-public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
+public class ExtractorDialog extends AbstractDialog<ExtractorConfig> {
 
     private GridLayout mainLayout;
     private CheckBox chkRewriteCache;
@@ -23,15 +21,11 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
     private TextField timeout;
     
     public ExtractorDialog() {
-        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
-        buildMainLayout();
-        Panel panel = new Panel();
-        panel.setSizeFull();
-        panel.setContent(mainLayout);
-        setCompositionRoot(panel);
+    	super(Extractor.class);
     }  
     
-    private GridLayout buildMainLayout() {
+    @Override
+    protected void buildDialogLayout() {
         // common part: create layout
         mainLayout = new GridLayout(1, 2);
         mainLayout.setImmediate(false);
@@ -58,7 +52,10 @@ public class ExtractorDialog extends AdvancedVaadinDialogBase<ExtractorConfig> {
         timeout.setCaption("Timeout for download:");
         mainLayout.addComponent(timeout);
         
-        return mainLayout;
+        Panel panel = new Panel();
+        panel.setSizeFull();
+        panel.setContent(mainLayout);
+        setCompositionRoot(panel);
     }    
          
     @Override

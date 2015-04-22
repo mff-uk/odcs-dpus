@@ -5,9 +5,7 @@
 package cz.cuni.mff.xrg.scraper.lib.template;
 
 import eu.unifiedviews.dpu.DPUContext;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
 
 import java.io.IOException;
@@ -35,7 +33,7 @@ public abstract class ScrapingTemplate {
     
     public DPUContext context;
     
-    public SimpleRdfWrite outputDataUnit;
+    public WritableSimpleRdf outputDataUnit;
     
     public ValueFactory valueFactory;
     
@@ -54,7 +52,7 @@ public abstract class ScrapingTemplate {
      * @param doc Input JSoup document.
      * @param docType Textual name of input document (i.e. initial page, list page, detail page, ...
      */
-    protected abstract void parse(Document doc, String docType, URL url) throws OperationFailedException;
+    protected abstract void parse(Document doc, String docType, URL url);
     
     /**
      * Run scraping on given URL and given document type.
@@ -63,7 +61,7 @@ public abstract class ScrapingTemplate {
      * @param type Initial document type.
      * @throws InterruptedException 
      */
-    public void parse(URL initUrl, String type) throws InterruptedException, OperationFailedException {
+    public void parse(URL initUrl, String type) throws InterruptedException {
         LinkedList<ParseEntry> toParse = new LinkedList<>();
         HashSet<ParseEntry> parsed = new HashSet<>();
         toParse.add(new ParseEntry(initUrl, type));

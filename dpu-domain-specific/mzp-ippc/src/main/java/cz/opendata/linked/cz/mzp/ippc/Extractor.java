@@ -29,48 +29,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.cuni.mff.xrg.scraper.css_parser.utils.Cache;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfFactory;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 
 @DPU.AsExtractor
 public class Extractor 
-extends DpuAdvancedBase<ExtractorConfig> 
+extends AbstractDpu<ExtractorConfig> 
 {
 
     @DataUnit.AsOutput(name = "output")
     public WritableRDFDataUnit output;
 
-	@SimpleRdfConfigurator.Configure(dataUnitFieldName="output")
-	public SimpleRdfWrite outputWrap;
+    @ExtensionInitializer.Init(param="output")
+	public WritableSimpleRdf outputWrap;
     
     private static final Logger LOG = LoggerFactory.getLogger(DPU.class);
 
     public Extractor(){
-        super(ExtractorConfig.class,AddonInitializer.create(new SimpleRdfConfigurator(Extractor.class)));
+        super(ExtractorDialog.class,ConfigHistory.noHistory(ExtractorConfig.class));
     }
 
     @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {        
-        return new ExtractorDialog();
-    }
-
-    @Override
-    protected void innerExecute() throws DPUException, OperationFailedException
+    protected void innerExecute() throws DPUException
     {
         Cache.setInterval(config.getInterval());
         Cache.setTimeout(config.getTimeout());
-        Cache.setBaseDir(context.getUserDirectory() + "/cache/");
+        Cache.setBaseDir(ctx.getExecMasterContext().getDpuContext().getUserDirectory() + "/cache/");
         Cache.rewriteCache = config.isRewriteCache();
         Cache.logger = LOG;
 
@@ -82,7 +74,7 @@ extends DpuAdvancedBase<ExtractorConfig>
         
         Parser s = new Parser();
         s.logger = LOG;
-        s.context = context;
+        s.context = ctx.getExecMasterContext().getDpuContext();
         s.outputDataUnit = outputWrap;
         s.valueFactory = outputWrap.getValueFactory();
 
@@ -108,13 +100,13 @@ extends DpuAdvancedBase<ExtractorConfig>
             while (true) {
                 i++;
 
-                File currentFile = new File (context.getUserDirectory(), "listpage" + i + ".html");
+                File currentFile = new File (ctx.getExecMasterContext().getDpuContext().getUserDirectory(), "listpage" + i + ".html");
 
                 if (!currentFile.exists() || config.isRewriteCache() )
                 {
                     CloseableHttpResponse response2 = null;
                     int attempt = 0;
-                    while (attempt < config.getMaxattempts() && !context.canceled()) {
+                    while (attempt < config.getMaxattempts() && !ctx.getExecMasterContext().getDpuContext().canceled()) {
                         try {
                             List <NameValuePair> nvps = new ArrayList <NameValuePair>();
                             nvps.add(new BasicNameValuePair("$$ajaxid", "view:_id1:_id2:facetMiddle:tabPanel1:dataView1_OUTER_TABLE"));
@@ -179,7 +171,7 @@ extends DpuAdvancedBase<ExtractorConfig>
             java.util.Date date2 = new java.util.Date();
             long end = date2.getTime();
             
-            context.sendMessage(DPUContext.MessageType.INFO, "Processed in " + (end-start) + "ms");
+            ContextUtils.sendShortInfo(ctx, "Processed in {0} ms", (end-start));
             
             LOG.info("Parsing done.");
     }
