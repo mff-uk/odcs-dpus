@@ -152,7 +152,7 @@ public class Parser extends ScrapingTemplate{
         
         logger.trace("Processing: " + url.toString());
         
-        try {
+        if (doc != null) try {
         switch (docType) {
 	        case "kontrola":
 	            kontrolacount++;
@@ -313,6 +313,7 @@ public class Parser extends ScrapingTemplate{
 		} catch (DPUException e) {
 			logger.warn(e.getLocalizedMessage(), e);
 		}
+        else logger.warn("Document " + url.toString() + " null");
         
         
     }
