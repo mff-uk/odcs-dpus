@@ -53,6 +53,10 @@ public class DatasetMetadataConfig_V1 {
 
     private boolean useNow = true;
 
+    private boolean useNowTemporalEnd = false;
+
+    private boolean useTemporal = true ;
+    
     private Date modified = new Date();
 
     private Date issued = new Date();
@@ -209,6 +213,14 @@ public class DatasetMetadataConfig_V1 {
         this.useNow = useNow;
     }
 
+    public boolean isUseNowTemporalEnd() {
+        return useNowTemporalEnd;
+    }
+
+    public void setUseNowTemporalEnd(boolean useNowTemporalEnd) {
+        this.useNowTemporalEnd = useNowTemporalEnd;
+    }
+
     public Date getModified() {
         return modified;
     }
@@ -311,5 +323,13 @@ public class DatasetMetadataConfig_V1 {
 
 	public void setPublisherName(String publisherName) {
 		this.publisherName = publisherName;
+	}
+
+	public boolean isUseTemporal() {
+		return useTemporal;
+	}
+
+	public void setUseTemporal(boolean useTemporal) {
+		this.useTemporal = useTemporal;
 	}
 }

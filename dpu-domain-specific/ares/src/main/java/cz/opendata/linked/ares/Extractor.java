@@ -40,6 +40,7 @@ import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
 import info.aduna.iteration.Iterations;
 
@@ -55,11 +56,20 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
     @DataUnit.AsOutput(name = "Basic")
     public WritableFilesDataUnit outBasic;
 
+    @ExtensionInitializer.Init(param = "outBasic")
+    public WritableSimpleFiles outBasicSimple;
+
     @DataUnit.AsOutput(name = "OR")
     public WritableFilesDataUnit outOR;
 
+    @ExtensionInitializer.Init(param = "outOR")
+    public WritableSimpleFiles outORSimple;
+
     @DataUnit.AsOutput(name = "RZP")
     public WritableFilesDataUnit outRZP;
+
+    @ExtensionInitializer.Init(param = "outRZP")
+    public WritableSimpleFiles outRZPSimple;
 
     @ExtensionInitializer.Init(param = "duICs")
     public SimpleRdf duICsWrap;
@@ -232,12 +242,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         {
                             //logger.trace(doc.outerHtml());
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outBasicSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Downloaded {}/{} in this run.", ++downloaded, toCache);
                         }
@@ -254,12 +260,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         {
                             //logger.trace(doc.outerHtml());
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outBasic.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outBasicSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Got from cache {}:{}", cachedEarlier, current );
                         }
@@ -284,12 +286,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         if (doc != null)
                         {
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outOR.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outORSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
                         }
@@ -305,12 +303,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         if (doc != null)
                         {
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outOR.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outORSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Got from cache {}: {}", cachedEarlier, current);
                         }
@@ -335,12 +329,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         if (doc != null)
                         {
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outRZPSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Downloaded {}/{} in this run: {}", ++downloaded, toCache, current);
                         }
@@ -356,12 +346,8 @@ public class Extractor extends AbstractDpu<ExtractorConfig> {
                         if (doc != null)
                         {
                             if (config.isGenerateOutput()) {
-                				try {
-									File f = new File(URI.create(outRZP.addNewFile(current.toString())));
-									FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
-								} catch (DataUnitException e) {
-									LOG.error(e.getLocalizedMessage(), e);
-								}
+            			    	File f = outRZPSimple.create(current.toString());
+								FileUtils.writeStringToFile(f, doc.outerHtml(), "UTF-8");
                             }
                             LOG.debug("Got from cache {}: {}", cachedEarlier, current);
                         }

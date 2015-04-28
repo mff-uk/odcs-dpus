@@ -133,21 +133,24 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
         	description_en = config.getDesc_en();
         }
         
-        String temporalStart, temporalEnd;
-        if (config.isTemporalFromDataset()) {
-        	temporalStart = executeSimpleSelectQuery("SELECT ?temporalStart WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
-        	temporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
-        }
-        else {
-        	temporalStart = dateFormat.format(config.getTemporalStart());
-        	temporalEnd = dateFormat.format(config.getTemporalEnd());
+        
+        String temporalStart = "", temporalEnd = "";
+        if (config.isUseTemporal()) {
+	        if (config.isTemporalFromDataset()) {
+	        	temporalStart = executeSimpleSelectQuery("SELECT ?temporalStart WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_STARTDATE + "> ?temporalStart }", "temporalStart");
+	        	temporalEnd = executeSimpleSelectQuery("SELECT ?temporalEnd WHERE {<" + datasetURI + "> <"+ DCTERMS.TEMPORAL + ">/<" + DistributionMetadataVocabulary.SCHEMA_ENDDATE  + "> ?temporalEnd }", "temporalEnd");
+	        }
+	        else {
+	        	temporalStart = dateFormat.format(config.getTemporalStart());
+	        	temporalEnd = dateFormat.format(config.getTemporalEnd());
+	        }
         }
         
-        String spatial;
-        if (config.isSpatialFromDataset()) {
-        	spatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
-        }
-        else spatial = config.getSpatial();
+//        String spatial;
+//        if (config.isSpatialFromDataset()) {
+//        	spatial = executeSimpleSelectQuery("SELECT ?spatial WHERE {<" + datasetURI + "> <"+ DCTERMS.SPATIAL + "> ?spatial }", "spatial");
+//        }
+//        else spatial = config.getSpatial();
         
         String issued;
         if (config.isIssuedFromDataset()) {
@@ -205,18 +208,23 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
                     DistributionMetadataVocabulary.XSD_DATE));
         }
         
-        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(distributionURI + "/temporal"),
-                valueFactory);
-        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
-        temporal.property(DistributionMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(temporalStart, DistributionMetadataVocabulary.XSD_DATE));
-        temporal.property(DistributionMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(temporalEnd, DistributionMetadataVocabulary.XSD_DATE));
-        rdfData.add(temporal.asStatements());
-
-        distribution.property(DCTERMS.TEMPORAL, temporal);
-
-        if (!StringUtils.isBlank(spatial)) {
-            distribution.property(DCTERMS.SPATIAL, valueFactory.createURI(spatial));
+        
+        if (config.isUseTemporal()) {
+	        if (!(temporalStart.isEmpty() && temporalEnd.isEmpty()))
+	        {
+		        final EntityBuilder temporal = new EntityBuilder(valueFactory.createURI(distributionURI + "/temporal"),
+		                valueFactory);
+		        temporal.property(RDF.TYPE, DCTERMS.PERIOD_OF_TIME);
+		        temporal.property(DistributionMetadataVocabulary.SCHEMA_STARTDATE, valueFactory.createLiteral(temporalStart, DistributionMetadataVocabulary.XSD_DATE));
+		        temporal.property(DistributionMetadataVocabulary.SCHEMA_ENDDATE, valueFactory.createLiteral(temporalEnd, DistributionMetadataVocabulary.XSD_DATE));
+		        rdfData.add(temporal.asStatements());
+		
+		        distribution.property(DCTERMS.TEMPORAL, temporal);
+	        }
         }
+//        if (!StringUtils.isBlank(spatial)) {
+//            distribution.property(DCTERMS.SPATIAL, valueFactory.createURI(spatial));
+//        }
 
         if (!StringUtils.isBlank(schemaURL)) {
             distribution.property(DistributionMetadataVocabulary.WDRS_DESCRIBEDBY, valueFactory.createURI(schemaURL));

@@ -53,6 +53,10 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 
     private CheckBox chkSchemaFromInput;
 
+    private CheckBox chkUseTemporal;
+
+    private CheckBox chkNowTemporalEnd;
+
     private TextField tfSchema;
 
     private TextField tfSchemaType;
@@ -79,9 +83,9 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 
     private DateField dfTemporalEnd;
 
-    private CheckBox chkSpatialFromInput;
-
-    private TextField tfSpatial;
+//    private CheckBox chkSpatialFromInput;
+//
+//    private TextField tfSpatial;
 
     private CheckBox chkLicensesFromInput;
 
@@ -317,6 +321,22 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         dfModified.setResolution(Resolution.DAY);
         mainLayout.addComponent(dfModified);
 
+        chkUseTemporal = new CheckBox();
+        chkUseTemporal.setCaption("Use temporal coverage");
+        chkUseTemporal.setWidth("100%");
+        chkUseTemporal.setImmediate(true);
+        chkUseTemporal.addValueChangeListener(new ValueChangeListener() {
+			private static final long serialVersionUID = -6135328311357043784L;
+
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				chkTemporalFromInput.setEnabled(chkUseTemporal.getValue());
+				dfTemporalStart.setEnabled(chkUseTemporal.getValue() && !chkTemporalFromInput.getValue());
+				dfTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkNowTemporalEnd.getValue() && !chkTemporalFromInput.getValue());
+				chkNowTemporalEnd.setEnabled(chkUseTemporal.getValue() && !chkTemporalFromInput.getValue());
+		}});
+        mainLayout.addComponent(chkUseTemporal);
+
         chkTemporalFromInput = new CheckBox();
         chkTemporalFromInput.setCaption("Use temporal coverage from dataset");
         chkTemporalFromInput.setWidth("100%");
@@ -327,7 +347,8 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				dfTemporalStart.setEnabled(!chkTemporalFromInput.getValue());
-				dfTemporalEnd.setEnabled(!chkTemporalFromInput.getValue());
+				dfTemporalEnd.setEnabled(!chkTemporalFromInput.getValue() && !chkNowTemporalEnd.getValue());
+				chkNowTemporalEnd.setEnabled(!chkTemporalFromInput.getValue());
 		}});
         mainLayout.addComponent(chkTemporalFromInput);
 
@@ -343,24 +364,37 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         dfTemporalEnd.setResolution(Resolution.DAY);
         mainLayout.addComponent(dfTemporalEnd);
 
-        chkSpatialFromInput = new CheckBox();
-        chkSpatialFromInput.setCaption("Use spatial coverage from dataset");
-        chkSpatialFromInput.setWidth("100%");
-        chkSpatialFromInput.setImmediate(true);
-        chkSpatialFromInput.addValueChangeListener(new ValueChangeListener() {
+        chkNowTemporalEnd = new CheckBox();
+        chkNowTemporalEnd.setCaption("Use current date as temporal coverage end");
+        chkNowTemporalEnd.setWidth("100%");
+        chkNowTemporalEnd.setImmediate(true);
+        chkNowTemporalEnd.addValueChangeListener(new ValueChangeListener() {
 			private static final long serialVersionUID = -6135328311357043784L;
 
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				tfSpatial.setEnabled(!chkSpatialFromInput.getValue());
+				dfTemporalEnd.setEnabled(!chkNowTemporalEnd.getValue());
 		}});
-        mainLayout.addComponent(chkSpatialFromInput);
+        mainLayout.addComponent(chkNowTemporalEnd);
 
-        tfSpatial = new TextField();
-        tfSpatial.setCaption("Spatial coverage URI:");
-        tfSpatial.setInputPrompt("http://ruian.linked.opendata.cz/resource/adresni-mista/25958810");
-        tfSpatial.setWidth("100%");
-        mainLayout.addComponent(tfSpatial);
+//        chkSpatialFromInput = new CheckBox();
+//        chkSpatialFromInput.setCaption("Use spatial coverage from dataset");
+//        chkSpatialFromInput.setWidth("100%");
+//        chkSpatialFromInput.setImmediate(true);
+//        chkSpatialFromInput.addValueChangeListener(new ValueChangeListener() {
+//			private static final long serialVersionUID = -6135328311357043784L;
+//
+//			@Override
+//			public void valueChange(ValueChangeEvent event) {
+//				tfSpatial.setEnabled(!chkSpatialFromInput.getValue());
+//		}});
+//        mainLayout.addComponent(chkSpatialFromInput);
+//
+//        tfSpatial = new TextField();
+//        tfSpatial.setCaption("Spatial coverage URI:");
+//        tfSpatial.setInputPrompt("http://ruian.linked.opendata.cz/resource/adresni-mista/25958810");
+//        tfSpatial.setWidth("100%");
+//        mainLayout.addComponent(tfSpatial);
 
         chkLicensesFromInput = new CheckBox();
         chkLicensesFromInput.setCaption("Use license from dataset");
@@ -413,6 +447,8 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         dfIssued.setValue(conf.getIssued());
         dfModified.setValue(conf.getModified());
         chkNow.setValue(conf.isUseNow());
+        chkNowTemporalEnd.setValue(conf.isUseNowTemporalEnd());
+        chkUseTemporal.setValue(conf.isUseTemporal());
         tfDownloadURL.setValue(conf.getDownloadURL());
         tfAccessURL.setValue(conf.getAccessURL());
         tfMediaType.setValue(conf.getMediaType());
@@ -424,8 +460,8 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         chkTemporalFromInput.setValue(conf.isTemporalFromDataset());
         dfTemporalStart.setValue(conf.getTemporalStart());
         dfTemporalEnd.setValue(conf.getTemporalEnd());
-        chkSpatialFromInput.setValue(conf.isSpatialFromDataset());
-        tfSpatial.setValue(conf.getSpatial());
+//        chkSpatialFromInput.setValue(conf.isSpatialFromDataset());
+//        tfSpatial.setValue(conf.getSpatial());
 
     	for (String s: conf.getExampleResources()) lsExampleResources.addItem(s);
     	lsExampleResources.setValue(conf.getExampleResources());
@@ -468,17 +504,19 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         conf.setIssued(dfIssued.getValue());
         conf.setModified(dfModified.getValue());
         conf.setUseNow((boolean) chkNow.getValue());
+        conf.setUseNowTemporalEnd((boolean) chkNowTemporalEnd.getValue());
+        conf.setUseTemporal((boolean) chkUseTemporal.getValue());
         conf.setTemporalFromDataset(chkTemporalFromInput.getValue());
         conf.setTemporalStart(dfTemporalStart.getValue());
         conf.setTemporalEnd(dfTemporalEnd.getValue());
 
-        conf.setSpatialFromDataset(chkSpatialFromInput.getValue());
-        try {
-	        conf.setSpatial(new URL(tfSpatial.getValue()).toString());
-        } catch (MalformedURLException ex) {
-            if (chkSpatialFromInput.getValue()) conf.setSpatial("");
-            else throw new DPUConfigException("Invalid spatial converage URL.", ex);
-        }
+//        conf.setSpatialFromDataset(chkSpatialFromInput.getValue());
+//        try {
+//	        conf.setSpatial(new URL(tfSpatial.getValue()).toString());
+//        } catch (MalformedURLException ex) {
+//            if (chkSpatialFromInput.getValue()) conf.setSpatial("");
+//            else throw new DPUConfigException("Invalid spatial converage URL.", ex);
+//        }
         
         conf.setSchemaFromDataset(chkSchemaFromInput.getValue());
         try {
