@@ -9,7 +9,7 @@ import java.util.Set;
 import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.http.HTTPRepository;
+import org.openrdf.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,16 @@ public class RemoteRdfDataUnit implements RDFDataUnit, AutoCloseable, Extension,
 
     private final ExecContext<?> execContext;
 
-    private final HTTPRepository repository;
+    /**
+     * From: https://groups.google.com/forum/#!topic/sesame-users/5UYsqct3y-w
+     *
+     * Virtuoso does not implement the full Sesame Server protocol (which is an
+     * extension of the SPARQL protocol), so you should not be using HTTPRepository to
+     * connect to it. Instead, use SPARQLRepository, which is specifically designed to
+     * connect to third-party SPARQL endpoints:
+     *
+     */
+    private final SPARQLRepository repository;
     
     private final List<RDFDataUnit.Entry> entries;
 
@@ -42,7 +51,7 @@ public class RemoteRdfDataUnit implements RDFDataUnit, AutoCloseable, Extension,
     RemoteRdfDataUnit(ExecContext<?> execContext, String endpointUrl, URI ... graphs)
             throws ExternalError {
         this.execContext = execContext;
-        this.repository = new HTTPRepository(endpointUrl);
+        this.repository = new SPARQLRepository(endpointUrl);
         try {
             this.repository.initialize();
         } catch (RepositoryException ex) {

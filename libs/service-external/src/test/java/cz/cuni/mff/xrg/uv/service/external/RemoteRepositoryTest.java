@@ -19,8 +19,13 @@ import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
  */
 public class RemoteRepositoryTest {
 
+    /**
+     * This test can fail as DBPedia can be under maintenance.
+     *
+     * @throws Exception
+     */
     @Test(timeout = 10000)
-    public void passRuain() throws Exception {
+    public void passDBPeadia() throws Exception {
         final String uri = "http://dbpedia.org/sparql";
         final String select = "SELECT distinct ?s WHERE {?s ?p ?o} LIMIT 10";
 

@@ -25,7 +25,7 @@ public class ExternalServicesFactory {
      * @return
      * @throws ExternalError
      */
-    public static RDFDataUnit remoteRdf(UserExecContext ctx, String endpointUrl, URI ... graphs) throws ExternalError {
+    public static RemoteRdfDataUnit remoteRdf(UserExecContext ctx, String endpointUrl, URI ... graphs) throws ExternalError {
         RemoteRdfDataUnit remote = new RemoteRdfDataUnit(ctx.getExecMasterContext(), endpointUrl, graphs);
         // Also add remove to list of extensions. In this way the create RemoteRdfDataUnit
         // can close itself after innerExecute.
@@ -43,7 +43,7 @@ public class ExternalServicesFactory {
      * @return
      * @throws ExternalError
      */
-    public static RDFDataUnit remoteRdf(UserExecContext ctx, String endpointUrl, String ... graphs) throws ExternalError {
+    public static RemoteRdfDataUnit remoteRdf(UserExecContext ctx, String endpointUrl, String ... graphs) throws ExternalError {
         final URI[] graphsUri = new URI[graphs.length];
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
         for (int i = 0; i < graphs.length; ++i) {
