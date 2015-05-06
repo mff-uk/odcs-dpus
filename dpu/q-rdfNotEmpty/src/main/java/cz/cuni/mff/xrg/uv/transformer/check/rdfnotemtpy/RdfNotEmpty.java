@@ -1,29 +1,32 @@
 package cz.cuni.mff.xrg.uv.transformer.check.rdfnotemtpy;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.CloseCloseable;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
+import java.util.List;
+
 import eu.unifiedviews.dataunit.DataUnit;
-import eu.unifiedviews.dataunit.DataUnitException;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.cuni.mff.xrg.uv.utils.dataunit.DataUnitUtils;
+import eu.unifiedviews.helpers.dataunit.DataUnitUtils;
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
 
 @DPU.AsQuality
-public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
+public class RdfNotEmpty extends AbstractDpu<RdfNotEmptyConfig_V1> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(RdfNotEmpty.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RdfNotEmpty.class);
+
+    private static final String QUERY_COPY = "INSERT { ?s ?p ?o } WHERE { ?s ?p ?o }";
 
     @DataUnit.AsInput(name = "rdf")
     public RDFDataUnit rdfInData;
@@ -31,70 +34,56 @@ public class RdfNotEmpty extends DpuAdvancedBase<RdfNotEmptyConfig_V1> {
     @DataUnit.AsOutput(name = "rdf")
     public WritableRDFDataUnit rdfOutData;
 
-	public RdfNotEmpty() {
-		super(RdfNotEmptyConfig_V1.class, 
-                AddonInitializer.create(new CloseCloseable()));
-	}
-		
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
+
+    /**
+     * True if all graphs are empty. Is located here so we can call it from lambda method.
+     */
+    private boolean isEmpty = true;
+
+    public RdfNotEmpty() {
+        super(RdfNotEmptyVaadinDialog.class, ConfigHistory.noHistory(RdfNotEmptyConfig_V1.class));
+    }
+
     @Override
     protected void innerExecute() throws DPUException {
-        boolean isEmpty = true;
+        final List<RDFDataUnit.Entry> graphs = FaultToleranceUtils.getEntries(faultTolerance, rdfInData,
+                RDFDataUnit.Entry.class);
 
-        RDFDataUnit.Iteration iter;
-        try {
-            iter = rdfInData.getIteration();
-        } catch (DataUnitException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        }
-        getAddon(CloseCloseable.class).add(iter);
+        faultTolerance.execute(rdfInData, new FaultTolerance.ConnectionAction() {
 
-        RepositoryConnection connection = null;
-        try {
-            connection = rdfInData.getConnection();
-
-            while (iter.hasNext()) {
-                RDFDataUnit.Entry entry = iter.next();
-                // chgeck size
-                long size = connection.size(entry.getDataGraphURI());
-                if (size > 0) {
-                    isEmpty = false;
-                }
-                // log in debug mode
-                LOG.debug("size( {} ) = {}", entry.getDataGraphURI(), size);
-            }
-            if (!isEmpty) {
-                // Copy data.
-                DataUnitUtils.copyGraphs(rdfInData, rdfOutData, connection);
-            }
-        } catch (DataUnitException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        } catch (RepositoryException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (RepositoryException ex) {
-                    LOG.warn("Can't close conneciton.", ex);
+            @Override
+            public void action(RepositoryConnection connection) throws Exception {
+                for (RDFDataUnit.Entry entry : graphs) {
+                    long size = connection.size(entry.getDataGraphURI());
+                    if (size > 0) {
+                        isEmpty = false;
+                    }
+                    LOG.debug("size( {} ) = {}", entry.getDataGraphURI(), size);
                 }
             }
-        }
-
+        });
         if (isEmpty) {
-           String msg = config.getMessage();
-           if (msg == null || msg.isEmpty()) {
-               msg = RdfNotEmptyConfig_V1.AUTO_MESSAGE;
-           }
-           context.sendMessage(config.getMessageType(),msg);
+            String msg = config.getMessage();
+            if (msg == null || msg.isEmpty()) {
+                msg = RdfNotEmptyConfig_V1.AUTO_MESSAGE;
+            }
+            ctx.getExecMasterContext().getDpuContext().sendMessage(config.getMessageType(), msg);
+        } else {
+            // Copy metadata (data) from input to output.
+            faultTolerance.execute(rdfInData, new FaultTolerance.ConnectionAction() {
+
+                @Override
+                public void action(RepositoryConnection connection) throws Exception {
+                    SparqlUtils.SparqlUpdateObject update = SparqlUtils.createInsert(QUERY_COPY,
+                            DataUnitUtils.getMetadataEntries(rdfInData),
+                            DataUnitUtils.getWritableMetadataEntry(rdfOutData));
+                    SparqlUtils.execute(connection, update);
+                }
+            }
+            );
         }
     }
 
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new RdfNotEmptyVaadinDialog();
-    }
-	
 }

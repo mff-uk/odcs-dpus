@@ -3,21 +3,19 @@ package cz.cuni.mff.xrg.uv.transformer.check.rdfnotemtpy;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
+
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
-public class RdfNotEmptyVaadinDialog extends AdvancedVaadinDialogBase<RdfNotEmptyConfig_V1> {
+public class RdfNotEmptyVaadinDialog extends AbstractDialog<RdfNotEmptyConfig_V1> {
 
     private OptionGroup optMessageType;
 
     private TextField txtMessage;
 
     public RdfNotEmptyVaadinDialog() {
-        super(RdfNotEmptyConfig_V1.class, AddonInitializer.noAddons());
-
-        buildLayout();
+        super(RdfNotEmpty.class);
     }
 
     @Override
@@ -36,7 +34,8 @@ public class RdfNotEmptyVaadinDialog extends AdvancedVaadinDialogBase<RdfNotEmpt
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    public void buildDialogLayout() {
         final VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setWidth("100%");
         mainLayout.setHeight("-1px");
