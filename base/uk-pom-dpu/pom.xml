@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.unifiedviews</groupId>
         <artifactId>uv-pom-dpu</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.2-SNAPSHOT</version>
     </parent>
   <groupId>cz.cuni.mff.xrg.uv</groupId>
   <artifactId>uk-pom-dpu</artifactId>
@@ -15,5 +15,13 @@
   <properties>
       <git.repository.link>https://github.com/mff-uk/DPUs</git.repository.link>
   </properties>
+
+    <repositories>
+        <repository>
+            <id>maven.eea.sk</id>
+            <name>maven.eea.sk-public</name>
+            <url>http://maven.eea.sk/artifactory/public/</url>
+        </repository>
+    </repositories>
 
 </project>
