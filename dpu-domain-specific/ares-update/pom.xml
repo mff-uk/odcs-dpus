@@ -27,12 +27,6 @@
 			<version>2.4</version>
 			<scope>provided</scope>
 		</dependency>
-        <!-- - - - -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv.libs</groupId>
-            <artifactId>scraperLib</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
         <!-- UnifiedViews helpers. -->
         <dependency>
             <groupId>eu.unifiedviews</groupId>
