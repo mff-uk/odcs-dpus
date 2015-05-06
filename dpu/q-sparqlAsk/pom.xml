@@ -10,7 +10,7 @@
     <artifactId>q-SparqlAsk</artifactId>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>q-SparqlAsk</name>
+    <name>Q-SparqlAsk</name>
     <description>Execute SPARQL ask</description>
 	
     <properties>

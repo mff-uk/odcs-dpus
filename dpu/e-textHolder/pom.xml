@@ -10,7 +10,7 @@
     <artifactId>e-TextHolder</artifactId>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>e-TextHolder</name>
+    <name>E-TextHolder</name>
     <description>Takes text and put it into output as a single file.</description>
 	
     <properties>

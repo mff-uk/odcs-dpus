@@ -10,7 +10,7 @@
     <artifactId>e-listDownloader</artifactId>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>e-ListDownloader</name>
+    <name>E-ListDownloader</name>
     <description></description>
 
     <properties>

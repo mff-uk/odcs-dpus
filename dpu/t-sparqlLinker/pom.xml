@@ -10,7 +10,7 @@
     <artifactId>T-sparqlLinker</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>t-SparqlLinker</name>
+    <name>T-SparqlLinker</name>
     <description>Can be used to link data from two input DataUnits.</description>
 
     <properties>

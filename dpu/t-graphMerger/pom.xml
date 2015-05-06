@@ -10,7 +10,7 @@
     <artifactId>t-graphMerger</artifactId>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>t-GraphMerger</name>
+    <name>T-GraphMerger</name>
     <description>Merge multiple nput graph into one new graph. Designed for Virtuoso.</description>
 	
     <properties>

@@ -10,7 +10,7 @@
 	<artifactId>uk-e-HttpDownload</artifactId>
 	<version>1.1.2</version>
 	<packaging>bundle</packaging>
-	<name>e-HttpDownload</name>
+	<name>E-HttpDownload</name>
 	<description>Description of HttpDownload. List of files to download can be configured from RDF input.</description>
 	
 	<properties>    

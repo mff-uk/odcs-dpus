@@ -10,7 +10,7 @@
 	<artifactId>t-htmlCss</artifactId>
 	<version>2.2.1</version>
 	<packaging>bundle</packaging>
-	<name>t-HtmlCss</name>
+	<name>T-HtmlCss</name>
 	<description>Can be used to parse html with css selectors.</description>
 	
 	<properties>    
