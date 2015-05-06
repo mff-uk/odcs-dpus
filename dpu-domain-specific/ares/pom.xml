@@ -44,12 +44,6 @@
             <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
-        <!-- - - - -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv.libs</groupId>
-            <artifactId>scraperLib</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
 </project>
