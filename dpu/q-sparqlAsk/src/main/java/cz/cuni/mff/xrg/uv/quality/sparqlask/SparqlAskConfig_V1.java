@@ -13,7 +13,7 @@ public class SparqlAskConfig_V1 {
 
     private String message = null;
 
-    private String askQuery = "ASK {?s ?p ?p}";
+    private String askQuery = "ASK { ?s ?p ?o }";
 
     private boolean perGraph = true;
 
