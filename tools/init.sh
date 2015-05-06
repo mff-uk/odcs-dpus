@@ -10,7 +10,7 @@ cd ../base
 # Build libs.
 echo "building libs .."
 cd ../libs
- cd scraperLib
+ cd service-external
   mvn clean install
   cd ..
 
