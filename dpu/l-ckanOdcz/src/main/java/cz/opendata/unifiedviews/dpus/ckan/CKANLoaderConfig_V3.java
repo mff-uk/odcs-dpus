@@ -1,10 +1,12 @@
 package cz.opendata.unifiedviews.dpus.ckan;
 
+import eu.unifiedviews.helpers.dpu.ontology.EntityDescription;
 /**
  *
  * Put your DPU's configuration here.
  *
  */
+@EntityDescription.Entity(type = "http://www.w3.org/ns/dcat#Dataset")
 public class CKANLoaderConfig_V3  {
     
    
@@ -114,6 +116,7 @@ public class CKANLoaderConfig_V3  {
     
     private boolean loadToCKAN = true;
     
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/datasetID")
     private String datasetID = "";
     
     private String filename = "ckan-api.json";

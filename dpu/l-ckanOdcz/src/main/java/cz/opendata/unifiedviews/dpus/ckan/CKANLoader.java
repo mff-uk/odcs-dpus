@@ -47,7 +47,7 @@ import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
-
+import eu.unifiedviews.helpers.dpu.extension.rdf.RdfConfiguration;
 
 @DPU.AsLoader
 public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3> 
@@ -61,6 +61,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3>
     @ExtensionInitializer.Init(param = "outFile")
     public WritableSimpleFiles outFileSimple;
 
+    @RdfConfiguration.ContainsConfiguration
     @DataUnit.AsInput(name = "metadata")
     public RDFDataUnit metadata;
 
