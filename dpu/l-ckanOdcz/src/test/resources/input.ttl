@@ -4,6 +4,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix ckan: <http://linked.opendata.cz/ontology/ckan/> .
 
 <http://my.new.dataset.cz/contactPoint> a <http://www.w3.org/2006/vcard/ns#VCard> ;
 	<http://www.w3.org/2006/vcard/ns#hasEmail> "contact@mydataset.cz" .
@@ -33,6 +34,7 @@
 	<http://purl.org/dc/terms/publisher> <http://opendata.cz> ;
 	<http://purl.org/dc/terms/license> <http://opendatacommons.org/licenses/pddl/1.0/> ;
 	<http://purl.org/dc/terms/source> <http://my.source.first> , <http://my.source.second> ;
+	ckan:datasetID "datasetIDFromRDF" ;
 	<http://www.w3.org/ns/dcat#theme> <http://eurovoc.scheme/2> , <http:///eurovoc.scheme/1> .
 
 <http://my.new.dataset.cz> <http://www.w3.org/ns/dcat#distribution> <http://mydistro/csv> .

@@ -21,6 +21,7 @@ public class LoaderTest {
 
         config.setDatasetID("cz-test");
         config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
+        config.setLoadToCKAN(false);
 
         loader.configure((new ConfigurationBuilder()).setDpuConfiguration(config).toString());
 
