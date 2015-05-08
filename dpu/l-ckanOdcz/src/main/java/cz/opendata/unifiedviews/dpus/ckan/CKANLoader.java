@@ -68,6 +68,9 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3>
     @ExtensionInitializer.Init
     public FaultTolerance faultTolerance;
 
+    @ExtensionInitializer.Init
+    public RdfConfiguration _rdfConfiguration;
+    
     public CKANLoader() {
         super(CKANLoaderDialog.class, ConfigHistory.history(CKANLoaderConfig.class)
                 .addCurrent(CKANLoaderConfig_V3.class));
