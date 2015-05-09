@@ -16,7 +16,7 @@
     <properties>    
         <dpu.package>cz.opendata.unifiedviews.dpus.ckan</dpu.package>
         <dpu.mainClass>CKANLoader</dpu.mainClass>
-        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
+        <uv.helpers.version>[2.0.2-SNAPSHOT,3.0.0)</uv.helpers.version>
         <junit.version>4.12</junit.version>
         <module-test.version>1.6.0-SNAPSHOT</module-test.version>
     </properties>
