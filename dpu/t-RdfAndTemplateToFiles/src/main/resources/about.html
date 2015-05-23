@@ -1,0 +1,25 @@
+Documents must be of class <em>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document</em>.
+Each document must have file name specified! File name is specified by predicate <em>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/fileName</em>.
+<br />
+<br />
+Sample template:<br />
+<div><pre>
+&lt;h1&gt;${http://localhost/title}&lt;/h1&gt;<br />
+List:&lt;ul&gt;${http://localhost/guest|<br />
+  &lt;li>${http://localhost/name} live in ${http://localhost/location}&lt;/li&gt;}<br />
+&lt;/ul&gt;
+</pre></div>
+Sample RDF data:
+<div><pre>
+&lt;http://localhost/0&gt; a &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document&gt; ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/fileName&gt; "seznam.html" ;<br />
+ &lt;http://localhost/title&gt; "User meeting" ;<br />
+ &lt;http://localhost/guest&gt; &lt;http://localhost/pavel&gt; ;<br />
+ &lt;http://localhost/guest&gt; &lt;http://localhost/jakub&gt; .<br />
+<br />
+&lt;http://localhost/pavel&gt; &lt;http://localhost/name&gt; "Pavel" ;<br />
+ &lt;http://localhost/location&gt; "London" .<br />
+<br />
+&lt;http://localhost/jakub&gt; &lt;http://localhost/name&gt; "Jakub" ;<br />
+ &lt;http://localhost/location&gt; "Prague" .<br />
+</pre></div>
