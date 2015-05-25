@@ -2,9 +2,8 @@ package cz.cuni.mff.xrg.uv.transformer.rdfandtemplatetofiles.template;
 
 import java.io.Writer;
 
-import org.openrdf.model.URI;
-
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
+import eu.unifiedviews.helpers.dpu.exec.UserExecContext;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 
 /**
@@ -14,20 +13,27 @@ import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
  */
 public class RenderContext {
 
+    private final UserExecContext context;
+
     private Writer writer;
 
     private final RDFDataUnit rdfDataUnit;
 
-    private final URI graphUri;
+    private final RDFDataUnit.Entry graph;
 
     private final FaultTolerance faultTolerance;
 
-    public RenderContext(RDFDataUnit rdfDataUnit, URI graphUri,
+    public RenderContext(UserExecContext context, RDFDataUnit rdfDataUnit, RDFDataUnit.Entry graph,
             FaultTolerance faultTolerance) {
+        this.context = context;
         this.writer = null;
         this.rdfDataUnit = rdfDataUnit;
-        this.graphUri = graphUri;
+        this.graph = graph;
         this.faultTolerance = faultTolerance;
+    }
+
+    public UserExecContext getContext() {
+        return context;
     }
 
     public void setWriter(Writer writer) {
@@ -42,8 +48,8 @@ public class RenderContext {
         return rdfDataUnit;
     }
 
-    public URI getGraphUri() {
-        return graphUri;
+    public RDFDataUnit.Entry getGraph() {
+        return graph;
     }
 
     public FaultTolerance getFaultTolerance() {

@@ -17,7 +17,9 @@ subject is the object of <b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFil
 However this can be changed by nested templates. In case of a nested template the subject is changed to value
 of specified property. The inner template is then executed normally. <br />
 If there is more values for a property binded to a nested template, the template is inserted multiple times
-into the output. So the nested templates can be used to generate list or just add value from a other subject.
+into the output. So the nested templates can be used to generate list or just add value from a other subject. <br />
+If <b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex</b> is set then is used to order the
+items in nested templates. It he index is missing value -1 is used. The items are sorted in decreasing order.
 <br />
 This multiple-value behavior is not supported by the simple template. If a simple template is used with
 multiple value the exception is thrown!
@@ -39,8 +41,10 @@ Sample RDF data (dpu input):
  &lt;http://localhost/guest&gt; &lt;http://localhost/jakub&gt; .<br />
 <br />
 &lt;http://localhost/pavel&gt; &lt;http://localhost/name&gt; "Pavel" ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex&gt; 2 ;<br />
  &lt;http://localhost/location&gt; "London" .<br />
 <br />
 &lt;http://localhost/jakub&gt; &lt;http://localhost/name&gt; "Jakub" ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex&gt; 0 ;<br />
  &lt;http://localhost/location&gt; "Prague" .<br />
 </pre></div>

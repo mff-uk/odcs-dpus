@@ -92,7 +92,7 @@ public class RdfAndTemplateToFiles extends AbstractDpu<RdfAndTemplateToFilesConf
                 }
             });
             final URI graphUri = FaultToleranceUtils.asGraph(faultTolerance, graph);
-            final RenderContext context = new RenderContext(input, graphUri, faultTolerance);
+            final RenderContext context = new RenderContext(ctx, input, graph, faultTolerance);
             int fileCounter = 0;
             for (Map<String, Value> document : result.getResults()) {
                 LOG.info("Processing {}/{} - {}/{} : {}", graphCounter, graphs.size(), ++fileCounter,

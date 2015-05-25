@@ -14,11 +14,14 @@ public class RdfAndTemplateToFilesVocabulary {
 
     public static final URI DOCUMENT;
     
+    public static final URI INDEX;
+
     static {
         final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
         
         FILENAME = valueFactory.createURI("http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/fileName");
         DOCUMENT = valueFactory.createURI("http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document");
+        INDEX = valueFactory.createURI("http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex");
     }
 
 }
