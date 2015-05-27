@@ -78,8 +78,8 @@ public abstract class Template {
                                     right.get("order").stringValue(), right.get("s").stringValue());
                         }
 
-                        // We revert values here, so we sort in decreasing order.
-                        return Integer.compare(rightIndex, leftIndex);
+                        // We sort in increasing order.
+                        return Integer.compare(leftIndex, rightIndex);
                     }
                 });
                 // Store subjects.
@@ -89,7 +89,11 @@ public abstract class Template {
             }
         });
         // Call user method.
-        render(context, objects);
+        if (objects.isEmpty()) {
+            // No data, nothing to render.
+        } else {
+            render(context, objects);
+        }
     }
 
     protected abstract void render(RenderContext context, List<Value> objects) throws DPUException, CantCreateTemplate;
