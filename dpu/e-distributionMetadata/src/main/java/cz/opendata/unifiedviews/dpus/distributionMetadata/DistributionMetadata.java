@@ -247,10 +247,21 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
             distribution.property(DistributionMetadataVocabulary.VOID_SPARQLENDPOINT, valueFactory.createURI(config.getSparqlEndpointUrl()));
         }
 
+        
         if (!StringUtils.isBlank(config.getMediaType())) {
+	        final EntityBuilder mediatype = new EntityBuilder(valueFactory.createURI(distributionURI + "/mediatype"), valueFactory);
+	        mediatype.property(RDF.TYPE, DCTERMS.MEDIA_TYPE_OR_EXTENT);
+	        mediatype.property(DCTERMS.TITLE, valueFactory.createLiteral(config.getMediaType()));
+	        rdfData.add(mediatype.asStatements());
+	
+	        distribution.property(DCTERMS.FORMAT, mediatype);
+        }
+        
+        /*if (!StringUtils.isBlank(config.getMediaType())) {
             distribution.property(DistributionMetadataVocabulary.DCAT_MEDIATYPE, valueFactory.createLiteral(config.getMediaType()));
             distribution.property(DCTERMS.FORMAT, valueFactory.createLiteral(config.getMediaType()));
-        }
+        }*/
+        
         if (!StringUtils.isBlank(license)) {
         	distribution.property(DCTERMS.LICENSE, valueFactory.createURI(license));
         }

@@ -19,7 +19,7 @@ public class LoaderTest {
         CKANLoader loader = new CKANLoader();
         CKANLoaderConfig_V3 config = new CKANLoaderConfig_V3();
 
-        config.setDatasetID("cz-test");
+//        config.setDatasetID("cz-test");
         config.setApiKey("848ee776-4003-4f20-80fc-44ffad44087f");
         config.setLoadToCKAN(false);
 

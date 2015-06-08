@@ -248,7 +248,7 @@ public class CKANBatchLoader extends AbstractDpu<CKANBatchLoaderConfig>
 			    	String dissued = executeSimpleSelectQuery("SELECT ?issued WHERE {<" + distribution + "> <"+ DCTERMS.ISSUED + "> ?issued }", "issued");
 			    	String dmodified = executeSimpleSelectQuery("SELECT ?modified WHERE {<" + distribution + "> <"+ DCTERMS.MODIFIED + "> ?modified }", "modified");
 			    	String dlicense = executeSimpleSelectQuery("SELECT ?license WHERE {<" + distribution + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
-			    	String dformat = executeSimpleSelectQuery("SELECT ?format WHERE {<" + distribution + "> <"+ DCTERMS.FORMAT + "> ?format }", "format");
+			    	String dformat = executeSimpleSelectQuery("SELECT ?format WHERE {<" + distribution + "> <"+ DCTERMS.FORMAT + ">/<" + DCTERMS.TITLE + "> ?format }", "format");
 			    	String dwnld = executeSimpleSelectQuery("SELECT ?dwnld WHERE {<" + distribution + "> <"+ CKANLoaderVocabulary.DCAT_DOWNLOADURL + "> ?dwnld }", "dwnld");
 		
 			    	// RDF SPECIFIC - VOID
