@@ -249,7 +249,7 @@ public class DistributionMetadata extends AbstractDpu<DistributionMetadataConfig
 
         
         if (!StringUtils.isBlank(config.getMediaType())) {
-	        final EntityBuilder mediatype = new EntityBuilder(valueFactory.createURI(distributionURI + "/mediatype"), valueFactory);
+	        final EntityBuilder mediatype = new EntityBuilder(valueFactory.createURI("http://linked.opendata.cz/resource/mediaType/" + config.getMediaType()), valueFactory);
 	        mediatype.property(RDF.TYPE, DCTERMS.MEDIA_TYPE_OR_EXTENT);
 	        mediatype.property(DCTERMS.TITLE, valueFactory.createLiteral(config.getMediaType()));
 	        rdfData.add(mediatype.asStatements());
