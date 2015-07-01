@@ -255,6 +255,9 @@ public class HtmlCss extends AbstractDpu<HtmlCssConfig_V1> {
             final NamedData state = states.pop();
             for (HtmlCssConfig_V1.Action action : config.getActions()) {
                 if (action.getName().compareTo(state.name) == 0) {
+                    if (action.getType() == null) {
+                        throw ContextUtils.dpuException(ctx, "Missing action type!");
+                    }
                     // Execute action.
                     switch (action.getType()) {
                         case ATTRIBUTE:
