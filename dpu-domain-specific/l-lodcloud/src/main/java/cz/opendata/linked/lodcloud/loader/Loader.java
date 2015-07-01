@@ -85,7 +85,7 @@ extends AbstractDpu<LoaderConfig>
     	String sparqlEndpointVoid = executeSimpleSelectQuery("SELECT ?sparqlEndpoint WHERE {<" + distribution + "> <"+ LoaderVocabulary.VOID_SPARQLENDPOINT + "> ?sparqlEndpoint }", "sparqlEndpoint");
     	String datadump = executeSimpleSelectQuery("SELECT ?dwnld WHERE {<" + distribution + "> <"+ LoaderVocabulary.VOID_DATADUMP + "> ?dwnld }", "dwnld");
     	String triplecount = executeSimpleSelectQuery("SELECT ?triplecount WHERE {<" + distribution + "> <"+ LoaderVocabulary.VOID_TRIPLES + "> ?triplecount }", "triplecount");
-    	String dformat = executeSimpleSelectQuery("SELECT ?format WHERE {<" + distribution + "> <"+ DCTERMS.FORMAT + "> ?format }", "format");
+    	String dformat = executeSimpleSelectQuery("SELECT ?format WHERE {<" + distribution + "> <"+ DCTERMS.FORMAT + ">/<" + DCTERMS.TITLE + "> ?format }", "format");
     	String dlicense = executeSimpleSelectQuery("SELECT ?license WHERE {<" + distribution + "> <"+ DCTERMS.LICENSE + "> ?license }", "license");
     	String dschema = executeSimpleSelectQuery("SELECT ?schema WHERE {<" + distribution + "> <"+ LoaderVocabulary.WDRS_DESCRIBEDBY + "> ?schema }", "schema");
 
@@ -334,14 +334,14 @@ extends AbstractDpu<LoaderConfig>
 	            CloseableHttpResponse response = null;
 	            
 	            try {
-	                response = client.execute(httpPost);
+	            	response = client.execute(httpPost);
 	                if (response.getStatusLine().getStatusCode() == 201) {
 	                	logger.info("Dataset created OK: " + response.getStatusLine());
 	                } else if (response.getStatusLine().getStatusCode() == 409) {
 	                	logger.error("Dataset already exists: " + response.getStatusLine());
 	                	ContextUtils.sendError(ctx, "Dataset already exists", "Dataset already exists: {0}", response.getStatusLine());
 	                } else {
-	                	ContextUtils.sendError(ctx, "Error creating dataset", "Response while creating dataset: {0}", response.getStatusLine());
+	                	ContextUtils.sendError(ctx, "Error while creating dataset", "Response while creating dataset: " + response.getStatusLine());
 	                }
 	            } catch (ClientProtocolException e) {
 	            	logger.error(e.getLocalizedMessage(), e);
