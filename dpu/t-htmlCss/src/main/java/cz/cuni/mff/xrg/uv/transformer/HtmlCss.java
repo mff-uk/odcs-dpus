@@ -111,7 +111,7 @@ public class HtmlCss extends AbstractDpu<HtmlCssConfig_V1> {
          *
          * @param source
          * @param action
-         * @param subject      Should never be null!
+         * @param subject      If null value form source is used!
          * @param subjectClass If null then parent value is used.
          * @param hasPredicate If null, then subject stay on same level.
          */
@@ -119,7 +119,7 @@ public class HtmlCss extends AbstractDpu<HtmlCssConfig_V1> {
                 URI hasPredicate) {
             this.name = action.getOutputName();
             this.elements = source.elements;
-            this.subject = subject;
+            this.subject = subject == null ? source.subject : subject;
             this.subjectClass = subjectClass == null ? source.subjectClass : subjectClass;
             this.value = source.value;
             if (hasPredicate == null) {
@@ -255,6 +255,9 @@ public class HtmlCss extends AbstractDpu<HtmlCssConfig_V1> {
             final NamedData state = states.pop();
             for (HtmlCssConfig_V1.Action action : config.getActions()) {
                 if (action.getName().compareTo(state.name) == 0) {
+                    if (action.getType() == null) {
+                        throw ContextUtils.dpuException(ctx, "Missing action type!");
+                    }
                     // Execute action.
                     switch (action.getType()) {
                         case ATTRIBUTE:

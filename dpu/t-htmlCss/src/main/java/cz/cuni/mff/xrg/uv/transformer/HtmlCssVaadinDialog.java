@@ -5,12 +5,12 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+
 import eu.unifiedviews.dpu.config.DPUConfigException;
 //import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
-import eu.unifiedviews.helpers.dpu.vaadin.validator.UrlValidator;
 
 /**
  *
@@ -104,13 +104,13 @@ public class HtmlCssVaadinDialog extends AbstractDialog<HtmlCssConfig_V1> {
 
         txtClass = new TextField("Root subject class");
         txtClass.setWidth("100%");
-        txtClass.addValidator(new UrlValidator(true));
+//        txtClass.addValidator(new UrlValidator(true));
         mainLayout.addComponent(txtClass);
 
         txtHasPredicate = new TextField("Default has predicate");
         txtHasPredicate.setDescription("If set then it's used as a default predicate for all SUBJECTS, ie. all subjects have action data set to this value by default.");
         txtHasPredicate.setWidth("100%");
-        txtHasPredicate.addValidator(new UrlValidator(true));
+//        txtHasPredicate.addValidator(new UrlValidator(true));
         mainLayout.addComponent(txtHasPredicate);
 
         checkGenerateSourceInfo = new CheckBox("Generate source info");
