@@ -1,4 +1,4 @@
-package eu.unifiedviews.intlib.getdatafromrextractor;
+package eu.unifiedviews.intlib.dpu;
 
 import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
 import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
@@ -11,6 +11,7 @@ import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dataunit.virtualpathhelper.VirtualPathHelpers;
 import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -34,56 +35,52 @@ import org.slf4j.LoggerFactory;
 @DPU.AsExtractor
 public class IntlibGetDataFromRextractor extends DpuAdvancedBase<IntlibGetDataFromRextractorConfig_V1> {
 
-	private static final Logger log = LoggerFactory.getLogger(IntlibGetDataFromRextractor.class);
+    private static final Logger log = LoggerFactory.getLogger(IntlibGetDataFromRextractor.class);
 
-        
-        
-        
-         @DataUnit.AsOutput(name = "fileOutput")
+    @DataUnit.AsOutput(name = "fileOutput")
     public WritableFilesDataUnit filesOutput;
-		
-	public IntlibGetDataFromRextractor() {
-		super(IntlibGetDataFromRextractorConfig_V1.class, AddonInitializer.noAddons());
-	}
-		
+
+    public IntlibGetDataFromRextractor() {
+        super(IntlibGetDataFromRextractorConfig_V1.class, AddonInitializer.noAddons());
+    }
+
     @Override
     protected void innerExecute() throws DPUException {
-        
+
         log.info("DPU is running ...");
-            
+
         File workingDir = context.getWorkingDir();
-        
+
         RextractorClient rc = new RextractorClient(config.getTargetRextractorServer());
-        
+
         //prepare dateFrom, dateTo if the option "last7days" is checked
         String dateFrom;
         String dateTo;
         if (config.isLast7Days()) {
             //compute start
-           dateTo= getCurrentTimeStamp();
-           dateFrom = getCurrentTimeStampPlusXDays(-3);
+            dateTo = getCurrentTimeStamp();
+            dateFrom = getCurrentTimeStampPlusXDays(-3);
 
-            
         } else {
             dateFrom = config.getDateFrom();
             dateTo = config.getDateTo();
         }
         context.sendMessage(DPUContext.MessageType.INFO, "Downloading data for date range: " + dateFrom + " - " + dateTo);
-        
+
         //get list of files
         List<File> files = null;
-            try {
-                files = rc.prepareFiles(workingDir.getCanonicalPath().toString(), dateFrom, dateTo);
-            } catch (IOException ex) {
-                log.error("Problem preparing files: {}", ex.getLocalizedMessage());
+        try {
+            files = rc.prepareFiles(workingDir.getCanonicalPath().toString(), dateFrom, dateTo);
+        } catch (IOException ex) {
+            log.error("Problem preparing files: {}", ex.getLocalizedMessage());
         }
-              
+
         //add each file to the output
-               int i = 0;
-            int processedSuccessfully = 0;
+        int i = 0;
+        int processedSuccessfully = 0;
         for (File f : files) {
             i++;
-         try {
+            try {
                 filesOutput.addExistingFile(f.getName(), f.toURI().toASCIIString());
                 VirtualPathHelpers.setVirtualPath(filesOutput, f.getName(), f.getName());
                 processedSuccessfully++;
@@ -92,46 +89,45 @@ public class IntlibGetDataFromRextractor extends DpuAdvancedBase<IntlibGetDataFr
                         "Problem with DataUnit", null, ex);
             }
         }
-        context.sendMessage(DPUContext.MessageType.INFO, "Successfully prepared " + processedSuccessfully +" files from downloaded " + i + " files");
-        
-        
-        
+        if (i == 0) {
+            context.sendMessage(DPUContext.MessageType.INFO, "NO file was processed");
+        }
+        else {
+            context.sendMessage(DPUContext.MessageType.INFO, "Successfully prepared " + processedSuccessfully + " files from downloaded " + i + " files");
+        }
+
     }
 
     @Override
     public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
         return new IntlibGetDataFromRextractorVaadinDialog();
     }
-    
-    
+
     private String getCurrentTimeStamp() {
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");//dd/MM/yyyy
         Date now = new Date();
         String strDate = sdfDate.format(now);
         return strDate;
-}
+    }
 
     private Date addDays(Date d, int days)
     {
         Calendar c = Calendar.getInstance();
         c.setTime(d);
         c.add(Calendar.DATE, days);
-        
+
         //d.setTime( c.getTime().getTime() );
         Date newDate = new Date(c.getTime().getTime());
         return newDate;
-    }   
-    
+    }
+
     private String getCurrentTimeStampPlusXDays(int daysAdded) {
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");//dd/MM/yyyy
         Date now = new Date();
         Date newDate = addDays(now, daysAdded);
         String strDate = sdfDate.format(newDate);
         return strDate;
-        
+
     }
-    
-    
-    
-   	
+
 }

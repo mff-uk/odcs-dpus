@@ -67,6 +67,12 @@
             <version>[${uk.version.min},${uk.version.max})</version>
             <scope>compile</scope>
         </dependency>
+	 <dependency>
+	  <groupId>eu.unifiedviews</groupId>
+	  <artifactId>uv-dataunit-helpers</artifactId>
+	  <version>1.3.0</version>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>	
 	
 </project>
