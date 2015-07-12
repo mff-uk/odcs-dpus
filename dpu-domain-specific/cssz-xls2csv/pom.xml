@@ -2,16 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>cz.cuni.mff.xrg.uv</groupId>
-		<artifactId>unifiedviews-dpu-base</artifactId>
-		<version>1.1.1</version>
+		<groupId>eu.unifiedviews</groupId>
+		<artifactId>uv-pom-dpu</artifactId>
+		<version>2.0.1</version>
 	</parent>    
 	<groupId>eu.unifiedviews</groupId>
-	<artifactId>cssz-xls2csv</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<artifactId>cssz-xls2csv-v2</artifactId>
+	<version>2.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
-	<name>Xls2csv</name>
-	<description>Description of Xls2csv.</description>
+	<name>Xls2csv-v2</name>
+	<description>Takes XLS files and XLS templates as the input (for each input {x} it looks by default for template in the form SABLONA_{x}) and produces CSV files as the output.</description>
 	
 	<properties>    
 		<dpu.package>eu.unifiedviews.cssz</dpu.package>
@@ -20,61 +20,36 @@
 
 	<dependencies>
         <!-- compile library, use compile if libs are not as OSGI bundles on target instance -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>boost-dpu</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dialog</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <!-- dependecy for boost-dpu -->
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>utils-dataunit-files</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-xml</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.xrg.uv</groupId>
-            <artifactId>service-serialization-rdf</artifactId>
-            <version>[${uk.version.min},${uk.version.max})</version>
-            <scope>compile</scope>
-        </dependency>
-        
-<!--       
-        <dependency>
-            <groupId>de.twentyeleven.skysail</groupId>
-            <artifactId>org.apache.poi-osgi</artifactId>
-            <version>3.8</version>
-             <scope>compile</scope>
-        </dependency> -->
+       <!-- Provided by Core. -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- UnifiedViews helpers. -->
+		<dependency>
+			<groupId>eu.unifiedviews</groupId>
+			<artifactId>uv-dataunit-helpers</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.unifiedviews</groupId>
+			<artifactId>uv-dpu-helpers</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Core UnifiedViews testing support. -->
+		<dependency>
+			<groupId>eu.unifiedviews</groupId>
+			<artifactId>module-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- UNIT Test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
         <dependency>
 	<groupId>org.apache.poi</groupId>
 	<artifactId>poi</artifactId>
