@@ -3,6 +3,9 @@ package cz.cuni.mff.xrg.uv.addressmapper.address.structured.mapping.addressRegio
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cz.cuni.mff.xrg.uv.addressmapper.AddressMapperOntology;
 import cz.cuni.mff.xrg.uv.addressmapper.knowledgebase.KnowledgeBase;
 import cz.cuni.mff.xrg.uv.addressmapper.address.structured.mapping.AbstractMapper;
@@ -20,6 +23,8 @@ import cz.cuni.mff.xrg.uv.addressmapper.ruian.RuianEntity;
  */
 public class AddressRegionMapper extends AbstractMapper {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AddressRegionMapper.class);
+
     private final KnowledgeBase knowledgeBase;
 
     public AddressRegionMapper(KnowledgeBase knowledgeBase) {
@@ -35,6 +40,7 @@ public class AddressRegionMapper extends AbstractMapper {
         }
         // Try to get VUSC.
         final List<String> vusc = knowledgeBase.getVusc(address.getAddressRegion());
+        LOG.info("map vusc.size() = {}", vusc.size());
         if (vusc.isEmpty()) {
             // Do nothing here.
         } else if (vusc.size() == 1) {

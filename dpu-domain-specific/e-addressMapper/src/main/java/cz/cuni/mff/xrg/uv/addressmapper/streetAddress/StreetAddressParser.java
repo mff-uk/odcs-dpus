@@ -85,8 +85,16 @@ public class StreetAddressParser {
 
         // can be number/number?
         if (address.contains("/")) {
-            String[] split = address.split("/");
-            return new StreetAddress(null, split[0], split[1]);
+            String[] split = address.split("/");            
+            if (split.length == 0) {
+                // it can be '/'
+            } else if (split.length == 1) {
+                // or '/number'
+                return new StreetAddress(null, split[0], null);
+            } else {
+                // and finally 'number/number'
+                return new StreetAddress(null, split[0], split[1]);
+            }
         }
         // it's name (not a number)
         return new StreetAddress(address, null, null);

@@ -140,9 +140,11 @@ public class KnowledgeBase {
     }
 
     public List<String> getOkres(String okres) throws KnowledgeBaseException {
-        if (okres.contains(okres)) {
+        if (okresToVusc.containsKey(okres)) {
+            LOG.info("getOkres({}) -> ", okres);
             return Arrays.asList(okres);
         } else {
+            LOG.info("getOkres({}) -> []", okres);
             return Collections.EMPTY_LIST;
         }
     }

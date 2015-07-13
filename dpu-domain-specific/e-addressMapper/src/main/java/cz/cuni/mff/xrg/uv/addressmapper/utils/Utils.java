@@ -47,10 +47,10 @@ public class Utils {
      */
     public static List<String> filterExactMatch(List<String> list, String value) {
         if (list.contains(value)) {
-//            LOG.info("\t {} -> {}", list, value);
+            LOG.info("\t '{}' -> '{}'", list, value);
             return Arrays.asList(value);
         } else {
-//            LOG.info("\t -> {}", list);
+            LOG.info("\t -> '{}'", list);
             return list;
         }
     }
