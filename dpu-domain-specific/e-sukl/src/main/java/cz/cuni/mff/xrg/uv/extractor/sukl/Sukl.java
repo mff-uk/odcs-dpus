@@ -7,6 +7,7 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -32,7 +34,6 @@ import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
-import eu.unifiedviews.helpers.dpu.extension.files.CachedFileDownloader;
 import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
@@ -125,10 +126,10 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 rdfInSkosNotation, RDFDataUnit.Entry.class);
         int counter = 0;
         for (RDFDataUnit.Entry entry : entries) {
-            LOG.info("Processing {}/{}", ++counter, entries.size());
+            LOG.info("Processing {}/{} input graphs.", ++counter, entries.size());
             process(Arrays.asList(entry));
         }
-        ContextUtils.sendShortInfo(ctx, "{0} files downloaded", filesOnOutput);
+        ContextUtils.sendShortInfo(ctx, "{0} files on output", filesOnOutput);
     }
 
     /**
@@ -327,24 +328,10 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 return;
             }
             // Add metadata for path.
-            while (true) {
-                if (ctx.canceled()) {
-                    throw ContextUtils.dpuExceptionCancelled(ctx);
-                }
-                try {
-                    filesOutTexts.addExistingFile(fileName, file.toURI().toString());
-                    // Files has been added.
-                    ++filesOnOutput;
-                    break;
-                } catch (DataUnitException ex) {
-                    LOG.warn("FilesDataUnit.addExistingFile throws. ", ex);
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
+            outTexts.add(file, fileName);
+            // Files has been added.
+            ++filesOnOutput;
 
-                }
-            }
             LOG.debug("new file {} -> {}", file.toURI().toString(), fileName);
             // Add file to touptut.
             downloadedFiles.add(fileName);
