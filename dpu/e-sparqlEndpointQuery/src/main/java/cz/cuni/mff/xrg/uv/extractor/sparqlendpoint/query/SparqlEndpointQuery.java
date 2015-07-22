@@ -1,5 +1,6 @@
 package cz.cuni.mff.xrg.uv.extractor.sparqlendpoint.query;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -73,24 +74,6 @@ public class SparqlEndpointQuery extends AbstractDpu<SparqlEndpointQueryConfig_V
                 SparqlUtils.execute(connection, ctx, select, results);
             }
         });
-        // For each row prepare template and execute it.
-        for (Map<String, Value> resultRow : results.getResults()) {
-            String template = config.getQueryTemplate();
-            for (String key : resultRow.keySet()){
-                template = template.replaceAll(Pattern.quote("${" + key + "}"), resultRow.get(key).stringValue());
-            }
-            // Execute remote query.
-            executeRemote(template);
-        }
-    }
-
-    /**
-     * Execute given SPARQL construct query on remote endpoint and save results into the DPUs output.
-     *
-     * @param queryAsString
-     * @throws DPUException
-     */
-    protected void executeRemote(final String queryAsString) throws DPUException {
         // Prepare output.
         final RDFDataUnit.Entry outputEntry = faultTolerance.execute(new FaultTolerance.ActionReturn<RDFDataUnit.Entry>() {
 
@@ -100,37 +83,24 @@ public class SparqlEndpointQuery extends AbstractDpu<SparqlEndpointQueryConfig_V
             }
         });
         output.setOutput(outputEntry);
-        // Connect to remote repository.
-        final RDFDataUnit remote;
-        try {
-            remote = ExternalServicesFactory.remoteRdf(ctx, config.getEndpoint(), new URI[0]);
-        } catch (ExternalError ex) {
-            throw ContextUtils.dpuException(ctx, ex, "Can't connect to remote endpoint.");
-        }
-        // Execute query.
-        faultTolerance.execute(remote, new FaultTolerance.ConnectionAction() {
-
-            @Override
-            public void action(RepositoryConnection connection) throws Exception {
-                GraphQuery query = connection.prepareGraphQuery(QueryLanguage.SPARQL, queryAsString);
-                LOG.info("Executing query.");
-                GraphQueryResult result = query.evaluate();
-                LOG.info("Storing result.");
-                long counter = 0;
-                while (result.hasNext()) {
-                    final Statement st = result.next();
-                    // Add to out output.
-                    output.add(st.getSubject(), st.getPredicate(), st.getObject());
-                    // Print info.
-                    ++counter;
-                    if (counter % 100000 == 0) {
-                        LOG.info("{} triples extracted", counter);
-                    }
-                }
+        // For each row prepare template and execute it.
+        // TODO: This can be a parameteer in a configuration.
+        final int bufferSize = 100;
+        final List<String> queries = new ArrayList<>(bufferSize + 1);
+        for (Map<String, Value> resultRow : results.getResults()) {
+            String template = config.getQueryTemplate();
+            for (String key : resultRow.keySet()){
+                template = template.replaceAll(Pattern.quote("${" + key + "}"), resultRow.get(key).stringValue());
             }
-        });
-        // Flush buffre.
-        output.flushBuffer();
+            // Add to buffer.
+            queries.add(template);
+            if (queries.size() > bufferSize) {
+                executeRemote(queries);
+                queries.clear();
+            }
+        }
+        // Execute the rest of stored queries.
+        executeRemote(queries);
         // Get and print size.
         faultTolerance.execute(rdfOutput, new FaultTolerance.ConnectionAction() {
 
@@ -139,7 +109,49 @@ public class SparqlEndpointQuery extends AbstractDpu<SparqlEndpointQueryConfig_V
                 long size = connection.size(outputEntry.getDataGraphURI());
                 ContextUtils.sendShortInfo(ctx, "{0} triples extracted", size);
             }
-        });        
+        });
+    }
+
+    /**
+     * Execute given SPARQL construct query on remote endpoint and save results into the DPUs output.
+     *
+     * @param queries
+     * @throws DPUException
+     */
+    protected void executeRemote(final List<String> queries) throws DPUException {
+        // Connect to remote repository.
+        final RDFDataUnit remote;
+        try {
+            remote = ExternalServicesFactory.remoteRdf(ctx, config.getEndpoint(), new URI[0]);
+        } catch (ExternalError ex) {
+            throw ContextUtils.dpuException(ctx, ex, "Can't connect to remote endpoint.");
+        }
+        // Execute query.
+        final List<Statement> outputStatements = new ArrayList<>(queries.size() * 2);
+
+        faultTolerance.execute(remote, new FaultTolerance.ConnectionAction() {
+
+            @Override
+            public void action(RepositoryConnection connection) throws Exception {
+                outputStatements.clear();
+                for (String queryAsString : queries) {
+                    final GraphQuery query = connection.prepareGraphQuery(QueryLanguage.SPARQL, queryAsString);
+                    final GraphQueryResult result = query.evaluate();
+                    long counter = 0;
+                    while (result.hasNext()) {
+                        outputStatements.add(result.next());
+                        // Print info.
+                        ++counter;
+                        if (counter % 100000 == 0) {
+                            LOG.info("{} triples extracted", counter);
+                        }
+                    }
+                }
+            }
+        });
+        output.add(outputStatements);
+        // Flush buffre.
+        output.flushBuffer();
     }
 
 }
