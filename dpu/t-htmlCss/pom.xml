@@ -16,7 +16,6 @@
 	<properties>    
 		<dpu.package>cz.cuni.mff.xrg.uv.transformer</dpu.package>
 		<dpu.mainClass>HtmlCss</dpu.mainClass>
-        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
 	</properties>
 
 	<dependencies>
@@ -30,13 +29,11 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
 	</dependencies>	

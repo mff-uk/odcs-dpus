@@ -10,7 +10,7 @@
     <artifactId>e-HttpPost</artifactId>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>e-HttpPost</name>
+    <name>E-HttpPost</name>
     <description></description>
 
     <properties>

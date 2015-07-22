@@ -11,19 +11,13 @@
     <artifactId>service-external</artifactId>
     <version>2.0.0</version>
     <packaging>bundle</packaging>
-    <name>lib. service external</name>
+    <name>LIB. service external</name>
     
-    <properties>
-        <unifiedviews.helpers.dataunit.version>2.0.0-SNAPSHOT</unifiedviews.helpers.dataunit.version>
-        <unifiedviews.helpers.dataunit.version.max>3.0.0</unifiedviews.helpers.dataunit.version.max>
-    </properties>
-
     <dependencies>
         <!-- OpenRdf. -->
         <dependency>
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-repository-api</artifactId>
-            <version>${sesame.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -67,33 +61,30 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>[${unifiedviews.helpers.dataunit.version},${unifiedviews.helpers.dataunit.version.max})</version>
+			<version>2.0.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>[${unifiedviews.helpers.dataunit.version},${unifiedviews.helpers.dataunit.version.max})</version>
+			<version>2.0.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- Libraries provided by UnifiedViews at runtime. -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId> <!-- OSGI alternative: org.apache.servicemix.bundles.xstream -->
-            <version>1.4.7</version>
             <scope>provided</scope>
         </dependency>
         <!-- Test environment. -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
             <scope>test</scope>
         </dependency>
         <dependency>

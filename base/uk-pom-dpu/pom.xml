@@ -14,6 +14,7 @@
 
   <properties>
       <git.repository.link>https://github.com/mff-uk/DPUs</git.repository.link>
+	  <baseline.helpers.version>2.0.2-SNAPSHOT</baseline.helpers.version>
   </properties>
 
     <repositories>

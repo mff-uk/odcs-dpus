@@ -10,13 +10,12 @@
 	<artifactId>T-rdfStatementParser</artifactId>
 	<version>2.0.0</version>
 	<packaging>bundle</packaging>
-	<name>t-RdfStatementParser</name>
+	<name>T-RdfStatementParser</name>
 	<description>Based on given actions create new triples. Only created triples are put to the output.</description>
 	
 	<properties>    
 		<dpu.package>eu.unifiedviews.plugins.transformer.rdfstatementparser</dpu.package>
 		<dpu.mainClass>RdfStatementParser</dpu.mainClass>
-        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
 	</properties>
 	
 	<dependencies>
@@ -24,13 +23,11 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
 	</dependencies>	

@@ -15,7 +15,6 @@
     <properties>    
         <dpu.package>cz.opendata.linked.lodcloud.loader</dpu.package>
         <dpu.mainClass>Loader</dpu.mainClass>
-        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
         <junit.version>4.12</junit.version>
         <module-test.version>1.6.0-SNAPSHOT</module-test.version>
     </properties>
@@ -41,19 +40,16 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
 			<scope>provided</scope>
 		</dependency>       
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
 		<dependency>
@@ -65,7 +61,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>		        
 	</dependencies>

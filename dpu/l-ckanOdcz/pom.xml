@@ -16,7 +16,6 @@
     <properties>    
         <dpu.package>cz.opendata.unifiedviews.dpus.ckan</dpu.package>
         <dpu.mainClass>CKANLoader</dpu.mainClass>
-        <uv.helpers.version>[2.0.2-SNAPSHOT,3.0.0)</uv.helpers.version>
         <junit.version>4.12</junit.version>
         <module-test.version>1.6.0-SNAPSHOT</module-test.version>
     </properties>
@@ -26,7 +25,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.0</version>
             <scope>provided</scope>
         </dependency>
 		<dependency>
@@ -50,20 +48,17 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
 			<scope>provided</scope>
 		</dependency>       
         <!-- UnifiedViews helpers. -->
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
 		<dependency>
@@ -75,7 +70,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>		        
 	</dependencies>

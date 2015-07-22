@@ -7,7 +7,7 @@
         <version>1.0.0</version>
     </parent>
     <artifactId>e-isvav</artifactId>
-    <name>e-Isvav</name>
+    <name>E-Isvav</name>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <version>1.1.1</version>
     <packaging>bundle</packaging>
@@ -16,7 +16,6 @@
     <properties>
         <dpu.package>cz.cuni.mff.xrg.uv.extractor.isvav</dpu.package>
         <dpu.mainClass>Isvav</dpu.mainClass>
-        <uv.helpers.version>[2.0.0-SNAPSHOT,3.0.0)</uv.helpers.version>
     </properties>
  	
     <dependencies>
@@ -24,7 +23,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -37,13 +35,11 @@
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dataunit-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.unifiedviews</groupId>
             <artifactId>uv-dpu-helpers</artifactId>
-            <version>${uv.helpers.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
