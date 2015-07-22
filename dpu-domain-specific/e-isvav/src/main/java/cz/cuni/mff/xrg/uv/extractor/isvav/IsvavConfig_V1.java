@@ -10,6 +10,10 @@ public class IsvavConfig_V1 {
 
     private String exportType = EXPORT_TYPE_DBF;
 
+    private Integer startYear = null;
+    
+    private Integer finalYear = null;
+
     public IsvavConfig_V1() {
     }
 
@@ -27,6 +31,22 @@ public class IsvavConfig_V1 {
 
     public void setExportType(String exportType) {
         this.exportType = exportType;
+    }
+
+    public Integer getStartYear() {
+        return startYear;
+    }
+
+    public void setStartYear(Integer startYear) {
+        this.startYear = startYear;
+    }
+
+    public Integer getFinalYear() {
+        return finalYear;
+    }
+
+    public void setFinalYear(Integer finalYear) {
+        this.finalYear = finalYear;
     }
 
 }

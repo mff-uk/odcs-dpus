@@ -111,9 +111,9 @@ public class Isvav extends AbstractDpu<IsvavConfig_V1> {
 				sources.add(new SourceResearch(exportType));
 				break;
 			case Result:
-				Calendar now = Calendar.getInstance();
-				final int from = 1991;
-				final int to = now.get(Calendar.YEAR);
+				final Calendar now = Calendar.getInstance();
+				final int from = config.getStartYear() == null ? 1991 : config.getStartYear();
+				final int to = config.getFinalYear() == null ? now.get(Calendar.YEAR) : config.getFinalYear();
 				LOG.debug("Extracting from {} to {}", from, to);
 				for (Integer year = from; year <= to; ++year) {
 					sources.add(new SourceResult(exportType, year.toString()));
