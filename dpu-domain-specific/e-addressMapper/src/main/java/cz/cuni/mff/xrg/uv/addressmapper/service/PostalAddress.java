@@ -1,4 +1,4 @@
-package cz.cuni.mff.xrg.uv.addressmapper.objects;
+package cz.cuni.mff.xrg.uv.addressmapper.service;
 
 import org.openrdf.model.URI;
 

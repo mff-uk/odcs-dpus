@@ -2,29 +2,19 @@ package cz.cuni.mff.xrg.uv.addressmapper;
 
 public class AddressMapperConfig_V1 {
 
-    private String ruainEndpoint = "http://ruian.linked.opendata.cz/sparql";
-
-    private String solrEndpoint = "http://ruian.linked.opendata.cz/solr/ruian/query";
-
     private String addressPredicate = "http://localhost/ontology/address";
+
+    private String serviceEndpoint = "http://ruian.linked.opendata.cz:8080/address-mapper/rest/v1/services/map?fullList=true";
 
     public AddressMapperConfig_V1() {
     }
 
-    public String getRuainEndpoint() {
-        return ruainEndpoint;
+    public String getServiceEndpoint() {
+        return serviceEndpoint;
     }
 
-    public void setRuainEndpoint(String ruainEndpoint) {
-        this.ruainEndpoint = ruainEndpoint;
-    }
-
-    public String getSolrEndpoint() {
-        return solrEndpoint;
-    }
-
-    public void setSolrEndpoint(String solrEndpoint) {
-        this.solrEndpoint = solrEndpoint;
+    public void setServiceEndpoint(String serviceEndpoint) {
+        this.serviceEndpoint = serviceEndpoint;
     }
 
     public String getAddressPredicate() {
