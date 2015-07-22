@@ -85,8 +85,14 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
     @DataUnit.AsOutput(name = "Texts", description = "Text files.")
     public WritableFilesDataUnit filesOutTexts;
 
+    @DataUnit.AsOutput(name = "NewTexts", description = "Newly downloaded text files.")
+    public WritableFilesDataUnit filesOutNewTexts;
+
     @ExtensionInitializer.Init(param = "filesOutTexts")
     public WritableSimpleFiles outTexts;
+
+    @ExtensionInitializer.Init(param = "filesOutNewTexts")
+    public WritableSimpleFiles outNewTexts;
 
     @ExtensionInitializer.Init
     public CachedFileDownloader downloaderService;
@@ -317,18 +323,29 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             final String fileName = Utils.convertStringToURIPart(value);
             outInfo.add(subject, predicateFile, valueFactory.createLiteral(fileName));
             // Download.
+
+            int numberOfDownloaded = downloaderService.getNumberOfDownloads();
             final File file = downloaderService.get(value);
+
             if (file == null) {
                 // File is missing.
                 LOG.warn("Missing file: {} with name: {}", value, fileName);
                 return;
-            }            
+            }
+
             if (downloadedFiles.contains(fileName)) {
                 // Already downloaded.
                 return;
             }
-            // Add metadata for path.
+
+            // Add to output.
             outTexts.add(file, fileName);
+
+            // Add to new file if file has not been taken from cache ie. numberOfDownloaded icreased.
+            if (numberOfDownloaded < downloaderService.getNumberOfDownloads()) {
+                outNewTexts.add(file, fileName);
+            }
+
             // Files has been added.
             ++filesOnOutput;
 

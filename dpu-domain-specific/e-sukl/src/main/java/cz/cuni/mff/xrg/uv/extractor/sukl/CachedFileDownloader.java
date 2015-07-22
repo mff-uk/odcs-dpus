@@ -9,6 +9,7 @@ import eu.unifiedviews.helpers.dpu.config.ConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractExtensionDialog;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.Configurable;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -18,10 +19,10 @@ import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 import javax.net.ssl.*;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +31,6 @@ import eu.unifiedviews.helpers.dpu.exec.ExecContext;
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 import eu.unifiedviews.helpers.dpu.context.Context;
 import eu.unifiedviews.helpers.dpu.context.ContextUtils;
-import eu.unifiedviews.helpers.dpu.serialization.SerializationFailure;
-import eu.unifiedviews.helpers.dpu.serialization.xml.SerializationXml;
-import eu.unifiedviews.helpers.dpu.serialization.xml.SerializationXmlFactory;
-import eu.unifiedviews.helpers.dpu.serialization.xml.SerializationXmlFailure;
 import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
 import eu.unifiedviews.helpers.dpu.extension.Extension;
@@ -440,6 +437,10 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         for (URL url : urls) {
             get(url);
         }
+    }
+
+    public int getNumberOfDownloads() {
+        return numberOfDownloads;
     }
 
     /**
