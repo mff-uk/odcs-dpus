@@ -52,10 +52,11 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
     @Override
     protected void innerExecute() throws DPUException {
         // Donwload page -> add to output.
+        int downloaded = 0;
         int pageCounter = config.getStartIndex();
         while (!ctx.canceled()) {
-            final String pageUrlStr = String.format(config.getPagePattern(), pageCounter);
-            final String fileNameStr = String.format("Vysledky-RIV-%d", pageCounter);
+            final String pageUrlStr = config.getPagePattern().replace("{}", Integer.toString(pageCounter));
+            final String fileNameStr = String.format("Page-%d", pageCounter);
             final URL pageUrl;
             try {
                 pageUrl = new URL(pageUrlStr);
@@ -67,13 +68,14 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
             final FilesDataUnit.Entry fileEntry = downloadFile(pageUrl, fileNameStr);
             // Move to next index.
             ++pageCounter;
+            ++downloaded;
             // Check for next page.
             if (!downloadNext(fileEntry)) {
                 break;
             }
         }
         // Print message.
-        ContextUtils.sendShortInfo(ctx, "Downloaded {0} pages.", pageCounter);
+        ContextUtils.sendShortInfo(ctx, "Downloaded {0} pages.", downloaded);
     }
 
     /**
@@ -120,7 +122,7 @@ public class ListDownloader extends AbstractDpu<ListDownloaderConfig_V1> {
         for (ListDownloaderConfig_V1.NextPageCondition condition : config.getNextPageConditions()) {
             final Elements elemetns = doc.select(condition.getNextButtonSelector());
              if (elemetns.isEmpty()) {
-                 LOG.info("Condition does not hold: {}", condition.getNextButtonSelector());
+                 LOG.info("Required element is not presented: {}", condition.getNextButtonSelector());
                  return false;
              }
         }
