@@ -72,6 +72,8 @@ extends AbstractDpu<LoaderConfig>
         logger.debug("Querying metadata");
         
         String datasetUrl = executeSimpleSelectQuery("SELECT ?d WHERE {?d a <" + LoaderVocabulary.DCAT_DATASET_CLASS + ">}", "d");
+        String apiURI = config.getApiUri();
+        String datasetID = config.getDatasetID();
 
     	List<Map<String, Value>> distributions = executeSelectQuery("SELECT ?distribution WHERE {<" + datasetUrl + "> <"+ LoaderVocabulary.DCAT_DISTRIBUTION + "> ?distribution . ?distribution <" + LoaderVocabulary.VOID_SPARQLENDPOINT + "> [] .  }");
     		
@@ -100,7 +102,7 @@ extends AbstractDpu<LoaderConfig>
 		Map<String, String> resFormatIdMap = new HashMap<String, String>();
 		
         CloseableHttpClient queryClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-		HttpGet httpGet = new HttpGet(config.getApiUri() + "/" + config.getDatasetID());
+		HttpGet httpGet = new HttpGet(apiURI + "/package_show?id=" + datasetID);
         CloseableHttpResponse queryResponse = null;
         try {
             queryResponse = queryClient.execute(httpGet);
@@ -322,7 +324,7 @@ extends AbstractDpu<LoaderConfig>
 				
 	            logger.debug("Creating dataset in CKAN");
 	            CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-				HttpPost httpPost = new HttpPost(config.getApiUri());
+				HttpPost httpPost = new HttpPost(apiURI + "/package_create?id=" + datasetID);
 				httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = createRoot.toString();
@@ -363,7 +365,7 @@ extends AbstractDpu<LoaderConfig>
 			if (!ctx.canceled()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(config.getApiUri() + "/" + config.getDatasetID());
+	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/package_update?id=" + datasetID);
 	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
