@@ -110,7 +110,7 @@ extends AbstractDpu<LoaderConfig>
             	logger.info("Dataset found");
             	exists = true;
             	
-            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity()));
+            	JSONObject response = new JSONObject(EntityUtils.toString(queryResponse.getEntity())).getJSONObject("result");
             	JSONArray resourcesArray = response.getJSONArray("resources"); 
             	for (int i = 0; i < resourcesArray.length(); i++ )
             	{
