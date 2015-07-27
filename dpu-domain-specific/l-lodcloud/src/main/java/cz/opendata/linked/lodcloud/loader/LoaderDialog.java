@@ -25,6 +25,7 @@ import cz.opendata.linked.lodcloud.loader.LoaderConfig.VocabTags;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.tabs.ConfigCopyPaste;
 
 /**
  * DPU's configuration dialog. User can use this dialog to configure DPU configuration.
@@ -377,6 +378,9 @@ public class LoaderDialog extends AbstractDialog<LoaderConfig> {
         panel.setSizeFull();
         panel.setContent(mainLayout);
         setCompositionRoot(panel);
+        
+        // Add configuration tab.
+        this.addTab(ConfigCopyPaste.create(ctx), "Copy&Paste");        
     }    
      
     @Override
