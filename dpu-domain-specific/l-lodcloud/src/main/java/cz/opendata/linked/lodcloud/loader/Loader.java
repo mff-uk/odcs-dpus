@@ -157,20 +157,20 @@ extends AbstractDpu<LoaderConfig>
             JSONObject root = new JSONObject();
             
             JSONArray tags = new JSONArray();
-            tags.put("lod");
-            tags.put(config.getVocabTag().toString());
-            tags.put(config.getVocabMappingTag().toString());
-            tags.put(config.getPublishedTag().toString());
-            tags.put(config.getProvenanceMetadataTag().toString());
-            tags.put(config.getLicenseMetadataTag().toString());
-            if (config.isLimitedSparql()) tags.put("limited-sparql-endpoint");
-            if (config.isLodcloudNolinks()) tags.put("lodcloud.nolinks");
-            if (config.isLodcloudUnconnected()) tags.put("lodcloud.unconnected");
-            if (config.isLodcloudNeedsInfo()) tags.put("lodcloud.needsinfo");
-            if (config.isLodcloudNeedsFixing()) tags.put("lodcloud.needsfixing");
-            for (String prefix : config.getVocabularies()) { tags.put("format-" + prefix); }
-            tags.put(config.getTopic());
-            for (String s : config.getAdditionalTags()) tags.put(s);
+            tags.put(new JSONObject().put("name", "lod"));
+            tags.put(new JSONObject().put("name", config.getVocabTag().toString()));
+            tags.put(new JSONObject().put("name", config.getVocabMappingTag().toString()));
+            tags.put(new JSONObject().put("name", config.getPublishedTag().toString()));
+            tags.put(new JSONObject().put("name", config.getProvenanceMetadataTag().toString()));
+            tags.put(new JSONObject().put("name", config.getLicenseMetadataTag().toString()));
+            if (config.isLimitedSparql()) tags.put(new JSONObject().put("name", "limited-sparql-endpoint"));
+            if (config.isLodcloudNolinks()) tags.put(new JSONObject().put("name", "lodcloud.nolinks"));
+            if (config.isLodcloudUnconnected()) tags.put(new JSONObject().put("name", "lodcloud.unconnected"));
+            if (config.isLodcloudNeedsInfo()) tags.put(new JSONObject().put("name", "lodcloud.needsinfo"));
+            if (config.isLodcloudNeedsFixing()) tags.put(new JSONObject().put("name", "lodcloud.needsfixing"));
+            for (String prefix : config.getVocabularies()) { tags.put(new JSONObject().put("name", "format-" + prefix)); }
+            tags.put(new JSONObject().put("name", config.getTopic()));
+            for (String s : config.getAdditionalTags()) tags.put(new JSONObject().put("name", s));
             
             JSONArray resources = new JSONArray();
             
@@ -283,14 +283,14 @@ extends AbstractDpu<LoaderConfig>
 	            
             }
 
-            JSONObject extras = new JSONObject();
-            extras.put("triples", triplecount);
-            if (!config.getShortname().isEmpty()) extras.put("shortname", config.getShortname());
-            if (!config.getNamespace().isEmpty()) extras.put("namespace", config.getNamespace());
-            if (!dlicense.isEmpty()) extras.put("license_link", dlicense);
-            extras.put("sparql_graph_name", datasetUrl);
+            JSONArray extras = new JSONArray();
+            extras.put(new JSONObject().put("key", "triples").put("value", triplecount));
+            if (!config.getShortname().isEmpty()) extras.put(new JSONObject().put("key", "shortname").put("value", config.getShortname()));
+            if (!config.getNamespace().isEmpty()) extras.put(new JSONObject().put("key", "namespace").put("value", config.getNamespace()));
+            if (!dlicense.isEmpty()) extras.put(new JSONObject().put("key", "license_link").put("value", dlicense));
+            extras.put(new JSONObject().put("key", "sparql_graph_name").put("value", datasetUrl));
             for (LinkCount link: config.getLinks()) {
-            	extras.put("links:" + link.getTargetDataset(), link.getLinkCount());            	
+            	extras.put(new JSONObject().put("key", "links:" + link.getTargetDataset()).put("value", link.getLinkCount()));            	
             }
 
             if (!config.getDatasetID().isEmpty()) root.put("name", config.getDatasetID());
@@ -365,11 +365,11 @@ extends AbstractDpu<LoaderConfig>
 			if (!ctx.canceled()) {
 				logger.debug("Posting to CKAN");
 				CloseableHttpClient client = HttpClients.createDefault();
-	            URIBuilder uriBuilder = new URIBuilder(apiURI + "/package_update?id=" + datasetID);
-	            HttpPost httpPost = new HttpPost(uriBuilder.build().normalize());
+	            HttpPost httpPost = new HttpPost(apiURI + "/package_update?id=" + datasetID);
 	            httpPost.addHeader(new BasicHeader("Authorization", config.getApiKey()));
 	            
 	            String json = root.toString();
+	            logger.trace(json);
 	            
 	            httpPost.setEntity(new StringEntity(json, Charset.forName("utf-8")));
 	            
@@ -378,7 +378,7 @@ extends AbstractDpu<LoaderConfig>
 	            try {
 	                response = client.execute(httpPost);
 	                if (response.getStatusLine().getStatusCode() == 200) {
-	                	logger.info("Response: " + response.getEntity());
+	                	logger.info("Response: " + EntityUtils.toString(response.getEntity()));
 	                } else {
 	                	ContextUtils.sendError(ctx, "Error updating dataset", "Response while updating dataset: {0}", response.getStatusLine());
 	                }
@@ -400,8 +400,6 @@ extends AbstractDpu<LoaderConfig>
 			}
 		} catch (JSONException e) {
 			logger.error(e.getLocalizedMessage(), e);
-		} catch (URISyntaxException e) {
-        	logger.error(e.getLocalizedMessage(), e);
 		} catch (UnsupportedEncodingException e) {
         	logger.error(e.getLocalizedMessage(), e);
 		}
