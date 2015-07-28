@@ -107,7 +107,7 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3>
     	}
         
     	LinkedList<String> keywords = new LinkedList<String>();
-    	for (Map<String,Value> map: executeSelectQuery("SELECT ?keyword WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_KEYWORD + "> ?keyword }")) {
+    	for (Map<String,Value> map: executeSelectQuery("SELECT ?keyword WHERE {<" + datasetURI + "> <"+ CKANLoaderVocabulary.DCAT_KEYWORD + "> ?keyword FILTER(LANGMATCHES(LANG(?keyword), \"" + config.getLoadLanguage() + "\"))}")) {
     		keywords.add(map.get("keyword").stringValue());
     	}
     	
