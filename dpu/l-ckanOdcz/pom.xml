@@ -10,7 +10,7 @@
     <artifactId>L-CKANOdcz</artifactId>
     <name>L-CKANOdcz</name>
     <description>This loader loads Dataset and Distributions metadata to CKAN according to the OpenData.cz methodology</description>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <packaging>bundle</packaging>
 
     <properties>    

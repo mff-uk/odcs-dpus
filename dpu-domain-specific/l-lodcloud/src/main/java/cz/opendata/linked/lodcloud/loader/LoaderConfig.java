@@ -260,7 +260,7 @@ public class LoaderConfig  {
     
     private VocabTags vocabTag = VocabTags.DerefVocab;
 
-    private String apiUri = "http://datahub.io/api/rest/dataset";
+    private String apiUri = "http://datahub.io/api/3/action";
     
     private String apiKey = "";
     

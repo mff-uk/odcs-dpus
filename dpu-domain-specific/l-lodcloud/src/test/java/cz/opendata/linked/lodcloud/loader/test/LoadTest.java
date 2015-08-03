@@ -21,7 +21,7 @@ public class LoadTest {
         Loader loader = new Loader();
         LoaderConfig config = new LoaderConfig();
         
-        config.setDatasetID("cz-test2");
+        config.setDatasetID("cz-test4");
         config.setApiKey("dcdc0663-864b-4233-b99a-f84c55655307");
         config.setNamespace("http://linked.opendata.cz/resource/business-entity/");
         config.getVocabularies().add("skos");

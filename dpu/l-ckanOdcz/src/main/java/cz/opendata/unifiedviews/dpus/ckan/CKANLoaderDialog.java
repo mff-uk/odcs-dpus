@@ -24,6 +24,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
 	private VerticalLayout mainLayout;
     private TextField tfRestApiUrl;
     private TextField tfFileName;
+    private TextField tfLoadLanguage;
     private CheckBox chkLoad;
     private TextField tfDatasetID;
     private PasswordField tfApiKey;
@@ -88,6 +89,12 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         tfOwnerOrg.setInputPrompt("00000000-0000-0000-0000-000000000000");
         mainLayout.addComponent(tfOwnerOrg);
 
+        tfLoadLanguage = new TextField();
+        tfLoadLanguage.setWidth("100%");
+        tfLoadLanguage.setCaption("Load language (cs|en)");
+        tfLoadLanguage.setInputPrompt("cs");
+        mainLayout.addComponent(tfLoadLanguage);
+
         tfFileName = new TextField();
         tfFileName.setWidth("100%");
         tfFileName.setCaption("Output filename");
@@ -109,6 +116,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     	tfDatasetID.setValue(conf.getDatasetID());
     	tfOwnerOrg.setValue(conf.getOrgID());
     	tfRestApiUrl.setValue(conf.getApiUri());
+    	tfLoadLanguage.setValue(conf.getLoadLanguage());
     	chkLoad.setValue(conf.isLoadToCKAN());
     }
 
@@ -119,6 +127,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         conf.setApiUri(tfRestApiUrl.getValue());
         conf.setDatasetID(tfDatasetID.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
+        conf.setLoadLanguage(tfLoadLanguage.getValue());
         conf.setLoadToCKAN(chkLoad.getValue());
         return conf;
     }

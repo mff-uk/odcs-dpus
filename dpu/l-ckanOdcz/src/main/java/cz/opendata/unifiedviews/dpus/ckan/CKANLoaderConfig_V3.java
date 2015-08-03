@@ -123,7 +123,9 @@ public class CKANLoaderConfig_V3  {
     
     private String orgID = "d2664e4e-25ba-4dcc-a842-dcc5f2d2f326" ;
     
-	public String getApiKey() {
+	private String loadLanguage = "cs";
+    
+    public String getApiKey() {
 		return apiKey;
 	}
 
@@ -169,6 +171,14 @@ public class CKANLoaderConfig_V3  {
 
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+
+	public String getLoadLanguage() {
+		return loadLanguage;
+	}
+
+	public void setLoadLanguage(String loadLanguage) {
+		this.loadLanguage = loadLanguage;
 	}
 
 }
