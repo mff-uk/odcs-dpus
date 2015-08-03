@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.xrg.uv</groupId>
+        <artifactId>uk-pom-dpu</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <groupId>cz.cuni.mff.xrg.uv</groupId>
+    <artifactId>t-modifyDate</artifactId>
+    <version>1.0.0</version>
+    <packaging>bundle</packaging>
+    <name>T-ModifyDate</name>
+    <description></description>
+
+    <properties>
+        <dpu.package>cz.cuni.mff.xrg.uv.transformer</dpu.package>
+        <dpu.mainClass>ModifyDate</dpu.mainClass>
+    </properties>
+
+    <dependencies>
+        <!-- UnifiedViews helpers. -->
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dataunit-helpers</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.unifiedviews</groupId>
+            <artifactId>uv-dpu-helpers</artifactId>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+	
+</project>
