@@ -1,0 +1,50 @@
+<b>Concept</b><br/>
+This DPU takes a RDF input and user given template and transform them into files.<br />
+Input RDF object(documents) must be of class <b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document</b>. 
+Every input document must have output file name specified in a property
+<b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/fileName</b>. The file name is full with extension.
+<br /><br />
+<b>Document template</b><br/>
+Template is a text file with value holders "${}". Each holder must specify predicate URI (see example for more details).<br />
+Template also support escaping by character "\". If characters '{' and '}' are not part of a template then <em>BOTH</em> 
+must be escaped! ie. used as "\{" and "\}".<br />
+Repeating pattern are also supported. In order to use repeated (nested) pattern use following template: ${URI|TEMPLATE} where
+<em>TEMPLATE</em> stands for a text or other template.
+<br /><br />
+<b>RDF to template mapping</b><br />
+A simple template "${URI}" is replaced by property of name URI of the current subject. At the beginning the
+subject is the object of <b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document</b> class.
+However this can be changed by nested templates. In case of a nested template the subject is changed to value
+of specified property. The inner template is then executed normally. <br />
+If there is more values for a property binded to a nested template, the template is inserted multiple times
+into the output. So the nested templates can be used to generate list or just add value from a other subject. <br />
+If <b>http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex</b> is set then is used to order the
+items in nested templates. It he index is missing value -1 is used. The items are sorted in decreasing order.
+<br />
+This multiple-value behavior is not supported by the simple template. If a simple template is used with
+multiple value the exception is thrown!
+<br /><br/>
+<b>Usage example</b><br/>
+Sample template (configuration dialog):<br />
+<div><pre>
+&lt;h1&gt;${http://localhost/title}&lt;/h1&gt;<br />
+List:&lt;ul&gt;${http://localhost/guest|<br />
+  &lt;li>${http://localhost/name} live in ${http://localhost/location}&lt;/li&gt;}<br />
+&lt;/ul&gt;
+</pre></div>
+Sample RDF data (dpu input):
+<div><pre>
+&lt;http://localhost/0&gt; a &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/Document&gt; ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/fileName&gt; "seznam.html" ;<br />
+ &lt;http://localhost/title&gt; "User meeting" ;<br />
+ &lt;http://localhost/guest&gt; &lt;http://localhost/pavel&gt; ;<br />
+ &lt;http://localhost/guest&gt; &lt;http://localhost/jakub&gt; .<br />
+<br />
+&lt;http://localhost/pavel&gt; &lt;http://localhost/name&gt; "Pavel" ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex&gt; 2 ;<br />
+ &lt;http://localhost/location&gt; "London" .<br />
+<br />
+&lt;http://localhost/jakub&gt; &lt;http://localhost/name&gt; "Jakub" ;<br />
+ &lt;http://unifiedviews.eu/ontology/dpu/rdfTemplateToFiles/hasIndex&gt; 0 ;<br />
+ &lt;http://localhost/location&gt; "Prague" .<br />
+</pre></div>
