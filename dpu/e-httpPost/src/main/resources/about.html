@@ -1,0 +1,33 @@
+The configuration dialog offers possibility to configure only one POST request. In order to execute multiple requests RDF configuration must be used.
+If the URI in the dialog configuration is left blank, then no POST request based on the dialog is executed.
+<br>
+
+Configuration sample:
+<div><pre>
+&lt;http://localhost/resource/config&gt;<br/>
+    &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://unifiedviews.eu/ontology/dpu/httpPost/Configuration&gt;;<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/requests&gt; &lt;http://localhost/resource/request/0&gt;.<br/>
+<br/>
+&lt;http://localhost/resource/request/0&gt;<br/>
+    &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://unifiedviews.eu/ontology/dpu/httpPost/Request&gt;;<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/uri&gt; "http://eagri.cz/public/app/svs_pub/mapy_vk/bin/maps_read_data.php";<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/fileName&gt; "E01_R2015";<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/argument&gt; &lt;http://localhost/resource/request/0/1&gt;;<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/argument&gt; &lt;http://localhost/resource/request/0/2&gt;;<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/argument&gt; &lt;http://localhost/resource/request/0/3&gt;.<br/>
+<br>
+&lt;http://localhost/resource/request/0/1&gt;<br/>
+    &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://unifiedviews.eu/ontology/dpu/httpPost/Argument&gt;;<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/key&gt; "type";<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/value&gt; "data_bodu".<br/>
+<br>
+&lt;http://localhost/resource/request/0/2&gt;<br/>
+    &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://unifiedviews.eu/ontology/dpu/httpPost/Argument&gt;;<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/key&gt; "mapa";<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/value&gt; "E01".<br/>
+<br>
+&lt;http://localhost/resource/request/0/3&gt;<br/>
+    &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://unifiedviews.eu/ontology/dpu/httpPost/Argument&gt;;<br/>
+    &lt;http://unifiedviews.eu/ontology/dpu/httpPost/key&gt; "obdobi";<br/>
+	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/value&gt; "R2015".<br/>
+</pre> </div>

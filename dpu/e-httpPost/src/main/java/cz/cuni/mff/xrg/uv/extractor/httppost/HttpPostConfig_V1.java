@@ -3,12 +3,15 @@ package cz.cuni.mff.xrg.uv.extractor.httppost;
 import java.util.LinkedList;
 import java.util.List;
 
+import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.config.VersionedConfig;
+
 /**
  * Configuration class for HttpPost.
  *
  * @author Petr Škoda
  */
-public class HttpPostConfig_V1 {
+public class HttpPostConfig_V1 implements VersionedConfig<HttpPostConfig_V2>{
 
     public static class Argument {
         
@@ -56,6 +59,22 @@ public class HttpPostConfig_V1 {
 
     public void setArguments(List<Argument> arguments) {
         this.arguments = arguments;
+    }
+
+    @Override
+    public HttpPostConfig_V2 toNextVersion() throws DPUConfigException {
+        final HttpPostConfig_V2 c = new HttpPostConfig_V2();
+        final HttpPostConfig_V2.Request request = new HttpPostConfig_V2.Request();
+        
+        for (Argument argument : arguments) {
+            request.getArguments().add(new HttpPostConfig_V2.Argument(argument.name, argument.value));
+        }
+        
+        request.setFileName("content-file");
+        request.setUri(this.endpoint);
+        
+        c.getRequest().add(request);
+        return c;
     }
 
 }
