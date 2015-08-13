@@ -1,4 +1,4 @@
-package eu.unifiedviews.intlib.extractsymbolicname;
+package eu.unifiedviews.intlib.dpu;
 
 /**
  * DPU's configuration class.

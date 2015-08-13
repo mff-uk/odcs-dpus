@@ -1,4 +1,4 @@
-package eu.unifiedviews.intlib.prepareXsltParamsRdfRepresentationOfLaws;
+package eu.unifiedviews.intlib.dpu;
 
 /**
  * DPU's configuration class.
