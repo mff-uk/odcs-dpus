@@ -551,17 +551,21 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
             throw new DPUConfigException("Invalid SPARQL Endpoint URL.", ex);
         }
 
-        try {
-            conf.setAccessURL(new URL(tfAccessURL.getValue()).toString());
-        } catch (MalformedURLException ex) {
-            throw new DPUConfigException("Invalid access URL.", ex);
+        if (!tfAccessURL.getValue().isEmpty()) {
+	        try {
+	            conf.setAccessURL(new URL(tfAccessURL.getValue()).toString());
+	        } catch (MalformedURLException ex) {
+	            throw new DPUConfigException("Invalid access URL.", ex);
+	        }
         }
 
-        try {
-            conf.setSchema(new URL(tfSchema.getValue()).toString());
-        } catch (MalformedURLException ex) {
-            if (chkSchemaFromInput.getValue()) conf.setSchema("");
-            else throw new DPUConfigException("Invalid schema URL.", ex);
+        if (!tfSchema.getValue().isEmpty()) {
+	        try {
+	            conf.setSchema(new URL(tfSchema.getValue()).toString());
+	        } catch (MalformedURLException ex) {
+	            if (chkSchemaFromInput.getValue()) conf.setSchema("");
+	            else throw new DPUConfigException("Invalid schema URL.", ex);
+	        }
         }
 
         try {
