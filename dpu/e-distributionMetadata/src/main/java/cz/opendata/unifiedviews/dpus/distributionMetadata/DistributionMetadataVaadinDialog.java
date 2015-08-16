@@ -156,7 +156,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
         mainLayout.addComponent(tfSchemaType);
 
         chkSchemaFromInput = new CheckBox();
-        chkSchemaFromInput.setCaption("Use schema from dataset");
+        chkSchemaFromInput.setCaption("Use human readable documentation from dataset as schema (not recommended unless both empty)");
         chkSchemaFromInput.setWidth("100%");
         chkSchemaFromInput.setImmediate(true);
         chkSchemaFromInput.addValueChangeListener(new ValueChangeListener() {
