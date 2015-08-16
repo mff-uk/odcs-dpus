@@ -519,12 +519,14 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 //        }
         
         conf.setSchemaFromDataset(chkSchemaFromInput.getValue());
-        try {
-            conf.setSchema(new URL(tfSchema.getValue()).toString());
-        } catch (MalformedURLException ex) {
-            if (chkSchemaFromInput.getValue()) conf.setSchema("");
-            else throw new DPUConfigException("Invalid schema URL.", ex);
-        }
+        if (!tfSchema.getValue().isEmpty()) {
+	        try {
+	            conf.setSchema(new URL(tfSchema.getValue()).toString());
+	        } catch (MalformedURLException ex) {
+	            if (chkSchemaFromInput.getValue()) conf.setSchema("");
+	            else throw new DPUConfigException("Invalid schema URL.", ex);
+	        }
+        } else conf.setSchema("");
 
         conf.setSchemaType(tfSchemaType.getValue());
         conf.setMediaType(tfMediaType.getValue());
@@ -557,16 +559,7 @@ public class DistributionMetadataVaadinDialog extends AbstractDialog<Distributio
 	        } catch (MalformedURLException ex) {
 	            throw new DPUConfigException("Invalid access URL.", ex);
 	        }
-        }
-
-        if (!tfSchema.getValue().isEmpty()) {
-	        try {
-	            conf.setSchema(new URL(tfSchema.getValue()).toString());
-	        } catch (MalformedURLException ex) {
-	            if (chkSchemaFromInput.getValue()) conf.setSchema("");
-	            else throw new DPUConfigException("Invalid schema URL.", ex);
-	        }
-        }
+        } else conf.setAccessURL("");
 
         try {
             for (String resource: (Collection<String>) lsExampleResources.getValue())
