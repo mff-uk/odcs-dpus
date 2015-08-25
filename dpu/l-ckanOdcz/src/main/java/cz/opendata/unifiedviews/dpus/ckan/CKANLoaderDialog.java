@@ -29,7 +29,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     private TextField tfDatasetID;
     private PasswordField tfApiKey;
     private TextField tfOwnerOrg;
-    private CheckBox chkVirtuosoHtmlExampleResource;
+    private CheckBox chkVirtuosoTurtleExampleResource;
     private CheckBox chkOverwrite;
     
     public CKANLoaderDialog() {
@@ -103,11 +103,11 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         tfFileName.setInputPrompt("ckan.json");
         mainLayout.addComponent(tfFileName);
         
-        chkVirtuosoHtmlExampleResource = new CheckBox();
-        chkVirtuosoHtmlExampleResource.setWidth("100%");
-        chkVirtuosoHtmlExampleResource.setImmediate(true);
-        chkVirtuosoHtmlExampleResource.setCaption("Generate HTML example resources (Virtuoso specific)");
-        mainLayout.addComponent(chkVirtuosoHtmlExampleResource);
+        chkVirtuosoTurtleExampleResource = new CheckBox();
+        chkVirtuosoTurtleExampleResource.setWidth("100%");
+        chkVirtuosoTurtleExampleResource.setImmediate(true);
+        chkVirtuosoTurtleExampleResource.setCaption("Generate Turtle example resources (Virtuoso specific)");
+        mainLayout.addComponent(chkVirtuosoTurtleExampleResource);
 
         chkOverwrite = new CheckBox();
         chkOverwrite.setWidth("100%");
@@ -131,7 +131,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     	tfOwnerOrg.setValue(conf.getOrgID());
     	tfRestApiUrl.setValue(conf.getApiUri());
     	tfLoadLanguage.setValue(conf.getLoadLanguage());
-    	chkVirtuosoHtmlExampleResource.setValue(conf.isGenerateVirtuosoHtmlExampleResource());
+    	chkVirtuosoTurtleExampleResource.setValue(conf.isGenerateVirtuosoTurtleExampleResource());
     	chkLoad.setValue(conf.isLoadToCKAN());
     	chkOverwrite.setValue(conf.isOverwrite());
     }
@@ -144,7 +144,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         conf.setDatasetID(tfDatasetID.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
         conf.setLoadLanguage(tfLoadLanguage.getValue());
-        conf.setGenerateVirtuosoHtmlExampleResource(chkVirtuosoHtmlExampleResource.getValue());
+        conf.setGenerateVirtuosoTurtleExampleResource(chkVirtuosoTurtleExampleResource.getValue());
         conf.setLoadToCKAN(chkLoad.getValue());
         conf.setOverwrite(chkOverwrite.getValue());
         return conf;

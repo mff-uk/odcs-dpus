@@ -125,8 +125,8 @@ public class CKANLoaderConfig_V3  {
     
 	private String loadLanguage = "cs";
 	
-    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateVirtuosoHtml")
-	private boolean generateVirtuosoHtmlExampleResource = true ;
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateVirtuosoTurtleExampleResource")
+	private boolean generateVirtuosoTurtleExampleResource = true ;
     
     @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/overwrite")
     private boolean overwrite = false ;
@@ -187,13 +187,13 @@ public class CKANLoaderConfig_V3  {
 		this.loadLanguage = loadLanguage;
 	}
 
-	public boolean isGenerateVirtuosoHtmlExampleResource() {
-		return generateVirtuosoHtmlExampleResource;
+	public boolean isGenerateVirtuosoTurtleExampleResource() {
+		return generateVirtuosoTurtleExampleResource;
 	}
 
-	public void setGenerateVirtuosoHtmlExampleResource(
-			boolean generateVirtuosoHtmlExampleResource) {
-		this.generateVirtuosoHtmlExampleResource = generateVirtuosoHtmlExampleResource;
+	public void setGenerateVirtuosoTurtleExampleResource(
+			boolean generateVirtuosoTurtleExampleResource) {
+		this.generateVirtuosoTurtleExampleResource = generateVirtuosoTurtleExampleResource;
 	}
 
 	public boolean isOverwrite() {
