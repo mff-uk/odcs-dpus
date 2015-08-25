@@ -29,6 +29,8 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     private TextField tfDatasetID;
     private PasswordField tfApiKey;
     private TextField tfOwnerOrg;
+    private CheckBox chkVirtuosoHtmlExampleResource;
+    private CheckBox chkOverwrite;
     
     public CKANLoaderDialog() {
         super(CKANLoader.class);
@@ -100,6 +102,18 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         tfFileName.setCaption("Output filename");
         tfFileName.setInputPrompt("ckan.json");
         mainLayout.addComponent(tfFileName);
+        
+        chkVirtuosoHtmlExampleResource = new CheckBox();
+        chkVirtuosoHtmlExampleResource.setWidth("100%");
+        chkVirtuosoHtmlExampleResource.setImmediate(true);
+        chkVirtuosoHtmlExampleResource.setCaption("Generate HTML example resources (Virtuoso specific)");
+        mainLayout.addComponent(chkVirtuosoHtmlExampleResource);
+
+        chkOverwrite = new CheckBox();
+        chkOverwrite.setWidth("100%");
+        chkOverwrite.setImmediate(true);
+        chkOverwrite.setCaption("Overwrite target CKAN record (instead of merge)");
+        mainLayout.addComponent(chkOverwrite);
 
         Panel panel = new Panel();
         panel.setSizeFull();
@@ -117,7 +131,9 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     	tfOwnerOrg.setValue(conf.getOrgID());
     	tfRestApiUrl.setValue(conf.getApiUri());
     	tfLoadLanguage.setValue(conf.getLoadLanguage());
+    	chkVirtuosoHtmlExampleResource.setValue(conf.isGenerateVirtuosoHtmlExampleResource());
     	chkLoad.setValue(conf.isLoadToCKAN());
+    	chkOverwrite.setValue(conf.isOverwrite());
     }
 
 	@Override
@@ -128,7 +144,9 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         conf.setDatasetID(tfDatasetID.getValue());
         conf.setOrgID(tfOwnerOrg.getValue());
         conf.setLoadLanguage(tfLoadLanguage.getValue());
+        conf.setGenerateVirtuosoHtmlExampleResource(chkVirtuosoHtmlExampleResource.getValue());
         conf.setLoadToCKAN(chkLoad.getValue());
+        conf.setOverwrite(chkOverwrite.getValue());
         return conf;
     }
 
