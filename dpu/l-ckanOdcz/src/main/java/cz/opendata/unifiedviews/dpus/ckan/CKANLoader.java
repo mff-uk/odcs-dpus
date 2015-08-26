@@ -249,9 +249,15 @@ public class CKANLoader extends AbstractDpu<CKANLoaderConfig_V3>
 	            sparqlEndpointJSON.put("name", "SPARQL Endpoint");
 	            sparqlEndpointJSON.put("url", sparqlEndpoint);
 	            sparqlEndpointJSON.put("format","api/sparql");
+		    	sparqlEndpointJSON.put("mimetype", "text/turtle");
 	            sparqlEndpointJSON.put("resource_type","api");
 		    	if (!dissued.isEmpty()) sparqlEndpointJSON.put("created", dissued);
 		    	if (!dmodified.isEmpty()) sparqlEndpointJSON.put("last_modified", dmodified);
+		    	if (!dlicense.isEmpty()) sparqlEndpointJSON.put("license_link", dlicense);
+		    	if (!dtemporalStart.isEmpty()) sparqlEndpointJSON.put("temporal_start", dtemporalStart);
+		    	if (!dtemporalEnd.isEmpty()) sparqlEndpointJSON.put("temporal_end", dtemporalEnd);
+		    	if (!dschemaURL.isEmpty()) sparqlEndpointJSON.put("describedBy", dschemaURL);
+		    	if (!dschemaType.isEmpty()) sparqlEndpointJSON.put("describedByType", dschemaType);
 	            
 	            if (resUrlIdMap.containsKey(sparqlEndpoint)) {
 	            	String id = resUrlIdMap.get(sparqlEndpoint);
