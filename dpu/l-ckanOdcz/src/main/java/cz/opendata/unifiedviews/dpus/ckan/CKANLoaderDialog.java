@@ -30,6 +30,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     private PasswordField tfApiKey;
     private TextField tfOwnerOrg;
     private CheckBox chkVirtuosoTurtleExampleResource;
+    private CheckBox chkExampleResource;
     private CheckBox chkOverwrite;
     
     public CKANLoaderDialog() {
@@ -109,6 +110,12 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         chkVirtuosoTurtleExampleResource.setCaption("Generate Turtle example resources (Virtuoso specific)");
         mainLayout.addComponent(chkVirtuosoTurtleExampleResource);
 
+        chkExampleResource = new CheckBox();
+        chkExampleResource.setWidth("100%");
+        chkExampleResource.setImmediate(true);
+        chkExampleResource.setCaption("Generate example resources (as HTML CKAN resources)");
+        mainLayout.addComponent(chkExampleResource);
+
         chkOverwrite = new CheckBox();
         chkOverwrite.setWidth("100%");
         chkOverwrite.setImmediate(true);
@@ -132,6 +139,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
     	tfRestApiUrl.setValue(conf.getApiUri());
     	tfLoadLanguage.setValue(conf.getLoadLanguage());
     	chkVirtuosoTurtleExampleResource.setValue(conf.isGenerateVirtuosoTurtleExampleResource());
+    	chkExampleResource.setValue(conf.isGenerateExampleResource());
     	chkLoad.setValue(conf.isLoadToCKAN());
     	chkOverwrite.setValue(conf.isOverwrite());
     }
@@ -145,6 +153,7 @@ public class CKANLoaderDialog extends AbstractDialog<CKANLoaderConfig_V3> {
         conf.setOrgID(tfOwnerOrg.getValue());
         conf.setLoadLanguage(tfLoadLanguage.getValue());
         conf.setGenerateVirtuosoTurtleExampleResource(chkVirtuosoTurtleExampleResource.getValue());
+        conf.setGenerateExampleResource(chkExampleResource.getValue());
         conf.setLoadToCKAN(chkLoad.getValue());
         conf.setOverwrite(chkOverwrite.getValue());
         return conf;

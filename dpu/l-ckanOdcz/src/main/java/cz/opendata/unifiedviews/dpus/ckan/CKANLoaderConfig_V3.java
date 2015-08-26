@@ -128,6 +128,9 @@ public class CKANLoaderConfig_V3  {
     @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateVirtuosoTurtleExampleResource")
 	private boolean generateVirtuosoTurtleExampleResource = true ;
     
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateExampleResource")
+	private boolean generateExampleResource = true ;
+
     @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/overwrite")
     private boolean overwrite = false ;
     
@@ -202,6 +205,14 @@ public class CKANLoaderConfig_V3  {
 
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
+	}
+
+	public boolean isGenerateExampleResource() {
+		return generateExampleResource;
+	}
+
+	public void setGenerateExampleResource(boolean generateExampleResource) {
+		this.generateExampleResource = generateExampleResource;
 	}
 
 }
