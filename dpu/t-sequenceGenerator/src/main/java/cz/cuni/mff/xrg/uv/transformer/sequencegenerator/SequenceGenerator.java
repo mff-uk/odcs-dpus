@@ -1,37 +1,38 @@
 package cz.cuni.mff.xrg.uv.transformer.sequencegenerator;
 
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.advanced.DpuAdvancedBase;
-import cz.cuni.mff.xrg.uv.boost.dpu.config.MasterConfigObject;
-import cz.cuni.mff.xrg.uv.boost.dpu.utils.SendMessage;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.ConnectionPair;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.OperationFailedException;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfRead;
-import cz.cuni.mff.xrg.uv.rdf.utils.dataunit.rdf.simple.SimpleRdfWrite;
+import java.util.Map;
+
 import eu.unifiedviews.dataunit.DataUnit;
 import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
-import eu.unifiedviews.helpers.dpu.config.AbstractConfigDialog;
+
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryConnection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
+import eu.unifiedviews.helpers.dpu.context.ContextUtils;
+import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
+import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultToleranceUtils;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
+import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
+import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
+
 /**
- * 
+ *
  * @author Škoda Petr
  */
 @DPU.AsTransformer
-public class SequenceGenerator extends DpuAdvancedBase<SequenceGeneratorConfig_V1> {
+public class SequenceGenerator extends AbstractDpu<SequenceGeneratorConfig_V1> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SequenceGenerator.class);
 
@@ -52,65 +53,68 @@ public class SequenceGenerator extends DpuAdvancedBase<SequenceGeneratorConfig_V
     @DataUnit.AsOutput(name = "sequence", description = "Subjects with generated sequences.")
     public WritableRDFDataUnit outRdfSequence;
 
-    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "inRdfData")
-    public SimpleRdfRead inData;
+    @ExtensionInitializer.Init(param = "inRdfData")
+    public SimpleRdf inData;
 
-    @SimpleRdfConfigurator.Configure(dataUnitFieldName = "outRdfSequence")
-    public SimpleRdfWrite outSequence;
+    @ExtensionInitializer.Init(param = "outRdfSequence")
+    public WritableSimpleRdf outSequence;
+
+    @ExtensionInitializer.Init
+    public FaultTolerance faultTolerance;
 
     public ValueFactory valueFactory;
 
     public SequenceGenerator() {
-        super(SequenceGeneratorConfig_V1.class,
-                AddonInitializer.create(new SimpleRdfConfigurator(SequenceGenerator.class)));
+        super(SequenceGeneratorVaadinDialog.class, ConfigHistory.noHistory(SequenceGeneratorConfig_V1.class));
     }
 
     @Override
     protected void innerExecute() throws DPUException {
-        try {
-            valueFactory = inData.getValueFactory();
-        } catch (OperationFailedException ex) {
-            SendMessage.sendMessage(context, ex);
-            return;
-        }
+        valueFactory = inData.getValueFactory();
 
         final URI predicate = valueFactory.createURI(config.getPredicateOutput());
-        final String query = String.format(QUERY_TEMPLATE,
-                config.getPredicateStart(), config.getPredicateEnd());
+        final String query = String.format(QUERY_TEMPLATE, config.getPredicateStart(), config
+                .getPredicateEnd());
 
-        try (ConnectionPair<TupleQueryResult> connection = inData.executeSelectQuery(query)) {
-            final TupleQueryResult result = connection.getObject();
-            while (result.hasNext()) {
-                final BindingSet binding = result.next();
-                // get data and parse them
-                final String fromStr = binding.getBinding(BINDING_FROM).getValue().stringValue();
-                final String toStr =  binding.getBinding(BINDING_TO).getValue().stringValue();
-                final URI subject = (URI)binding.getBinding(BINDING_SUBJECT).getValue();
+        final SparqlUtils.SparqlSelectObject select = faultTolerance.execute(
+                new FaultTolerance.ActionReturn<SparqlUtils.SparqlSelectObject>() {
 
-                final Integer from, to;
-                try {
-                    from = Integer.parseInt(fromStr);
-                    to = Integer.parseInt(toStr);
-                } catch (NumberFormatException ex) {
-                    context.sendMessage(DPUContext.MessageType.ERROR, "Invalid data",
-                            "Can't parse object as integer for subject: " + subject.stringValue(), ex);
-                    return;
-                }
+                    @Override
+                    public SparqlUtils.SparqlSelectObject action() throws Exception {
+                        return SparqlUtils.createSelect(query,
+                                FaultToleranceUtils.getEntries(faultTolerance, inRdfData,
+                                        RDFDataUnit.Entry.class));
 
-                // create sequence
-                generateSequence(from, to, subject, predicate);
+                    }
+                });
+
+        final SparqlUtils.QueryResultCollector result = new SparqlUtils.QueryResultCollector();
+        faultTolerance.execute(inRdfData, new FaultTolerance.ConnectionAction() {
+
+            @Override
+            public void action(RepositoryConnection connection) throws Exception {
+                result.prepare();
+                SparqlUtils.execute(connection, ctx, select, result);
             }
-        } catch (OperationFailedException ex) {
-            SendMessage.sendMessage(context, ex);
-        } catch (QueryEvaluationException ex) {
-            context.sendMessage(DPUContext.MessageType.ERROR, "Query evaluation failed.", "", ex);
+
+        });
+
+        for (Map<String, Value> item : result.getResults()) {
+            final String fromStr = item.get(BINDING_FROM).stringValue();
+            final String toStr = item.get(BINDING_TO).stringValue();
+            final URI subject = (URI) item.get(BINDING_SUBJECT);
+
+            final Integer from, to;
+            try {
+                from = Integer.parseInt(fromStr);
+                to = Integer.parseInt(toStr);
+            } catch (NumberFormatException ex) {
+                throw ContextUtils.dpuException(ctx, ex, "Invalid data for subject: " + subject.stringValue());
+            }
+
+            // create sequence
+            generateSequence(from, to, subject, predicate);
         }
-
-    }
-
-    @Override
-    public AbstractConfigDialog<MasterConfigObject> getConfigurationDialog() {
-        return new SequenceGeneratorVaadinDialog();
     }
 
     /**
@@ -121,14 +125,21 @@ public class SequenceGenerator extends DpuAdvancedBase<SequenceGeneratorConfig_V
      * @param subject
      * @param predicate
      */
-    private void generateSequence(Integer from, Integer to, URI subject, URI predicate) throws OperationFailedException {
+    private void generateSequence(Integer from, Integer to, final URI subject, final URI predicate)
+            throws DPUException {
         LOG.debug("generating sequence {}:{} for {}", from, to, subject.stringValue());
-        
-       for (Integer index = from; index <= to; ++index) {
-           final Literal value = valueFactory.createLiteral(index);
-           // add triple
-           outSequence.add(subject, predicate, value);
-       }
+
+        for (Integer index = from; index <= to; ++index) {
+            final Literal value = valueFactory.createLiteral(index);
+            // add triple
+            faultTolerance.execute(new FaultTolerance.Action() {
+
+                @Override
+                public void action() throws Exception {
+                    outSequence.add(subject, predicate, value);
+                }
+            });
+        }
     }
 
 }

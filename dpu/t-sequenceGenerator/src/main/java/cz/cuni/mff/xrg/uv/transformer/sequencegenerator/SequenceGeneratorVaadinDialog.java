@@ -2,13 +2,12 @@ package cz.cuni.mff.xrg.uv.transformer.sequencegenerator;
 
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.impl.SimpleRdfConfigurator;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
-import cz.cuni.mff.xrg.uv.utils.dialog.validator.UrlValidator;
-import eu.unifiedviews.dpu.config.DPUConfigException;
 
-public class SequenceGeneratorVaadinDialog extends AdvancedVaadinDialogBase<SequenceGeneratorConfig_V1> {
+import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
+import eu.unifiedviews.helpers.dpu.vaadin.validator.UrlValidator;
+
+public class SequenceGeneratorVaadinDialog extends AbstractDialog<SequenceGeneratorConfig_V1> {
 
     private TextField txtPredicateFrom;
     
@@ -17,10 +16,7 @@ public class SequenceGeneratorVaadinDialog extends AdvancedVaadinDialogBase<Sequ
     private TextField txtPredicateOutput;
 
     public SequenceGeneratorVaadinDialog() {
-        super(SequenceGeneratorConfig_V1.class, 
-                AddonInitializer.create(new SimpleRdfConfigurator(SequenceGenerator.class)));
-
-        buildLayout();
+        super(SequenceGenerator.class);
     }
 
     @Override
@@ -45,7 +41,8 @@ public class SequenceGeneratorVaadinDialog extends AdvancedVaadinDialogBase<Sequ
         return c;
     }
 
-    private void buildLayout() {
+    @Override
+    protected void buildDialogLayout() {
 		final VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setHeight("-1px");
@@ -73,4 +70,5 @@ public class SequenceGeneratorVaadinDialog extends AdvancedVaadinDialogBase<Sequ
 
         setCompositionRoot(mainLayout);
     }
+
 }
