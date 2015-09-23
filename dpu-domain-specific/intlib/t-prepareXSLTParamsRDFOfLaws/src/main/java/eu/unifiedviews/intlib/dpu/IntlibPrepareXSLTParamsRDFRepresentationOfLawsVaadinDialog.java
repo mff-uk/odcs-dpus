@@ -1,17 +1,16 @@
-package eu.unifiedviews.intlib.prepareXsltParamsRdfRepresentationOfLaws;
+package eu.unifiedviews.intlib.dpu;
 
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import cz.cuni.mff.xrg.uv.boost.dpu.addon.AddonInitializer;
-import cz.cuni.mff.xrg.uv.boost.dpu.gui.AdvancedVaadinDialogBase;
 import eu.unifiedviews.dpu.config.DPUConfigException;
+import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
 
-public class IntlibPrepareXSLTParamsRDFRepresentationOfLawsVaadinDialog extends AdvancedVaadinDialogBase<IntlibPrepareXSLTParamsRDFRepresentationOfLawsConfig_V1> {
+public class IntlibPrepareXSLTParamsRDFRepresentationOfLawsVaadinDialog extends AbstractDialog<IntlibPrepareXSLTParamsRDFRepresentationOfLawsConfig_V1> {
 
     public IntlibPrepareXSLTParamsRDFRepresentationOfLawsVaadinDialog() {
-        super(IntlibPrepareXSLTParamsRDFRepresentationOfLawsConfig_V1.class, AddonInitializer.noAddons());
+        super(IntlibPrepareXSLTParamsRDFRepresentationOfLaws.class);
 
-        buildLayout();
+        //        buildLayout();
     }
 
     @Override
@@ -26,14 +25,30 @@ public class IntlibPrepareXSLTParamsRDFRepresentationOfLawsVaadinDialog extends 
         return c;
     }
 
-    private void buildLayout() {
-		final VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setWidth("100%");
-		mainLayout.setHeight("-1px");
+    //    private void buildLayout() {
+    //        final VerticalLayout mainLayout = new VerticalLayout();
+    //        mainLayout.setWidth("100%");
+    //        mainLayout.setHeight("-1px");
+    //        mainLayout.setMargin(true);
+    //
+    //        mainLayout.addComponent(new Label("DPU's configuration"));
+    //
+    //        setCompositionRoot(mainLayout);
+    //    }
+
+    @Override
+    protected void buildDialogLayout() {
+
+        this.setSizeFull();
+
+        final VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setWidth("100%");
+        mainLayout.setHeight("-1px");
         mainLayout.setMargin(true);
 
         mainLayout.addComponent(new Label("DPU's configuration"));
 
         setCompositionRoot(mainLayout);
+
     }
 }

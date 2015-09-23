@@ -289,8 +289,8 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         mainLayout.addComponent(tfPeriodicity);
 
         tfSchema = new TextField();
-        tfSchema.setCaption("Schema URL:");
-        tfSchema.setInputPrompt("http://data.example.org/dataset/myschema");
+        tfSchema.setCaption("Human readable documentation URL:");
+        tfSchema.setInputPrompt("http://data.example.org/dataset/documentation");
         tfSchema.setWidth("100%");
         mainLayout.addComponent(tfSchema);
 

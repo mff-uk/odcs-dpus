@@ -124,6 +124,15 @@ public class CKANLoaderConfig_V3  {
     private String orgID = "d2664e4e-25ba-4dcc-a842-dcc5f2d2f326" ;
     
 	private String loadLanguage = "cs";
+	
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateVirtuosoTurtleExampleResource")
+	private boolean generateVirtuosoTurtleExampleResource = true ;
+    
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/generateExampleResource")
+	private boolean generateExampleResource = true ;
+
+    @EntityDescription.Property(uri = "http://linked.opendata.cz/ontology/ckan/overwrite")
+    private boolean overwrite = false ;
     
     public String getApiKey() {
 		return apiKey;
@@ -179,6 +188,31 @@ public class CKANLoaderConfig_V3  {
 
 	public void setLoadLanguage(String loadLanguage) {
 		this.loadLanguage = loadLanguage;
+	}
+
+	public boolean isGenerateVirtuosoTurtleExampleResource() {
+		return generateVirtuosoTurtleExampleResource;
+	}
+
+	public void setGenerateVirtuosoTurtleExampleResource(
+			boolean generateVirtuosoTurtleExampleResource) {
+		this.generateVirtuosoTurtleExampleResource = generateVirtuosoTurtleExampleResource;
+	}
+
+	public boolean isOverwrite() {
+		return overwrite;
+	}
+
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	public boolean isGenerateExampleResource() {
+		return generateExampleResource;
+	}
+
+	public void setGenerateExampleResource(boolean generateExampleResource) {
+		this.generateExampleResource = generateExampleResource;
 	}
 
 }
