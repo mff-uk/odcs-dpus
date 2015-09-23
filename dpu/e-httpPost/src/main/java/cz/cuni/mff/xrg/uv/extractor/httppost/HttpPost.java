@@ -19,13 +19,13 @@ import eu.unifiedviews.dataunit.rdf.RDFDataUnit;
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 import eu.unifiedviews.helpers.dpu.context.ContextUtils;
 import eu.unifiedviews.helpers.dpu.exec.AbstractDpu;
+import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
 import eu.unifiedviews.helpers.dpu.extension.ExtensionInitializer;
 import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.RdfConfiguration;
 
 // org.apache.commons.httpclient.HttpMethod
-
 /**
  * Main data processing unit class.
  *
@@ -52,37 +52,35 @@ public class HttpPost extends AbstractDpu<HttpPostConfig_V2> {
     @ExtensionInitializer.Init
     public RdfConfiguration _rdfConfiguration;
 
-	public HttpPost() {
-		super(HttpPostVaadinDialog.class, 
+    @ExtensionInitializer.Init
+    public CachedFileDownloader downloaderService;
+
+    public HttpPost() {
+        super(HttpPostVaadinDialog.class,
                 ConfigHistory.history(HttpPostConfig_V1.class).addCurrent(HttpPostConfig_V2.class));
-	}
-		
+    }
+
     @Override
     protected void innerExecute() throws DPUException {
         ContextUtils.sendShortInfo(ctx, "Downloading: {0}", config.getRequest().size());
         int counter = 0;
         for (HttpPostConfig_V2.Request request : config.getRequest()) {
             LOG.info("Executing {}/{}", ++counter, config.getRequest().size());
-            // Prepare output file.
-            final File targetFile = outFiles.create(request.getFileName());
-
             // Exectute post.
-            HttpClient client = new HttpClient();
             PostMethod method = new PostMethod(request.getUri());
             for (HttpPostConfig_V2.Argument argument : request.getArguments()) {
                 method.addParameter(argument.getName(), argument.getValue());
             }
-
             try {
-                int returnCode = client.executeMethod(method);
-                if (returnCode != HttpStatus.SC_OK) {
-                    throw ContextUtils.dpuException(ctx, "Response code: {0}", returnCode);
+                final File newFile = downloaderService.post(request.getFileName(), method);
+                if (newFile == null) {
+                    // Ignore file, we may be out of limits, or should not download new.
+                } else {
+                    outFiles.add(newFile, request.getFileName());
                 }
-                // Copy content.
-                FileUtils.copyInputStreamToFile(method.getResponseBodyAsStream(), targetFile);
-            } catch (IOException ex) {
+            } catch (IOException | ExtensionException ex) {
                 throw ContextUtils.dpuException(ctx, ex, "Can't download data!");
             }
         }
-    }	
+    }
 }

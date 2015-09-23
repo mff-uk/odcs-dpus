@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.extractor.httppost;
 import java.util.Collections;
 
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
@@ -72,6 +73,9 @@ public class HttpPostVaadinDialog extends AbstractDialog<HttpPostConfig_V2> {
         checkIgnoreDialog.setDescription("If checked then no post request is made based on the dialog configuration."
                 + "Designed to be used together with rdf configuration.");
         mainLayout.addComponent(checkIgnoreDialog);
+
+        mainLayout.addComponent(new Label("DPU utilizes file name for unique file identification! This each"
+                + "file must be provided with unique file name."));
 
         txtEndpoint = new TextField("Server address:");
         txtEndpoint.setWidth("100%");

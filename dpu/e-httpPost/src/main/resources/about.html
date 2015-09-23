@@ -1,7 +1,11 @@
 The configuration dialog offers possibility to configure only one POST request. In order to execute multiple requests RDF configuration must be used.
-If the URI in the dialog configuration is left blank, then no POST request based on the dialog is executed.
-<br>
-
+If the URI in the dialog configuration is left blank, then no POST request based on the dialog is executed.<br/>
+<br/>
+<b>!! File naming !!</b>
+The file name is utilized to distinguish between files, it two files are given on input and both have same name (other properties may differ), they are
+considered to be the same and the output is undefined!
+Thus identity function should be used to construct file names. The naming convention must be followed when more then one file is downloaded.
+<br><br/>
 Configuration sample:
 <div><pre>
 &lt;http://localhost/resource/config&gt;<br/>
@@ -31,3 +35,10 @@ Configuration sample:
     &lt;http://unifiedviews.eu/ontology/dpu/httpPost/key&gt; "obdobi";<br/>
 	&lt;http://unifiedviews.eu/ontology/dpu/httpPost/value&gt; "R2015".<br/>
 </pre> </div>
+<div>
+    <b>Disable cache:</b><br/>
+    Check "Rewrite cache" and set "Max number of files to download" to -1.
+    <b>Partial download</b><br/>
+    The option "Max number of files to download" can be used to limit how many files can be downloaded. Files in cache does not count as downloaded.
+    Once the limit is reached the rest of files (if not presented in cache) is skipped and not downloaded.
+</div>
