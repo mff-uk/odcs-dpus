@@ -439,9 +439,10 @@ public class DatasetMetadataVaadinDialog extends AbstractDialog<DatasetMetadataC
         conf.setPublisherName(tfPublisherName.getValue());
         
         try {
-	        conf.setSpatial(new URL(tfSpatial.getValue()).toString());
+	        if (tfSpatial.getValue().toString().isEmpty()) conf.setSpatial("");
+	        else conf.setSpatial(new URL(tfSpatial.getValue()).toString());
         } catch (MalformedURLException ex) {
-            throw new DPUConfigException("Invalid spatial converage URL.", ex);
+            throw new DPUConfigException("Invalid spatial coverage URL.", ex);
         }
         
         conf.setPeriodicity(tfPeriodicity.getValue());
