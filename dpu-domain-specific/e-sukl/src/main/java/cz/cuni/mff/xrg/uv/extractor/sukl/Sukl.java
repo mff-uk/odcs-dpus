@@ -8,7 +8,6 @@ import eu.unifiedviews.dataunit.rdf.WritableRDFDataUnit;
 import eu.unifiedviews.dpu.DPU;
 import eu.unifiedviews.dpu.DPUException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -105,7 +104,14 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
     /**
      * Count number of files on output.
      */
-    private Integer filesOnOutput = 0;
+    private int numberOfDownloaded = 0;
+
+    private int numberOfChached = 0;
+
+    /**
+     * Count number of missing.
+     */
+    private int numberOfMissing = 0;
 
     /**
      * Store info about files on output as files can be shared.
@@ -120,7 +126,9 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
     protected void innerInit() throws DataUnitException, DPUException {
         super.innerInit();
         // Some local variables.
-        filesOnOutput = 0;
+        numberOfDownloaded = 0;
+        numberOfChached = 0;
+        numberOfMissing = 0;
         downloadedFiles.clear();
     }
 
@@ -130,12 +138,16 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         // Go for per-graph mode.
         final List<RDFDataUnit.Entry> entries = FaultToleranceUtils.getEntries(faultTolerance,
                 rdfInSkosNotation, RDFDataUnit.Entry.class);
-        int counter = 0;
         for (RDFDataUnit.Entry entry : entries) {
-            LOG.info("Processing {}/{} input graphs.", ++counter, entries.size());
             process(Arrays.asList(entry));
+            if (!config.isCountNumberOfMissing() && this.numberOfMissing > 0) {
+                // Missing file occured.
+                LOG.info("Break for missing file!");
+                break;
+            }
         }
-        ContextUtils.sendShortInfo(ctx, "{0} files on output", filesOnOutput);
+        ContextUtils.sendShortInfo(ctx, "{0} downloaded, {1} cached, {2} missing",
+                numberOfDownloaded, numberOfChached, numberOfMissing);
     }
 
     /**
@@ -174,24 +186,84 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
      * @throws DPUException
      */
     private void downloadInfo(URI subject, String notation) throws DPUException, IOException, ExtensionException {
-        LOG.debug("downloadInfo({}, {})", subject.toString(), notation);
         // Parse info cz.
-        final File fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
-        if (fileInfoCz != null) {
-            final Document docInfoCz = Jsoup.parse(fileInfoCz, null);
-            parseNameCz(subject, docInfoCz);
+        final CachedFileDownloader.DownloadResult fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
+        switch (fileInfoCz.getType()) {
+            case DOWNLOADED:
+                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
+                ++numberOfDownloaded;
+                break;
+            case CACHED:
+                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+                parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
+                ++numberOfChached;
+                break;
+            case ERROR:
+                LOG.error("File (error) : {}", URI_BASE_INFO_CZ + notation);
+                if (config.isFailOnDownloadError()) {
+                    throw new DPUException("Can't download file!");
+                }
+                break;
+            case MISSING:
+                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
+                ++numberOfMissing;
+                break;
+            default:
+                throw new DPUException("Unknown type!");
         }
+
         // Parse 'en' only if we get the czech one as if we not nor english is probably provided.
-        final File fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
-        if (fileInfoEn != null) {
-            final Document docInfoEn = Jsoup.parse(fileInfoEn, null);
-            parseNameEn(subject, docInfoEn);
+        final CachedFileDownloader.DownloadResult fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
+        switch (fileInfoEn.getType()) {
+            case DOWNLOADED:
+                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
+                ++numberOfDownloaded;
+                break;
+            case CACHED:
+                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+                parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
+                ++numberOfChached;
+                break;
+            case ERROR:
+                LOG.error("File (error) : {}", URI_BASE_INFO_CZ + notation);
+                if (config.isFailOnDownloadError()) {
+                    throw new DPUException("Can't download file!");
+                }
+                break;
+            case MISSING:
+                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
+                ++numberOfMissing;
+                break;
+            default:
+                throw new DPUException("Unknown type!");
         }
         // Donwload texts.
-        final File fileText = downloaderService.get(URI_BASE_TEXTS + notation);
-        if (fileText != null) {
-            final Document docText = Jsoup.parse(fileText, null);
-            parseTexts(subject, notation, docText);
+        final CachedFileDownloader.DownloadResult fileText = downloaderService.get(URI_BASE_TEXTS + notation);
+        switch (fileText.getType()) {
+            case DOWNLOADED:
+                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
+                ++numberOfDownloaded;
+                break;
+            case CACHED:
+                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+                parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
+                ++numberOfChached;
+                break;
+            case ERROR:
+                LOG.error("File (error) : {}", URI_BASE_INFO_CZ + notation);
+                if (config.isFailOnDownloadError()) {
+                    throw new DPUException("Can't download file!");
+                }
+                break;
+            case MISSING:
+                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
+                ++numberOfMissing;
+                break;
+            default:
+                throw new DPUException("Unknown type!");
         }
     }
 
@@ -201,7 +273,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
      * @param subject
      * @param doc
      */
-    private void parseNameCz(URI subject, Document doc) throws DPUException  {
+    private void parseNameCz(URI subject, Document doc) throws DPUException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo("Účinná látka") == 0) {
@@ -233,7 +305,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
      * @param subject
      * @param doc
      */
-    private void parseNameEn(URI subject, Document doc) throws DPUException  {
+    private void parseNameEn(URI subject, Document doc) throws DPUException {
         final Elements elements = doc.select(CSS_SELECTOR);
         for (Element element : elements) {
             if (element.getElementsByTag("th").first().text().compareTo("Active substance") == 0) {
@@ -263,11 +335,11 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
      * Create record for given ingredient and bind it to given subject.
      *
      * @param subject
-     * @param nameLa  Identifier of ingredient - name in latin.
+     * @param nameLa Identifier of ingredient - name in latin.
      * @param name
      * @param lang
      */
-    private void addIngredient(URI subject, String nameLa, String name, String lang) throws DPUException  {
+    private void addIngredient(URI subject, String nameLa, String name, String lang) throws DPUException {
         final String ingredientSubjectStr = SuklOntology.INGREDIEND_PREFIX
                 + Utils.convertStringToURIPart(nameLa);
         final URI ingredientUri = valueFactory.createURI(ingredientSubjectStr);
@@ -323,35 +395,40 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             final String fileName = Utils.convertStringToURIPart(value);
             outInfo.add(subject, predicateFile, valueFactory.createLiteral(fileName));
             // Download.
-
-            int numberOfDownloaded = downloaderService.getNumberOfDownloads();
-            final File file = downloaderService.get(value);
-
-            if (file == null) {
-                // File is missing.
-                LOG.warn("Missing file: {} with name: {}", value, fileName);
-                return;
-            }
-
             if (downloadedFiles.contains(fileName)) {
-                // Already downloaded.
-                return;
+                // Already added.
+                break;
             }
 
-            // Add to output.
-            outTexts.add(file, fileName);
-
-            // Add to new file if file has not been taken from cache ie. numberOfDownloaded icreased.
-            if (numberOfDownloaded < downloaderService.getNumberOfDownloads()) {
-                outNewTexts.add(file, fileName);
+            final CachedFileDownloader.DownloadResult downloaded = downloaderService.get(value);
+            switch (downloaded.getType()) {
+                case DOWNLOADED:
+                    LOG.info("File (new): {} with name: {}", value, fileName);
+                    outTexts.add(downloaded.getFile(), fileName);
+                    downloadedFiles.add(fileName);
+                    ++numberOfDownloaded;
+                    // Add to new list.
+                    outNewTexts.add(downloaded.getFile(), fileName);
+                    break;
+                case CACHED:
+                    LOG.info("File (cache): {} with name: {}", value, fileName);
+                    outTexts.add(downloaded.getFile(), fileName);
+                    downloadedFiles.add(fileName);
+                    ++numberOfChached;
+                    break;
+                case ERROR:
+                    LOG.error("File (error) : {} with name: {}", value, fileName);
+                    if (config.isFailOnDownloadError()) {
+                        throw new DPUException("Can't download file!");
+                    }
+                    break;
+                case MISSING:
+                    LOG.warn("File (missing): {} with name: {}", value, fileName);
+                    ++numberOfMissing;
+                    break;
+                default:
+                    throw new DPUException("Unknown type!");
             }
-
-            // Files has been added.
-            ++filesOnOutput;
-
-            LOG.debug("new file {} -> {}", file.toURI().toString(), fileName);
-            // Add file to touptut.
-            downloadedFiles.add(fileName);
         }
     }
 

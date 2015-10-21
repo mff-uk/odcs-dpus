@@ -3,6 +3,7 @@ package cz.cuni.mff.xrg.uv.extractor.sukl;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import eu.unifiedviews.dpu.DPUContext;
 
 import eu.unifiedviews.helpers.dpu.extension.ExtensionException;
 import eu.unifiedviews.helpers.dpu.config.ConfigException;
@@ -16,23 +17,17 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.List;
-
-import javax.net.ssl.*;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.unifiedviews.helpers.dpu.exec.ExecContext;
 import eu.unifiedviews.helpers.dpu.config.ConfigHistory;
 import eu.unifiedviews.helpers.dpu.context.Context;
 import eu.unifiedviews.helpers.dpu.context.ContextUtils;
-import eu.unifiedviews.dpu.DPUContext;
 import eu.unifiedviews.dpu.DPUException;
+import eu.unifiedviews.helpers.dpu.exec.ExecContext;
 import eu.unifiedviews.helpers.dpu.extension.Extension;
 
 /**
@@ -49,15 +44,54 @@ import eu.unifiedviews.helpers.dpu.extension.Extension;
 public class CachedFileDownloader implements Extension, Extension.Executable,
         Configurable<CachedFileDownloader.Configuration_V1> {
 
-    public static final String USED_USER_DIRECTORY = "addon/cachedFileDownloader";
-
     public static final String CACHE_FILE = "cacheContent.xml";
 
     public static final String USED_CONFIG_NAME = "addon/cachedFileDownloader";
 
-    public static final String ADDON_NAME = "Custom Cached file downloader";
+    public static final String ADDON_NAME = "Downloader";
 
     private static final Logger LOG = LoggerFactory.getLogger(CachedFileDownloader.class);
+
+    public static enum ResultType {
+
+        /**
+         * File downloaded.
+         */
+        DOWNLOADED,
+        /**
+         * We tried to download file but we failed.
+         */
+        ERROR,
+        /**
+         * File is presented in cache.
+         */
+        CACHED,
+        /**
+         * File is missing and we have no more download free slots.
+         */
+        MISSING
+    }
+
+    public static class DownloadResult {
+
+        private final File file;
+
+        private final ResultType type;
+
+        public DownloadResult(File file, ResultType type) {
+            this.file = file;
+            this.type = type;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public ResultType getType() {
+            return type;
+        }
+
+    }
 
     /**
      * Configuration class.
@@ -85,6 +119,11 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         private boolean rewriteCache = false;
 
         private Integer maxDownloads = 100;
+
+        /**
+         * Path to cache directory.
+         */
+        private String cacheDirectory = "";
 
         public Configuration_V1() {
         }
@@ -129,6 +168,14 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
             this.maxDownloads = maxDownloads;
         }
 
+        public String getCacheDirectory() {
+            return cacheDirectory;
+        }
+
+        public void setCacheDirectory(String cacheDirectory) {
+            this.cacheDirectory = cacheDirectory;
+        }
+
     }
 
     /**
@@ -145,6 +192,8 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         private CheckBox checkRewriteCache;
 
         private TextField txtMaxDownloads;
+
+        private TextField txtPathToCache;
 
         public VaadinDialog() {
             super(configHistory);
@@ -188,7 +237,12 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
             txtMaxDownloads.setWidth("5em");
             txtMaxDownloads.setRequired(true);
             mainLayout.addComponent(txtMaxDownloads);
-            
+
+            txtPathToCache = new TextField("Path to cache.");
+            txtPathToCache.setWidth("30em");
+            txtPathToCache.setRequired(true);
+            mainLayout.addComponent(txtPathToCache);
+
             setCompositionRoot(mainLayout);
         }
 
@@ -199,6 +253,7 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
             txtMinPause.setValue(c.getMinPause().toString());
             checkRewriteCache.setValue(c.isRewriteCache());
             txtMaxDownloads.setValue(c.getMaxDownloads().toString());
+            txtPathToCache.setValue(c.getCacheDirectory());
         }
 
         @Override
@@ -223,6 +278,7 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
             }
 
             c.setRewriteCache(checkRewriteCache.getValue());
+            c.setCacheDirectory(txtPathToCache.getValue());
             return c;
         }
 
@@ -236,8 +292,8 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
     private final ConfigHistory<Configuration_V1> configHistory = ConfigHistory.noHistory(Configuration_V1.class);
 
     /**
-     * Time of next download. Used to create randomly distributes pauses between downloads. Should be ignored
-     * if cache is used.
+     * Time of next download. Used to create randomly distributes pauses between downloads. Should be ignored if cache
+     * is used.
      */
     private long nextDownload = new Date().getTime();
 
@@ -246,12 +302,9 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
      */
     private File baseDirectory = null;
 
-    /**
-     * DPU's master context.
-     */
-    private DPUContext dpuContext;
-
     private Context context;
+
+    private DPUContext contextDpu;
 
     private int numberOfDownloads = 0;
 
@@ -268,22 +321,12 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
     public void afterInit(Context context) {
         this.context = context;
         if (context instanceof ExecContext) {
-            this.dpuContext = ((ExecContext)context).getDpuContext();
+            this.contextDpu = ((ExecContext) context).getDpuContext();
         }
     }
 
     @Override
     public void execute(ExecutionPoint execPoint) throws ExtensionException {
-        // File with store cache content.
-        this.baseDirectory = new File(new File(java.net.URI.create(
-                dpuContext.getDpuInstanceDirectory())),USED_USER_DIRECTORY);
-        this.baseDirectory.mkdirs();
-
-        if (execPoint == ExecutionPoint.POST_EXECUTE) {
-            ContextUtils.sendShortInfo(context.asUserContext(), "Number of downloaded files: {0}",
-                    numberOfDownloads);
-        }
-
         if (execPoint != ExecutionPoint.PRE_EXECUTE) {
             return;
         }
@@ -303,15 +346,10 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
                     "Failed to load configuration for: {0} default configuration is used.", ADDON_NAME);
             this.config = new Configuration_V1();
         }
-        LOG.info("BaseDirectory: {}", baseDirectory);
 
-        // Ignore all certificates, added because of MICR_3 pipeline.
-        // TODO: should be more focused on current job, not generaly remove the ssh check!
-        try {
-            setTrustAllCerts();
-        } catch (Exception ex) {
-            throw new ExtensionException("setTrustAllCerts throws", ex);
-        }
+        this.baseDirectory = new File(config.cacheDirectory);
+        this.baseDirectory.mkdirs();
+        LOG.info("Cache directory: {}", baseDirectory);
     }
 
     @Override
@@ -336,8 +374,9 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
      * @return
      * @throws ExtensionException Is thrown in case of wrong URL format.
      * @throws IOException
+     * @throws eu.unifiedviews.dpu.DPUException
      */
-    public File get(String fileUrl) throws ExtensionException, IOException, DPUException {
+    public DownloadResult get(String fileUrl) throws ExtensionException, IOException, DPUException {
         try {
             return get(new URL(fileUrl));
         } catch (MalformedURLException e) {
@@ -352,22 +391,24 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
      * @return
      * @throws ExtensionException Is thrown in case of wrong URL format.
      * @throws IOException
+     * @throws eu.unifiedviews.dpu.DPUException
      */
-    public File get(URL fileUrl) throws ExtensionException, IOException, DPUException {
+    public DownloadResult get(URL fileUrl) throws ExtensionException, IOException, DPUException {
         return get(fileUrl.toString(), fileUrl);
     }
 
     /**
-     * If file of given name exists, then it's returned. If not then is downloaded from given URL, saved under
-     * given name and then returned.
+     * If file of given name exists, then it's returned. If not then is downloaded from given URL, saved under given
+     * name and then returned.
      *
      * @param fileName Must not be null. Unique identification for the given file.
      * @param fileUrl
      * @return Null if max number to download exceed given limit.
      * @throws ExtensionException
      * @throws IOException
+     * @throws eu.unifiedviews.dpu.DPUException
      */
-    public File get(String fileName, URL fileUrl) throws ExtensionException, IOException, DPUException {
+    public DownloadResult get(String fileName, URL fileUrl) throws ExtensionException, IOException, DPUException {
         if (baseDirectory == null) {
             throw new ExtensionException("Not initialized!");
         }
@@ -383,32 +424,24 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
 
         // Check cache.
         if (file.exists() && !config.rewriteCache) {
-            LOG.debug("cache - get({}, {}) ", fileName, fileUrl.toString());
-            return file;
+            return new DownloadResult(file, ResultType.CACHED);
         }
 
         // Check if we should download file.
-        if (config.maxAttemps == 0) {
-            LOG.info("No file found for: {}, {}", fileName, fileUrl);
-            return null;
-        }
-
-        // Also return null if we exceeded number of downloads.
-        if (numberOfDownloads > config.maxDownloads) {
-            return null;
+        if (config.maxAttemps == 0 || numberOfDownloads > config.maxDownloads) {
+            return new DownloadResult(file, ResultType.MISSING);
         }
 
         // Download file with some level of fault tolerance.
         int attempCounter = config.maxAttemps;
-        while (attempCounter != 0 && !dpuContext.canceled()) {
+        while (attempCounter != 0) {
             // Wait before download.
             waitForNextDownload();
             // Try to download file.
             try {
                 FileUtils.copyURLToFile(fileUrl, file);
-                LOG.info("downloaded - get({}, {}) ", fileName, fileUrl.toString());
                 ++numberOfDownloads;
-                return file;
+                return new DownloadResult(file, ResultType.DOWNLOADED);
             } catch (IOException ex) {
                 LOG.warn("Failed to download file from {} attemp {}/{}", fileUrl.toString(), attempCounter,
                         config.maxAttemps, ex);
@@ -417,39 +450,21 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
             if (attempCounter > 0) {
                 --attempCounter;
             }
+            if (contextDpu.canceled()) {
+                // Execution has been canceled.
+                throw ContextUtils.dpuExceptionCancelled(context.asUserContext());
+            }
         }
-        // If we are here we does not manage to download file. So check for the reason.
-        if (dpuContext.canceled()) {
-            // Execution has been canceled.
-            throw ContextUtils.dpuExceptionCancelled(context.asUserContext());
-        } else {
-            // We were unable to download file in given number of attemps, we have faild.
-            throw new IOException("Can't obtain file: '" + fileUrl.toString() + "' named: '" + fileName + "'");
-        }
-    }
-
-    /**
-     * Get all given files and store them in a cache. The files are downloaded in given order.
-     *
-     * @param uris
-     */
-    public void get(List<URL> urls) throws ExtensionException, IOException, DPUException {
-        for (URL url : urls) {
-            get(url);
-        }
-    }
-
-    public int getNumberOfDownloads() {
-        return numberOfDownloads;
+        return new DownloadResult(null, ResultType.ERROR);
     }
 
     /**
      * Wait before next download. Before leaving set time for next download.
      */
     private void waitForNextDownload() {
-        while ((new Date()).getTime() < nextDownload && !dpuContext.canceled()) {
+        while ((new Date()).getTime() < nextDownload && !contextDpu.canceled()) {
             try {
-                Thread.sleep(700);
+                Thread.sleep(1000);
             } catch (InterruptedException ex) {
 
             }
@@ -457,48 +472,6 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         // Determine min time for next download, ie. time when next file can be downloaded.
         nextDownload = new Date().getTime()
                 + (long) (Math.random() * (config.maxPause - config.minPause) + config.minPause);
-    }
-
-    /**
-     * We will trust all certificates!
-     *
-     * Code source is MICR_3 DPU. TODO: Do not trust all certificates globally.
-     *
-     * @throws Exception
-     */
-    public static void setTrustAllCerts() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                @Override
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                @Override
-                public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-                }
-
-                @Override
-                public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-                }
-            }
-        };
-
-        // Install the all-trusting trust manager.
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(
-                    new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String urlHostName, SSLSession session) {
-                            return true;
-                        }
-                    });
-        } catch (KeyManagementException | NoSuchAlgorithmException ex) {
-            LOG.error("Can't install all-trusting trus manager", ex);
-        }
     }
 
     private File getFileNameFromSimpleCache(String fileName, URL fileUrl) {
