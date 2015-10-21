@@ -86,9 +86,9 @@ public class ModifyDate extends AbstractDpu<ModifyDateConfig_V1> {
                         item.get("s").stringValue());
                 continue;
             }
-            calendar.add(Calendar.DATE, -1);
+            calendar.add(Calendar.DATE, config.getModifyDay());
 
-            output.add((URI) item.get("s"), outputPredicate, 
+            output.add((URI) item.get("s"), outputPredicate,
                     valueFactory.createLiteral(format.format(calendar.getTime()), xsdDate));
         }
 
