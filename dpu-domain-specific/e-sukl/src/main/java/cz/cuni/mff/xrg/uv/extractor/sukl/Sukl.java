@@ -81,14 +81,14 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
     @ExtensionInitializer.Init(param = "rdfOutInfo")
     public WritableSimpleRdf outInfo;
 
-    @DataUnit.AsOutput(name = "Texts", description = "Text files.")
-    public WritableFilesDataUnit filesOutTexts;
+//    @DataUnit.AsOutput(name = "Texts", description = "Text files.")
+//    public WritableFilesDataUnit filesOutTexts;
 
     @DataUnit.AsOutput(name = "NewTexts", description = "Newly downloaded text files.")
     public WritableFilesDataUnit filesOutNewTexts;
 
-    @ExtensionInitializer.Init(param = "filesOutTexts")
-    public WritableSimpleFiles outTexts;
+//    @ExtensionInitializer.Init(param = "filesOutTexts")
+//    public WritableSimpleFiles outTexts;
 
     @ExtensionInitializer.Init(param = "filesOutNewTexts")
     public WritableSimpleFiles outNewTexts;
@@ -173,6 +173,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             try {
                 downloadInfo(subject, notation);
             } catch (IOException | ExtensionException ex) {
+                LOG.error("downloadInfo failed.", ex);
                 throw ContextUtils.dpuException(ctx, ex, "Downloading failed.");
             }
         }
@@ -190,12 +191,12 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
         switch (fileInfoCz.getType()) {
             case DOWNLOADED:
-                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
                 parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
                 ++numberOfChached;
                 break;
@@ -206,7 +207,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 }
                 break;
             case MISSING:
-                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
                 ++numberOfMissing;
                 break;
             default:
@@ -217,12 +218,12 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
         switch (fileInfoEn.getType()) {
             case DOWNLOADED:
-                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
                 parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
                 ++numberOfChached;
                 break;
@@ -233,7 +234,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 }
                 break;
             case MISSING:
-                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
                 ++numberOfMissing;
                 break;
             default:
@@ -243,12 +244,12 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileText = downloaderService.get(URI_BASE_TEXTS + notation);
         switch (fileText.getType()) {
             case DOWNLOADED:
-                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
                 parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-                LOG.info("File (cache): {}", URI_BASE_INFO_CZ + notation);
+//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
                 ++numberOfChached;
                 break;
@@ -385,6 +386,8 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                     predicate = SuklOntology.TEXT_ON_THE_WRAP;
                     predicateFile = SuklOntology.TEXT_ON_THE_WRAP_FILE;
                     break;
+                default:
+                    break;
             }
             if (predicate == null || predicateFile == null) {
                 // Value is not interesting for us.
@@ -394,25 +397,28 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             outInfo.add(subject, predicate, valueFactory.createURI(value));
             final String fileName = Utils.convertStringToURIPart(value);
             outInfo.add(subject, predicateFile, valueFactory.createLiteral(fileName));
-            // Download.
+
+            // Store to output.
             if (downloadedFiles.contains(fileName)) {
-                // Already added.
-                break;
+                // Already added - this can happen if the same file is shared by multiple instances.
+                continue;
             }
 
             final CachedFileDownloader.DownloadResult downloaded = downloaderService.get(value);
             switch (downloaded.getType()) {
                 case DOWNLOADED:
-                    LOG.info("File (new): {} with name: {}", value, fileName);
-                    outTexts.add(downloaded.getFile(), fileName);
+//                    LOG.info("File (new): {} with name: {}", value, fileName);
+//                    outTexts.add(downloaded.getFile(), fileName);
                     downloadedFiles.add(fileName);
                     ++numberOfDownloaded;
                     // Add to new list.
-                    outNewTexts.add(downloaded.getFile(), fileName);
+                    if (config.isNewFileToOutput()) {
+                        outNewTexts.add(downloaded.getFile(), fileName);
+                    }
                     break;
                 case CACHED:
-                    LOG.info("File (cache): {} with name: {}", value, fileName);
-                    outTexts.add(downloaded.getFile(), fileName);
+//                    LOG.debug("File (cache): {} with name: {}", value, fileName);
+//                    outTexts.add(downloaded.getFile(), fileName);
                     downloadedFiles.add(fileName);
                     ++numberOfChached;
                     break;

@@ -11,6 +11,8 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
 
     private CheckBox checkFailOnDownloadError;
 
+    private CheckBox checkNewFilesToOutput;
+
     public SuklVaadinDialog() {
         super(Sukl.class);
     }
@@ -19,6 +21,7 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
     public void setConfiguration(SuklConfig_V1 c) throws DPUConfigException {
         checkCountMissing.setValue(c.isCountNumberOfMissing());
         checkFailOnDownloadError.setValue(c.isFailOnDownloadError());
+        checkNewFilesToOutput.setValue(c.isNewFileToOutput());
     }
 
     @Override
@@ -26,6 +29,7 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
         final SuklConfig_V1 c = new SuklConfig_V1();
         c.setCountNumberOfMissing(checkCountMissing.getValue());
         c.setFailOnDownloadError(checkFailOnDownloadError.getValue());
+        c.setNewFileToOutput(checkNewFilesToOutput.getValue());
         return c;
     }
 
@@ -42,6 +46,9 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
 
         checkFailOnDownloadError = new CheckBox("Fail on download error");
         mainLayout.addComponent(checkFailOnDownloadError);
+
+        checkNewFilesToOutput = new CheckBox("Add new files to output (filesOutNewTexts)");
+        mainLayout.addComponent(checkNewFilesToOutput);
 
         this.setCompositionRoot(mainLayout);
     }

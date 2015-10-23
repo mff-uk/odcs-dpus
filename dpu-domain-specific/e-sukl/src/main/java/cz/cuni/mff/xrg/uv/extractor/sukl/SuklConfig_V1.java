@@ -9,6 +9,10 @@ public class SuklConfig_V1 {
 
     private boolean failOnDownloadError = true;
 
+    private boolean filesToOutput = false;
+
+    private boolean newFileToOutput = false;
+
     public SuklConfig_V1() {
 
     }
@@ -27,6 +31,22 @@ public class SuklConfig_V1 {
 
     public void setFailOnDownloadError(boolean failOnDownloadError) {
         this.failOnDownloadError = failOnDownloadError;
+    }
+
+    public boolean isFilesToOutput() {
+        return filesToOutput;
+    }
+
+    public void setFilesToOutput(boolean filesToOutput) {
+        this.filesToOutput = filesToOutput;
+    }
+
+    public boolean isNewFileToOutput() {
+        return newFileToOutput;
+    }
+
+    public void setNewFileToOutput(boolean newFileToOutput) {
+        this.newFileToOutput = newFileToOutput;
     }
 
 }

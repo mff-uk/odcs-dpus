@@ -428,7 +428,7 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         }
 
         // Check if we should download file.
-        if (config.maxAttemps == 0 || numberOfDownloads > config.maxDownloads) {
+        if (config.maxAttemps == 0 || numberOfDownloads >= config.maxDownloads) {
             return new DownloadResult(file, ResultType.MISSING);
         }
 
