@@ -24,7 +24,10 @@ import eu.unifiedviews.helpers.dpu.extension.faulttolerance.FaultTolerance;
 import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.RdfConfiguration;
 import java.io.FileOutputStream;
+import org.apache.commons.net.ProtocolCommandEvent;
+import org.apache.commons.net.ProtocolCommandListener;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 
 /**
  *
@@ -107,8 +110,49 @@ public class Ftp extends AbstractDpu<FtpConfig_V1> {
 
         final File file = outFiles.create(fileName);
 
+        // Connect to remote host.
         final FTPClient client = new FTPClient();
         client.connect(host);
+
+        // Can be used to track progress.
+        client.setCopyStreamListener(new ProgressPrinter());
+
+        client.addProtocolCommandListener(new ProtocolCommandListener() {
+
+            @Override
+            public void protocolCommandSent(ProtocolCommandEvent event) {
+                LOG.debug("sent: {}, {} -> {}", event.getCommand(), event.getMessage(), event.getReplyCode());
+            }
+
+            @Override
+            public void protocolReplyReceived(ProtocolCommandEvent event) {
+                LOG.debug("recieved: {}, {} -> {}", event.getCommand(), event.getMessage(), event.getReplyCode());
+            }
+        });
+
+        // Set time out.
+        client.setDataTimeout(5000);
+        client.setControlKeepAliveTimeout(config.getKeepAliveControl());
+
+        int reply = client.getReplyCode();
+        LOG.debug("Connect reply: {}, {}", reply, client.getReplyString());
+        if (!FTPReply.isPositiveCompletion(reply)) {
+            client.disconnect();
+            throw new DPUException("Server refused the connection.");
+        }
+
+        // For now support only anonymous.
+        if (!client.login("anonymous", "")) {
+            client.logout();
+            client.disconnect();
+            throw new DPUException("Can't login as 'anonymous' with no password.");
+        }
+        reply = client.getReplyCode();
+        LOG.debug("Connect reply: {}, {}", reply, client.getReplyString());
+        if (!FTPReply.isPositiveCompletion(reply)) {
+            client.disconnect();
+            throw new DPUException("Server refused the connection.");
+        }
 
         // From documentation:
         //      currently calling any connect method will reset the mode to ACTIVE_LOCAL_DATA_CONNECTION_MODE.
@@ -116,9 +160,6 @@ public class Ftp extends AbstractDpu<FtpConfig_V1> {
             LOG.debug("Using passive mode.");
             client.enterLocalPassiveMode();
         }
-        
-        // For now support only anonymous.
-        client.login("anonymous", "");
 
         // From documentatio:
         //  currently calling any connect method will reset the type to FTP.ASCII_FILE_TYPE.
@@ -127,14 +168,35 @@ public class Ftp extends AbstractDpu<FtpConfig_V1> {
         }
 
         LOG.debug("Downloading ...");
-        try(FileOutputStream output = new FileOutputStream(file)) {
+        try (FileOutputStream output = new FileOutputStream(file)) {
+//             ; InputStream input = client.retrieveFileStream(host)) {
+//
+//            if (input == null) {
+//                throw new DPUException("Can't get input file stream!");
+//            }
+//            // Copy stream and log progress.
+//            final byte[] buffer = new byte[1024]; // new byte[16384];
+//            int len;
+//            long total = 0;
+//            LOG.debug("Start reading ..");
+//            while ((len = input.read(buffer)) > 0) {
+//                total += len;
+//                if (total > 158289770) {
+//                    LOG.debug("Reading data: {}", len);
+//                    LOG.debug(" : {}", buffer);
+//                }
+//                output.write(buffer, 0, len);
+//            }
+
             client.retrieveFile("/" + filePath, output);
+
+            LOG.debug("Downloading ... flush");
             output.flush();
         }
         LOG.debug("Downloading ... done");
 
+        client.logout();
         client.disconnect();
     }
 
 }
-

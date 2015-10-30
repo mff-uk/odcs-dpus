@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.extractor.ftp;
 
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.container.ComponentTable;
@@ -13,6 +14,8 @@ public class FtpVaadinDialog extends AbstractDialog<FtpConfig_V1> {
 
     private CheckBox checkBinaryMode;
 
+    private TextField txtControllTimeOut;
+
     private ComponentTable<DownloadInfo_V1> table;
 
     public FtpVaadinDialog() {
@@ -24,6 +27,7 @@ public class FtpVaadinDialog extends AbstractDialog<FtpConfig_V1> {
         table.setValue(c.getToDownload());
         checkPassiveMode.setValue(c.isUsePassiveMode());
         checkBinaryMode.setValue(c.isUseBinaryMode());
+        txtControllTimeOut.setValue(Integer.toString(c.getKeepAliveControl()));
     }
 
     @Override
@@ -32,6 +36,13 @@ public class FtpVaadinDialog extends AbstractDialog<FtpConfig_V1> {
         c.getToDownload().addAll(table.getValue());
         c.setUsePassiveMode(checkPassiveMode.getValue());
         c.setUseBinaryMode(checkBinaryMode.getValue());
+
+        try {
+            c.setKeepAliveControl(Integer.parseInt(txtControllTimeOut.getValue()));
+        } catch (NumberFormatException ex) {
+            throw new DPUConfigException("Not a number!");
+        }
+
         return c;
     }
 
@@ -67,6 +78,10 @@ public class FtpVaadinDialog extends AbstractDialog<FtpConfig_V1> {
 
         checkBinaryMode = new CheckBox("Use binary mode");
         mainLayout.addComponent(checkBinaryMode);
+
+        txtControllTimeOut = new TextField("Controll time out");
+        txtControllTimeOut.setDescription("Set 0 to disable.");
+        mainLayout.addComponent(txtControllTimeOut);
 
         addTab(mainLayout, "FTP options");
     }

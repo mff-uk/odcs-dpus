@@ -18,6 +18,8 @@ public class FtpConfig_V1 {
 
     private boolean useBinaryMode = false;
 
+    private int keepAliveControl = 0;
+
     public FtpConfig_V1() {
 
     }
@@ -44,6 +46,14 @@ public class FtpConfig_V1 {
 
     public void setUseBinaryMode(boolean useBinaryMode) {
         this.useBinaryMode = useBinaryMode;
+    }
+
+    public int getKeepAliveControl() {
+        return keepAliveControl;
+    }
+
+    public void setKeepAliveControl(int keepAliveControl) {
+        this.keepAliveControl = keepAliveControl;
     }
 
 }
