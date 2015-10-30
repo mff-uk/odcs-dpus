@@ -478,7 +478,6 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                     }
                     break;
                 case MISSING:
-                    LOG.warn("File (missing): {} with name: {}", value, fileName);
                     ++numberOfMissing;
                     break;
                 default:
