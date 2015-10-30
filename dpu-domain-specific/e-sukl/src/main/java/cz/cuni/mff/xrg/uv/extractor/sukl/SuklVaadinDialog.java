@@ -1,6 +1,7 @@
 package cz.cuni.mff.xrg.uv.extractor.sukl;
 
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import eu.unifiedviews.dpu.config.DPUConfigException;
 import eu.unifiedviews.helpers.dpu.vaadin.dialog.AbstractDialog;
@@ -13,6 +14,10 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
 
     private CheckBox checkNewFilesToOutput;
 
+    private TextField txtDeleteStorage;
+
+    private CheckBox checkDelteOnError;
+
     public SuklVaadinDialog() {
         super(Sukl.class);
     }
@@ -22,6 +27,8 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
         checkCountMissing.setValue(c.isCountNumberOfMissing());
         checkFailOnDownloadError.setValue(c.isFailOnDownloadError());
         checkNewFilesToOutput.setValue(c.isNewFileToOutput());
+        txtDeleteStorage.setValue(c.getDeletedFileStorage());
+        checkDelteOnError.setValue(c.isDeletePagesOnError());
     }
 
     @Override
@@ -30,6 +37,8 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
         c.setCountNumberOfMissing(checkCountMissing.getValue());
         c.setFailOnDownloadError(checkFailOnDownloadError.getValue());
         c.setNewFileToOutput(checkNewFilesToOutput.getValue());
+        c.setDeletedFileStorage(txtDeleteStorage.getValue());
+        c.setDeletePagesOnError(checkDelteOnError.getValue());
         return c;
     }
 
@@ -49,6 +58,13 @@ public class SuklVaadinDialog extends AbstractDialog<SuklConfig_V1> {
 
         checkNewFilesToOutput = new CheckBox("Add new files to output (filesOutNewTexts)");
         mainLayout.addComponent(checkNewFilesToOutput);
+
+        txtDeleteStorage = new TextField("Where to store deleted files");
+        txtDeleteStorage.setWidth("100%");
+        mainLayout.addComponent(txtDeleteStorage);
+
+        checkDelteOnError = new CheckBox("Delete index page on download error");
+        mainLayout.addComponent(checkDelteOnError);
 
         this.setCompositionRoot(mainLayout);
     }

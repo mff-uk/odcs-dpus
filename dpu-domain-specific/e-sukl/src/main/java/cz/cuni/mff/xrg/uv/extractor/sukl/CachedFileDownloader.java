@@ -397,6 +397,44 @@ public class CachedFileDownloader implements Extension, Extension.Executable,
         return get(fileUrl.toString(), fileUrl);
     }
 
+    public File getFromCache(String fileUrl)throws ExtensionException, IOException, DPUException {
+        try {
+            return getFromCache(fileUrl, new URL(fileUrl));
+        } catch (MalformedURLException e) {
+            throw new ExtensionException("Wrong URL.", e);
+        }
+    }
+
+    /**
+     *
+     * @param fileName
+     * @param fileUrl
+     * @return File from cache or null.
+     * @throws ExtensionException
+     * @throws IOException
+     * @throws DPUException
+     */
+    public File getFromCache(String fileName, URL fileUrl)throws ExtensionException, IOException, DPUException {
+        if (baseDirectory == null) {
+            throw new ExtensionException("Not initialized!");
+        }
+        // Made name secure, so we can use it as a file name.
+        try {
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException("Hard coded encoding is not supported!!", ex);
+        }
+        // Get file name.
+        final File file;
+        file = getFileNameFromSimpleCache(fileName, fileUrl);
+
+        if (file.exists()) {
+            return file;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * If file of given name exists, then it's returned. If not then is downloaded from given URL, saved under given
      * name and then returned.

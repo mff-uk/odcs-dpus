@@ -37,6 +37,9 @@ import eu.unifiedviews.helpers.dpu.extension.files.simple.WritableSimpleFiles;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.SimpleRdf;
 import eu.unifiedviews.helpers.dpu.extension.rdf.simple.WritableSimpleRdf;
 import eu.unifiedviews.helpers.dpu.rdf.sparql.SparqlUtils;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
@@ -81,14 +84,8 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
     @ExtensionInitializer.Init(param = "rdfOutInfo")
     public WritableSimpleRdf outInfo;
 
-//    @DataUnit.AsOutput(name = "Texts", description = "Text files.")
-//    public WritableFilesDataUnit filesOutTexts;
-
     @DataUnit.AsOutput(name = "NewTexts", description = "Newly downloaded text files.")
     public WritableFilesDataUnit filesOutNewTexts;
-
-//    @ExtensionInitializer.Init(param = "filesOutTexts")
-//    public WritableSimpleFiles outTexts;
 
     @ExtensionInitializer.Init(param = "filesOutNewTexts")
     public WritableSimpleFiles outNewTexts;
@@ -145,6 +142,12 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 LOG.info("Break for missing file!");
                 break;
             }
+            // Support for cancel.
+            if (ctx.canceled()) {
+                ContextUtils.sendShortInfo(ctx, "{0} downloaded, {1} cached, {2} missing",
+                        numberOfDownloaded, numberOfChached, numberOfMissing);
+                throw ContextUtils.dpuExceptionCancelled(ctx);
+            }
         }
         ContextUtils.sendShortInfo(ctx, "{0} downloaded, {1} cached, {2} missing",
                 numberOfDownloaded, numberOfChached, numberOfMissing);
@@ -167,6 +170,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             }
         });
         // For each row of result (tuple).
+        int counter = 0;
         for (Map<String, Value> row : colector.getResults()) {
             final String notation = row.get(SKOSNOTATION_BINDING).stringValue();
             final URI subject = (URI) row.get(SUBJECT_BINDING);
@@ -176,7 +180,51 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 LOG.error("downloadInfo failed.", ex);
                 throw ContextUtils.dpuException(ctx, ex, "Downloading failed.");
             }
+            // Support for cancel.
+            if (ctx.canceled()) {
+                ContextUtils.sendShortInfo(ctx, "{0} downloaded, {1} cached, {2} missing",
+                        numberOfDownloaded, numberOfChached, numberOfMissing);
+                throw ContextUtils.dpuExceptionCancelled(ctx);
+            }
+            ++counter;
+            if (counter % 1000 == 0) {
+                LOG.info("Progress {}/{}", counter, colector.getResults().size());
+            }
         }
+    }
+
+    /**
+     *
+     * @param notation
+     * @return True if no other content for this novation should be downloaded.
+     * @throws DPUException
+     * @throws IOException
+     * @throws ExtensionException
+     */
+    private boolean onDownloadError(String notation) throws DPUException, IOException, ExtensionException {
+        if (config.isDeletePagesOnError()) {
+            // Move index files into the delete folder.
+            final File deletedStorage = new File(config.getDeletedFileStorage(),
+                    new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+            deletedStorage.mkdirs();
+            // Copy exisitng file.
+            final File fileInfoCz = downloaderService.getFromCache(URI_BASE_INFO_CZ + notation);
+            LOG.debug("Moving files ...");
+            if (fileInfoCz != null) {
+                fileInfoCz.renameTo(new File(deletedStorage, fileInfoCz.getName()));
+            }
+            final File fileInfoEn = downloaderService.getFromCache(URI_BASE_INFO_EN + notation);
+            if (fileInfoEn != null) {
+                fileInfoEn.renameTo(new File(deletedStorage, fileInfoEn.getName()));
+            }
+            final File fileText = downloaderService.getFromCache(URI_BASE_TEXTS + notation);
+            if (fileText != null) {
+                fileText.renameTo(new File(deletedStorage, fileText.getName()));
+            }
+            LOG.debug("Moving files ... done");
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -191,12 +239,11 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileInfoCz = downloaderService.get(URI_BASE_INFO_CZ + notation);
         switch (fileInfoCz.getType()) {
             case DOWNLOADED:
-//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
                 parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseNameCz(subject, Jsoup.parse(fileInfoCz.getFile(), null));
                 ++numberOfChached;
                 break;
@@ -205,9 +252,11 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 if (config.isFailOnDownloadError()) {
                     throw new DPUException("Can't download file!");
                 }
+                if (onDownloadError(notation)) {
+                    return;
+                }
                 break;
             case MISSING:
-//                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
                 ++numberOfMissing;
                 break;
             default:
@@ -218,23 +267,24 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileInfoEn = downloaderService.get(URI_BASE_INFO_EN + notation);
         switch (fileInfoEn.getType()) {
             case DOWNLOADED:
-//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                LOG.info("File (new): {}", URI_BASE_INFO_EN + notation);
                 parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseNameEn(subject, Jsoup.parse(fileInfoEn.getFile(), null));
                 ++numberOfChached;
                 break;
             case ERROR:
-                LOG.error("File (error) : {}", URI_BASE_INFO_CZ + notation);
+                LOG.error("File (error) : {}", URI_BASE_INFO_EN + notation);
                 if (config.isFailOnDownloadError()) {
                     throw new DPUException("Can't download file!");
                 }
+                if (onDownloadError(notation)) {
+                    return;
+                }
                 break;
             case MISSING:
-//                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
                 ++numberOfMissing;
                 break;
             default:
@@ -244,23 +294,24 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
         final CachedFileDownloader.DownloadResult fileText = downloaderService.get(URI_BASE_TEXTS + notation);
         switch (fileText.getType()) {
             case DOWNLOADED:
-//                LOG.info("File (new): {}", URI_BASE_INFO_CZ + notation);
+                LOG.info("File (new): {}", URI_BASE_TEXTS + notation);
                 parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
                 ++numberOfDownloaded;
                 break;
             case CACHED:
-//                LOG.debug("File (cache): {}", URI_BASE_INFO_CZ + notation);
                 parseTexts(subject, notation, Jsoup.parse(fileText.getFile(), null));
                 ++numberOfChached;
                 break;
             case ERROR:
-                LOG.error("File (error) : {}", URI_BASE_INFO_CZ + notation);
+                LOG.error("File (error) : {}", URI_BASE_TEXTS + notation);
                 if (config.isFailOnDownloadError()) {
                     throw new DPUException("Can't download file!");
                 }
+                if (onDownloadError(notation)) {
+                    return;
+                }
                 break;
             case MISSING:
-                LOG.warn("File (missing): {}", URI_BASE_INFO_CZ + notation);
                 ++numberOfMissing;
                 break;
             default:
@@ -281,8 +332,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 final String val = element.getElementsByTag("td").first().html();
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
-                    // this is just an empty string, we skip this
-                    LOG.trace("Value '{}' skipped.", valText);
+                    // Just an empty string, we skip this
                     return;
                 }
 
@@ -313,8 +363,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                 final String val = element.getElementsByTag("td").first().html();
                 final String valText = element.getElementsByTag("td").first().text().trim();
                 if (valText.length() < 2) {
-                    // this is just an empty string, we skip this
-                    LOG.trace("Value '{}' skipped.", valText);
+                    // Just an empty string, we skip this
                     return;
                 }
 
@@ -407,8 +456,7 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
             final CachedFileDownloader.DownloadResult downloaded = downloaderService.get(value);
             switch (downloaded.getType()) {
                 case DOWNLOADED:
-//                    LOG.info("File (new): {} with name: {}", value, fileName);
-//                    outTexts.add(downloaded.getFile(), fileName);
+                    LOG.info("File (new): {} with name: {}", value, fileName);
                     downloadedFiles.add(fileName);
                     ++numberOfDownloaded;
                     // Add to new list.
@@ -417,15 +465,16 @@ public class Sukl extends AbstractDpu<SuklConfig_V1> {
                     }
                     break;
                 case CACHED:
-//                    LOG.debug("File (cache): {} with name: {}", value, fileName);
-//                    outTexts.add(downloaded.getFile(), fileName);
                     downloadedFiles.add(fileName);
                     ++numberOfChached;
                     break;
                 case ERROR:
-                    LOG.error("File (error) : {} with name: {}", value, fileName);
+                    LOG.error("File (error, notation:{}) : {} with name: {}", notation, value, fileName);
                     if (config.isFailOnDownloadError()) {
                         throw new DPUException("Can't download file!");
+                    }
+                    if (onDownloadError(notation)) {
+                        return;
                     }
                     break;
                 case MISSING:

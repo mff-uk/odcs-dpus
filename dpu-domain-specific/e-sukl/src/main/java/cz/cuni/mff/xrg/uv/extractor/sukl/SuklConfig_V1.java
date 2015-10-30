@@ -7,11 +7,22 @@ public class SuklConfig_V1 {
 
     private boolean countNumberOfMissing = false;
 
+    /**
+     * If true and we can not download file then terminates DPU with exception. If false,
+     * and we can not download file only log is created.
+     */
     private boolean failOnDownloadError = true;
 
     private boolean filesToOutput = false;
 
     private boolean newFileToOutput = false;
+
+    private boolean deletePagesOnError = false;
+
+    /**
+     * Path to directory where deleted fils should be stored.
+     */
+    private String deletedFileStorage = "~/sukl";
 
     public SuklConfig_V1() {
 
@@ -49,4 +60,20 @@ public class SuklConfig_V1 {
         this.newFileToOutput = newFileToOutput;
     }
 
+    public String getDeletedFileStorage() {
+        return deletedFileStorage;
+    }
+
+    public void setDeletedFileStorage(String deletedFileStorage) {
+        this.deletedFileStorage = deletedFileStorage;
+    }
+
+    public boolean isDeletePagesOnError() {
+        return deletePagesOnError;
+    }
+
+    public void setDeletePagesOnError(boolean deletePagesOnError) {
+        this.deletePagesOnError = deletePagesOnError;
+    }
+    
 }
