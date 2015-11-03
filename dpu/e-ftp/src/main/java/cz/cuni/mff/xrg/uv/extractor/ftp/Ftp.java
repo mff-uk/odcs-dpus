@@ -64,6 +64,7 @@ public class Ftp extends AbstractDpu<FtpConfig_V1> {
 
         int index = 0;
         for (DownloadInfo_V1 info : config.getToDownload()) {
+            ContextUtils.sendShortInfo(ctx, "Downloading: ", info.getUri());
             LOG.info("Downloading ({}/{}) : '{}' ", index++, config.getToDownload().size(), info.getUri());
             URL url;
             try {

@@ -13,7 +13,7 @@ public class ProgressPrinter implements CopyStreamListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProgressPrinter.class);
 
-    int lastDownloaded = 0;
+    long lastDownloaded = 0;
 
     @Override
     public void bytesTransferred(CopyStreamEvent event) {
@@ -22,9 +22,9 @@ public class ProgressPrinter implements CopyStreamListener {
 
     @Override
     public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
-        if (totalBytesTransferred > lastDownloaded || totalBytesTransferred > 158291900l ) {
+        if (totalBytesTransferred > lastDownloaded) {
             lastDownloaded += (1024 * 1024);
-            LOG.info("Transfered: {} MB, {} B",
+            LOG.debug("Transfered: {} MB, {} B",
                     totalBytesTransferred / (1024 * 1024), totalBytesTransferred);
         }
     }
