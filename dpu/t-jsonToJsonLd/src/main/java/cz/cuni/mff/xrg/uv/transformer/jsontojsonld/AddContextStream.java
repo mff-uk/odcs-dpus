@@ -20,7 +20,9 @@ public class AddContextStream extends InputStream {
     public AddContextStream(String context, String encoding, InputStream stream, String symbolicName) throws UnsupportedEncodingException {
         final String headerAsString = String.format(""
                 + "{\n"
-                + "  \"@context\": \"%s\",\n"
+                + "  \"@context\": {\n"
+                + "    \"@vocab\": \"%s\""
+                + "  },\n"
                 + "  \"@type\": \"http://localhost/ontology/temp/DataRoot\",\n"
                 + "  \"symbolicName\": \"" + symbolicName + "\",\n"
                 + "  \"data\":"

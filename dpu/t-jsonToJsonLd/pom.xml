@@ -8,7 +8,7 @@
     </parent>
     <groupId>cz.cuni.mff.xrg.uv</groupId>
     <artifactId>t-JsonToJsonLd</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>bundle</packaging>
     <name>T-JsonToJsonLd</name>
     <description></description>
@@ -37,5 +37,5 @@
 			<scope>provided</scope>
 		</dependency>
     </dependencies>
-	
+
 </project>
